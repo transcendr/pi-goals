@@ -48,6 +48,7 @@ Implement the ISSUE-002..005 follow-ups as small, verified slices while preservi
 - Do not create cross-module shortcuts that violate `.pi/extensions/goal/.sentrux/rules.toml`.
 - Do not treat Sentrux as a test substitute; also run TypeScript/Pi/mocking/manual validation where available.
 - Do not mark a Solo todo complete until the todo body’s definition of done and the issue acceptance criteria for that slice have real evidence.
+- Stage and commit after each issue is fully implemented and audited; do not batch multiple issue completions into one ambiguous commit unless the user explicitly requests it.
 
 ## Required Solo todo usage
 
@@ -144,6 +145,45 @@ Follow this default order because ISSUE-003 supplies cancellation/context safegu
 2. ISSUE-002 — active-turn pause steering/abort using the cancellation runtime.
 3. ISSUE-005 — explicit resource labels and time-budget accounting.
 4. ISSUE-004 — command-local autocomplete; independent and can move earlier if a small low-risk win is needed.
+
+## Required per-issue commit discipline
+
+After completing all leaves for one issue and before starting the next issue:
+
+1. Run the issue acceptance-criteria audit and record evidence in Solo comments.
+2. Complete the issue epic todo only after all child leaves are complete and audited.
+3. Run final validation for that issue, including:
+
+   ```bash
+   sentrux gate .pi/extensions/goal
+   sentrux check .pi/extensions/goal
+   git status --short
+   ```
+
+4. Stage all files changed for that issue:
+
+   ```bash
+   git add -A
+   git status --short
+   ```
+
+5. Commit with an issue-scoped conventional message, for example:
+
+   ```bash
+   git commit -m "fix: guard paused goal continuations"
+   git commit -m "fix: stop active goal turn on pause"
+   git commit -m "feat: add goal time budget support"
+   git commit -m "feat: autocomplete goal subcommands"
+   ```
+
+6. Verify the worktree is clean before moving to the next issue:
+
+   ```bash
+   git status --short
+   git log --oneline -1
+   ```
+
+7. If the worktree is not clean, either commit the remaining issue-related files or document why they must remain uncommitted before continuing.
 
 ## ISSUE-003 implementation playbook
 
@@ -464,8 +504,9 @@ Before claiming the implementation complete:
 4. Ensure every completed leaf has a completion-evidence comment.
 5. Complete issue epic only when all leaves are complete and acceptance criteria pass.
 6. Run final Sentrux gate/check.
-7. Run `git status --short` and report all changed files.
-8. If committing is requested, stage and commit only after the audit is green.
+7. Verify each completed issue has its own post-audit commit, or explicitly document any user-approved exception.
+8. Run `git status --short` and report all changed files.
+9. If any dirty files remain, stage and commit them before claiming completion unless the user explicitly asked to leave them uncommitted.
 
 Final report must include:
 
@@ -475,5 +516,6 @@ Final report must include:
 - Sentrux commands and results;
 - TypeScript/Pi/manual validation commands and results;
 - known limitations or deferred follow-ups;
+- per-issue commit hashes;
 - final git status or commit hash if committed.
 ```
