@@ -1,3 +1,4 @@
+import { truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
 import { commandHint, formatElapsed, formatTokensCompact, objectiveExcerpt } from "./format";
 import type { GoalState, GoalStatus } from "./types";
 
@@ -49,7 +50,7 @@ export function renderGoalWidget(goal: GoalState, theme: GoalWidgetTheme, width:
 		contentLine(commandLine(goal.status, theme), contentWidth, theme),
 		bottomBorder(cardWidth, theme),
 	];
-	return lines.map((line) => truncatePlain(line, cardWidth));
+	return lines.map((line) => truncateToWidth(line, cardWidth));
 }
 
 class GoalWidget implements GoalWidgetComponent {
@@ -68,9 +69,9 @@ function compactLines(goal: GoalState, theme: GoalWidgetTheme, width: number): s
 	const style = statusStyle(goal.status);
 	const status = theme.fg(style.color, `${style.icon} ${style.label}`);
 	return [
-		truncatePlain(`${status} ${objectiveExcerpt(goal.objective, Math.max(6, width - 10))}`, width),
-		truncatePlain(`${timeValue(goal)}  ${tokenValue(goal)}`, width),
-		truncatePlain(commandHint(goal.status).replace(/^Commands: /, ""), width),
+		truncateToWidth(`${status} ${objectiveExcerpt(goal.objective, Math.max(6, width - 10))}`, width),
+		truncateToWidth(`${timeValue(goal)}  ${tokenValue(goal)}`, width),
+		truncateToWidth(commandHint(goal.status).replace(/^Commands: /, ""), width),
 	];
 }
 
@@ -79,7 +80,7 @@ function topBorder(width: number, style: StatusStyle, theme: GoalWidgetTheme): s
 	const badge = theme.fg(style.color, style.label);
 	const left = `╭─ ${title} `;
 	const right = ` ${badge} ─╮`;
-	const fill = "─".repeat(Math.max(1, width - plainWidth(`${style.icon} pi-goal`) - plainWidth(style.label) - 9));
+	const fill = "─".repeat(Math.max(1, width - visibleWidth(left) - visibleWidth(right)));
 	return `${left}${theme.fg("border", fill)}${right}`;
 }
 
@@ -88,7 +89,7 @@ function bottomBorder(width: number, theme: GoalWidgetTheme): string {
 }
 
 function contentLine(content: string, width: number, theme: GoalWidgetTheme): string {
-	const clipped = padPlain(truncatePlain(content, width, "…"), width);
+	const clipped = padAnsi(truncateToWidth(content, width, "…"), width);
 	return `${theme.fg("border", "│")} ${clipped} ${theme.fg("border", "│")}`;
 }
 
@@ -142,26 +143,8 @@ function clamp(value: number, min: number, max: number): number {
 	return Math.min(max, Math.max(min, value));
 }
 
-function truncatePlain(text: string, width: number, ellipsis = "…"): string {
-	if (plainWidth(text) <= width) return text;
-	const target = Math.max(0, width - plainWidth(ellipsis));
-	let result = "";
-	let used = 0;
-	for (const char of Array.from(text)) {
-		const charWidth = plainWidth(char);
-		if (used + charWidth > target) break;
-		result += char;
-		used += charWidth;
-	}
-	return `${result}${ellipsis}`;
-}
-
-function padPlain(text: string, width: number): string {
-	return `${text}${" ".repeat(Math.max(0, width - plainWidth(text)))}`;
-}
-
-function plainWidth(text: string): number {
-	return Array.from(text).length;
+function padAnsi(text: string, width: number): string {
+	return `${text}${" ".repeat(Math.max(0, width - visibleWidth(text)))}`;
 }
 
 function statusStyle(status: GoalStatus): StatusStyle {
