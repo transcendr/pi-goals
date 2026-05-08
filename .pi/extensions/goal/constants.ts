@@ -3,7 +3,7 @@ export const CONTINUATION_MESSAGE_TYPE = "pi-goal-continuation";
 export const BUDGET_LIMIT_MESSAGE_TYPE = "pi-goal-budget-limit";
 export const PAUSE_MESSAGE_TYPE = "pi-goal-pause";
 
-export const MAX_OBJECTIVE_CHARS = 4000;
+export const MAX_OBJECTIVE_CHARS = 15000;
 export const LONG_OBJECTIVE_HINT =
 	"Put longer instructions in a file and refer to that file in the goal, for example: /goal follow the instructions in docs/goal.md.";
 

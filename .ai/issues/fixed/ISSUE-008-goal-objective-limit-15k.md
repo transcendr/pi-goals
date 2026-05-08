@@ -1,6 +1,6 @@
 # ISSUE-008 — Raise goal objective character limit to 15K
 
-Status: open — execution-ready
+Status: fixed — implemented and validated
 Priority: P2
 Owner: unassigned
 Created: 2026-05-08
@@ -44,3 +44,21 @@ Out of scope:
 - [ ] 008.1 Update `MAX_OBJECTIVE_CHARS` to `15000`.
 - [ ] 008.2 Add or run a validation probe for accepted 4,241-character and rejected 15,001-character objectives.
 - [ ] 008.3 Run Sentrux gate/check and Pi extension load validation; record `tsc` availability.
+
+
+## Implementation closeout
+
+Implemented objective limit increase:
+
+- `MAX_OBJECTIVE_CHARS` changed from `4000` to `15000`.
+- Existing `validateObjective` behavior now accepts 4,241-character objectives.
+- 15,001-character objectives are rejected with an accurate `15000` limit message.
+- Empty objective validation remains rejected.
+
+Validation:
+
+- jiti probe: 4,241 accepted; 15,001 rejected with `15000`; empty rejected.
+- `sentrux gate .pi/extensions/goal` passed.
+- `sentrux check .pi/extensions/goal` passed.
+- `pi --offline --no-session --no-tools -e .pi/extensions/goal/index.ts --list-models` passed.
+- `tsc` attempted but unavailable: `/bin/bash: tsc: command not found`.
