@@ -10,36 +10,63 @@ import { getGoal, getTelemetry, persistTelemetry } from "./state";
 import { noteBudgetWrapUpSent, noteContinuationScheduled, noteContinuationSkipped, setNextTurnOrigin } from "./telemetry";
 import type { ContinuationReason, GoalState } from "./types";
 
-let pendingTimer: ReturnType<typeof setTimeout> | undefined;
-let budgetWrapUpGoalIds = new Set<string>();
+type PendingContinuation = {
+	goalId: string;
+	reason: ContinuationReason;
+	timer: ReturnType<typeof setTimeout>;
+};
+
+type PendingBudgetWrapUp = {
+	goalId: string;
+	timer: ReturnType<typeof setTimeout>;
+};
+
+let pendingContinuation: PendingContinuation | undefined;
+let budgetWrapUps = new Map<string, PendingBudgetWrapUp>();
 
 export function scheduleMaybeContinueGoal(pi: ExtensionAPI, ctx: ExtensionContext, reason: ContinuationReason): void {
-	if (pendingTimer) clearTimeout(pendingTimer);
+	const goal = getGoal();
+	if (!goal || goal.status !== "active") return;
+	cancelGoalContinuation(goal.goalId, "reschedule-continuation");
 	const telemetry = noteContinuationScheduled(getTelemetry(), reason);
 	if (telemetry) persistTelemetry(pi, telemetry, "continuation");
-	pendingTimer = setTimeout(() => {
-		pendingTimer = undefined;
-		void safelyRun(() => maybeContinueGoal(pi, ctx, reason));
+	const goalId = goal.goalId;
+	const timer = setTimeout(() => {
+		if (pendingContinuation?.goalId === goalId) pendingContinuation = undefined;
+		void safelyRun(() => maybeContinueGoal(pi, ctx, reason, goalId));
 	}, 25);
+	pendingContinuation = { goalId, reason, timer };
 }
 
 export function scheduleBudgetLimitWrapUp(pi: ExtensionAPI, ctx: ExtensionContext, goal: GoalState): void {
-	if (budgetWrapUpGoalIds.has(goal.goalId)) return;
-	budgetWrapUpGoalIds.add(goal.goalId);
-	setTimeout(() => {
+	if (budgetWrapUps.has(goal.goalId)) return;
+	const timer = setTimeout(() => {
+		budgetWrapUps.delete(goal.goalId);
 		void safelyRun(() => maybeSendBudgetWrapUp(pi, ctx, goal.goalId));
 	}, 25);
+	budgetWrapUps.set(goal.goalId, { goalId: goal.goalId, timer });
+}
+
+export function cancelGoalContinuation(goalId?: string, _reason = "cancelled"): void {
+	if (pendingContinuation && (!goalId || pendingContinuation.goalId === goalId)) {
+		clearTimeout(pendingContinuation.timer);
+		pendingContinuation = undefined;
+	}
+	for (const [pendingGoalId, pending] of budgetWrapUps) {
+		if (!goalId || pendingGoalId === goalId) {
+			clearTimeout(pending.timer);
+			budgetWrapUps.delete(pendingGoalId);
+		}
+	}
 }
 
 export function resetContinuationRuntime(): void {
-	if (pendingTimer) clearTimeout(pendingTimer);
-	pendingTimer = undefined;
-	budgetWrapUpGoalIds = new Set();
+	cancelGoalContinuation();
 }
 
-async function maybeContinueGoal(pi: ExtensionAPI, ctx: ExtensionContext, reason: ContinuationReason): Promise<void> {
+async function maybeContinueGoal(pi: ExtensionAPI, ctx: ExtensionContext, reason: ContinuationReason, goalId: string): Promise<void> {
 	const goal = getGoal();
-	if (!goal || goal.status !== "active") return skip(pi, "notActive");
+	if (!goal || goal.goalId !== goalId || goal.status !== "active") return skip(pi, "notActive");
 	if (!ctx.isIdle()) return skip(pi, "notIdle");
 	if (ctx.hasPendingMessages()) return skip(pi, "pendingMessages");
 	const telemetry = getTelemetry();

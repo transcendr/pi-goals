@@ -86,6 +86,7 @@ export type GoalSteeringDetails = {
 };
 
 export type GoalCommandScheduler = (ctx: ExtensionContext, reason: ContinuationReason) => void;
+export type GoalContinuationCanceller = (goalId?: string, reason?: string) => void;
 
 export type MutationResult = {
 	ok: boolean;

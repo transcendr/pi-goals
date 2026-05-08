@@ -18,6 +18,8 @@ ${budget}
 
 Avoid repeating work that is already done. Choose the next concrete action toward the objective.
 
+Before doing substantive goal work, inspect the active goal state if needed. If get_goal reports this goal is paused, absent, complete, budget-limited, or has a different goal id, stop and wait for /goal resume instead of following this continuation text.
+
 Before deciding that the goal is achieved, perform a completion audit against the actual current state:
 - Restate the objective as concrete deliverables or success criteria.
 - Build a prompt-to-artifact checklist that maps every explicit requirement, numbered item, named file, command, test, gate, and deliverable to concrete evidence.
@@ -47,7 +49,7 @@ ${escapeXml(goal.objective)}
 Budget:
 ${budgetLines(goal, false)}
 
-The system has marked the goal as budget_limited, so do not start new substantive work for this goal. Wrap up this turn soon: summarize useful progress, identify remaining work or blockers, and leave the user with a clear next step.
+The system has marked the goal as budget_limited, so do not start new substantive work for this goal. If get_goal reports this goal is paused, absent, complete, active, or has a different goal id, treat this wrap-up message as stale and do not continue goal work. Wrap up this turn soon: summarize useful progress, identify remaining work or blockers, and leave the user with a clear next step.
 
 Do not call update_goal unless the goal is actually complete.`,
 		details: { goalId: goal.goalId, kind: "budgetLimit", promptId: BUDGET_LIMIT_PROMPT_ID, createdAt: Date.now(), reason: "budget" },

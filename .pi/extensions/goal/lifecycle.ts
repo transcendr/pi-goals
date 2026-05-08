@@ -10,7 +10,7 @@ import type {
 	TurnStartEvent,
 } from "@earendil-works/pi-coding-agent";
 import { BUDGET_LIMIT_MESSAGE_TYPE, CONTINUATION_MESSAGE_TYPE, MAX_CONSECUTIVE_AUTO_TURNS, MAX_NO_PROGRESS_AUTO_TURNS } from "./constants";
-import { scheduleBudgetLimitWrapUp, scheduleMaybeContinueGoal } from "./continuation";
+import { cancelGoalContinuation, scheduleBudgetLimitWrapUp, scheduleMaybeContinueGoal } from "./continuation";
 import { getGoal, getTelemetry, persistAccountGoal, persistTelemetry, persistUpdateGoal, replayGoalState } from "./state";
 import { applyTurnTelemetry, consumeNextTurnOrigin, makeTurnSnapshot, noteSafetyPause } from "./telemetry";
 import { notifyWarning, promptResumePausedGoal, syncGoalUi } from "./ui";
@@ -112,6 +112,7 @@ async function pauseForSafety(
 	reason: "abort" | "maxAutoTurns" | "noProgress",
 	message: string,
 ): Promise<void> {
+	cancelGoalContinuation(goal.goalId, reason);
 	const paused: GoalState = { ...goal, status: "paused", updatedAt: Date.now() };
 	const telemetry = noteSafetyPause(getTelemetry(), reason);
 	persistUpdateGoal(pi, paused, telemetry, reason === "abort" ? "abort" : "safety");
@@ -132,19 +133,33 @@ function assistantTokens(message: TurnEndEvent["message"]): number {
 
 function filterGoalContext(event: ContextEvent): ContextEventResult | undefined {
 	// Pi extension custom messages are later converted to user-role LLM messages.
-	// Keep only the latest relevant pi-goal steering message so repeated hidden
-	// continuations do not become stale user-role instructions in future turns.
-	let latestIndex = -1;
+	// Keep only the latest status-compatible pi-goal steering message so repeated
+	// hidden continuations do not become stale user-role instructions in future turns.
+	let latestValidIndex = -1;
+	let sawGoalSteering = false;
 	for (let i = 0; i < event.messages.length; i++) {
-		if (isGoalSteeringMessage(event.messages[i])) latestIndex = i;
+		const classification = classifyGoalSteeringMessage(event.messages[i]);
+		if (classification === "invalid") sawGoalSteering = true;
+		if (classification === "valid") {
+			sawGoalSteering = true;
+			latestValidIndex = i;
+		}
 	}
-	if (latestIndex < 0) return undefined;
-	return { messages: event.messages.filter((message, index) => !isGoalSteeringMessage(message) || index === latestIndex) };
+	if (!sawGoalSteering) return undefined;
+	return {
+		messages: event.messages.filter((message, index) => {
+			const classification = classifyGoalSteeringMessage(message);
+			if (classification === "none") return true;
+			return classification === "valid" && index === latestValidIndex;
+		}),
+	};
 }
 
-function isGoalSteeringMessage(message: unknown): boolean {
+function classifyGoalSteeringMessage(message: unknown): "none" | "valid" | "invalid" {
 	const candidate = message as { role?: string; customType?: string; details?: GoalSteeringDetails };
-	if (candidate.customType !== CONTINUATION_MESSAGE_TYPE && candidate.customType !== BUDGET_LIMIT_MESSAGE_TYPE) return false;
+	if (candidate.customType !== CONTINUATION_MESSAGE_TYPE && candidate.customType !== BUDGET_LIMIT_MESSAGE_TYPE) return "none";
 	const current = getGoal();
-	return Boolean(current && candidate.details?.goalId === current.goalId);
+	if (!current || candidate.details?.goalId !== current.goalId) return "invalid";
+	if (candidate.customType === CONTINUATION_MESSAGE_TYPE) return current.status === "active" && candidate.details?.kind === "continuation" ? "valid" : "invalid";
+	return current.status === "budgetLimited" && candidate.details?.kind === "budgetLimit" ? "valid" : "invalid";
 }
