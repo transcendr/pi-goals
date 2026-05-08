@@ -19,6 +19,10 @@ export type ContinuationReason = "created" | "resumed" | "agentEnd";
 export type ContinuationSkipReason = "notIdle" | "pendingMessages" | "notActive" | "budgetLimited" | "safetyCap";
 export type SafetyPauseReason = "maxAutoTurns" | "noProgress" | "abort";
 export type BudgetLimitReason = "tokenBudget" | "timeBudget";
+export type BudgetWarningReason = "tokenWarning" | "timeWarning";
+export type BudgetHardStopReason = "tokenHardStop" | "timeHardStop";
+export type BudgetPressureKind = "none" | BudgetWarningReason | "tokenReached" | "timeReached" | BudgetHardStopReason;
+export type BudgetPressure = { kind: BudgetPressureKind; remaining?: number };
 
 export type GoalTelemetrySnapshot = {
 	version: 1;
@@ -38,6 +42,10 @@ export type GoalTelemetrySnapshot = {
 	lastProgressAt?: number;
 	lastSafetyPauseReason?: SafetyPauseReason;
 	lastBudgetLimitReason?: BudgetLimitReason;
+	lastBudgetWarningReason?: BudgetWarningReason;
+	lastBudgetHardStopReason?: BudgetHardStopReason;
+	tokenBudgetWarningSent?: boolean;
+	timeBudgetWarningSent?: boolean;
 	updatedAt: number;
 };
 

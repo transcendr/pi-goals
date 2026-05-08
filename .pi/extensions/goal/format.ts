@@ -1,3 +1,4 @@
+import { budgetLimitReason } from "./budget";
 import { GOAL_USAGE, GOAL_USAGE_HINT, LONG_OBJECTIVE_HINT, MAX_OBJECTIVE_CHARS, OBJECTIVE_EXCERPT_CHARS } from "./constants";
 import type { GoalState, GoalStatus } from "./types";
 
@@ -64,6 +65,14 @@ export function statusLabel(status: GoalStatus): string {
 	}
 }
 
+export function goalStatusLabel(goal: GoalState): string {
+	if (goal.status !== "budgetLimited") return statusLabel(goal.status);
+	const reason = budgetLimitReason(goal);
+	if (reason === "tokenBudget") return "token budget reached";
+	if (reason === "timeBudget") return "time budget reached";
+	return "budget reached";
+}
+
 export function commandHint(status: GoalStatus): string {
 	switch (status) {
 		case "active":
@@ -106,7 +115,7 @@ export function footerStatusText(goal: GoalState): string {
 		case "paused":
 			return "Goal paused (/goal resume)";
 		case "budgetLimited":
-			return usage ? `Goal unmet (${usage})` : "Goal abandoned";
+			return usage ? `${goalStatusLabel(goal)} (${usage})` : goalStatusLabel(goal);
 		case "complete":
 			return usage ? `Goal achieved (${usage})` : "Goal achieved";
 	}
@@ -132,7 +141,7 @@ function footerUsage(goal: GoalState): string | undefined {
 export function goalSummaryLines(goal: GoalState): string[] {
 	const lines = [
 		"Goal",
-		`Status: ${statusLabel(goal.status)}`,
+		`Status: ${goalStatusLabel(goal)}`,
 		`Objective: ${goal.objective}`,
 		`Time used: ${formatElapsed(goal.timeUsedSeconds)}`,
 		`Tokens used: ${formatTokensCompact(goal.tokensUsed)}`,

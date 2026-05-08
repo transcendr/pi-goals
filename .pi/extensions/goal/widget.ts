@@ -1,5 +1,5 @@
 import { truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
-import { commandHint, formatElapsed, formatTokensCompact, objectiveExcerpt } from "./format";
+import { commandHint, formatElapsed, formatTokensCompact, goalStatusLabel, objectiveExcerpt } from "./format";
 import type { GoalState, GoalStatus } from "./types";
 
 type ThemeColor = "accent" | "success" | "warning" | "error" | "muted" | "dim" | "text" | "border" | "borderAccent";
@@ -41,7 +41,7 @@ export function renderGoalWidget(goal: GoalState, theme: GoalWidgetTheme, width:
 	if (width < MIN_CARD_WIDTH) return compactLines(goal, theme, width);
 	const cardWidth = Math.min(MAX_CARD_WIDTH, Math.max(MIN_CARD_WIDTH, width));
 	const contentWidth = cardWidth - 4;
-	const style = statusStyle(goal.status);
+	const style = statusStyle(goal);
 	const lines = [
 		topBorder(cardWidth, style, theme),
 		contentLine(theme.fg("dim", objectiveExcerpt(goal.objective, contentWidth)), contentWidth, theme),
@@ -66,7 +66,7 @@ class GoalWidget implements GoalWidgetComponent {
 }
 
 function compactLines(goal: GoalState, theme: GoalWidgetTheme, width: number): string[] {
-	const style = statusStyle(goal.status);
+	const style = statusStyle(goal);
 	const status = theme.fg(style.color, `${style.icon} ${style.label}`);
 	return [
 		truncateToWidth(`${status} ${objectiveExcerpt(goal.objective, Math.max(6, width - 10))}`, width),
@@ -147,14 +147,14 @@ function padAnsi(text: string, width: number): string {
 	return `${text}${" ".repeat(Math.max(0, width - visibleWidth(text)))}`;
 }
 
-function statusStyle(status: GoalStatus): StatusStyle {
-	switch (status) {
+function statusStyle(goal: GoalState): StatusStyle {
+	switch (goal.status) {
 		case "active":
 			return { icon: "🎯", label: "active", color: "accent" };
 		case "paused":
 			return { icon: "⏸", label: "paused", color: "warning" };
 		case "budgetLimited":
-			return { icon: "⚠", label: "budget limited", color: "warning" };
+			return { icon: "⚠", label: goalStatusLabel(goal), color: "warning" };
 		case "complete":
 			return { icon: "✓", label: "complete", color: "success" };
 	}

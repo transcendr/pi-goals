@@ -16,6 +16,9 @@ export const STATE_EVENT_VERSION = 1 as const;
 export const MAX_CONSECUTIVE_AUTO_TURNS = 50;
 export const MAX_NO_PROGRESS_AUTO_TURNS = 3;
 export const OBJECTIVE_EXCERPT_CHARS = 96;
+export const TOKEN_BUDGET_WARNING_REMAINING = 100_000;
+export const TIME_BUDGET_WARNING_REMAINING_SECONDS = 60;
+export const BUDGET_HARD_STOP_MULTIPLIER = 1.1;
 
 export const CONTINUATION_PROMPT_ID = "pi-goal-continuation-v1";
 export const BUDGET_LIMIT_PROMPT_ID = "pi-goal-budget-limit-v1";

@@ -1,6 +1,6 @@
 # ISSUE-007 — Goal budget warning and enforced hard stop
 
-Status: open — execution-ready
+Status: fixed — implemented and validated
 Priority: P0
 Owner: unassigned
 Created: 2026-05-08
@@ -96,3 +96,32 @@ Out of scope:
 - [ ] 007.4 Add 110% hard-stop enforcement and continuation cancellation.
 - [ ] 007.5 Add/update probes or harness coverage for NL-created token budget, warning, reached, and hard stop behavior.
 - [ ] 007.6 Run Sentrux gate/check and Pi extension load validation; record `tsc` availability.
+
+
+## Implementation closeout
+
+Implemented budget guardrails:
+
+- Added `.pi/extensions/goal/budget.ts` for centralized budget pressure evaluation.
+- Added warning constants: `100_000` token remaining threshold and `60` second time remaining threshold.
+- Added hard-stop multiplier constant `1.1`, evaluated with integer-safe 110% math.
+- Added telemetry fields for budget warnings and hard stops.
+- Lifecycle accounting now detects budget warnings, target reached, and hard stop after each accounted turn.
+- Warning threshold keeps goal active and sends a visible warning once per resource.
+- Target reached transitions to `budgetLimited`, cancels normal continuation, records token/time reason, and schedules the existing budget wrap-up once.
+- Hard stop transitions to `budgetLimited`, cancels continuation/wrap-up, records hard-stop telemetry, syncs UI, and does not schedule additional budget wrap-up work.
+- UI/status/widget labels distinguish `token budget reached` and `time budget reached` instead of generic `budget limited` when usage identifies the exhausted resource.
+- Added `budget.ts` to the Sentrux domain layer.
+
+Validation:
+
+- Budget helper probe covered none, token warning, token reached, token hard stop, time warning, time reached, and time hard stop.
+- Label probe covered `token budget reached` and `time budget reached`.
+- `sentrux gate .pi/extensions/goal` passed.
+- `sentrux check .pi/extensions/goal` passed.
+- `pi --offline --no-session --no-tools -e .pi/extensions/goal/index.ts --list-models` passed.
+- `tsc` attempted but unavailable: `/bin/bash: tsc: command not found`.
+
+Known limitation:
+
+- Enforcement occurs at Pi goal lifecycle accounting boundaries after a turn/result is accounted. The extension does not currently receive streaming provider token totals mid-response, so it cannot preempt within a single model response before Pi reports usage.

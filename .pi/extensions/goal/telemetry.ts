@@ -1,6 +1,8 @@
 import { TELEMETRY_SCHEMA_VERSION } from "./constants";
 import type {
+	BudgetHardStopReason,
 	BudgetLimitReason,
+	BudgetWarningReason,
 	ContinuationReason,
 	ContinuationSkipReason,
 	GoalTelemetrySnapshot,
@@ -73,6 +75,30 @@ export function noteBudgetLimit(
 ): GoalTelemetrySnapshot | null {
 	if (!telemetry) return null;
 	return { ...telemetry, lastBudgetLimitReason: reason, updatedAt: now };
+}
+
+export function noteBudgetWarning(
+	telemetry: GoalTelemetrySnapshot | null,
+	reason: BudgetWarningReason,
+	now = Date.now(),
+): GoalTelemetrySnapshot | null {
+	if (!telemetry) return null;
+	return {
+		...telemetry,
+		lastBudgetWarningReason: reason,
+		tokenBudgetWarningSent: telemetry.tokenBudgetWarningSent || reason === "tokenWarning",
+		timeBudgetWarningSent: telemetry.timeBudgetWarningSent || reason === "timeWarning",
+		updatedAt: now,
+	};
+}
+
+export function noteBudgetHardStop(
+	telemetry: GoalTelemetrySnapshot | null,
+	reason: BudgetHardStopReason,
+	now = Date.now(),
+): GoalTelemetrySnapshot | null {
+	if (!telemetry) return null;
+	return { ...telemetry, lastBudgetHardStopReason: reason, updatedAt: now };
 }
 
 export function noteSafetyPause(

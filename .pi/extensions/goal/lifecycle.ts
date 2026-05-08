@@ -16,11 +16,12 @@ import {
 	MAX_NO_PROGRESS_AUTO_TURNS,
 	PAUSE_MESSAGE_TYPE,
 } from "./constants";
+import { evaluateBudgetPressure, isBudgetHardStop, isBudgetReached, isBudgetWarning } from "./budget";
 import { cancelGoalContinuation, scheduleBudgetLimitWrapUp, scheduleMaybeContinueGoal } from "./continuation";
 import { getGoal, getTelemetry, persistAccountGoal, persistTelemetry, persistUpdateGoal, replayGoalState } from "./state";
-import { applyTurnTelemetry, consumeNextTurnOrigin, makeTurnSnapshot, noteBudgetLimit, noteSafetyPause } from "./telemetry";
+import { applyTurnTelemetry, consumeNextTurnOrigin, makeTurnSnapshot, noteBudgetHardStop, noteBudgetLimit, noteBudgetWarning, noteSafetyPause } from "./telemetry";
 import { notifyWarning, promptResumePausedGoal, syncGoalUi } from "./ui";
-import type { BudgetLimitReason, GoalState, GoalTelemetrySnapshot, GoalSteeringDetails, TurnAccountingSnapshot } from "./types";
+import type { BudgetLimitReason, BudgetPressure, GoalState, GoalTelemetrySnapshot, GoalSteeringDetails, TurnAccountingSnapshot } from "./types";
 
 let activeTurn: TurnAccountingSnapshot | null = null;
 
@@ -100,12 +101,9 @@ async function handleTurnEnd(pi: ExtensionAPI, event: TurnEndEvent, ctx: Extensi
 	let result = persistAccountGoal(pi, turn.goalId, { timeUsedSeconds: elapsed, tokensUsed: tokens }, telemetry, "turn");
 	let updated = result.goal;
 
-	const budgetReason = updated?.status === "active" ? reachedBudget(updated) : undefined;
-	if (updated && budgetReason) {
-		updated = { ...updated, status: "budgetLimited", updatedAt: Date.now() };
-		const budgetTelemetry = noteBudgetLimit(result.telemetry, budgetReason);
-		result = persistUpdateGoal(pi, updated, budgetTelemetry, "budget");
-		if (result.goal) scheduleBudgetLimitWrapUp(pi, ctx, result.goal);
+	if (updated?.status === "active") {
+		result = handleBudgetPressure(pi, ctx, updated, result.telemetry);
+		updated = result.goal;
 	}
 
 	if (updated?.status === "active" && event.message.role === "assistant" && event.message.stopReason === "aborted") {
@@ -145,10 +143,60 @@ function shouldPauseForSafety(telemetry: GoalTelemetrySnapshot | null): boolean 
 	return telemetry.consecutiveAutoTurns >= MAX_CONSECUTIVE_AUTO_TURNS || telemetry.consecutiveNoProgressTurns >= MAX_NO_PROGRESS_AUTO_TURNS;
 }
 
-function reachedBudget(goal: GoalState): BudgetLimitReason | undefined {
-	if (goal.tokenBudget !== undefined && goal.tokensUsed >= goal.tokenBudget) return "tokenBudget";
-	if (goal.timeBudgetSeconds !== undefined && goal.timeUsedSeconds >= goal.timeBudgetSeconds) return "timeBudget";
-	return undefined;
+function handleBudgetPressure(pi: ExtensionAPI, ctx: ExtensionContext, goal: GoalState, telemetry: GoalTelemetrySnapshot | null) {
+	const pressure = evaluateBudgetPressure(goal);
+	if (isBudgetHardStop(pressure.kind)) return enforceBudgetHardStop(pi, ctx, goal, pressure, telemetry);
+	if (isBudgetReached(pressure.kind)) return markBudgetReached(pi, ctx, goal, pressure, telemetry);
+	if (isBudgetWarning(pressure.kind)) warnBudgetPressure(pi, ctx, pressure, telemetry);
+	return { ok: true, goal, telemetry };
+}
+
+function enforceBudgetHardStop(pi: ExtensionAPI, ctx: ExtensionContext, goal: GoalState, pressure: BudgetPressure, telemetry: GoalTelemetrySnapshot | null) {
+	cancelGoalContinuation(goal.goalId, "budget-hard-stop");
+	const stopped: GoalState = { ...goal, status: "budgetLimited", updatedAt: Date.now() };
+	const nextTelemetry = noteBudgetHardStop(noteBudgetLimit(telemetry, budgetLimitReason(pressure)), budgetHardStopReason(pressure));
+	const result = persistUpdateGoal(pi, stopped, nextTelemetry, "budget");
+	syncGoalUi(ctx, result.goal);
+	notifyWarning(ctx, `${budgetResourceText(pressure)} budget hard stop enforced. Goal work stopped.`);
+	return result;
+}
+
+function markBudgetReached(pi: ExtensionAPI, ctx: ExtensionContext, goal: GoalState, pressure: BudgetPressure, telemetry: GoalTelemetrySnapshot | null) {
+	cancelGoalContinuation(goal.goalId, "budget-reached");
+	const limited: GoalState = { ...goal, status: "budgetLimited", updatedAt: Date.now() };
+	const result = persistUpdateGoal(pi, limited, noteBudgetLimit(telemetry, budgetLimitReason(pressure)), "budget");
+	if (result.goal) scheduleBudgetLimitWrapUp(pi, ctx, result.goal);
+	return result;
+}
+
+function warnBudgetPressure(pi: ExtensionAPI, ctx: ExtensionContext, pressure: BudgetPressure, telemetry: GoalTelemetrySnapshot | null): void {
+	if (warningAlreadySent(pressure, telemetry)) return;
+	const nextTelemetry = noteBudgetWarning(telemetry, pressure.kind === "tokenWarning" ? "tokenWarning" : "timeWarning");
+	if (nextTelemetry) persistTelemetry(pi, nextTelemetry, "budget");
+	notifyWarning(ctx, `${budgetResourceText(pressure)} budget warning: ${budgetRemainingText(pressure)} remaining before target. Start wrapping up.`);
+}
+
+function warningAlreadySent(pressure: BudgetPressure, telemetry: GoalTelemetrySnapshot | null): boolean {
+	if (pressure.kind === "tokenWarning") return Boolean(telemetry?.tokenBudgetWarningSent);
+	if (pressure.kind === "timeWarning") return Boolean(telemetry?.timeBudgetWarningSent);
+	return true;
+}
+
+function budgetLimitReason(pressure: BudgetPressure): BudgetLimitReason {
+	return pressure.kind.startsWith("time") ? "timeBudget" : "tokenBudget";
+}
+
+function budgetHardStopReason(pressure: BudgetPressure) {
+	return pressure.kind === "timeHardStop" ? "timeHardStop" : "tokenHardStop";
+}
+
+function budgetResourceText(pressure: BudgetPressure): "Token" | "Time" {
+	return pressure.kind.startsWith("time") ? "Time" : "Token";
+}
+
+function budgetRemainingText(pressure: BudgetPressure): string {
+	const remaining = Math.max(0, Math.floor(pressure.remaining ?? 0));
+	return pressure.kind.startsWith("time") ? `${remaining} seconds` : `${remaining} tokens`;
 }
 
 function assistantTokens(message: TurnEndEvent["message"]): number {

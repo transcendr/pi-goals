@@ -45,7 +45,7 @@ order = 4
 
 [[layers]]
 name = "domain"
-paths = ["types.ts", "constants.ts", "format.ts"]
+paths = ["types.ts", "constants.ts", "format.ts", "budget.ts"]
 order = 5
 
 # Domain helpers must remain pure and reusable.
