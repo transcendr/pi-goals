@@ -60,9 +60,7 @@ class GoalWidget implements GoalWidgetComponent {
 		return renderGoalWidget(this.goal, this.theme, width);
 	}
 
-	invalidate(): void {
-		// Stateless render; no cache to clear.
-	}
+	invalidate(): void {}
 }
 
 function compactLines(goal: GoalState, theme: GoalWidgetTheme, width: number): string[] {

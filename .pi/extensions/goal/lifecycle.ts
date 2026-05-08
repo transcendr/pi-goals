@@ -77,14 +77,16 @@ function handleToolResult(event: ToolResultEvent): void {
 
 function noteGoalUpdateResult(details: unknown): void {
 	if (!activeTurn || hasToolError(details)) return;
-	const goal = (details as { goal?: { status?: string } } | undefined)?.goal;
-	if (!goal) return;
-	activeTurn.progressCount++;
-	if (goal.status === "complete") activeTurn.completedGoal = true;
+	if (typeof details !== "object" || details === null) return;
+	const result = details as Record<string, unknown>;
+	if (typeof result.goal === "object" && result.goal !== null) {
+		activeTurn.progressCount++;
+		if ((result.goal as Record<string, unknown>).status === "complete") activeTurn.completedGoal = true;
+	}
 }
 
 function hasToolError(details: unknown): boolean {
-	return Boolean((details as { error?: unknown } | undefined)?.error);
+	return typeof details === "object" && details !== null && "error" in details;
 }
 
 async function handleTurnEnd(pi: ExtensionAPI, event: TurnEndEvent, ctx: ExtensionContext): Promise<void> {
@@ -113,8 +115,8 @@ async function handleTurnEnd(pi: ExtensionAPI, event: TurnEndEvent, ctx: Extensi
 
 	telemetry = result.telemetry;
 	updated = result.goal;
-	if (updated?.status === "active" && shouldPauseForSafety(telemetry)) {
-		const reason = telemetry!.consecutiveAutoTurns >= MAX_CONSECUTIVE_AUTO_TURNS ? "maxAutoTurns" : "noProgress";
+	if (updated?.status === "active" && shouldPauseForSafety(telemetry) && telemetry) {
+		const reason = telemetry.consecutiveAutoTurns >= MAX_CONSECUTIVE_AUTO_TURNS ? "maxAutoTurns" : "noProgress";
 		await pauseForSafety(pi, ctx, updated, reason, "Goal paused by pi-goal safety limits. Run /goal resume to continue.");
 		return;
 	}
@@ -154,7 +156,7 @@ function handleBudgetPressure(pi: ExtensionAPI, ctx: ExtensionContext, goal: Goa
 function enforceBudgetHardStop(pi: ExtensionAPI, ctx: ExtensionContext, goal: GoalState, pressure: BudgetPressure, telemetry: GoalTelemetrySnapshot | null) {
 	cancelGoalContinuation(goal.goalId, "budget-hard-stop");
 	const stopped: GoalState = { ...goal, status: "budgetLimited", updatedAt: Date.now() };
-	const nextTelemetry = noteBudgetHardStop(noteBudgetLimit(telemetry, budgetLimitReason(pressure)), budgetHardStopReason(pressure));
+	const nextTelemetry = noteBudgetHardStop(noteBudgetLimit(telemetry, pressureBudgetLimitReason(pressure)), budgetHardStopReason(pressure));
 	const result = persistUpdateGoal(pi, stopped, nextTelemetry, "budget");
 	syncGoalUi(ctx, result.goal);
 	notifyWarning(ctx, `${budgetResourceText(pressure)} budget hard stop enforced. Goal work stopped.`);
@@ -164,7 +166,7 @@ function enforceBudgetHardStop(pi: ExtensionAPI, ctx: ExtensionContext, goal: Go
 function markBudgetReached(pi: ExtensionAPI, ctx: ExtensionContext, goal: GoalState, pressure: BudgetPressure, telemetry: GoalTelemetrySnapshot | null) {
 	cancelGoalContinuation(goal.goalId, "budget-reached");
 	const limited: GoalState = { ...goal, status: "budgetLimited", updatedAt: Date.now() };
-	const result = persistUpdateGoal(pi, limited, noteBudgetLimit(telemetry, budgetLimitReason(pressure)), "budget");
+	const result = persistUpdateGoal(pi, limited, noteBudgetLimit(telemetry, pressureBudgetLimitReason(pressure)), "budget");
 	if (result.goal) scheduleBudgetLimitWrapUp(pi, ctx, result.goal);
 	return result;
 }
@@ -182,7 +184,7 @@ function warningAlreadySent(pressure: BudgetPressure, telemetry: GoalTelemetrySn
 	return true;
 }
 
-function budgetLimitReason(pressure: BudgetPressure): BudgetLimitReason {
+function pressureBudgetLimitReason(pressure: BudgetPressure): BudgetLimitReason {
 	return pressure.kind.startsWith("time") ? "timeBudget" : "tokenBudget";
 }
 
@@ -229,13 +231,14 @@ function filterGoalContext(event: ContextEvent): ContextEventResult | undefined 
 }
 
 function classifyGoalSteeringMessage(message: unknown): "none" | "valid" | "invalid" {
-	const candidate = message as { role?: string; customType?: string; details?: GoalSteeringDetails };
-	if (candidate.customType !== CONTINUATION_MESSAGE_TYPE && candidate.customType !== BUDGET_LIMIT_MESSAGE_TYPE && candidate.customType !== PAUSE_MESSAGE_TYPE) {
-		return "none";
-	}
+	if (typeof message !== "object" || message === null) return "none";
+	const candidate = message as Record<string, unknown>;
+	const customType = candidate.customType;
+	if (customType !== CONTINUATION_MESSAGE_TYPE && customType !== BUDGET_LIMIT_MESSAGE_TYPE && customType !== PAUSE_MESSAGE_TYPE) return "none";
+	const details = typeof candidate.details === "object" && candidate.details !== null ? (candidate.details as Record<string, unknown>) : null;
 	const current = getGoal();
-	if (!current || candidate.details?.goalId !== current.goalId) return "invalid";
-	if (candidate.customType === CONTINUATION_MESSAGE_TYPE) return current.status === "active" && candidate.details?.kind === "continuation" ? "valid" : "invalid";
-	if (candidate.customType === BUDGET_LIMIT_MESSAGE_TYPE) return current.status === "budgetLimited" && candidate.details?.kind === "budgetLimit" ? "valid" : "invalid";
-	return current.status === "paused" && candidate.details?.kind === "pause" ? "valid" : "invalid";
+	if (!current || details?.goalId !== current.goalId) return "invalid";
+	if (customType === CONTINUATION_MESSAGE_TYPE) return current.status === "active" && details?.kind === "continuation" ? "valid" : "invalid";
+	if (customType === BUDGET_LIMIT_MESSAGE_TYPE) return current.status === "budgetLimited" && details?.kind === "budgetLimit" ? "valid" : "invalid";
+	return current.status === "paused" && details?.kind === "pause" ? "valid" : "invalid";
 }

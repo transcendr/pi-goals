@@ -37,8 +37,8 @@ export function createTelemetry(goalId: string, now = Date.now()): GoalTelemetry
 }
 
 export function isTelemetry(value: unknown): value is GoalTelemetrySnapshot {
-	if (!value || typeof value !== "object") return false;
-	const v = value as Partial<GoalTelemetrySnapshot>;
+	if (typeof value !== "object" || value === null) return false;
+	const v = value as Record<string, unknown>;
 	return v.version === TELEMETRY_SCHEMA_VERSION && typeof v.goalId === "string";
 }
 

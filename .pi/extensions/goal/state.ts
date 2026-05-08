@@ -122,19 +122,20 @@ function applyEvent(state: GoalRuntimeState, event: PiGoalStateEvent): GoalRunti
 }
 
 function entryToGoalEvent(entry: unknown): PiGoalStateEvent | null {
-	const candidate = entry as { type?: string; customType?: string; data?: unknown };
+	if (typeof entry !== "object" || entry === null) return null;
+	const candidate = entry as Record<string, unknown>;
 	if (candidate.type !== "custom" || candidate.customType !== STATE_ENTRY_TYPE) return null;
 	return isGoalEvent(candidate.data) ? candidate.data : null;
 }
 
 function isGoalEvent(value: unknown): value is PiGoalStateEvent {
-	if (!value || typeof value !== "object") return false;
-	const v = value as Partial<PiGoalStateEvent>;
+	if (typeof value !== "object" || value === null) return false;
+	const v = value as Record<string, unknown>;
 	return v.version === STATE_EVENT_VERSION && typeof v.kind === "string" && typeof v.reason === "string";
 }
 
 function isGoalState(value: unknown): value is GoalState {
-	if (!value || typeof value !== "object") return false;
-	const v = value as Partial<GoalState>;
+	if (typeof value !== "object" || value === null) return false;
+	const v = value as Record<string, unknown>;
 	return typeof v.goalId === "string" && typeof v.objective === "string" && typeof v.status === "string";
 }
