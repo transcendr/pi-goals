@@ -44,7 +44,7 @@ export function formatTokensCompact(tokens: number): string {
 	const value = Math.max(0, Math.round(tokens));
 	if (value < 1000) return String(value);
 	if (value < 1_000_000) return `${trimFixed(value / 1000)}k`;
-	return `${trimFixed(value / 1_000_000)}m`;
+	return `${trimFixed(value / 1_000_000)}M`;
 }
 
 function trimFixed(value: number): string {
