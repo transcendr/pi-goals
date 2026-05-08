@@ -1,6 +1,6 @@
 # ISSUE-006 — Demo-worthy `pi-goal` widget card UI
 
-Status: open — execution-ready
+Status: fixed — implemented and validated
 Priority: medium
 Next best session: focused Pi extension UI implementation session
 Next best session rationale: The runtime behavior is complete; this issue is a contained UI polish pass over the existing widget surface, with Sentrux boundaries and live TUI validation as the main risks.
@@ -352,3 +352,30 @@ solo_todos[6]{role,id,title,blocked_by}:
 ## Open questions
 
 None. The design is locked for implementation.
+
+
+## Implementation closeout
+
+Implemented by commit to be created in this closeout: `feat: render pi-goal widget card`.
+
+Files changed:
+
+- `.pi/extensions/goal/widget.ts` — new pure widget card renderer/component factory with status badges, box frame, objective truncation, resource rows, budget bars, percentages, no-budget compact rows, and width-safe rendering.
+- `.pi/extensions/goal/ui.ts` — delegates non-null widget rendering to `goalWidgetFactory(goal)` while preserving null-goal status/widget clearing.
+- `.pi/extensions/goal/.sentrux/rules.toml` — classifies `widget.ts` in the `surfaces` layer.
+
+Validation summary:
+
+- `sentrux gate .pi/extensions/goal` passed.
+- `sentrux check .pi/extensions/goal` passed.
+- `pi --offline --no-session --no-tools -e .pi/extensions/goal/index.ts --list-models` passed.
+- Static old-widget grep passed: no `widgetLines` setWidget path or elapsed `Usage:` widget pattern remains.
+- Render-helper evidence covered no-budget, token-budget, time-budget, both-budget, paused, complete, and budget-limited cards.
+- Narrow-width visible width probe at width 32 returned all rendered lines at visible width 32.
+- `tsc` validation was attempted but unavailable in this environment (`tsc: command not found`).
+- Live/manual Pi TUI visual validation was not run in this non-interactive shell; static render evidence was recorded in Solo todo `#49` instead.
+
+Solo closeout:
+
+- Completed leaf todos `#45`–`#49` with evidence comments.
+- Completed epic todo `#44` after leaf closeout.

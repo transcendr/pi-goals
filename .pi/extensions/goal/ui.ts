@@ -1,7 +1,8 @@
 import type { ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { GOAL_USAGE, GOAL_USAGE_HINT, STATUS_UI_KEY, WIDGET_UI_KEY } from "./constants";
-import { footerStatusText, formatTimeResource, formatTokenResource, goalSummaryLines, goalUsageSummary, objectiveExcerpt, statusLabel, commandHint } from "./format";
+import { footerStatusText, goalSummaryLines, goalUsageSummary, statusLabel } from "./format";
 import type { GoalState } from "./types";
+import { goalWidgetFactory } from "./widget";
 
 export function syncGoalUi(ctx: ExtensionContext, goal: GoalState | null): void {
 	if (!goal) {
@@ -10,7 +11,7 @@ export function syncGoalUi(ctx: ExtensionContext, goal: GoalState | null): void 
 		return;
 	}
 	ctx.ui.setStatus(STATUS_UI_KEY, footerStatusText(goal));
-	ctx.ui.setWidget(WIDGET_UI_KEY, widgetLines(goal), { placement: "aboveEditor" });
+	ctx.ui.setWidget(WIDGET_UI_KEY, goalWidgetFactory(goal), { placement: "aboveEditor" });
 }
 
 export function showNoGoal(ctx: ExtensionContext): void {
@@ -38,12 +39,3 @@ export async function promptResumePausedGoal(ctx: ExtensionContext, goal: GoalSt
 	return choice === "Resume goal";
 }
 
-function widgetLines(goal: GoalState): string[] {
-	return [
-		`pi-goal: ${statusLabel(goal.status)}`,
-		`Objective: ${objectiveExcerpt(goal.objective)}`,
-		formatTimeResource(goal),
-		formatTokenResource(goal),
-		commandHint(goal.status),
-	];
-}
