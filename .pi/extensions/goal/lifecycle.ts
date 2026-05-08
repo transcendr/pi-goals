@@ -17,7 +17,7 @@ import {
 	PAUSE_MESSAGE_TYPE,
 } from "./constants";
 import { evaluateBudgetPressure, isBudgetHardStop, isBudgetReached, isBudgetWarning } from "./budget";
-import { cancelGoalContinuation, scheduleBudgetLimitWrapUp, scheduleMaybeContinueGoal } from "./continuation";
+import { cancelGoalContinuation, interruptActiveGoalTurn, scheduleBudgetLimitWrapUp, scheduleMaybeContinueGoal } from "./continuation";
 import { getGoal, getTelemetry, persistAccountGoal, persistTelemetry, persistUpdateGoal, replayGoalState } from "./state";
 import { applyTurnTelemetry, consumeNextTurnOrigin, makeTurnSnapshot, noteBudgetHardStop, noteBudgetLimit, noteBudgetWarning, noteSafetyPause } from "./telemetry";
 import { notifyWarning, promptResumePausedGoal, syncGoalUi } from "./ui";
@@ -55,7 +55,14 @@ async function handleSessionStart(pi: ExtensionAPI, event: SessionStartEvent, ct
 
 function handleTurnStart(event: TurnStartEvent): void {
 	const goal = getGoal();
-	if (!goal || goal.status !== "active") {
+	if (!goal) {
+		activeTurn = null;
+		return;
+	}
+	// Track turns for active and budget-limited goals so budget hard-stop detection
+	// still works during the budget wrap-up turn. Paused and completed goals are
+	// excluded because no agent work should be in progress for them.
+	if (goal.status !== "active" && goal.status !== "budgetLimited") {
 		activeTurn = null;
 		return;
 	}
@@ -107,6 +114,16 @@ async function handleTurnEnd(pi: ExtensionAPI, event: TurnEndEvent, ctx: Extensi
 	if (updated?.status === "active") {
 		result = handleBudgetPressure(pi, ctx, updated, result.telemetry);
 		updated = result.goal;
+	}
+
+	// Check for budget hard stop on budget-limited goals — the wrap-up turn or an
+	// untracked turn may push usage past 110%, requiring an immediate abort.
+	if (updated?.status === "budgetLimited") {
+		const pressure = evaluateBudgetPressure(updated);
+		if (isBudgetHardStop(pressure.kind)) {
+			enforceBudgetHardStop(pi, ctx, updated, pressure, result.telemetry);
+			return;
+		}
 	}
 
 	if (updated?.status === "active" && event.message.role === "assistant" && event.message.stopReason === "aborted") {
@@ -161,6 +178,7 @@ function enforceBudgetHardStop(pi: ExtensionAPI, ctx: ExtensionContext, goal: Go
 	const result = persistUpdateGoal(pi, stopped, nextTelemetry, "budget");
 	syncGoalUi(ctx, result.goal);
 	notifyWarning(ctx, `${budgetResourceText(pressure)} budget hard stop enforced. Goal work stopped.`);
+	interruptActiveGoalTurn(pi, ctx, result.goal);
 	return result;
 }
 
