@@ -3,6 +3,7 @@ import type {
 	ContextEventResult,
 	ExtensionAPI,
 	ExtensionContext,
+	MessageUpdateEvent,
 	SessionStartEvent,
 	ToolCallEvent,
 	ToolResultEvent,
@@ -18,12 +19,14 @@ import {
 } from "./constants";
 import { evaluateBudgetPressure, isBudgetHardStop, isBudgetReached, isBudgetWarning } from "./budget";
 import { cancelGoalContinuation, interruptActiveGoalTurn, scheduleBudgetLimitWrapUp, scheduleMaybeContinueGoal } from "./continuation";
+import { buildBudgetLimitPrompt } from "./prompts";
 import { getGoal, getTelemetry, persistAccountGoal, persistTelemetry, persistUpdateGoal, replayGoalState } from "./state";
 import { applyTurnTelemetry, consumeNextTurnOrigin, makeTurnSnapshot, noteBudgetHardStop, noteBudgetLimit, noteBudgetWarning, noteSafetyPause } from "./telemetry";
 import { notifyWarning, promptResumePausedGoal, syncGoalUi } from "./ui";
 import type { BudgetLimitReason, BudgetPressure, GoalState, GoalTelemetrySnapshot, TurnAccountingSnapshot } from "./types";
 
 let activeTurn: TurnAccountingSnapshot | null = null;
+let streamBudgetSignalsSent: Set<string> = new Set();
 
 export function registerGoalLifecycle(pi: ExtensionAPI): void {
 	pi.on("session_start", async (event, ctx) => handleSessionStart(pi, event, ctx));
@@ -31,11 +34,12 @@ export function registerGoalLifecycle(pi: ExtensionAPI): void {
 		const state = replayGoalState(ctx);
 		syncGoalUi(ctx, state.goal);
 	});
-	pi.on("turn_start", (event) => handleTurnStart(event));
+	pi.on("turn_start", (event) => { handleTurnStart(event); streamBudgetSignalsSent.clear(); });
 	pi.on("tool_call", (event) => handleToolCall(event));
 	pi.on("tool_result", (event) => handleToolResult(event));
 	pi.on("turn_end", async (event, ctx) => handleTurnEnd(pi, event, ctx));
 	pi.on("agent_end", async (_event, ctx) => scheduleMaybeContinueGoal(pi, ctx, "agentEnd"));
+	pi.on("message_update", (event, ctx) => handleMessageUpdate(pi, event, ctx));
 	pi.on("context", (event) => filterGoalContext(event));
 }
 
@@ -67,6 +71,71 @@ function handleTurnStart(event: TurnStartEvent): void {
 		return;
 	}
 	activeTurn = makeTurnSnapshot(goal.goalId, consumeNextTurnOrigin(), event.timestamp || Date.now());
+}
+
+function handleMessageUpdate(pi: ExtensionAPI, event: MessageUpdateEvent, ctx: ExtensionContext): void {
+	if (event.message.role !== "assistant") return;
+
+	const goal = getGoal();
+	if (!goal || goal.status !== "active") return;
+
+	// Build an estimated goal with streaming usage added to persisted usage.
+	const streamTokens = event.message.usage?.totalTokens ?? 0;
+	const elapsedThisTurn = activeTurn ? Math.max(0, Math.floor((Date.now() - activeTurn.startedAt) / 1000)) : 0;
+	const estimated: GoalState = {
+		...goal,
+		tokensUsed: goal.tokensUsed + (streamTokens > 0 ? streamTokens : 0),
+		timeUsedSeconds: goal.timeUsedSeconds + elapsedThisTurn,
+	};
+
+	const pressure = evaluateBudgetPressure(estimated);
+
+	if (isBudgetHardStop(pressure.kind)) {
+		if (streamBudgetSignalsSent.has("hardStop")) return;
+		streamBudgetSignalsSent.add("hardStop");
+		const stopped: GoalState = { ...goal, status: "budgetLimited", updatedAt: Date.now() };
+		const nextTelemetry = noteBudgetHardStop(noteBudgetLimit(getTelemetry(), pressureBudgetLimitReason(pressure)), budgetHardStopReason(pressure));
+		persistUpdateGoal(pi, stopped, nextTelemetry, "budget");
+		syncGoalUi(ctx, stopped);
+		notifyWarning(ctx, `${budgetResourceText(pressure)} budget hard stop enforced. Goal work stopped.`);
+		const prompt = buildBudgetLimitPrompt(estimated);
+		pi.sendMessage(
+			{ customType: BUDGET_LIMIT_MESSAGE_TYPE, content: prompt.content, display: false, details: prompt.details },
+			{ deliverAs: "steer" },
+		);
+		cancelGoalContinuation(goal.goalId, "budget-hard-stop");
+		ctx.abort();
+		return;
+	}
+
+	if (isBudgetReached(pressure.kind)) {
+		if (streamBudgetSignalsSent.has("reached")) return;
+		streamBudgetSignalsSent.add("reached");
+		const prompt = buildBudgetLimitPrompt(estimated);
+		pi.sendMessage(
+			{ customType: BUDGET_LIMIT_MESSAGE_TYPE, content: prompt.content, display: false, details: prompt.details },
+			{ deliverAs: "steer" },
+		);
+		return;
+	}
+
+	if (isBudgetWarning(pressure.kind)) {
+		if (streamBudgetSignalsSent.has("warning")) return;
+		// Skip if turn_end already sent a UI warning
+		const telemetry = getTelemetry();
+		if (pressure.kind === "tokenWarning" && telemetry?.tokenBudgetWarningSent) return;
+		if (pressure.kind === "timeWarning" && telemetry?.timeBudgetWarningSent) return;
+
+		streamBudgetSignalsSent.add("warning");
+		const resource = pressure.kind.startsWith("time") ? "Time" : "Token";
+		const remaining = Math.max(0, Math.floor(pressure.remaining ?? 0));
+		const unit = pressure.kind.startsWith("time") ? "seconds" : "tokens";
+		pi.sendMessage(
+			{ customType: BUDGET_LIMIT_MESSAGE_TYPE, content: `${resource} budget warning: ${remaining} ${unit} remaining before target. Start wrapping up.`, display: false, details: { goalId: goal.goalId, kind: "budgetLimit", promptId: "pi-goal-budget-warning-v1", createdAt: Date.now() } },
+			{ deliverAs: "steer" },
+		);
+		return;
+	}
 }
 
 function handleToolCall(_event: ToolCallEvent): void {
@@ -177,7 +246,9 @@ function enforceBudgetHardStop(pi: ExtensionAPI, ctx: ExtensionContext, goal: Go
 	const nextTelemetry = noteBudgetHardStop(noteBudgetLimit(telemetry, pressureBudgetLimitReason(pressure)), budgetHardStopReason(pressure));
 	const result = persistUpdateGoal(pi, stopped, nextTelemetry, "budget");
 	syncGoalUi(ctx, result.goal);
-	notifyWarning(ctx, `${budgetResourceText(pressure)} budget hard stop enforced. Goal work stopped.`);
+	if (!telemetry?.lastBudgetHardStopReason) {
+		notifyWarning(ctx, `${budgetResourceText(pressure)} budget hard stop enforced. Goal work stopped.`);
+	}
 	interruptActiveGoalTurn(pi, ctx, result.goal);
 	return result;
 }
