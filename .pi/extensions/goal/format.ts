@@ -82,11 +82,20 @@ export function objectiveExcerpt(objective: string, maxChars = OBJECTIVE_EXCERPT
 	return `${chars.slice(0, Math.max(0, maxChars - 1)).join("")}…`;
 }
 
+export function formatTimeResource(goal: GoalState): string {
+	const used = formatElapsed(goal.timeUsedSeconds);
+	if (goal.timeBudgetSeconds === undefined) return `Time: ${used}`;
+	return `Time: ${used} / ${formatElapsed(goal.timeBudgetSeconds)}`;
+}
+
+export function formatTokenResource(goal: GoalState): string {
+	const used = formatTokensCompact(goal.tokensUsed);
+	if (goal.tokenBudget === undefined) return `Tokens: ${used}`;
+	return `Tokens: ${used} / ${formatTokensCompact(goal.tokenBudget)}`;
+}
+
 export function goalUsageSummary(goal: GoalState): string {
-	if (goal.tokenBudget !== undefined) {
-		return `${formatTokensCompact(goal.tokensUsed)} / ${formatTokensCompact(goal.tokenBudget)} tokens, ${formatElapsed(goal.timeUsedSeconds)}`;
-	}
-	return formatElapsed(goal.timeUsedSeconds);
+	return `${formatTimeResource(goal)}; ${formatTokenResource(goal)}`;
 }
 
 export function footerStatusText(goal: GoalState): string {
@@ -112,6 +121,11 @@ function footerUsage(goal: GoalState): string | undefined {
 		if (goal.status === "budgetLimited") return `${used} / ${budget} tokens`;
 		return `${used} tokens`;
 	}
+	if (goal.timeBudgetSeconds !== undefined) {
+		const used = formatElapsed(goal.timeUsedSeconds);
+		const budget = formatElapsed(goal.timeBudgetSeconds);
+		return goal.status === "complete" ? used : `${used} / ${budget}`;
+	}
 	return goal.timeUsedSeconds > 0 ? formatElapsed(goal.timeUsedSeconds) : undefined;
 }
 
@@ -124,6 +138,7 @@ export function goalSummaryLines(goal: GoalState): string[] {
 		`Tokens used: ${formatTokensCompact(goal.tokensUsed)}`,
 	];
 	if (goal.tokenBudget !== undefined) lines.push(`Token budget: ${formatTokensCompact(goal.tokenBudget)}`);
+	if (goal.timeBudgetSeconds !== undefined) lines.push(`Time budget: ${formatElapsed(goal.timeBudgetSeconds)}`);
 	lines.push("", commandHint(goal.status));
 	return lines;
 }

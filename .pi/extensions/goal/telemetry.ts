@@ -1,5 +1,6 @@
 import { TELEMETRY_SCHEMA_VERSION } from "./constants";
 import type {
+	BudgetLimitReason,
 	ContinuationReason,
 	ContinuationSkipReason,
 	GoalTelemetrySnapshot,
@@ -63,6 +64,15 @@ export function noteBudgetWrapUpSent(
 ): GoalTelemetrySnapshot | null {
 	if (!telemetry) return null;
 	return { ...telemetry, budgetWrapUpSent: true, updatedAt: now };
+}
+
+export function noteBudgetLimit(
+	telemetry: GoalTelemetrySnapshot | null,
+	reason: BudgetLimitReason,
+	now = Date.now(),
+): GoalTelemetrySnapshot | null {
+	if (!telemetry) return null;
+	return { ...telemetry, lastBudgetLimitReason: reason, updatedAt: now };
 }
 
 export function noteSafetyPause(

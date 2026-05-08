@@ -7,6 +7,7 @@ export type GoalState = {
 	objective: string;
 	status: GoalStatus;
 	tokenBudget?: number;
+	timeBudgetSeconds?: number;
 	tokensUsed: number;
 	timeUsedSeconds: number;
 	createdAt: number;
@@ -17,6 +18,7 @@ export type TurnOrigin = "user" | "auto" | "budgetWrapUp";
 export type ContinuationReason = "created" | "resumed" | "agentEnd";
 export type ContinuationSkipReason = "notIdle" | "pendingMessages" | "notActive" | "budgetLimited" | "safetyCap";
 export type SafetyPauseReason = "maxAutoTurns" | "noProgress" | "abort";
+export type BudgetLimitReason = "tokenBudget" | "timeBudget";
 
 export type GoalTelemetrySnapshot = {
 	version: 1;
@@ -35,6 +37,7 @@ export type GoalTelemetrySnapshot = {
 	budgetWrapUpSent?: boolean;
 	lastProgressAt?: number;
 	lastSafetyPauseReason?: SafetyPauseReason;
+	lastBudgetLimitReason?: BudgetLimitReason;
 	updatedAt: number;
 };
 

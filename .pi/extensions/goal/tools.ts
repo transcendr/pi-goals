@@ -1,6 +1,6 @@
 import { Type } from "typebox";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-import { validateObjective } from "./format";
+import { formatElapsed, validateObjective } from "./format";
 import { createTelemetry } from "./telemetry";
 import { createGoalState, getGoal, getTelemetry, persistSetGoal, persistUpdateGoal } from "./state";
 import { syncGoalUi } from "./ui";
@@ -10,6 +10,7 @@ const EmptyParams = Type.Object({});
 const CreateGoalParams = Type.Object({
 	objective: Type.String({ description: "Goal objective explicitly requested by the user" }),
 	token_budget: Type.Optional(Type.Number({ description: "Optional positive token budget" })),
+	time_budget_seconds: Type.Optional(Type.Number({ description: "Optional positive time budget in seconds" })),
 });
 const UpdateGoalParams = Type.Object({
 	status: Type.Literal("complete"),
@@ -19,6 +20,7 @@ type ToolDetails = {
 	goal: GoalState | null;
 	telemetry?: GoalTelemetrySnapshot | null;
 	remaining_tokens?: number;
+	remaining_time_seconds?: number;
 	completion_budget_report?: string;
 	error?: string;
 };
@@ -53,7 +55,10 @@ export function registerGoalTools(pi: ExtensionAPI): void {
 			if (params.token_budget !== undefined && (!Number.isInteger(params.token_budget) || params.token_budget <= 0)) {
 				return errorResult("token_budget must be a positive integer when provided.");
 			}
-			const goal = createGoalState(validation.objective, params.token_budget);
+			if (params.time_budget_seconds !== undefined && (!Number.isInteger(params.time_budget_seconds) || params.time_budget_seconds <= 0)) {
+				return errorResult("time_budget_seconds must be a positive integer when provided.");
+			}
+			const goal = createGoalState(validation.objective, params.token_budget, params.time_budget_seconds);
 			const telemetry = createTelemetry(goal.goalId, goal.createdAt);
 			persistSetGoal(pi, goal, telemetry, "tool");
 			syncGoalUi(ctx, goal);
@@ -84,9 +89,9 @@ export function registerGoalTools(pi: ExtensionAPI): void {
 }
 
 function resultForGoal(goal: GoalState | null, telemetry: GoalTelemetrySnapshot | null, prefix?: string) {
-	const details: ToolDetails = { goal, telemetry, remaining_tokens: remainingTokens(goal) };
-	if (goal?.status === "complete" && goal.tokenBudget !== undefined) {
-		details.completion_budget_report = `Goal achieved. Report final budget usage to the user: tokens used: ${goal.tokensUsed} of ${goal.tokenBudget}; time used: ${goal.timeUsedSeconds} seconds.`;
+	const details: ToolDetails = { goal, telemetry, remaining_tokens: remainingTokens(goal), remaining_time_seconds: remainingTime(goal) };
+	if (goal?.status === "complete" && (goal.tokenBudget !== undefined || goal.timeBudgetSeconds !== undefined)) {
+		details.completion_budget_report = `Goal achieved. Report final budget usage to the user: tokens used: ${goal.tokensUsed}${goal.tokenBudget === undefined ? "" : ` of ${goal.tokenBudget}`}; time used: ${goal.timeUsedSeconds}${goal.timeBudgetSeconds === undefined ? "" : ` of ${goal.timeBudgetSeconds}`} seconds.`;
 	}
 	return { content: [{ type: "text" as const, text: `${prefix ? `${prefix}\n` : ""}${formatToolGoal(goal)}` }], details };
 }
@@ -99,14 +104,20 @@ function remainingTokens(goal: GoalState | null): number | undefined {
 	return goal?.tokenBudget === undefined ? undefined : Math.max(0, goal.tokenBudget - goal.tokensUsed);
 }
 
+function remainingTime(goal: GoalState | null): number | undefined {
+	return goal?.timeBudgetSeconds === undefined ? undefined : Math.max(0, goal.timeBudgetSeconds - goal.timeUsedSeconds);
+}
+
 function formatToolGoal(goal: GoalState | null): string {
 	if (!goal) return "No goal is currently set.";
-	const budget = goal.tokenBudget === undefined ? "none" : `${goal.tokenBudget} (${remainingTokens(goal)} remaining)`;
+	const tokenBudget = goal.tokenBudget === undefined ? "none" : `${goal.tokenBudget} (${remainingTokens(goal)} remaining)`;
+	const timeBudget = goal.timeBudgetSeconds === undefined ? "none" : `${formatElapsed(goal.timeBudgetSeconds)} (${remainingTime(goal)} seconds remaining)`;
 	return [
 		`Goal: ${goal.status}`,
 		`Objective: ${goal.objective}`,
 		`Time used: ${goal.timeUsedSeconds} seconds`,
 		`Tokens used: ${goal.tokensUsed}`,
-		`Token budget: ${budget}`,
+		`Token budget: ${tokenBudget}`,
+		`Time budget: ${timeBudget}`,
 	].join("\n");
 }

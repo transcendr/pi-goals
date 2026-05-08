@@ -1,6 +1,6 @@
 import type { ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { GOAL_USAGE, GOAL_USAGE_HINT, STATUS_UI_KEY, WIDGET_UI_KEY } from "./constants";
-import { footerStatusText, formatElapsed, formatTokensCompact, goalSummaryLines, goalUsageSummary, objectiveExcerpt, statusLabel, commandHint } from "./format";
+import { footerStatusText, formatTimeResource, formatTokenResource, goalSummaryLines, goalUsageSummary, objectiveExcerpt, statusLabel, commandHint } from "./format";
 import type { GoalState } from "./types";
 
 export function syncGoalUi(ctx: ExtensionContext, goal: GoalState | null): void {
@@ -39,11 +39,11 @@ export async function promptResumePausedGoal(ctx: ExtensionContext, goal: GoalSt
 }
 
 function widgetLines(goal: GoalState): string[] {
-	const budget = goal.tokenBudget === undefined ? "" : ` • ${formatTokensCompact(goal.tokensUsed)} / ${formatTokensCompact(goal.tokenBudget)} tokens`;
 	return [
 		`pi-goal: ${statusLabel(goal.status)}`,
 		`Objective: ${objectiveExcerpt(goal.objective)}`,
-		`Usage: ${formatElapsed(goal.timeUsedSeconds)}${budget}`,
+		formatTimeResource(goal),
+		formatTokenResource(goal),
 		commandHint(goal.status),
 	];
 }

@@ -32,12 +32,13 @@ export function setRuntimeStateForTests(state: GoalRuntimeState): void {
 	runtimeState = state;
 }
 
-export function createGoalState(objective: string, tokenBudget?: number, now = Date.now()): GoalState {
+export function createGoalState(objective: string, tokenBudget?: number, timeBudgetSeconds?: number, now = Date.now()): GoalState {
 	return {
 		goalId: crypto.randomUUID(),
 		objective,
 		status: "active",
 		tokenBudget,
+		timeBudgetSeconds,
 		tokensUsed: 0,
 		timeUsedSeconds: 0,
 		createdAt: now,

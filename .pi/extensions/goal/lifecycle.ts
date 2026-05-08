@@ -18,9 +18,9 @@ import {
 } from "./constants";
 import { cancelGoalContinuation, scheduleBudgetLimitWrapUp, scheduleMaybeContinueGoal } from "./continuation";
 import { getGoal, getTelemetry, persistAccountGoal, persistTelemetry, persistUpdateGoal, replayGoalState } from "./state";
-import { applyTurnTelemetry, consumeNextTurnOrigin, makeTurnSnapshot, noteSafetyPause } from "./telemetry";
+import { applyTurnTelemetry, consumeNextTurnOrigin, makeTurnSnapshot, noteBudgetLimit, noteSafetyPause } from "./telemetry";
 import { notifyWarning, promptResumePausedGoal, syncGoalUi } from "./ui";
-import type { GoalState, GoalTelemetrySnapshot, GoalSteeringDetails, TurnAccountingSnapshot } from "./types";
+import type { BudgetLimitReason, GoalState, GoalTelemetrySnapshot, GoalSteeringDetails, TurnAccountingSnapshot } from "./types";
 
 let activeTurn: TurnAccountingSnapshot | null = null;
 
@@ -89,9 +89,11 @@ async function handleTurnEnd(pi: ExtensionAPI, event: TurnEndEvent, ctx: Extensi
 	let result = persistAccountGoal(pi, turn.goalId, { timeUsedSeconds: elapsed, tokensUsed: tokens }, telemetry, "turn");
 	let updated = result.goal;
 
-	if (updated && updated.status === "active" && updated.tokenBudget !== undefined && updated.tokensUsed >= updated.tokenBudget) {
+	const budgetReason = updated?.status === "active" ? reachedBudget(updated) : undefined;
+	if (updated && budgetReason) {
 		updated = { ...updated, status: "budgetLimited", updatedAt: Date.now() };
-		result = persistUpdateGoal(pi, updated, result.telemetry, "budget");
+		const budgetTelemetry = noteBudgetLimit(result.telemetry, budgetReason);
+		result = persistUpdateGoal(pi, updated, budgetTelemetry, "budget");
 		if (result.goal) scheduleBudgetLimitWrapUp(pi, ctx, result.goal);
 	}
 
@@ -130,6 +132,12 @@ async function pauseForSafety(
 function shouldPauseForSafety(telemetry: GoalTelemetrySnapshot | null): boolean {
 	if (!telemetry) return false;
 	return telemetry.consecutiveAutoTurns >= MAX_CONSECUTIVE_AUTO_TURNS || telemetry.consecutiveNoProgressTurns >= MAX_NO_PROGRESS_AUTO_TURNS;
+}
+
+function reachedBudget(goal: GoalState): BudgetLimitReason | undefined {
+	if (goal.tokenBudget !== undefined && goal.tokensUsed >= goal.tokenBudget) return "tokenBudget";
+	if (goal.timeBudgetSeconds !== undefined && goal.timeUsedSeconds >= goal.timeBudgetSeconds) return "timeBudget";
+	return undefined;
 }
 
 function assistantTokens(message: TurnEndEvent["message"]): number {
