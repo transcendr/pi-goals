@@ -1,9 +1,9 @@
 # ISSUE-001 — Feature-complete `pi-goal` extension for Codex-style `/goal`
 
-Status: open — execution-ready  
+Status: fixed — implemented and validated  
 Priority: high  
-Next best session: implementation-focused pi extension build session  
-Next best session rationale: The feature can be delivered as a project-local TypeScript extension under `.pi/extensions/goal/index.ts`; the remaining work after this planning pass should be coding and local validation, not product/API selection.  
+Next best session: follow-up refinement issue from `.ai/issues/open`  
+Next best session rationale: Initial modular implementation is committed; remaining work is tracked in follow-up issues.  
 Target repo roots: `/Users/bryan/dev/personal/experiments/pi-goals`  
 Parent issue: none  
 Depends on: `.ai/docs/codex-goal-command-research.md` and local pi extension APIs  
@@ -65,9 +65,10 @@ Validation notes:
 Accepted deviations / follow-ups:
 
 - Full interactive TUI `/reload`, manual live `/goal` scenarios, and live abort interruption remain recommended follow-up validation because this closeout ran in a non-interactive context.
-- `.ai/issues/refine/ISSUE-002-goal-pause-active-turn-interrupt.md` tracks improving pause behavior during an active goal turn.
-- `.ai/issues/refine/ISSUE-003-paused-goal-continuation-guard.md` tracks guarding against stale/pasted/queued continuations when a goal is paused.
-- `.ai/issues/refine/ISSUE-004-goal-subcommand-fuzzy-autocomplete.md` tracks fuzzy autocomplete for `/goal` subcommands.
+- `.ai/issues/open/ISSUE-002-goal-pause-active-turn-interrupt.md` tracks improving pause behavior during an active goal turn.
+- `.ai/issues/open/ISSUE-003-paused-goal-continuation-guard.md` tracks guarding against stale/pasted/queued continuations when a goal is paused.
+- `.ai/issues/open/ISSUE-004-goal-subcommand-fuzzy-autocomplete.md` tracks fuzzy autocomplete for `/goal` subcommands.
+- `.ai/issues/open/ISSUE-005-goal-widget-labels-and-time-budget.md` tracks explicit resource labels and time budget support.
 
 ## Source artifacts already available
 
