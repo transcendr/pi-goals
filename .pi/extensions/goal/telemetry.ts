@@ -123,5 +123,5 @@ export function applyTurnTelemetry(
 }
 
 export function makeTurnSnapshot(goalId: string, origin: TurnOrigin, startedAt = Date.now()): TurnAccountingSnapshot {
-	return { goalId, origin, startedAt, toolCallCount: 0, toolResultCount: 0, completedGoal: false };
+	return { goalId, origin, startedAt, toolCallCount: 0, toolResultCount: 0, progressCount: 0, completedGoal: false };
 }

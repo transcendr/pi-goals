@@ -61,18 +61,29 @@ function handleTurnStart(event: TurnStartEvent): void {
 	activeTurn = makeTurnSnapshot(goal.goalId, consumeNextTurnOrigin(), event.timestamp || Date.now());
 }
 
-function handleToolCall(event: ToolCallEvent): void {
+function handleToolCall(_event: ToolCallEvent): void {
 	if (!activeTurn) return;
 	activeTurn.toolCallCount++;
-	if (event.toolName === "update_goal" && (event.input as { status?: unknown }).status === "complete") {
-		activeTurn.completedGoal = true;
-	}
 }
 
 function handleToolResult(event: ToolResultEvent): void {
 	if (!activeTurn) return;
 	activeTurn.toolResultCount++;
-	if (event.toolName === "update_goal" && !event.isError) activeTurn.completedGoal = true;
+	if (event.isError) return;
+	if (event.toolName === "update_goal") return noteGoalUpdateResult(event.details);
+	activeTurn.progressCount++;
+}
+
+function noteGoalUpdateResult(details: unknown): void {
+	if (!activeTurn || hasToolError(details)) return;
+	const goal = (details as { goal?: { status?: string } } | undefined)?.goal;
+	if (!goal) return;
+	activeTurn.progressCount++;
+	if (goal.status === "complete") activeTurn.completedGoal = true;
+}
+
+function hasToolError(details: unknown): boolean {
+	return Boolean((details as { error?: unknown } | undefined)?.error);
 }
 
 async function handleTurnEnd(pi: ExtensionAPI, event: TurnEndEvent, ctx: ExtensionContext): Promise<void> {
@@ -84,7 +95,7 @@ async function handleTurnEnd(pi: ExtensionAPI, event: TurnEndEvent, ctx: Extensi
 	if (!goal || goal.goalId !== turn.goalId) return;
 	const elapsed = Math.max(0, Math.floor((Date.now() - turn.startedAt) / 1000));
 	const tokens = assistantTokens(event.message);
-	const madeProgress = turn.completedGoal || turn.toolResultCount > 0;
+	const madeProgress = turn.completedGoal || turn.progressCount > 0;
 	let telemetry = applyTurnTelemetry(getTelemetry(), turn, madeProgress);
 	let result = persistAccountGoal(pi, turn.goalId, { timeUsedSeconds: elapsed, tokensUsed: tokens }, telemetry, "turn");
 	let updated = result.goal;

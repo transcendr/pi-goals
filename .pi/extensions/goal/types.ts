@@ -75,6 +75,7 @@ export type TurnAccountingSnapshot = {
 	origin: TurnOrigin;
 	toolCallCount: number;
 	toolResultCount: number;
+	progressCount: number;
 	completedGoal: boolean;
 };
 

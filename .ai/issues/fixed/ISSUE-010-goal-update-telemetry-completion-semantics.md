@@ -1,6 +1,6 @@
 # ISSUE-010 — Fix update_goal completion/progress telemetry semantics
 
-Status: open — execution-ready
+Status: fixed — implemented and validated
 Priority: P1
 Owner: unassigned
 Created: 2026-05-08
@@ -64,3 +64,22 @@ Out of scope:
 - [ ] 010.3 Inspect `ToolResultEvent` details/content to mark completion only on actual complete state and ignore errors.
 - [ ] 010.4 Add telemetry probes for failed complete, budget-only update, successful complete, and no-progress accounting.
 - [ ] 010.5 Run Sentrux gate/check and Pi extension load validation; record `tsc` availability.
+
+
+## Implementation closeout
+
+Implemented telemetry semantics fix:
+
+- Removed pre-result completion marking from `handleToolCall()`.
+- Added `progressCount` to `TurnAccountingSnapshot` so progress accounting is not the same as raw tool-result count.
+- `handleToolResult()` now ignores errored tool results for progress.
+- `update_goal` only marks completion when result details include a goal with `status: "complete"` and no details error.
+- Budget-only or failed `update_goal` calls no longer set completion telemetry.
+
+Validation:
+
+- `sentrux gate .pi/extensions/goal` passed.
+- `sentrux check .pi/extensions/goal` passed.
+- `pi --offline --no-session --no-tools -e .pi/extensions/goal/index.ts --list-models` passed.
+- Static grep confirmed old broad `update_goal` completion paths are absent.
+- `tsc` attempted but unavailable: `/bin/bash: tsc: command not found`.
