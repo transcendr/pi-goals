@@ -22,6 +22,7 @@ export const BUDGET_HARD_STOP_MULTIPLIER = 1.1;
 
 export const CONTINUATION_PROMPT_ID = "pi-goal-continuation-v1";
 export const BUDGET_LIMIT_PROMPT_ID = "pi-goal-budget-limit-v1";
+export const BUDGET_WARNING_PROMPT_ID = "pi-goal-budget-warning-v1";
 export const PAUSE_PROMPT_ID = "pi-goal-pause-v1";
 
 export const GOAL_USAGE = "Usage: /goal <objective>";

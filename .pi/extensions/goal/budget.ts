@@ -26,6 +26,12 @@ export function isBudgetHardStop(kind: BudgetPressureKind): boolean {
 	return kind === "tokenHardStop" || kind === "timeHardStop";
 }
 
+export function isBudgetExhausted(goal: GoalState): BudgetLimitReason | undefined {
+	if (goal.tokenBudget !== undefined && goal.tokensUsed >= goal.tokenBudget) return "tokenBudget";
+	if (goal.timeBudgetSeconds !== undefined && goal.timeUsedSeconds >= goal.timeBudgetSeconds) return "timeBudget";
+	return undefined;
+}
+
 function tokenPressure(goal: GoalState): BudgetPressure {
 	if (goal.tokenBudget === undefined) return none();
 	const remaining = goal.tokenBudget - goal.tokensUsed;

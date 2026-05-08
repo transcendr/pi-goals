@@ -1,6 +1,7 @@
 import { Type } from "typebox";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { formatElapsed, validateObjective } from "./format";
+import { isBudgetExhausted } from "./budget";
 import { createTelemetry, noteBudgetLimit } from "./telemetry";
 import { createGoalState, getGoal, getTelemetry, persistClearGoal, persistSetGoal, persistUpdateGoal } from "./state";
 import { syncGoalUi } from "./ui";
@@ -217,19 +218,13 @@ function applyBudgetUpdates(goal: GoalState, params: UpdateGoalInput, changes: s
 
 function recomputeStatusAfterBudgetEdit(goal: GoalState): GoalState {
 	if (goal.status !== "active" && goal.status !== "budgetLimited") return goal;
-	return budgetReason(goal) ? { ...goal, status: "budgetLimited" } : { ...goal, status: "active" };
+	return isBudgetExhausted(goal) ? { ...goal, status: "budgetLimited" } : { ...goal, status: "active" };
 }
 
 function telemetryForUpdate(goal: GoalState): GoalTelemetrySnapshot | null {
-	const reason = budgetReason(goal);
+	const reason = isBudgetExhausted(goal);
 	if (goal.status === "budgetLimited" && reason) return noteBudgetLimit(getTelemetry(), reason);
 	return getTelemetry();
-}
-
-function budgetReason(goal: GoalState): "tokenBudget" | "timeBudget" | undefined {
-	if (goal.tokenBudget !== undefined && goal.tokensUsed >= goal.tokenBudget) return "tokenBudget";
-	if (goal.timeBudgetSeconds !== undefined && goal.timeUsedSeconds >= goal.timeBudgetSeconds) return "timeBudget";
-	return undefined;
 }
 
 function parseToolStatus(status: string): GoalStatus | undefined {

@@ -97,6 +97,8 @@ export type GoalSteeringDetails = {
 	reason?: ContinuationReason | "budget" | "pause";
 };
 
+export type StreamBudgetSignal = "hardStop" | "reached" | "warning";
+
 export type GoalCommandScheduler = (ctx: ExtensionContext, reason: ContinuationReason) => void;
 export type GoalContinuationCanceller = (goalId?: string, reason?: string) => void;
 export type GoalPauseInterrupter = (ctx: ExtensionContext, goal: GoalState) => void;
