@@ -1,4 +1,5 @@
 import type { ExtensionAPI, ExtensionCommandContext } from "@earendil-works/pi-coding-agent";
+import type { AutocompleteItem } from "@earendil-works/pi-tui";
 import { GOAL_USAGE, GOAL_USAGE_HINT } from "./constants";
 import { validateObjective } from "./format";
 import { createTelemetry, resetSafetyCounters } from "./telemetry";
@@ -14,6 +15,17 @@ import {
 import { notifyGoal, notifyInfo, notifyWarning, showGoalSummary, showNoGoal, syncGoalUi } from "./ui";
 import type { GoalCommandScheduler, GoalContinuationCanceller, GoalPauseInterrupter, GoalState } from "./types";
 
+type GoalSubcommand = {
+	name: "pause" | "resume" | "clear";
+	description: string;
+};
+
+const GOAL_SUBCOMMANDS: GoalSubcommand[] = [
+	{ name: "pause", description: "Pause the current goal" },
+	{ name: "resume", description: "Resume a paused goal" },
+	{ name: "clear", description: "Clear the current goal" },
+];
+
 export function registerGoalCommand(
 	pi: ExtensionAPI,
 	scheduleContinuation: GoalCommandScheduler,
@@ -22,8 +34,39 @@ export function registerGoalCommand(
 ): void {
 	pi.registerCommand("goal", {
 		description: "Set or view the goal for a long-running task",
+		getArgumentCompletions: goalArgumentCompletions,
 		handler: async (args, ctx) => handleGoalCommand(pi, args, ctx, scheduleContinuation, cancelContinuation, interruptActiveTurn),
 	});
+}
+
+export function goalArgumentCompletions(argumentPrefix: string): AutocompleteItem[] | null {
+	const query = argumentPrefix.trimStart();
+	if (/\s/.test(query)) return null;
+	return GOAL_SUBCOMMANDS.map((subcommand) => ({
+		...subcommand,
+		score: subcommandScore(subcommand.name, query),
+	}))
+		.filter((item) => item.score !== undefined)
+		.sort((a, b) => a.score! - b.score! || a.name.localeCompare(b.name))
+		.map(({ name, description }) => ({ value: name, label: name, description }));
+}
+
+function subcommandScore(value: string, query: string): number | undefined {
+	const normalized = query.toLowerCase();
+	if (!normalized) return 0;
+	if (value.startsWith(normalized)) return 1;
+	if (value.includes(normalized)) return 2;
+	return isOrderedMatch(value, normalized) ? 3 : undefined;
+}
+
+function isOrderedMatch(value: string, query: string): boolean {
+	let index = 0;
+	for (const char of query) {
+		index = value.indexOf(char, index);
+		if (index < 0) return false;
+		index++;
+	}
+	return true;
 }
 
 async function handleGoalCommand(
@@ -42,7 +85,7 @@ async function handleGoalCommand(
 		return;
 	}
 
-	const control = trimmed.toLowerCase();
+	const control = GOAL_SUBCOMMANDS.find((subcommand) => subcommand.name === trimmed.toLowerCase())?.name;
 	if (control === "pause") return pauseGoal(pi, ctx, cancelContinuation, interruptActiveTurn);
 	if (control === "resume") return resumeGoal(pi, ctx, scheduleContinuation);
 	if (control === "clear") return clearGoal(pi, ctx, cancelContinuation);
