@@ -1,0 +1,188 @@
+# Sentrux rules for the pi-goal TypeScript extension.
+# Target directory: /Users/bryan/dev/personal/experiments/pi-goals/.pi/extensions/goal
+# Run from the project root with:
+#   sentrux gate --save .pi/extensions/goal
+#   sentrux gate .pi/extensions/goal
+#   sentrux check .pi/extensions/goal
+#
+# Note on layer order: the current Sentrux rule checker flags imports from a
+# larger order number to a smaller order number. Put orchestration/entrypoint
+# files at lower order numbers and dependency-only/domain files at higher order
+# numbers so index/runtime/surfaces can import down into stable helpers, while
+# helpers cannot import back upward into orchestration or UI surfaces.
+
+[constraints]
+max_cycles = 0
+max_cc = 20
+max_fn_lines = 80
+max_file_lines = 450
+no_god_files = true
+
+[[layers]]
+name = "entrypoint"
+paths = ["index.ts"]
+order = 0
+
+[[layers]]
+name = "runtime"
+paths = ["lifecycle.ts", "continuation.ts"]
+order = 1
+
+[[layers]]
+name = "surfaces"
+paths = ["ui.ts", "command.ts", "tools.ts"]
+order = 2
+
+[[layers]]
+name = "state"
+paths = ["state.ts", "telemetry.ts"]
+order = 3
+
+[[layers]]
+name = "prompts"
+paths = ["prompts.ts"]
+order = 4
+
+[[layers]]
+name = "domain"
+paths = ["types.ts", "constants.ts", "format.ts"]
+order = 5
+
+# Domain helpers must remain pure and reusable.
+[[boundaries]]
+from = "types.ts"
+to = "command.ts"
+reason = "Domain types must not depend on command parsing."
+
+[[boundaries]]
+from = "types.ts"
+to = "tools.ts"
+reason = "Domain types must not depend on model tool registration."
+
+[[boundaries]]
+from = "types.ts"
+to = "ui.ts"
+reason = "Domain types must not depend on Pi UI rendering."
+
+[[boundaries]]
+from = "constants.ts"
+to = "command.ts"
+reason = "Constants should be low-level and reusable across command/tool/runtime modules."
+
+[[boundaries]]
+from = "format.ts"
+to = "command.ts"
+reason = "Formatting and validation helpers should be reusable by commands and tools, not depend on commands."
+
+[[boundaries]]
+from = "format.ts"
+to = "ui.ts"
+reason = "Formatting helpers should not depend on Pi UI APIs."
+
+# Prompt builders are deterministic; only runtime scheduling should consume them.
+[[boundaries]]
+from = "command.ts"
+to = "prompts.ts"
+reason = "Commands should not construct hidden runtime steering prompts directly."
+
+[[boundaries]]
+from = "tools.ts"
+to = "prompts.ts"
+reason = "Model tools should not construct continuation or budget-limit prompts directly."
+
+[[boundaries]]
+from = "ui.ts"
+to = "prompts.ts"
+reason = "UI rendering should not depend on hidden runtime steering prompt builders."
+
+[[boundaries]]
+from = "prompts.ts"
+to = "continuation.ts"
+reason = "Prompt builders should be deterministic; continuation scheduling consumes them."
+
+# State and telemetry should not know about command/tool/UI/runtime orchestration.
+[[boundaries]]
+from = "state.ts"
+to = "ui.ts"
+reason = "State replay/persistence should not depend on display code; callers sync UI after mutations."
+
+[[boundaries]]
+from = "state.ts"
+to = "command.ts"
+reason = "State should expose mutation helpers without depending on command parsing."
+
+[[boundaries]]
+from = "state.ts"
+to = "tools.ts"
+reason = "State should expose mutation helpers without depending on model tool registration."
+
+[[boundaries]]
+from = "state.ts"
+to = "continuation.ts"
+reason = "State should expose mutation helpers without scheduling autonomous continuation."
+
+[[boundaries]]
+from = "state.ts"
+to = "lifecycle.ts"
+reason = "State should not depend on lifecycle hook wiring."
+
+[[boundaries]]
+from = "state.ts"
+to = "prompts.ts"
+reason = "State persistence should not know about prompt construction."
+
+[[boundaries]]
+from = "telemetry.ts"
+to = "state.ts"
+reason = "Telemetry helpers should be persistence-agnostic; state persists telemetry snapshots."
+
+[[boundaries]]
+from = "telemetry.ts"
+to = "continuation.ts"
+reason = "Telemetry helpers should not schedule continuation; runtime modules update telemetry through helpers."
+
+[[boundaries]]
+from = "telemetry.ts"
+to = "lifecycle.ts"
+reason = "Telemetry helpers should not depend on lifecycle hook wiring."
+
+[[boundaries]]
+from = "telemetry.ts"
+to = "prompts.ts"
+reason = "Telemetry helpers should not depend on runtime prompt construction."
+
+# Surface modules should not bypass each other's ownership boundaries.
+[[boundaries]]
+from = "ui.ts"
+to = "state.ts"
+reason = "UI should render supplied goal state and not replay or persist state directly."
+
+[[boundaries]]
+from = "ui.ts"
+to = "continuation.ts"
+reason = "UI rendering should not schedule automatic continuation."
+
+[[boundaries]]
+from = "command.ts"
+to = "tools.ts"
+reason = "User command behavior must not depend on model tool registration."
+
+[[boundaries]]
+from = "command.ts"
+to = "lifecycle.ts"
+reason = "Command parsing should not depend on lifecycle hook wiring."
+
+[[boundaries]]
+from = "command.ts"
+to = "continuation.ts"
+reason = "Index/runtime should inject continuation scheduling into commands; commands should not import runtime scheduling directly."
+
+[[boundaries]]
+from = "tools.ts"
+to = "command.ts"
+reason = "Model tools must not bypass user-command replacement, pause, resume, or clear semantics."
+
+[[boundaries]]
+from = "tools.ts"
+to = "continuation.ts"
+reason = "Model tools should mutate goal state only; autonomous continuation is runtime-owned."
