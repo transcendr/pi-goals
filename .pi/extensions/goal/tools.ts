@@ -1,7 +1,7 @@
 import { Type } from "typebox";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { formatElapsed, validateObjective } from "./format";
-import { createTelemetry } from "./telemetry";
+import { createTelemetry, noteBudgetLimit } from "./telemetry";
 import { createGoalState, getGoal, getTelemetry, persistClearGoal, persistSetGoal, persistUpdateGoal } from "./state";
 import { syncGoalUi } from "./ui";
 import type { GoalCommandScheduler, GoalContinuationCanceller, GoalState, GoalStatus, GoalTelemetrySnapshot } from "./types";
@@ -135,7 +135,7 @@ type UpdateGoalInput = {
 	time_budget_seconds?: number | null;
 };
 
-type GoalUpdateResult = { ok: true; goal: GoalState; prefix: string } | { ok: false; error: string };
+type GoalUpdateResult = { ok: true; goal: GoalState; prefix: string; budgetChanged?: boolean } | { ok: false; error: string };
 
 function createGoalFromTool(pi: ExtensionAPI, params: CreateGoalInput, ctx: Parameters<GoalCommandScheduler>[0]) {
 	if (getGoal()) return errorResult("A goal already exists. Use clear_goal or ask the user before replacing it.");
@@ -155,8 +155,8 @@ function updateGoalFromTool(pi: ExtensionAPI, runtime: GoalToolRuntime, params: 
 	if (!goal) return errorResult("No goal exists to update.");
 	const update = buildGoalUpdate(goal, params);
 	if (!update.ok) return errorResult(update.error);
-	if (update.goal.status === "paused") runtime.cancelContinuation?.(goal.goalId, "tool-pause");
-	persistUpdateGoal(pi, update.goal, getTelemetry(), "tool");
+	if (update.goal.status === "paused" || update.goal.status === "budgetLimited") runtime.cancelContinuation?.(goal.goalId, "tool-status");
+	persistUpdateGoal(pi, update.goal, telemetryForUpdate(update.goal), "tool");
 	syncGoalUi(ctx, update.goal);
 	if (goal.status !== "active" && update.goal.status === "active") runtime.scheduleContinuation?.(ctx, "resumed");
 	return resultForGoal(update.goal, getTelemetry(), update.prefix);
@@ -178,7 +178,7 @@ function buildGoalUpdate(goal: GoalState, params: UpdateGoalInput): GoalUpdateRe
 	next = objectiveResult.goal;
 	const budgetResult = applyBudgetUpdates(next, params, changes);
 	if (!budgetResult.ok) return budgetResult;
-	next = budgetResult.goal;
+	next = budgetResult.budgetChanged && params.status === undefined ? recomputeStatusAfterBudgetEdit(budgetResult.goal) : budgetResult.goal;
 	if (params.status !== undefined) {
 		const status = parseToolStatus(params.status);
 		if (!status) return { ok: false, error: "status must be active, paused, or complete when provided." };
@@ -199,17 +199,37 @@ function applyObjectiveUpdate(goal: GoalState, objective: string | undefined, ch
 
 function applyBudgetUpdates(goal: GoalState, params: UpdateGoalInput, changes: string[]): GoalUpdateResult {
 	let next = goal;
+	let budgetChanged = false;
 	if (params.token_budget !== undefined) {
 		if (params.token_budget !== null && (!Number.isInteger(params.token_budget) || params.token_budget <= 0)) return { ok: false, error: "token_budget must be a positive integer or null when provided." };
 		next = { ...next, tokenBudget: params.token_budget === null ? undefined : params.token_budget };
 		changes.push("token budget");
+		budgetChanged = true;
 	}
 	if (params.time_budget_seconds !== undefined) {
 		if (params.time_budget_seconds !== null && (!Number.isInteger(params.time_budget_seconds) || params.time_budget_seconds <= 0)) return { ok: false, error: "time_budget_seconds must be a positive integer or null when provided." };
 		next = { ...next, timeBudgetSeconds: params.time_budget_seconds === null ? undefined : params.time_budget_seconds };
 		changes.push("time budget");
+		budgetChanged = true;
 	}
-	return { ok: true, goal: next, prefix: "" };
+	return { ok: true, goal: next, prefix: "", budgetChanged };
+}
+
+function recomputeStatusAfterBudgetEdit(goal: GoalState): GoalState {
+	if (goal.status !== "active" && goal.status !== "budgetLimited") return goal;
+	return budgetReason(goal) ? { ...goal, status: "budgetLimited" } : { ...goal, status: "active" };
+}
+
+function telemetryForUpdate(goal: GoalState): GoalTelemetrySnapshot | null {
+	const reason = budgetReason(goal);
+	if (goal.status === "budgetLimited" && reason) return noteBudgetLimit(getTelemetry(), reason);
+	return getTelemetry();
+}
+
+function budgetReason(goal: GoalState): "tokenBudget" | "timeBudget" | undefined {
+	if (goal.tokenBudget !== undefined && goal.tokensUsed >= goal.tokenBudget) return "tokenBudget";
+	if (goal.timeBudgetSeconds !== undefined && goal.timeUsedSeconds >= goal.timeBudgetSeconds) return "timeBudget";
+	return undefined;
 }
 
 function parseToolStatus(status: string): GoalStatus | undefined {

@@ -1,6 +1,6 @@
 # ISSUE-009 — Recompute goal status after budget edits
 
-Status: open — execution-ready
+Status: fixed — implemented and validated
 Priority: P1
 Owner: unassigned
 Created: 2026-05-08
@@ -65,3 +65,24 @@ Out of scope:
 - [ ] 009.3 Wire continuation schedule/cancel behavior after recomputed status changes.
 - [ ] 009.4 Add probes for raise-above-usage, lower-below-usage, time-budget equivalents, paused preservation, and complete preservation.
 - [ ] 009.5 Run Sentrux gate/check and Pi extension load validation; record `tsc` availability.
+
+
+## Implementation closeout
+
+Implemented budget edit status recomputation in `update_goal` tool handling:
+
+- Budget edits now mark the update as `budgetChanged`.
+- If no explicit status is provided, budget-only edits recompute status for `active` and `budgetLimited` goals.
+- Raising budget above current usage can move `budgetLimited -> active`.
+- Lowering budget below current usage can move `active -> budgetLimited` immediately.
+- `paused` and `complete` goals are preserved by budget-only edits.
+- Entering `budgetLimited` records token/time budget reason through telemetry.
+- Tool update now cancels continuation when the resulting status is `paused` or `budgetLimited`, and schedules continuation when transitioning back to `active`.
+
+Validation:
+
+- `sentrux gate .pi/extensions/goal` passed.
+- `sentrux check .pi/extensions/goal` passed.
+- `pi --offline --no-session --no-tools -e .pi/extensions/goal/index.ts --list-models` passed.
+- Static inspection confirmed recompute helper and telemetry reason paths are wired.
+- `tsc` attempted but unavailable: `/bin/bash: tsc: command not found`.
