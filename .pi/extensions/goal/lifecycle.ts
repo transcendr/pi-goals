@@ -9,7 +9,13 @@ import type {
 	TurnEndEvent,
 	TurnStartEvent,
 } from "@earendil-works/pi-coding-agent";
-import { BUDGET_LIMIT_MESSAGE_TYPE, CONTINUATION_MESSAGE_TYPE, MAX_CONSECUTIVE_AUTO_TURNS, MAX_NO_PROGRESS_AUTO_TURNS } from "./constants";
+import {
+	BUDGET_LIMIT_MESSAGE_TYPE,
+	CONTINUATION_MESSAGE_TYPE,
+	MAX_CONSECUTIVE_AUTO_TURNS,
+	MAX_NO_PROGRESS_AUTO_TURNS,
+	PAUSE_MESSAGE_TYPE,
+} from "./constants";
 import { cancelGoalContinuation, scheduleBudgetLimitWrapUp, scheduleMaybeContinueGoal } from "./continuation";
 import { getGoal, getTelemetry, persistAccountGoal, persistTelemetry, persistUpdateGoal, replayGoalState } from "./state";
 import { applyTurnTelemetry, consumeNextTurnOrigin, makeTurnSnapshot, noteSafetyPause } from "./telemetry";
@@ -157,9 +163,12 @@ function filterGoalContext(event: ContextEvent): ContextEventResult | undefined 
 
 function classifyGoalSteeringMessage(message: unknown): "none" | "valid" | "invalid" {
 	const candidate = message as { role?: string; customType?: string; details?: GoalSteeringDetails };
-	if (candidate.customType !== CONTINUATION_MESSAGE_TYPE && candidate.customType !== BUDGET_LIMIT_MESSAGE_TYPE) return "none";
+	if (candidate.customType !== CONTINUATION_MESSAGE_TYPE && candidate.customType !== BUDGET_LIMIT_MESSAGE_TYPE && candidate.customType !== PAUSE_MESSAGE_TYPE) {
+		return "none";
+	}
 	const current = getGoal();
 	if (!current || candidate.details?.goalId !== current.goalId) return "invalid";
 	if (candidate.customType === CONTINUATION_MESSAGE_TYPE) return current.status === "active" && candidate.details?.kind === "continuation" ? "valid" : "invalid";
-	return current.status === "budgetLimited" && candidate.details?.kind === "budgetLimit" ? "valid" : "invalid";
+	if (candidate.customType === BUDGET_LIMIT_MESSAGE_TYPE) return current.status === "budgetLimited" && candidate.details?.kind === "budgetLimit" ? "valid" : "invalid";
+	return current.status === "paused" && candidate.details?.kind === "pause" ? "valid" : "invalid";
 }

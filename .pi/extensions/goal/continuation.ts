@@ -2,10 +2,11 @@ import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-a
 import {
 	BUDGET_LIMIT_MESSAGE_TYPE,
 	CONTINUATION_MESSAGE_TYPE,
+	PAUSE_MESSAGE_TYPE,
 	MAX_CONSECUTIVE_AUTO_TURNS,
 	MAX_NO_PROGRESS_AUTO_TURNS,
 } from "./constants";
-import { buildBudgetLimitPrompt, buildContinuationPrompt } from "./prompts";
+import { buildBudgetLimitPrompt, buildContinuationPrompt, buildPausePrompt } from "./prompts";
 import { getGoal, getTelemetry, persistTelemetry } from "./state";
 import { noteBudgetWrapUpSent, noteContinuationScheduled, noteContinuationSkipped, setNextTurnOrigin } from "./telemetry";
 import type { ContinuationReason, GoalState } from "./types";
@@ -58,6 +59,16 @@ export function cancelGoalContinuation(goalId?: string, _reason = "cancelled"): 
 			budgetWrapUps.delete(pendingGoalId);
 		}
 	}
+}
+
+export function interruptActiveGoalTurn(pi: ExtensionAPI, ctx: ExtensionContext, goal: GoalState): void {
+	if (ctx.isIdle()) return;
+	const prompt = buildPausePrompt(goal);
+	pi.sendMessage(
+		{ customType: PAUSE_MESSAGE_TYPE, content: prompt.content, display: false, details: prompt.details },
+		{ deliverAs: "steer" },
+	);
+	ctx.abort();
 }
 
 export function resetContinuationRuntime(): void {

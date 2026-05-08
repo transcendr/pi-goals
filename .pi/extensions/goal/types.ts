@@ -75,18 +75,19 @@ export type TurnAccountingSnapshot = {
 	completedGoal: boolean;
 };
 
-export type GoalSteeringKind = "continuation" | "budgetLimit";
+export type GoalSteeringKind = "continuation" | "budgetLimit" | "pause";
 
 export type GoalSteeringDetails = {
 	goalId: string;
 	kind: GoalSteeringKind;
 	promptId: string;
 	createdAt: number;
-	reason?: ContinuationReason | "budget";
+	reason?: ContinuationReason | "budget" | "pause";
 };
 
 export type GoalCommandScheduler = (ctx: ExtensionContext, reason: ContinuationReason) => void;
 export type GoalContinuationCanceller = (goalId?: string, reason?: string) => void;
+export type GoalPauseInterrupter = (ctx: ExtensionContext, goal: GoalState) => void;
 
 export type MutationResult = {
 	ok: boolean;

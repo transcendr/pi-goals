@@ -12,16 +12,17 @@ import {
 	persistUpdateGoal,
 } from "./state";
 import { notifyGoal, notifyInfo, notifyWarning, showGoalSummary, showNoGoal, syncGoalUi } from "./ui";
-import type { GoalCommandScheduler, GoalContinuationCanceller, GoalState } from "./types";
+import type { GoalCommandScheduler, GoalContinuationCanceller, GoalPauseInterrupter, GoalState } from "./types";
 
 export function registerGoalCommand(
 	pi: ExtensionAPI,
 	scheduleContinuation: GoalCommandScheduler,
 	cancelContinuation: GoalContinuationCanceller,
+	interruptActiveTurn: GoalPauseInterrupter,
 ): void {
 	pi.registerCommand("goal", {
 		description: "Set or view the goal for a long-running task",
-		handler: async (args, ctx) => handleGoalCommand(pi, args, ctx, scheduleContinuation, cancelContinuation),
+		handler: async (args, ctx) => handleGoalCommand(pi, args, ctx, scheduleContinuation, cancelContinuation, interruptActiveTurn),
 	});
 }
 
@@ -31,6 +32,7 @@ async function handleGoalCommand(
 	ctx: ExtensionCommandContext,
 	scheduleContinuation: GoalCommandScheduler,
 	cancelContinuation: GoalContinuationCanceller,
+	interruptActiveTurn: GoalPauseInterrupter,
 ): Promise<void> {
 	const trimmed = args.trim();
 	if (!trimmed) {
@@ -41,7 +43,7 @@ async function handleGoalCommand(
 	}
 
 	const control = trimmed.toLowerCase();
-	if (control === "pause") return pauseGoal(pi, ctx, cancelContinuation);
+	if (control === "pause") return pauseGoal(pi, ctx, cancelContinuation, interruptActiveTurn);
 	if (control === "resume") return resumeGoal(pi, ctx, scheduleContinuation);
 	if (control === "clear") return clearGoal(pi, ctx, cancelContinuation);
 
@@ -79,7 +81,12 @@ async function setGoalObjective(
 	scheduleContinuation(ctx, "created");
 }
 
-function pauseGoal(pi: ExtensionAPI, ctx: ExtensionCommandContext, cancelContinuation: GoalContinuationCanceller): void {
+function pauseGoal(
+	pi: ExtensionAPI,
+	ctx: ExtensionCommandContext,
+	cancelContinuation: GoalContinuationCanceller,
+	interruptActiveTurn: GoalPauseInterrupter,
+): void {
 	const goal = getGoal();
 	if (!goal) {
 		notifyInfo(ctx, `${GOAL_USAGE}\nNo goal is currently set.`);
@@ -90,6 +97,10 @@ function pauseGoal(pi: ExtensionAPI, ctx: ExtensionCommandContext, cancelContinu
 	persistUpdateGoal(pi, paused, getTelemetry(), "command");
 	syncGoalUi(ctx, paused);
 	notifyGoal(ctx, paused);
+	if (!ctx.isIdle()) {
+		interruptActiveTurn(ctx, paused);
+		notifyWarning(ctx, "Goal paused. The active turn was interrupted; run /goal resume to continue.");
+	}
 }
 
 function resumeGoal(pi: ExtensionAPI, ctx: ExtensionCommandContext, scheduleContinuation: GoalCommandScheduler): void {
