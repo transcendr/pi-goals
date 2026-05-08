@@ -14,12 +14,6 @@ export function budgetLimitReason(goal: GoalState): BudgetLimitReason | undefine
 	return undefined;
 }
 
-export function budgetPressureResource(kind: BudgetPressureKind): "token" | "time" | undefined {
-	if (kind.startsWith("token")) return "token";
-	if (kind.startsWith("time")) return "time";
-	return undefined;
-}
-
 export function isBudgetWarning(kind: BudgetPressureKind): boolean {
 	return kind === "tokenWarning" || kind === "timeWarning";
 }

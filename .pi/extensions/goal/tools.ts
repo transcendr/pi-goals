@@ -1,5 +1,5 @@
 import { Type } from "typebox";
-import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { formatElapsed, validateObjective } from "./format";
 import { createTelemetry, noteBudgetLimit } from "./telemetry";
 import { createGoalState, getGoal, getTelemetry, persistClearGoal, persistSetGoal, persistUpdateGoal } from "./state";
@@ -137,7 +137,7 @@ type UpdateGoalInput = {
 
 type GoalUpdateResult = { ok: true; goal: GoalState; prefix: string; budgetChanged?: boolean } | { ok: false; error: string };
 
-function createGoalFromTool(pi: ExtensionAPI, params: CreateGoalInput, ctx: Parameters<GoalCommandScheduler>[0]) {
+function createGoalFromTool(pi: ExtensionAPI, params: CreateGoalInput, ctx: ExtensionContext) {
 	if (getGoal()) return errorResult("A goal already exists. Use clear_goal or ask the user before replacing it.");
 	const validation = validateObjective(params.objective);
 	if (!validation.ok) return errorResult(validation.hint ? `${validation.message} ${validation.hint}` : validation.message);
@@ -150,7 +150,7 @@ function createGoalFromTool(pi: ExtensionAPI, params: CreateGoalInput, ctx: Para
 	return resultForGoal(goal, telemetry, "Goal created.");
 }
 
-function updateGoalFromTool(pi: ExtensionAPI, runtime: GoalToolRuntime, params: UpdateGoalInput, ctx: Parameters<GoalCommandScheduler>[0]) {
+function updateGoalFromTool(pi: ExtensionAPI, runtime: GoalToolRuntime, params: UpdateGoalInput, ctx: ExtensionContext) {
 	const goal = getGoal();
 	if (!goal) return errorResult("No goal exists to update.");
 	const update = buildGoalUpdate(goal, params);
