@@ -42,13 +42,12 @@ export function registerGoalCommand(
 export function goalArgumentCompletions(argumentPrefix: string): AutocompleteItem[] | null {
 	const query = argumentPrefix.trimStart();
 	if (/\s/.test(query)) return null;
-	return GOAL_SUBCOMMANDS.map((subcommand) => ({
+	const scored = GOAL_SUBCOMMANDS.map((subcommand) => ({
 		...subcommand,
 		score: subcommandScore(subcommand.name, query),
-	}))
-		.filter((item) => item.score !== undefined)
-		.sort((a, b) => a.score! - b.score! || a.name.localeCompare(b.name))
-		.map(({ name, description }) => ({ value: name, label: name, description }));
+	})).filter((item): item is GoalSubcommand & { score: number } => item.score !== undefined);
+	scored.sort((a, b) => a.score - b.score || a.name.localeCompare(b.name));
+	return scored.map(({ name, description }) => ({ value: name, label: name, description }));
 }
 
 function subcommandScore(value: string, query: string): number | undefined {

@@ -21,7 +21,7 @@ import { cancelGoalContinuation, scheduleBudgetLimitWrapUp, scheduleMaybeContinu
 import { getGoal, getTelemetry, persistAccountGoal, persistTelemetry, persistUpdateGoal, replayGoalState } from "./state";
 import { applyTurnTelemetry, consumeNextTurnOrigin, makeTurnSnapshot, noteBudgetHardStop, noteBudgetLimit, noteBudgetWarning, noteSafetyPause } from "./telemetry";
 import { notifyWarning, promptResumePausedGoal, syncGoalUi } from "./ui";
-import type { BudgetLimitReason, BudgetPressure, GoalState, GoalTelemetrySnapshot, GoalSteeringDetails, TurnAccountingSnapshot } from "./types";
+import type { BudgetLimitReason, BudgetPressure, GoalState, GoalTelemetrySnapshot, TurnAccountingSnapshot } from "./types";
 
 let activeTurn: TurnAccountingSnapshot | null = null;
 
@@ -79,9 +79,10 @@ function noteGoalUpdateResult(details: unknown): void {
 	if (!activeTurn || hasToolError(details)) return;
 	if (typeof details !== "object" || details === null) return;
 	const result = details as Record<string, unknown>;
-	if (typeof result.goal === "object" && result.goal !== null) {
+	const goal = result.goal;
+	if (typeof goal === "object" && goal !== null) {
 		activeTurn.progressCount++;
-		if ((result.goal as Record<string, unknown>).status === "complete") activeTurn.completedGoal = true;
+		if ((goal as Record<string, unknown>).status === "complete") activeTurn.completedGoal = true;
 	}
 }
 
@@ -207,9 +208,7 @@ function assistantTokens(message: TurnEndEvent["message"]): number {
 }
 
 function filterGoalContext(event: ContextEvent): ContextEventResult | undefined {
-	// Pi extension custom messages are later converted to user-role LLM messages.
-	// Keep only the latest status-compatible pi-goal steering message so repeated
-	// hidden continuations do not become stale user-role instructions in future turns.
+	// Keep only the latest status-compatible pi-goal steering message to prevent stale continuations.
 	let latestValidIndex = -1;
 	let sawGoalSteering = false;
 	for (let i = 0; i < event.messages.length; i++) {
