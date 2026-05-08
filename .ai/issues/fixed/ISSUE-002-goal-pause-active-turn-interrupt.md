@@ -1,6 +1,6 @@
 # ISSUE-002 — Make `/goal pause` stop an in-flight goal turn promptly
 
-Status: open — execution-ready
+Status: fixed — implemented and validated
 Priority: high
 Parent issue: `.ai/issues/fixed/ISSUE-001-pi-goal-extension.md`
 Depends on: implemented modular `pi-goal` runtime under `.pi/extensions/goal/`
@@ -81,3 +81,21 @@ validation[5]: idle-pause, active-pause-steer, active-pause-abort-fallback, no-a
 - Do not implement the future churn overseer.
 - Do not clear or complete the goal when pausing.
 - Do not add a new public goal status unless later evidence proves unavoidable.
+
+
+## Implementation closeout
+
+Implemented by playbook execution commits:
+
+- ISSUE-003: `0b4446b fix: guard paused goal continuations`
+- ISSUE-002: `443fb5b fix: stop active goal turn on pause`
+- ISSUE-005: `24496c6 feat: add goal time budget support`
+- ISSUE-004: `83ce87d feat: autocomplete goal subcommands`
+
+Validation summary:
+
+- `sentrux gate .pi/extensions/goal` passed.
+- `sentrux check .pi/extensions/goal` passed.
+- `pi --offline --no-session --no-tools -e .pi/extensions/goal/index.ts --list-models` loaded the extension.
+- `tsc` validation was attempted but unavailable in this environment (`tsc: command not found`).
+- Solo implementation todos for ISSUE-002..005 were completed with evidence comments.

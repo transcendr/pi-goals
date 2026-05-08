@@ -1,26 +1,26 @@
 # pi-goal follow-up dependency map
 
-Status: current after issue-document workflow closeout
+Status: completed after ISSUE-002..005 implementation
 Solo project: `2` (`pi-goals`)
 
 ## Issue locations
 
 - Fixed/completed baseline: `.ai/issues/fixed/ISSUE-001-pi-goal-extension.md`
-- Execution-ready follow-ups:
-  - `.ai/issues/open/ISSUE-002-goal-pause-active-turn-interrupt.md`
-  - `.ai/issues/open/ISSUE-003-paused-goal-continuation-guard.md`
-  - `.ai/issues/open/ISSUE-004-goal-subcommand-fuzzy-autocomplete.md`
-  - `.ai/issues/open/ISSUE-005-goal-widget-labels-and-time-budget.md`
+- Implemented follow-ups:
+  - `.ai/issues/fixed/ISSUE-002-goal-pause-active-turn-interrupt.md`
+  - `.ai/issues/fixed/ISSUE-003-paused-goal-continuation-guard.md`
+  - `.ai/issues/fixed/ISSUE-004-goal-subcommand-fuzzy-autocomplete.md`
+  - `.ai/issues/fixed/ISSUE-005-goal-widget-labels-and-time-budget.md`
 
 ## Cross-issue dependencies
 
 ```toon
 issues[5]{id,status,depends_on,notes}
   ISSUE-001,fixed,"none","implemented modular pi-goal baseline"
-  ISSUE-003,open-execution-ready,"ISSUE-001","runtime guard; should land before or with ISSUE-002 because it supplies cancellation/context safeguards"
-  ISSUE-002,open-execution-ready,"ISSUE-001, ISSUE-003-shared-cancellation","active pause UX; can share cancellation API from ISSUE-003"
-  ISSUE-004,open-execution-ready,"ISSUE-001","independent UX improvement; low coupling"
-  ISSUE-005,open-execution-ready,"ISSUE-001","resource accounting/UI extension; independent from pause/autocomplete work"
+  ISSUE-003,fixed,"ISSUE-001","runtime guard; should land before or with ISSUE-002 because it supplies cancellation/context safeguards"
+  ISSUE-002,fixed,"ISSUE-001, ISSUE-003-shared-cancellation","active pause UX; can share cancellation API from ISSUE-003"
+  ISSUE-004,fixed,"ISSUE-001","independent UX improvement; low coupling"
+  ISSUE-005,fixed,"ISSUE-001","resource accounting/UI extension; independent from pause/autocomplete work"
 ```
 
 Recommended implementation order:
