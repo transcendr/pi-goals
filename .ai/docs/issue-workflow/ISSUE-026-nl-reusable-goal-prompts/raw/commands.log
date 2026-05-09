@@ -1,0 +1,76 @@
+$ git status --short --untracked-files=all
+ M .gitignore
+ M AGENTS.md
+?? .ai/.pi-goals/create-issue-doc.md
+?? .ai/docs/issue-workflow/ISSUE-025-goal-line-breaks-widget-rendering/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-025-goal-line-breaks-widget-rendering/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-025-goal-line-breaks-widget-rendering/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-025-goal-line-breaks-widget-rendering/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-025-goal-line-breaks-widget-rendering/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-025-goal-line-breaks-widget-rendering/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-025-goal-line-breaks-widget-rendering/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-025-goal-line-breaks-widget-rendering/raw/commands.log
+?? .ai/docs/issue-workflow/ISSUE-026-nl-reusable-goal-prompts/raw/commands.log
+?? .ai/issues/open/ISSUE-025-goal-line-breaks-widget-rendering.md
+$ find .ai/issues -type f -name ISSUE-*.md | sed ...
+016
+017
+018
+019
+020
+021
+022
+023
+024
+025
+
+# Read files via read tool:
+AGENTS.md
+/Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/SKILL.md
+/Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/references/canonical-issue-docs-and-toon-synthesis.md
+/Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/references/research-pass.md
+/Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/references/design-landscape-exploration-and-choice-locking.md
+/Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/references/toon-for-issues-and-execution-planning.md
+/Users/bryan/.agents/skills/axi/SKILL.md
+.ai/.pi-goals/create-issue-doc.md
+.pi/extensions/goal/templates.ts
+.pi/extensions/goal/tools.ts
+.pi/extensions/goal/command.ts
+.ai/issues/fixed/ISSUE-017-reusable-goal-prompt-docs.md
+.ai/issues/refine/ISSUE-013-goal-update-natural-language.md
+.gitignore
+$ git status --short --untracked-files=all
+ M .gitignore
+ M AGENTS.md
+?? .ai/.pi-goals/create-issue-doc.md
+?? .ai/docs/issue-workflow/ISSUE-025-goal-line-breaks-widget-rendering/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-025-goal-line-breaks-widget-rendering/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-025-goal-line-breaks-widget-rendering/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-025-goal-line-breaks-widget-rendering/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-025-goal-line-breaks-widget-rendering/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-025-goal-line-breaks-widget-rendering/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-025-goal-line-breaks-widget-rendering/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-025-goal-line-breaks-widget-rendering/raw/commands.log
+?? .ai/docs/issue-workflow/ISSUE-026-nl-reusable-goal-prompts/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-026-nl-reusable-goal-prompts/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-026-nl-reusable-goal-prompts/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-026-nl-reusable-goal-prompts/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-026-nl-reusable-goal-prompts/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-026-nl-reusable-goal-prompts/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-026-nl-reusable-goal-prompts/raw/commands.log
+?? .ai/issues/open/ISSUE-025-goal-line-breaks-widget-rendering.md
+?? .ai/issues/open/ISSUE-026-nl-reusable-goal-prompts.md
+$ git check-ignore -v .ai/docs/issue-workflow/ISSUE-026-nl-reusable-goal-prompts/00-request.md || true
+.gitignore:8:!.ai/docs/issue-workflow/**	.ai/docs/issue-workflow/ISSUE-026-nl-reusable-goal-prompts/00-request.md
+$ rg -n "ISSUE-026|Transcript artifacts|required_proofs" .ai/issues/open/ISSUE-026-nl-reusable-goal-prompts.md
+1:# ISSUE-026 — NL reusable goal prompts
+39:## Transcript artifacts
+43:- Request intake: `.ai/docs/issue-workflow/ISSUE-026-nl-reusable-goal-prompts/00-request.md`
+44:- Protocol read: `.ai/docs/issue-workflow/ISSUE-026-nl-reusable-goal-prompts/01-protocol-read.md`
+45:- Grounded research: `.ai/docs/issue-workflow/ISSUE-026-nl-reusable-goal-prompts/02-grounded-research.md`
+46:- Design lock: `.ai/docs/issue-workflow/ISSUE-026-nl-reusable-goal-prompts/03-design-lock.md`
+47:- Proof threat model: `.ai/docs/issue-workflow/ISSUE-026-nl-reusable-goal-prompts/04-proof-threat-model.md`
+48:- Issue writeback: `.ai/docs/issue-workflow/ISSUE-026-nl-reusable-goal-prompts/05-issue-writeback.md`
+49:- Final audit: `.ai/docs/issue-workflow/ISSUE-026-nl-reusable-goal-prompts/06-final-audit.md`
+50:- Raw command log: `.ai/docs/issue-workflow/ISSUE-026-nl-reusable-goal-prompts/raw/commands.log`
+154:required_proofs[6]{name,command,condition}:
