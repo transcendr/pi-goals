@@ -37,12 +37,12 @@ order = 1
 
 [[layers]]
 name = "surfaces"
-paths = ["ui.ts", "widget.ts", "command.ts", "tools.ts", "templates.ts"]
+paths = ["ui.ts", "widget.ts", "command.ts", "tools.ts", "queue-tools.ts", "templates.ts"]
 order = 2
 
 [[layers]]
 name = "state"
-paths = ["state.ts", "telemetry.ts", "monitor-state.ts"]
+paths = ["state.ts", "telemetry.ts", "monitor-state.ts", "queue-state.ts"]
 order = 3
 
 [[layers]]
