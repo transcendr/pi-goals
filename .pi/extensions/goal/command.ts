@@ -2,6 +2,7 @@ import type { ExtensionAPI, ExtensionCommandContext } from "@earendil-works/pi-c
 import type { AutocompleteItem } from "@earendil-works/pi-tui";
 import { GOAL_USAGE, GOAL_USAGE_HINT } from "./constants";
 import { validateObjective } from "./format";
+import { discoverGoalTemplates, resolveGoalTemplateInvocation } from "./templates";
 import { createTelemetry, resetSafetyCounters } from "./telemetry";
 import {
 	createGoalState,
@@ -16,7 +17,7 @@ import { notifyGoal, notifyInfo, notifyWarning, showGoalSummary, showNoGoal, syn
 import type { GoalCommandScheduler, GoalContinuationCanceller, GoalPauseInterrupter, GoalState } from "./types";
 
 type GoalSubcommand = {
-	name: "pause" | "resume" | "clear";
+	name: "pause" | "resume" | "clear" | "churn-check";
 	description: string;
 };
 
@@ -24,6 +25,7 @@ const GOAL_SUBCOMMANDS: GoalSubcommand[] = [
 	{ name: "pause", description: "Pause the current goal" },
 	{ name: "resume", description: "Resume a paused goal" },
 	{ name: "clear", description: "Clear the current goal" },
+	{ name: "churn-check", description: "Ask the churn monitor to review this goal" },
 ];
 
 export function registerGoalCommand(
@@ -47,7 +49,12 @@ export function goalArgumentCompletions(argumentPrefix: string): AutocompleteIte
 		score: subcommandScore(subcommand.name, query),
 	})).filter((item): item is GoalSubcommand & { score: number } => item.score !== undefined);
 	scored.sort((a, b) => a.score - b.score || a.name.localeCompare(b.name));
-	return scored.map(({ name, description }) => ({ value: name, label: name, description }));
+	const subcommands = scored.map(({ name, description }) => ({ value: name, label: name, description }));
+	const templates = discoverGoalTemplates()
+		.filter((template) => template.name.toLowerCase().includes(query.toLowerCase()) || template.aliases.some((alias) => alias.toLowerCase().includes(query.toLowerCase())))
+		.slice(0, 20)
+		.map((template) => ({ value: template.name, label: template.name, description: template.description ?? `Goal template from ${template.path}` }));
+	return [...subcommands, ...templates];
 }
 
 function subcommandScore(value: string, query: string): number | undefined {
@@ -88,8 +95,20 @@ async function handleGoalCommand(
 	if (control === "pause") return pauseGoal(pi, ctx, cancelContinuation, interruptActiveTurn);
 	if (control === "resume") return resumeGoal(pi, ctx, scheduleContinuation);
 	if (control === "clear") return clearGoal(pi, ctx, cancelContinuation);
+	if (control === "churn-check") {
+		notifyInfo(ctx, "Churn monitor is not wired yet in this build.");
+		return;
+	}
 
-	await setGoalObjective(pi, trimmed, ctx, scheduleContinuation, cancelContinuation);
+	await setGoalObjective(pi, resolveTemplateOrObjective(trimmed, ctx), ctx, scheduleContinuation, cancelContinuation);
+}
+
+function resolveTemplateOrObjective(input: string, ctx: ExtensionCommandContext): string {
+	const resolution = resolveGoalTemplateInvocation(input);
+	if (resolution.ok) return resolution.template.objective;
+	if ("notTemplate" in resolution) return input;
+	notifyWarning(ctx, resolution.error);
+	return "";
 }
 
 async function setGoalObjective(
@@ -99,6 +118,7 @@ async function setGoalObjective(
 	scheduleContinuation: GoalCommandScheduler,
 	cancelContinuation: GoalContinuationCanceller,
 ): Promise<void> {
+	if (!input) return;
 	const validation = validateObjective(input);
 	if (!validation.ok) {
 		notifyWarning(ctx, validation.hint ? `${validation.message}\n${validation.hint}` : validation.message);
