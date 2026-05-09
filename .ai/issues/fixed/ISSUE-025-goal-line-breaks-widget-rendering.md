@@ -1,12 +1,12 @@
 # ISSUE-025 — Goal with line breaks widget rendering breaks
 
-Status: open — execution-ready
+Status: fixed — implemented
 Priority: P1
-Owner: unassigned
+Owner: pi-goal automation
 Created: 2026-05-09
-Next best session: focused bugfix implementation and widget probe
-Next best session rationale: The bug is grounded in the current widget/rendering code and screenshot evidence; implementation can be a narrow behavior-preserving rendering fix with a focused multiline-objective probe.
-Target bucket: open
+Next best session: none — fixed
+Next best session rationale: Implemented in commit b6d56f4 with multiline widget probe and npm run quality:goal.
+Target bucket: fixed
 Issue kind: bug
 Target repo roots: `/Users/bryan/dev/personal/experiments/pi-goals`
 Parent issue: `.ai/issues/fixed/ISSUE-001-pi-goal-extension.md`
@@ -90,6 +90,19 @@ Rejected alternatives:
 - Do not broaden into ISSUE-011 card/Box/narrow-width refinement.
 - Do not render multiline objectives as multiple widget rows in this bugfix; that is a larger layout decision.
 - Do not rely on truncation alone, because short multiline objectives can preserve newlines without truncating.
+
+## Implementation result
+
+Implemented in commit `b6d56f4 fix: collapse multiline objectives in widget rendering`.
+
+Summary:
+- Added line-safe objectiveExcerpt in format.ts that collapses newlines and carriage returns into single spaces before width-aware truncation.
+- Normal-width and compact widget modes both use the line-safe excerpt.
+- Existing multiline objective acceptance in validation is unchanged.
+
+Validation passed:
+- /tmp/pi-goal-widget-multiline-probe.cjs (12 assertions)
+- npm run quality:goal
 
 ## Implementation checklist
 
