@@ -1,0 +1,15 @@
+$ git status --short --untracked-files=all
+?? .ai/docs/issue-workflow/ISSUE-028-goal-replacement-preview/raw/commands.log
+
+$ rg -n "Goal already active|ctx.ui.select|showGoalSummary|resolveTemplateOrObjective|setGoalObjective" .pi/extensions/goal/command.ts .pi/extensions/goal/ui.ts
+.pi/extensions/goal/command.ts:18:import { notifyGoal, notifyInfo, notifyWarning, showGoalSummary, showNoGoal, syncGoalUi } from "./ui";
+.pi/extensions/goal/command.ts:95:		if (goal) showGoalSummary(ctx, goal);
+.pi/extensions/goal/command.ts:106:	await setGoalObjective(pi, resolveTemplateOrObjective(trimmed, ctx), ctx, scheduleContinuation, cancelContinuation, scheduleMonitor, cancelMonitor);
+.pi/extensions/goal/command.ts:109:function resolveTemplateOrObjective(input: string, ctx: ExtensionCommandContext): string {
+.pi/extensions/goal/command.ts:117:async function setGoalObjective(
+.pi/extensions/goal/command.ts:136:		const choice = await ctx.ui.select("Goal already active. Choose action:", choices);
+.pi/extensions/goal/command.ts:234:	const resolved = resolveTemplateOrObjective(rest, ctx);
+.pi/extensions/goal/ui.ts:21:export function showGoalSummary(ctx: ExtensionContext, goal: GoalState): void {
+.pi/extensions/goal/ui.ts:38:	const choice = await ctx.ui.select("Resume paused goal?", ["Resume goal", "Leave paused"]);
+
+$ sed equivalent: read .pi/extensions/goal/command.ts relevant functions

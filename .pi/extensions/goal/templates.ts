@@ -18,10 +18,23 @@ export type GoalTemplate = {
 	body: string;
 };
 
+export type GoalTemplateMetadata = {
+	name: string;
+	path: string;
+	description?: string;
+	aliases: string[];
+	allowCommands: boolean;
+	requiredPlaceholders: string[];
+	requiredFlags: string[];
+	requiresArgs: boolean;
+};
+
 export type ResolvedGoalTemplate = {
 	name: string;
 	path: string;
 	objective: string;
+	flags: Record<string, string>;
+	args: string;
 };
 
 export type TemplateResolution = { ok: true; template: ResolvedGoalTemplate } | { ok: false; error: string } | { ok: false; notTemplate: true };
@@ -41,23 +54,45 @@ export function discoverGoalTemplates(root = process.cwd()): GoalTemplate[] {
 	return templates;
 }
 
+export function listGoalTemplateMetadata(root = process.cwd()): GoalTemplateMetadata[] {
+	return discoverGoalTemplates(root).map((template) => {
+		const requiredPlaceholders = findRequiredPlaceholders(template.body);
+		return {
+			name: template.name,
+			path: template.path,
+			description: template.description,
+			aliases: template.aliases,
+			allowCommands: template.allowCommands,
+			requiredPlaceholders,
+			requiredFlags: requiredPlaceholders.filter((placeholder) => placeholder !== "args"),
+			requiresArgs: requiredPlaceholders.includes("args"),
+		};
+	});
+}
+
 export function resolveGoalTemplateInvocation(input: string, root = process.cwd()): TemplateResolution {
 	const parsed = parseInvocation(input);
 	if (!parsed) return { ok: false, notTemplate: true };
-	const template = findTemplate(parsed.name, root);
-	if (!template) return { ok: false, notTemplate: true };
+	return resolveGoalTemplateByName(parsed.name, parsed.flags, parsed.args, root);
+}
+
+export function resolveGoalTemplateByName(nameOrAlias: string, flags: Record<string, string>, args = "", root = process.cwd()): TemplateResolution {
+	const matches = findTemplates(nameOrAlias, root);
+	if (matches.length === 0) return { ok: false, notTemplate: true };
+	if (matches.length > 1) return { ok: false, error: `Ambiguous goal template '${nameOrAlias}' matches: ${matches.map((template) => template.name).join(", ")}.` };
+	const template = matches[0];
 	try {
-		const values = { ...parsed.flags, args: parsed.args };
+		const values = { ...flags, args };
 		const interpolated = interpolate(template.body, values);
 		const objective = resolveInlineCommands(interpolated, template, root).trim();
-		return { ok: true, template: { name: template.name, path: template.path, objective } };
+		return { ok: true, template: { name: template.name, path: template.path, objective, flags: { ...flags }, args } };
 	} catch (error) {
 		return { ok: false, error: error instanceof Error ? error.message : String(error) };
 	}
 }
 
-function findTemplate(nameOrAlias: string, root: string): GoalTemplate | undefined {
-	return discoverGoalTemplates(root).find((template) => template.name === nameOrAlias || template.aliases.includes(nameOrAlias));
+function findTemplates(nameOrAlias: string, root: string): GoalTemplate[] {
+	return discoverGoalTemplates(root).filter((template) => template.name === nameOrAlias || template.aliases.includes(nameOrAlias));
 }
 
 function findTemplateDirs(root: string): string[] {
@@ -143,10 +178,15 @@ function parseInvocation(input: string): ParsedInvocation | undefined {
 	const name = match[1];
 	let rest = match[2] ?? "";
 	let args = "";
-	const delimiter = rest.indexOf(" -- ");
-	if (delimiter >= 0) {
-		args = rest.slice(delimiter + 4).trim();
-		rest = rest.slice(0, delimiter).trim();
+	if (rest.startsWith("-- ")) {
+		args = rest.slice(3).trim();
+		rest = "";
+	} else {
+		const delimiter = rest.indexOf(" -- ");
+		if (delimiter >= 0) {
+			args = rest.slice(delimiter + 4).trim();
+			rest = rest.slice(0, delimiter).trim();
+		}
 	}
 	return { name, flags: parseFlags(rest), args };
 }
@@ -173,6 +213,12 @@ function interpolate(text: string, values: Record<string, string>): string {
 		if (values[key] === undefined) throw new Error(`Missing template value for {{${key}}}.`);
 		return values[key];
 	});
+}
+
+function findRequiredPlaceholders(text: string): string[] {
+	return Array.from(text.matchAll(/\{\{\s*([A-Za-z0-9_-]+)\s*\}\}/g), (match) => match[1])
+		.filter((placeholder, index, all) => all.indexOf(placeholder) === index)
+		.sort();
 }
 
 function resolveInlineCommands(text: string, template: GoalTemplate, cwd: string): string {

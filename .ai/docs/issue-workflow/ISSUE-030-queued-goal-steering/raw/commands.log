@@ -1,0 +1,95 @@
+$ git status --short --untracked-files=all
+?? .ai/docs/issue-workflow/ISSUE-028-goal-replacement-preview/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-028-goal-replacement-preview/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-028-goal-replacement-preview/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-028-goal-replacement-preview/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-028-goal-replacement-preview/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-028-goal-replacement-preview/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-028-goal-replacement-preview/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-028-goal-replacement-preview/raw/commands.log
+?? .ai/docs/issue-workflow/ISSUE-029-goal-queue-direct-enqueue/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-029-goal-queue-direct-enqueue/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-029-goal-queue-direct-enqueue/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-029-goal-queue-direct-enqueue/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-029-goal-queue-direct-enqueue/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-029-goal-queue-direct-enqueue/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-029-goal-queue-direct-enqueue/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-029-goal-queue-direct-enqueue/raw/commands.log
+?? .ai/docs/issue-workflow/ISSUE-030-queued-goal-steering/raw/commands.log
+?? .ai/issues/open/ISSUE-028-goal-replacement-preview.md
+?? .ai/issues/open/ISSUE-029-goal-queue-direct-enqueue.md
+
+$ rg -n "completedGoal|update_goal|turn_end|sendMessage|dequeue_goal|clearGoal|queueHint|getQueue|dequeueGoal|create_goal_from_template" .pi/extensions/goal
+.pi/extensions/goal/queue-state.ts:36:export function getQueue(): QueuedGoal[] {
+.pi/extensions/goal/queue-state.ts:56:export function dequeueGoal(): QueuedGoal | undefined {
+.pi/extensions/goal/monitor.ts:128:	pi.sendMessage(
+.pi/extensions/goal/command.ts:17:import { getQueue, enqueueGoal, persistEnqueue } from "./queue-state";
+.pi/extensions/goal/command.ts:103:	if (control === "clear") return clearGoal(pi, ctx, cancelContinuation, cancelMonitor);
+.pi/extensions/goal/command.ts:210:function clearGoal(pi: ExtensionAPI, ctx: ExtensionCommandContext, cancelContinuation: GoalContinuationCanceller, cancelMonitor: GoalMonitorCanceller): void {
+.pi/extensions/goal/command.ts:217:	const queue = getQueue();
+.pi/extensions/goal/command.ts:218:	const queueHint = queue.length > 0 ? `\n${queue.length} queued goal${queue.length > 1 ? "s" : ""} available. Use /goal queue to list or /goal <objective> to start the next one.` : "";
+.pi/extensions/goal/command.ts:219:	notifyInfo(ctx, hadGoal ? `Goal cleared${queueHint}` : `No goal to clear\nThis session does not currently have a goal.${queueHint}`);
+.pi/extensions/goal/command.ts:224:	const queue = getQueue();
+.pi/extensions/goal/telemetry.ts:145:		lastTurnCompletedGoal: turn.completedGoal,
+.pi/extensions/goal/telemetry.ts:152:	return { goalId, origin, startedAt, toolCallCount: 0, toolResultCount: 0, progressCount: 0, completedGoal: false };
+.pi/extensions/goal/index.ts:7:import { getQueue } from "./queue-state";
+.pi/extensions/goal/index.ts:18:	registerGoalTools(pi, (ctx, reason) => scheduleMaybeContinueGoal(pi, ctx, reason), cancelGoalContinuation, (ctx) => scheduleGoalMonitor(pi, ctx), cancelGoalMonitor, (ctx, goal) => scheduleBudgetLimitWrapUp(pi, ctx, goal), () => getQueue().length);
+.pi/extensions/goal/tools.ts:51:	getQueueSize?: () => number;
+.pi/extensions/goal/tools.ts:61:	getQueueSize?: () => number,
+.pi/extensions/goal/tools.ts:63:	const runtime: GoalToolRuntime = { scheduleContinuation, cancelContinuation, scheduleMonitor, cancelMonitor, scheduleBudgetLimitWrapUp, getQueueSize };
+.pi/extensions/goal/tools.ts:124:		name: "create_goal_from_template",
+.pi/extensions/goal/tools.ts:142:		name: "update_goal",
+.pi/extensions/goal/tools.ts:171:			const queueSize = runtime.getQueueSize?.() ?? 0;
+.pi/extensions/goal/tools.ts:172:			const queueHint = queueSize > 0 ? ` ${queueSize} queued goal${queueSize > 1 ? "s" : ""} available. Use list_goal_queue to see them or dequeue_goal to start the next one.` : "";
+.pi/extensions/goal/tools.ts:173:			return resultForGoal(null, getTelemetry(), goal ? `Goal cleared.${queueHint}` : `No goal was set.${queueHint}`);
+.pi/extensions/goal/tools.ts:180:		"Use update_goal with status complete only after verifying the goal objective is actually achieved.",
+.pi/extensions/goal/tools.ts:181:		"Use update_goal for objective or budget edits only when the user explicitly asks to modify the persistent goal.",
+.pi/extensions/goal/tools.ts:184:		"Use clear_goal, not update_goal, when the user asks to clear/remove the current goal.",
+.pi/extensions/goal/queue-tools.ts:4:import { enqueueGoal, dequeueGoal, removeGoal, persistEnqueue, persistDequeue, persistRemove, getQueue, type QueuedGoal } from "./queue-state";
+.pi/extensions/goal/queue-tools.ts:40:			const queue = getQueue();
+.pi/extensions/goal/queue-tools.ts:68:		name: "dequeue_goal",
+.pi/extensions/goal/queue-tools.ts:77:			const dequeued = dequeueGoal();
+.pi/extensions/goal/lifecycle.ts:48:	pi.on("turn_end", async (event, ctx) => handleTurnEnd(pi, event, ctx));
+.pi/extensions/goal/lifecycle.ts:107:		// Skip if already handled by a prior stream event or turn_end.
+.pi/extensions/goal/lifecycle.ts:117:		pi.sendMessage(
+.pi/extensions/goal/lifecycle.ts:127:	// mid-stream. State transition to budgetLimited happens at turn_end, not here,
+.pi/extensions/goal/lifecycle.ts:133:		pi.sendMessage(
+.pi/extensions/goal/lifecycle.ts:141:	// mid-turn, (2) telemetry flags prevent re-sending if turn_end already warned.
+.pi/extensions/goal/lifecycle.ts:152:		pi.sendMessage(
+.pi/extensions/goal/lifecycle.ts:169:	if (event.toolName === "update_goal") return noteGoalUpdateResult(event.details);
+.pi/extensions/goal/lifecycle.ts:180:		if ((goal as Record<string, unknown>).status === "complete") activeTurn.completedGoal = true;
+.pi/extensions/goal/lifecycle.ts:197:	const madeProgress = turn.completedGoal || turn.progressCount > 0;
+.pi/extensions/goal/types.ts:87:	completedGoal: boolean;
+.pi/extensions/goal/prompts.ts:32:Do not rely on intent, partial progress, elapsed effort, memory of earlier work, or a plausible final answer as proof of completion. Only mark the goal achieved when the audit shows that the objective has actually been achieved and no required work remains. If any requirement is missing, incomplete, or unverified, keep working instead of marking the goal complete. If the objective is achieved, call update_goal with status "complete" so usage accounting is preserved. Report the final elapsed time, and if the achieved goal has a token budget, report the final consumed token budget to the user after update_goal succeeds.
+.pi/extensions/goal/prompts.ts:34:Do not call update_goal unless the goal is complete. Do not mark a goal complete merely because the budget is nearly exhausted or because you are stopping work.`,
+.pi/extensions/goal/prompts.ts:49:Stop substantive work on this goal now. Briefly acknowledge that the goal is paused and wait for /goal resume before continuing goal pursuit. Do not call update_goal unless the goal is actually complete.`,
+.pi/extensions/goal/prompts.ts:71:Do not call update_goal unless the goal is actually complete.`,
+.pi/extensions/goal/continuation.ts:67:	pi.sendMessage(
+.pi/extensions/goal/continuation.ts:89:	pi.sendMessage(
+.pi/extensions/goal/continuation.ts:102:	pi.sendMessage(
+
+$ rg -n "deliverAs: \\\"steer\\\"|CONTINUATION_MESSAGE_TYPE|BUDGET_LIMIT_MESSAGE_TYPE|GOAL_MONITOR_MESSAGE_TYPE" .pi/extensions/goal
+.pi/extensions/goal/monitor.ts:5:	GOAL_MONITOR_MESSAGE_TYPE,
+.pi/extensions/goal/monitor.ts:130:			customType: GOAL_MONITOR_MESSAGE_TYPE,
+.pi/extensions/goal/monitor.ts:135:		{ deliverAs: "steer" },
+.pi/extensions/goal/constants.ts:2:export const CONTINUATION_MESSAGE_TYPE = "pi-goal-continuation";
+.pi/extensions/goal/constants.ts:3:export const BUDGET_LIMIT_MESSAGE_TYPE = "pi-goal-budget-limit";
+.pi/extensions/goal/constants.ts:5:export const GOAL_MONITOR_MESSAGE_TYPE = "pi-goal-monitor-steer";
+.pi/extensions/goal/continuation.ts:3:	BUDGET_LIMIT_MESSAGE_TYPE,
+.pi/extensions/goal/continuation.ts:4:	CONTINUATION_MESSAGE_TYPE,
+.pi/extensions/goal/continuation.ts:69:		{ deliverAs: "steer" },
+.pi/extensions/goal/continuation.ts:90:		{ customType: CONTINUATION_MESSAGE_TYPE, content: prompt.content, display: false, details: { ...prompt.details, reason } },
+.pi/extensions/goal/continuation.ts:103:		{ customType: BUDGET_LIMIT_MESSAGE_TYPE, content: prompt.content, display: false, details: prompt.details },
+.pi/extensions/goal/lifecycle.ts:14:	BUDGET_LIMIT_MESSAGE_TYPE,
+.pi/extensions/goal/lifecycle.ts:16:	CONTINUATION_MESSAGE_TYPE,
+.pi/extensions/goal/lifecycle.ts:20:	GOAL_MONITOR_MESSAGE_TYPE,
+.pi/extensions/goal/lifecycle.ts:118:			{ customType: BUDGET_LIMIT_MESSAGE_TYPE, content: prompt.content, display: false, details: prompt.details },
+.pi/extensions/goal/lifecycle.ts:119:			{ deliverAs: "steer" },
+.pi/extensions/goal/lifecycle.ts:134:			{ customType: BUDGET_LIMIT_MESSAGE_TYPE, content: prompt.content, display: false, details: prompt.details },
+.pi/extensions/goal/lifecycle.ts:135:			{ deliverAs: "steer" },
+.pi/extensions/goal/lifecycle.ts:153:			{ customType: BUDGET_LIMIT_MESSAGE_TYPE, content: `${resource} budget warning: ${remaining} ${unit} remaining before target. Start wrapping up.`, display: false, details: { goalId: goal.goalId, kind: "budgetLimit", promptId: BUDGET_WARNING_PROMPT_ID, createdAt: Date.now() } },
+.pi/extensions/goal/lifecycle.ts:154:			{ deliverAs: "steer" },
+.pi/extensions/goal/lifecycle.ts:361:	return [CONTINUATION_MESSAGE_TYPE, BUDGET_LIMIT_MESSAGE_TYPE, PAUSE_MESSAGE_TYPE, GOAL_MONITOR_MESSAGE_TYPE].includes(String(customType));
+.pi/extensions/goal/lifecycle.ts:365:	if (customType === CONTINUATION_MESSAGE_TYPE) return status === "active" && kind === "continuation";
+.pi/extensions/goal/lifecycle.ts:366:	if (customType === BUDGET_LIMIT_MESSAGE_TYPE) return status === "budgetLimited" && kind === "budgetLimit";
+.pi/extensions/goal/lifecycle.ts:367:	if (customType === GOAL_MONITOR_MESSAGE_TYPE) return status === "active" && kind === "monitorSteer";

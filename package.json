@@ -1,6 +1,6 @@
 {
   "name": "pi-goals",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Persistent goal tracking for Pi with /tree-compatible state, budgets, reusable prompts, and churn monitoring.",
   "main": ".pi/extensions/goal/index.ts",
   "files": [
@@ -20,6 +20,7 @@
   "keywords": [
     "pi",
     "pi-extension",
+    "pi-package",
     "agent",
     "goal",
     "coding-agent"
@@ -27,6 +28,11 @@
   "author": "Bryan Price-McConnahea (@slopwareindy // withbryan.work)",
   "license": "MIT",
   "type": "commonjs",
+  "pi": {
+    "extensions": [
+      ".pi/extensions/goal/index.ts"
+    ]
+  },
   "publishConfig": {
     "access": "public"
   },

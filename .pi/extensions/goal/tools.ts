@@ -1,15 +1,26 @@
 import { Type } from "typebox";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { formatElapsed, validateObjective } from "./format";
-import { isBudgetExhausted } from "./budget";
+import { isBudgetExhausted, canActivateGoal } from "./budget";
 import { createTelemetry, noteBudgetLimit } from "./telemetry";
+import { listGoalTemplateMetadata, resolveGoalTemplateByName } from "./templates";
 import { createGoalState, getGoal, getTelemetry, persistClearGoal, persistSetGoal, persistUpdateGoal } from "./state";
+import { registerGoalQueueTools } from "./queue-tools";
+import { sendQueueSteering } from "./queue-steering";
 import { syncGoalUi } from "./ui";
 import type { GoalCommandScheduler, GoalContinuationCanceller, GoalMonitorCanceller, GoalMonitorScheduler, GoalState, GoalStatus, GoalTelemetrySnapshot } from "./types";
 
 const EmptyParams = Type.Object({});
 const CreateGoalParams = Type.Object({
 	objective: Type.String({ description: "Goal objective explicitly requested by the user" }),
+	token_budget: Type.Optional(Type.Number({ description: "Optional positive token budget" })),
+	time_budget_seconds: Type.Optional(Type.Number({ description: "Optional positive time budget in seconds" })),
+});
+const TemplateFlags = Type.Record(Type.String(), Type.String());
+const CreateGoalFromTemplateParams = Type.Object({
+	template: Type.String({ description: "Reusable goal template name or alias explicitly requested by the user" }),
+	flags: Type.Optional(TemplateFlags),
+	args: Type.Optional(Type.String({ description: "Trailing prose for the template {{args}} placeholder" })),
 	token_budget: Type.Optional(Type.Number({ description: "Optional positive token budget" })),
 	time_budget_seconds: Type.Optional(Type.Number({ description: "Optional positive time budget in seconds" })),
 });
@@ -27,6 +38,8 @@ type ToolDetails = {
 	remaining_tokens?: number;
 	remaining_time_seconds?: number;
 	completion_budget_report?: string;
+	templates?: ReturnType<typeof listGoalTemplateMetadata>;
+	resolved_template?: { name: string; path: string };
 	error?: string;
 };
 
@@ -35,6 +48,8 @@ type GoalToolRuntime = {
 	cancelContinuation?: GoalContinuationCanceller;
 	scheduleMonitor?: GoalMonitorScheduler;
 	cancelMonitor?: GoalMonitorCanceller;
+	scheduleBudgetLimitWrapUp?: (ctx: ExtensionContext, goal: GoalState) => void;
+	getQueueSize?: () => number;
 };
 
 export function registerGoalTools(
@@ -43,11 +58,16 @@ export function registerGoalTools(
 	cancelContinuation?: GoalContinuationCanceller,
 	scheduleMonitor?: GoalMonitorScheduler,
 	cancelMonitor?: GoalMonitorCanceller,
+	scheduleBudgetLimitWrapUp?: (ctx: ExtensionContext, goal: GoalState) => void,
+	getQueueSize?: () => number,
 ): void {
-	const runtime: GoalToolRuntime = { scheduleContinuation, cancelContinuation, scheduleMonitor, cancelMonitor };
+	const runtime: GoalToolRuntime = { scheduleContinuation, cancelContinuation, scheduleMonitor, cancelMonitor, scheduleBudgetLimitWrapUp, getQueueSize };
 	registerGetGoalTool(pi);
+	registerListGoalTemplatesTool(pi);
 	registerCreateGoalTool(pi, runtime);
+	registerCreateGoalFromTemplateTool(pi, runtime);
 	registerUpdateGoalTool(pi, runtime);
+	registerGoalQueueTools(pi, { scheduleMonitor });
 	registerClearGoalTool(pi, runtime);
 }
 
@@ -65,6 +85,24 @@ function registerGetGoalTool(pi: ExtensionAPI): void {
 	});
 }
 
+function registerListGoalTemplatesTool(pi: ExtensionAPI): void {
+	pi.registerTool({
+		name: "list_goal_templates",
+		label: "List Goal Templates",
+		description: "List reusable .pi-goals templates for explicit natural-language goal creation requests.",
+		promptSnippet: "Discover available reusable goal templates and their required inputs.",
+		promptGuidelines: [
+			"Use only when the user explicitly asks to create or start a persistent goal from a reusable prompt/template.",
+			"Use the returned placeholders to decide whether enough structured values are available before creating a goal from a template.",
+		],
+		parameters: EmptyParams,
+		async execute() {
+			const templates = listGoalTemplateMetadata();
+			return resultForTemplates(templates);
+		},
+	});
+}
+
 function registerCreateGoalTool(pi: ExtensionAPI, runtime: GoalToolRuntime): void {
 	pi.registerTool({
 		name: "create_goal",
@@ -78,6 +116,24 @@ function registerCreateGoalTool(pi: ExtensionAPI, runtime: GoalToolRuntime): voi
 		parameters: CreateGoalParams,
 		async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
 			return createGoalFromTool(pi, runtime, params, ctx);
+		},
+	});
+}
+
+function registerCreateGoalFromTemplateTool(pi: ExtensionAPI, runtime: GoalToolRuntime): void {
+	pi.registerTool({
+		name: "create_goal_from_template",
+		label: "Create Goal From Template",
+		description: "Resolve a reusable .pi-goals template from structured parameters and create the resulting persistent goal.",
+		promptSnippet: "Create a persistent goal from an explicitly requested reusable goal template.",
+		promptGuidelines: [
+			"Use only when the user explicitly asks to create or start a persistent goal from a reusable prompt/template.",
+			"Fill template flags and args from the user's prose, but ask for missing required values instead of guessing.",
+			"Do not use this for ordinary non-goal task requests.",
+		],
+		parameters: CreateGoalFromTemplateParams,
+		async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
+			return createGoalFromTemplateTool(pi, runtime, params, ctx);
 		},
 	});
 }
@@ -113,7 +169,10 @@ function registerClearGoalTool(pi: ExtensionAPI, runtime: GoalToolRuntime): void
 			runtime.cancelMonitor?.(goal?.goalId, "tool-clear");
 			persistClearGoal(pi, "tool");
 			syncGoalUi(ctx, null);
-			return resultForGoal(null, getTelemetry(), goal ? "Goal cleared." : "No goal was set.");
+			const queueSize = runtime.getQueueSize?.() ?? 0;
+			if (queueSize > 0) sendQueueSteering(pi, "goal-clear");
+			const queueHint = queueSize > 0 ? ` ${queueSize} queued goal${queueSize > 1 ? "s" : ""} available. Queue steering was sent to the agent context.` : "";
+			return resultForGoal(null, getTelemetry(), goal ? `Goal cleared.${queueHint}` : `No goal was set.${queueHint}`);
 		},
 	});
 }
@@ -134,6 +193,14 @@ type CreateGoalInput = {
 	time_budget_seconds?: number;
 };
 
+type CreateGoalFromTemplateInput = {
+	template: string;
+	flags?: Record<string, string>;
+	args?: string;
+	token_budget?: number;
+	time_budget_seconds?: number;
+};
+
 type UpdateGoalInput = {
 	status?: string;
 	objective?: string;
@@ -144,7 +211,28 @@ type UpdateGoalInput = {
 type GoalUpdateResult = { ok: true; goal: GoalState; prefix: string; budgetChanged?: boolean } | { ok: false; error: string };
 
 function createGoalFromTool(pi: ExtensionAPI, runtime: GoalToolRuntime, params: CreateGoalInput, ctx: ExtensionContext) {
-	if (getGoal()) return errorResult("A goal already exists. Use clear_goal or ask the user before replacing it.");
+	return createGoalWithPolicy(pi, runtime, params, ctx, { replaceCompleted: false });
+}
+
+function createGoalFromTemplateTool(pi: ExtensionAPI, runtime: GoalToolRuntime, params: CreateGoalFromTemplateInput, ctx: ExtensionContext) {
+	const resolved = resolveGoalTemplateByName(params.template, params.flags ?? {}, params.args ?? "");
+	if (!resolved.ok) return "notTemplate" in resolved ? errorResult(`Unknown goal template '${params.template}'.`) : errorResult(resolved.error);
+	const created = createGoalWithPolicy(pi, runtime, { objective: resolved.template.objective, token_budget: params.token_budget, time_budget_seconds: params.time_budget_seconds }, ctx, { replaceCompleted: true });
+	if (!created.details.error) created.details.resolved_template = { name: resolved.template.name, path: resolved.template.path };
+	return created;
+}
+
+function createGoalWithPolicy(
+	pi: ExtensionAPI,
+	runtime: GoalToolRuntime,
+	params: CreateGoalInput,
+	ctx: ExtensionContext,
+	policy: { replaceCompleted: boolean },
+) {
+	const current = getGoal();
+	if (current && (!policy.replaceCompleted || current.status !== "complete")) {
+		return errorResult("A goal already exists. Use clear_goal or ask the user before replacing it.");
+	}
 	const validation = validateObjective(params.objective);
 	if (!validation.ok) return errorResult(validation.hint ? `${validation.message} ${validation.hint}` : validation.message);
 	const budgetError = validateBudgets(params.token_budget, params.time_budget_seconds);
@@ -154,7 +242,7 @@ function createGoalFromTool(pi: ExtensionAPI, runtime: GoalToolRuntime, params: 
 	persistSetGoal(pi, goal, telemetry, "tool");
 	syncGoalUi(ctx, goal);
 	runtime.scheduleMonitor?.(ctx);
-	return resultForGoal(goal, telemetry, "Goal created.");
+	return resultForGoal(goal, telemetry, current?.status === "complete" ? "Goal created; replaced completed goal." : "Goal created.");
 }
 
 function updateGoalFromTool(pi: ExtensionAPI, runtime: GoalToolRuntime, params: UpdateGoalInput, ctx: ExtensionContext) {
@@ -162,10 +250,18 @@ function updateGoalFromTool(pi: ExtensionAPI, runtime: GoalToolRuntime, params: 
 	if (!goal) return errorResult("No goal exists to update.");
 	const update = buildGoalUpdate(goal, params);
 	if (!update.ok) return errorResult(update.error);
+	// Refuse to reactivate a goal whose budgets are still exhausted.
+	if (update.goal.status === "active" && !canActivateGoal(update.goal)) {
+		const reason = isBudgetExhausted(update.goal);
+		const resource = reason === "tokenBudget" ? "token" : reason === "timeBudget" ? "time" : "budget";
+		return errorResult(`Cannot resume: ${resource} budget is still exhausted. Raise the budget or use clear_goal before resuming.`);
+	}
 	if (update.goal.status !== "active") {
 		runtime.cancelContinuation?.(goal.goalId, "tool-status");
 		runtime.cancelMonitor?.(goal.goalId, "tool-status");
 	}
+	// When a budget edit transitions active -> budgetLimited, schedule budget-limit wrap-up once.
+	budgetEditWrapUpIfNeeded(pi, ctx, runtime, goal, update.goal);
 	persistUpdateGoal(pi, update.goal, telemetryForUpdate(update.goal), "tool");
 	syncGoalUi(ctx, update.goal);
 	if (goal.status !== "active" && update.goal.status === "active") {
@@ -228,6 +324,13 @@ function applyBudgetUpdates(goal: GoalState, params: UpdateGoalInput, changes: s
 	return { ok: true, goal: next, prefix: "", budgetChanged };
 }
 
+function budgetEditWrapUpIfNeeded(pi: ExtensionAPI, ctx: ExtensionContext, runtime: GoalToolRuntime, previousGoal: GoalState, updatedGoal: GoalState) {
+	// Only schedule wrap-up when an active goal transitions to budgetLimited due to a budget edit.
+	if (previousGoal.status === "active" && updatedGoal.status === "budgetLimited" && isBudgetExhausted(updatedGoal)) {
+		runtime.scheduleBudgetLimitWrapUp?.(ctx, updatedGoal);
+	}
+}
+
 function recomputeStatusAfterBudgetEdit(goal: GoalState): GoalState {
 	if (goal.status !== "active" && goal.status !== "budgetLimited") return goal;
 	return isBudgetExhausted(goal) ? { ...goal, status: "budgetLimited" } : { ...goal, status: "active" };
@@ -250,6 +353,15 @@ function resultForGoal(goal: GoalState | null, telemetry: GoalTelemetrySnapshot 
 		details.completion_budget_report = `Goal achieved. Report final budget usage to the user: tokens used: ${goal.tokensUsed}${goal.tokenBudget === undefined ? "" : ` of ${goal.tokenBudget}`}; time used: ${goal.timeUsedSeconds}${goal.timeBudgetSeconds === undefined ? "" : ` of ${goal.timeBudgetSeconds}`} seconds.`;
 	}
 	return { content: [{ type: "text" as const, text: `${prefix ? `${prefix}\n` : ""}${formatToolGoal(goal)}` }], details };
+}
+
+function resultForTemplates(templates: ReturnType<typeof listGoalTemplateMetadata>) {
+	const lines = templates.map((template) => {
+		const aliases = template.aliases.length ? ` aliases=${template.aliases.join(",")}` : "";
+		const placeholders = template.requiredPlaceholders.length ? ` placeholders=${template.requiredPlaceholders.join(",")}` : " placeholders=none";
+		return `${template.name}${aliases}${placeholders} path=${template.path}${template.description ? ` — ${template.description}` : ""}`;
+	});
+	return { content: [{ type: "text" as const, text: lines.length ? lines.join("\n") : "No reusable goal templates found." }], details: { goal: getGoal(), telemetry: getTelemetry(), templates } as ToolDetails };
 }
 
 function errorResult(error: string) {

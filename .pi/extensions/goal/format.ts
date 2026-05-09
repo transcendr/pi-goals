@@ -80,14 +80,16 @@ export function commandHint(status: GoalStatus): string {
 		case "paused":
 			return "Commands: /goal resume, /goal clear";
 		case "budgetLimited":
+			return "Commands: /goal clear (budget still exhausted; raise budget to resume)";
 		case "complete":
 			return "Commands: /goal clear";
 	}
 }
 
 export function objectiveExcerpt(objective: string, maxChars = OBJECTIVE_EXCERPT_CHARS): string {
-	const chars = [...objective];
-	if (chars.length <= maxChars) return objective;
+	const singleLine = objective.replace(/[\r\n]+/g, " ").replace(/\s+/g, " ").trim();
+	const chars = [...singleLine];
+	if (chars.length <= maxChars) return singleLine;
 	return `${chars.slice(0, Math.max(0, maxChars - 1)).join("")}…`;
 }
 

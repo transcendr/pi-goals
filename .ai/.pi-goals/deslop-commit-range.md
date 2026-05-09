@@ -7,7 +7,7 @@ allow_commands: true
 command_timeout_ms: 10000
 command_output_limit: 20000
 ---
-/boomerang --rethrow {{rethrow}} create a goal to run a rigorous deslop pass over this commit range:
+/boomerang --rethrow {{rethrow}} Run a rigorous deslop pass over this commit range:
 
 <commit_range>
 {{args}}

@@ -1,11 +1,11 @@
 # ISSUE-012 — Close budget-limited resume and wrap-up gaps
 
-Status: open — execution-ready
+Status: fixed — implemented
 Priority: P0
-Owner: unassigned
+Owner: pi-goal automation
 Created: 2026-05-08
-Next best session: focused implementation/validation pass for budget-limited invariants
-Next best session rationale: The design is locked from a code audit; execution should harden command/tool resume paths, wrap-up scheduling, notices, and proofs.
+Next best session: none — fixed
+Next best session rationale: Implemented in commit 7ab6fc2 with budget resume/update probes and npm run quality:goal.
 Target repo roots: `/Users/bryan/dev/personal/experiments/pi-goals`
 Parent issue: `.ai/issues/fixed/ISSUE-001-pi-goal-extension.md`
 Depends on:

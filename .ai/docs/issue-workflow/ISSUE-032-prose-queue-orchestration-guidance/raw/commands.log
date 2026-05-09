@@ -1,0 +1,136 @@
+$ git status --short --untracked-files=all
+?? .ai/docs/issue-workflow/ISSUE-032-prose-queue-orchestration-guidance/raw/commands.log
+
+$ find .ai/issues -maxdepth 2 -type d | sort
+.ai/issues
+.ai/issues/closed
+.ai/issues/defer
+.ai/issues/fixed
+.ai/issues/open
+.ai/issues/refine
+
+$ find .ai/issues -type f -name "ISSUE-*.md" | sed -E "s#.*/ISSUE-([0-9]+).*#\\1#" | sort -n | tail -1 | awk ...
+ISSUE-032
+
+$ rg -n "queueSteeringContent|start_queued_goal|dequeue_goal|enqueue_goal|create_goal_from_template|registerGoalQueueTools" .pi/extensions/goal
+.pi/extensions/goal/tools.ts:8:import { registerGoalQueueTools } from "./queue-tools";
+.pi/extensions/goal/tools.ts:70:	registerGoalQueueTools(pi, { scheduleMonitor });
+.pi/extensions/goal/tools.ts:125:		name: "create_goal_from_template",
+.pi/extensions/goal/queue-steering.ts:15:			content: queueSteeringContent(next),
+.pi/extensions/goal/queue-steering.ts:30:function queueSteeringContent(goal: QueuedGoal): string {
+.pi/extensions/goal/queue-steering.ts:44:			"1. Use start_queued_goal to atomically create this goal and remove it from the queue only after creation succeeds.",
+.pi/extensions/goal/queue-steering.ts:45:			`2. This queued request came from reusable template '${goal.template}'; start_queued_goal will re-resolve it with flags=${JSON.stringify(goal.templateFlags ?? {})}, args=${JSON.stringify(goal.templateArgs ?? "")}.`,
+.pi/extensions/goal/queue-steering.ts:46:			"3. If you cannot use start_queued_goal, use create_goal_from_template rather than create_goal, and dequeue only after successful creation.",
+.pi/extensions/goal/queue-steering.ts:50:			"1. Use start_queued_goal to atomically create this goal and remove it from the queue only after creation succeeds.",
+.pi/extensions/goal/queue-steering.ts:51:			"2. If start_queued_goal reports a non-complete active goal, leave this queued goal in place and continue the active goal.",
+.pi/extensions/goal/queue-tools.ts:32:export function registerGoalQueueTools(pi: ExtensionAPI, runtime: GoalQueueToolRuntime = {}): void {
+.pi/extensions/goal/queue-tools.ts:56:		name: "enqueue_goal",
+.pi/extensions/goal/queue-tools.ts:75:		name: "start_queued_goal",
+.pi/extensions/goal/queue-tools.ts:89:		name: "dequeue_goal",
+.pi/extensions/goal/queue-tools.ts:91:		description: "Remove the first goal from the queue and return it. Prefer start_queued_goal for normal queued-goal handoff.",
+.pi/extensions/goal/queue-tools.ts:93:		promptGuidelines: ["Use start_queued_goal for normal queued handoff; use dequeue_goal only when explicitly removing the head after separate successful handling."],
+.pi/extensions/goal/queue-tools.ts:138:	persistDequeue(pi, "start_queued_goal");
+
+$ sentrux gate .pi/extensions/goal
+sentrux gate — structural regression check
+
+Quality:      6197 -> 6228
+Coupling:     0.19 → 0.17
+Cycles:       0 → 0
+God files:    0 → 0
+
+Distance from Main Sequence: 0.25
+
+✓ No degradation detected
+
+$ test -f .ai/issues/open/ISSUE-032-prose-queue-orchestration-guidance.md && echo issue_exists
+issue_exists
+
+$ ls .ai/docs/issue-workflow/ISSUE-032-prose-queue-orchestration-guidance
+00-request.md
+01-protocol-read.md
+02-grounded-research.md
+03-design-lock.md
+04-proof-threat-model.md
+05-issue-writeback.md
+raw
+
+$ git status --short --untracked-files=all
+?? .ai/docs/issue-workflow/ISSUE-032-prose-queue-orchestration-guidance/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-032-prose-queue-orchestration-guidance/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-032-prose-queue-orchestration-guidance/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-032-prose-queue-orchestration-guidance/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-032-prose-queue-orchestration-guidance/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-032-prose-queue-orchestration-guidance/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-032-prose-queue-orchestration-guidance/raw/commands.log
+?? .ai/issues/open/ISSUE-032-prose-queue-orchestration-guidance.md
+
+$ git check-ignore -v .ai/docs/issue-workflow/ISSUE-032-prose-queue-orchestration-guidance/00-request.md || true
+.gitignore:8:!.ai/docs/issue-workflow/**	.ai/docs/issue-workflow/ISSUE-032-prose-queue-orchestration-guidance/00-request.md
+
+$ rg -n "ISSUE-032|queue_orchestration_steer_probe|prose/JIT|dequeue_goal" .ai/issues/open/ISSUE-032-prose-queue-orchestration-guidance.md
+1:# ISSUE-032 — Prose queue orchestration guidance
+20:Make queued-goal steering treat prose/JIT orchestration as a first-class workflow without adding brittle prose parsing or unnecessary specialized tools.
+45:- Request intake: `.ai/docs/issue-workflow/ISSUE-032-prose-queue-orchestration-guidance/00-request.md`
+46:- Protocol read: `.ai/docs/issue-workflow/ISSUE-032-prose-queue-orchestration-guidance/01-protocol-read.md`
+47:- Grounded research: `.ai/docs/issue-workflow/ISSUE-032-prose-queue-orchestration-guidance/02-grounded-research.md`
+48:- Design lock: `.ai/docs/issue-workflow/ISSUE-032-prose-queue-orchestration-guidance/03-design-lock.md`
+49:- Proof threat model: `.ai/docs/issue-workflow/ISSUE-032-prose-queue-orchestration-guidance/04-proof-threat-model.md`
+50:- Issue writeback: `.ai/docs/issue-workflow/ISSUE-032-prose-queue-orchestration-guidance/05-issue-writeback.md`
+51:- Final audit: `.ai/docs/issue-workflow/ISSUE-032-prose-queue-orchestration-guidance/06-final-audit.md`
+52:- Raw command log: `.ai/docs/issue-workflow/ISSUE-032-prose-queue-orchestration-guidance/raw/commands.log`
+62:- `.pi/extensions/goal/queue-tools.ts` already provides `start_queued_goal` for atomic direct handoff and `dequeue_goal` for manual consumption after separate successful handling.
+77:- Tell the agent to semantically interpret prose/JIT orchestration using current context rather than relying on code parser heuristics.
+79:- Explicitly allow one orchestration queue item to require as many consecutive active goals as needed before the agent calls `dequeue_goal`.
+80:- Tell the agent to call `dequeue_goal` only after the orchestration item is satisfied.
+91:- [ ] Update `.pi/extensions/goal/queue-steering.ts` so `queueSteeringContent()` always explains the two queue-head modes: direct queued goal vs prose/JIT orchestration.
+94:- [ ] Add explicit prose/JIT guidance: use current context, create/start/enqueue concrete goal(s) with existing tools, and do not parse prose in extension code.
+96:- [ ] Add explicit safe-consumption guidance: call `dequeue_goal` only after the orchestration item is satisfied; leave it queued when blocked/uncertain.
+103:- Non-template queue steering content tells the agent the objective may be direct or prose/JIT orchestration.
+108:- Prose/JIT orchestration guidance explicitly says to call `dequeue_goal` only after the orchestration item is satisfied, and to leave it queued when blocked or uncertain.
+116:Primary invariant: queued-goal steering must help the agent choose the correct handoff mode for the queue head. Direct queued goals should use `start_queued_goal`; prose/JIT orchestration should be interpreted from current context and remain queued until fully satisfied.
+134:  "ISSUE-032","Prose queue orchestration guidance","open — execution-ready","focused implementation/probe pass","make queue steering first-class for direct goals and prose/JIT orchestration without parser heuristics or new specialized tools"
+136:  "lr1","queue steering always distinguishes direct queued goals from prose/JIT orchestration possibilities"
+138:  "lr3","prose/JIT orchestration is interpreted semantically by the agent using current context"
+139:  "lr4","orchestration uses existing goal tools such as create_goal, create_goal_from_template, enqueue_goal, and dequeue_goal"
+141:  "lr6","dequeue_goal is called only after the orchestration item is satisfied"
+145:  "queue_tools",".pi/extensions/goal/queue-tools.ts","existing start_queued_goal, enqueue_goal, and dequeue_goal semantics should remain unchanged unless tiny prompt text adjustments are needed"
+164:  "queue_orchestration_steer_probe","issue doc","NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-orchestration-steer-probe.cjs","exit 0; non-template steering includes direct-vs-orchestration guidance, existing-tool guidance, multi-goal-before-dequeue guidance, and no parser or reorder assumptions",run,"focused behavior proof for this issue"
+
+$ git status --short --untracked-files=all
+?? .ai/docs/issue-workflow/ISSUE-032-prose-queue-orchestration-guidance/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-032-prose-queue-orchestration-guidance/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-032-prose-queue-orchestration-guidance/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-032-prose-queue-orchestration-guidance/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-032-prose-queue-orchestration-guidance/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-032-prose-queue-orchestration-guidance/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-032-prose-queue-orchestration-guidance/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-032-prose-queue-orchestration-guidance/raw/commands.log
+?? .ai/issues/open/ISSUE-032-prose-queue-orchestration-guidance.md
+
+$ git check-ignore -v .ai/docs/issue-workflow/ISSUE-032-prose-queue-orchestration-guidance/06-final-audit.md || true
+.gitignore:8:!.ai/docs/issue-workflow/**	.ai/docs/issue-workflow/ISSUE-032-prose-queue-orchestration-guidance/06-final-audit.md
+
+$ npm run typecheck:goal
+PASS (see terminal output in active session)
+$ NODE_PATH=... node /tmp/pi-goal-queue-orchestration-steer-probe.cjs
+PASS queue orchestration steer probe ok
+$ NODE_PATH=... node /tmp/pi-goal-queue-template-steer-probe.cjs
+PASS queue template steer probe ok
+$ npm run quality:goal
+PASS (Sentrux gate/check, slop, typecheck, Pi load)
+
+$ git status --short --untracked-files=all
+ M .pi/extensions/goal/queue-steering.ts
+?? .ai/docs/issue-workflow/ISSUE-032-prose-queue-orchestration-guidance/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-032-prose-queue-orchestration-guidance/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-032-prose-queue-orchestration-guidance/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-032-prose-queue-orchestration-guidance/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-032-prose-queue-orchestration-guidance/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-032-prose-queue-orchestration-guidance/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-032-prose-queue-orchestration-guidance/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-032-prose-queue-orchestration-guidance/raw/commands.log
+?? .ai/issues/fixed/ISSUE-032-prose-queue-orchestration-guidance.md
+
+$ git check-ignore -v .ai/docs/issue-workflow/ISSUE-032-prose-queue-orchestration-guidance/06-final-audit.md || true
+.gitignore:8:!.ai/docs/issue-workflow/**	.ai/docs/issue-workflow/ISSUE-032-prose-queue-orchestration-guidance/06-final-audit.md
