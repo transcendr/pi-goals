@@ -43,6 +43,10 @@ Mandatory unless freshly present in current context:
 - Produce visible workflow artifacts under `.ai/docs/issue-workflow/ISSUE-NNN-<slug>/`.
 - Verify artifacts are trackable with `git status --short --untracked-files=all` and `git check-ignore -v <artifact-path> || true`.
 
+## Goal queue prompt routing
+
+When handling queued pi-goal prose, treat `.ai/.pi-goals/*` as reusable workflows. Before `start_queued_goal` for an abstract/task-type queue item, call `list_goal_templates` and match by name, aliases, description, and placeholders. If exactly one template fits and inputs are available, use `create_goal_from_template`; dequeue the prose item only after that concrete goal is satisfied. Use `start_queued_goal` only for direct one-off goals.
+
 ## Solo
 
 Solo instance: `solo-pi_goals`; project id: `2`.
