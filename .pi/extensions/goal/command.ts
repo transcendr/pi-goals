@@ -15,6 +15,7 @@ import {
 	persistUpdateGoal,
 } from "./state";
 import { getQueue, enqueueGoal, persistEnqueue } from "./queue-state";
+import { sendQueueSteering } from "./queue-steering";
 import { notifyGoal, notifyInfo, notifyWarning, showGoalSummary, showNoGoal, syncGoalUi } from "./ui";
 import type { GoalCommandScheduler, GoalContinuationCanceller, GoalMonitorCanceller, GoalMonitorScheduler, GoalPauseInterrupter, GoalState } from "./types";
 
@@ -47,6 +48,7 @@ export function registerGoalCommand(
 
 export function goalArgumentCompletions(argumentPrefix: string): AutocompleteItem[] | null {
 	const query = argumentPrefix.trimStart();
+	if (/^queue\s/.test(query)) return templateCompletions(query.slice("queue".length).trimStart(), "queue ");
 	if (/\s/.test(query)) return null;
 	const scored = GOAL_SUBCOMMANDS.map((subcommand) => ({
 		...subcommand,
@@ -54,11 +56,15 @@ export function goalArgumentCompletions(argumentPrefix: string): AutocompleteIte
 	})).filter((item): item is GoalSubcommand & { score: number } => item.score !== undefined);
 	scored.sort((a, b) => a.score - b.score || a.name.localeCompare(b.name));
 	const subcommands = scored.map(({ name, description }) => ({ value: name, label: name, description }));
-	const templates = discoverGoalTemplates()
+	return [...subcommands, ...templateCompletions(query)];
+}
+
+function templateCompletions(query: string, valuePrefix = ""): AutocompleteItem[] {
+	if (/\s/.test(query)) return [];
+	return discoverGoalTemplates()
 		.filter((template) => template.name.toLowerCase().includes(query.toLowerCase()) || template.aliases.some((alias) => alias.toLowerCase().includes(query.toLowerCase())))
 		.slice(0, 20)
-		.map((template) => ({ value: template.name, label: template.name, description: template.description ?? `Goal template from ${template.path}` }));
-	return [...subcommands, ...templates];
+		.map((template) => ({ value: `${valuePrefix}${template.name}`, label: template.name, description: template.description ?? `Goal template from ${template.path}` }));
 }
 
 function subcommandScore(value: string, query: string): number | undefined {
@@ -97,21 +103,58 @@ async function handleGoalCommand(
 		return;
 	}
 
-	const control = GOAL_SUBCOMMANDS.find((subcommand) => subcommand.name === trimmed.toLowerCase())?.name;
-	if (control === "pause") return pauseGoal(pi, ctx, cancelContinuation, interruptActiveTurn, cancelMonitor);
-	if (control === "resume") return resumeGoal(pi, ctx, scheduleContinuation, scheduleMonitor);
-	if (control === "clear") return clearGoal(pi, ctx, cancelContinuation, cancelMonitor);
-	if (control === "queue") return handleQueueCommand(pi, trimmed, ctx);
+	const handled = handleGoalControlCommand(pi, trimmed, ctx, scheduleContinuation, cancelContinuation, interruptActiveTurn, scheduleMonitor, cancelMonitor);
+	if (handled) return;
 
 	await setGoalObjective(pi, resolveTemplateOrObjective(trimmed, ctx), ctx, scheduleContinuation, cancelContinuation, scheduleMonitor, cancelMonitor);
 }
 
+function handleGoalControlCommand(
+	pi: ExtensionAPI,
+	trimmed: string,
+	ctx: ExtensionCommandContext,
+	scheduleContinuation: GoalCommandScheduler,
+	cancelContinuation: GoalContinuationCanceller,
+	interruptActiveTurn: GoalPauseInterrupter,
+	scheduleMonitor: GoalMonitorScheduler,
+	cancelMonitor: GoalMonitorCanceller,
+): boolean {
+	const firstToken = trimmed.split(/\s+/, 1)[0].toLowerCase();
+	if (firstToken === "queue") {
+		handleQueueCommand(pi, trimmed, ctx);
+		return true;
+	}
+	if (trimmed === "pause") pauseGoal(pi, ctx, cancelContinuation, interruptActiveTurn, cancelMonitor);
+	else if (trimmed === "resume") resumeGoal(pi, ctx, scheduleContinuation, scheduleMonitor);
+	else if (trimmed === "clear") clearGoal(pi, ctx, cancelContinuation, cancelMonitor);
+	else return false;
+	return true;
+}
+
+type ResolvedObjectiveInput = {
+	objective: string;
+	template?: string;
+	templateFlags?: Record<string, string>;
+	templateArgs?: string;
+};
+
 function resolveTemplateOrObjective(input: string, ctx: ExtensionCommandContext): string {
+	return resolveTemplateOrObjectiveDetails(input, ctx)?.objective ?? "";
+}
+
+function resolveTemplateOrObjectiveDetails(input: string, ctx: ExtensionCommandContext): ResolvedObjectiveInput | null {
 	const resolution = resolveGoalTemplateInvocation(input);
-	if (resolution.ok) return resolution.template.objective;
-	if ("notTemplate" in resolution) return input;
+	if (resolution.ok) {
+		return {
+			objective: resolution.template.objective,
+			template: resolution.template.name,
+			templateFlags: resolution.template.flags,
+			templateArgs: resolution.template.args,
+		};
+	}
+	if ("notTemplate" in resolution) return { objective: input };
 	notifyWarning(ctx, resolution.error);
-	return "";
+	return null;
 }
 
 async function setGoalObjective(
@@ -133,7 +176,7 @@ async function setGoalObjective(
 	const existing = getGoal();
 	if (existing) {
 		const choices = ["Replace", "Queue", "Cancel"];
-		const choice = await ctx.ui.select("Goal already active. Choose action:", choices);
+		const choice = await ctx.ui.select(replacementChoicePrompt(validation.objective), choices);
 		if (choice === "Queue" || choice === "Cancel") {
 			if (choice === "Queue") {
 				const queued = enqueueGoal(validation.objective, "command");
@@ -155,6 +198,12 @@ async function setGoalObjective(
 	notifyGoal(ctx, goal);
 	scheduleMonitor(ctx);
 	scheduleContinuation(ctx, "created");
+}
+
+function replacementChoicePrompt(objective: string): string {
+	const maxPreviewChars = 4_000;
+	const preview = objective.length > maxPreviewChars ? `${objective.slice(0, maxPreviewChars - 1)}…` : objective;
+	return `Goal already active. New resolved goal:\n\n${preview}\n\nChoose action:`;
 }
 
 function pauseGoal(
@@ -215,7 +264,8 @@ function clearGoal(pi: ExtensionAPI, ctx: ExtensionCommandContext, cancelContinu
 	const result = persistClearGoal(pi, "command");
 	syncGoalUi(ctx, result.goal);
 	const queue = getQueue();
-	const queueHint = queue.length > 0 ? `\n${queue.length} queued goal${queue.length > 1 ? "s" : ""} available. Use /goal queue to list or /goal <objective> to start the next one.` : "";
+	if (queue.length > 0) sendQueueSteering(pi, "goal-clear");
+	const queueHint = queue.length > 0 ? `\n${queue.length} queued goal${queue.length > 1 ? "s" : ""} available. Queue steering was sent to the agent context.` : "";
 	notifyInfo(ctx, hadGoal ? `Goal cleared${queueHint}` : `No goal to clear\nThis session does not currently have a goal.${queueHint}`);
 }
 
@@ -231,14 +281,14 @@ function handleQueueCommand(pi: ExtensionAPI, input: string, ctx: ExtensionComma
 		notifyInfo(ctx, `Queued goals (${queue.length}):\n${lines.join("\n")}`);
 		return;
 	}
-	const resolved = resolveTemplateOrObjective(rest, ctx);
+	const resolved = resolveTemplateOrObjectiveDetails(rest, ctx);
 	if (!resolved) return;
-	const validation = validateObjective(resolved);
+	const validation = validateObjective(resolved.objective);
 	if (!validation.ok) {
 		notifyWarning(ctx, validation.hint ? `${validation.message}\n${validation.hint}` : validation.message);
 		return;
 	}
-	const queued = enqueueGoal(validation.objective, "command");
+	const queued = enqueueGoal(validation.objective, "command", { template: resolved.template, templateFlags: resolved.templateFlags, templateArgs: resolved.templateArgs });
 	persistEnqueue(pi, queued);
 	notifyInfo(ctx, `Queued goal: ${queued.queueId} \u2014 ${validation.objective.length > 80 ? validation.objective.slice(0, 77) + "\u2026" : validation.objective}`);
 }

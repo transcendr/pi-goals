@@ -6,6 +6,7 @@ import { createTelemetry, noteBudgetLimit } from "./telemetry";
 import { listGoalTemplateMetadata, resolveGoalTemplateByName } from "./templates";
 import { createGoalState, getGoal, getTelemetry, persistClearGoal, persistSetGoal, persistUpdateGoal } from "./state";
 import { registerGoalQueueTools } from "./queue-tools";
+import { sendQueueSteering } from "./queue-steering";
 import { syncGoalUi } from "./ui";
 import type { GoalCommandScheduler, GoalContinuationCanceller, GoalMonitorCanceller, GoalMonitorScheduler, GoalState, GoalStatus, GoalTelemetrySnapshot } from "./types";
 
@@ -169,7 +170,8 @@ function registerClearGoalTool(pi: ExtensionAPI, runtime: GoalToolRuntime): void
 			persistClearGoal(pi, "tool");
 			syncGoalUi(ctx, null);
 			const queueSize = runtime.getQueueSize?.() ?? 0;
-			const queueHint = queueSize > 0 ? ` ${queueSize} queued goal${queueSize > 1 ? "s" : ""} available. Use list_goal_queue to see them or dequeue_goal to start the next one.` : "";
+			if (queueSize > 0) sendQueueSteering(pi, "goal-clear");
+			const queueHint = queueSize > 0 ? ` ${queueSize} queued goal${queueSize > 1 ? "s" : ""} available. Queue steering was sent to the agent context.` : "";
 			return resultForGoal(null, getTelemetry(), goal ? `Goal cleared.${queueHint}` : `No goal was set.${queueHint}`);
 		},
 	});

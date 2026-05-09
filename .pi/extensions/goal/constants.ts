@@ -3,6 +3,7 @@ export const CONTINUATION_MESSAGE_TYPE = "pi-goal-continuation";
 export const BUDGET_LIMIT_MESSAGE_TYPE = "pi-goal-budget-limit";
 export const PAUSE_MESSAGE_TYPE = "pi-goal-pause";
 export const GOAL_MONITOR_MESSAGE_TYPE = "pi-goal-monitor-steer";
+export const QUEUE_MESSAGE_TYPE = "pi-goal-queue-steer";
 export const GOAL_MONITOR_LOG_ENTRY_TYPE = "pi-goal-monitor-log";
 
 export const MAX_OBJECTIVE_CHARS = 15000;
@@ -34,6 +35,7 @@ export const BUDGET_LIMIT_PROMPT_ID = "pi-goal-budget-limit-v1";
 export const BUDGET_WARNING_PROMPT_ID = "pi-goal-budget-warning-v1";
 export const PAUSE_PROMPT_ID = "pi-goal-pause-v1";
 export const GOAL_MONITOR_PROMPT_ID = "pi-goal-monitor-v1";
+export const QUEUE_PROMPT_ID = "pi-goal-queue-v1";
 
 export const GOAL_USAGE = "Usage: /goal <objective>";
 export const GOAL_USAGE_HINT = "Example: /goal improve benchmark coverage";

@@ -33,6 +33,8 @@ export type ResolvedGoalTemplate = {
 	name: string;
 	path: string;
 	objective: string;
+	flags: Record<string, string>;
+	args: string;
 };
 
 export type TemplateResolution = { ok: true; template: ResolvedGoalTemplate } | { ok: false; error: string } | { ok: false; notTemplate: true };
@@ -83,7 +85,7 @@ export function resolveGoalTemplateByName(nameOrAlias: string, flags: Record<str
 		const values = { ...flags, args };
 		const interpolated = interpolate(template.body, values);
 		const objective = resolveInlineCommands(interpolated, template, root).trim();
-		return { ok: true, template: { name: template.name, path: template.path, objective } };
+		return { ok: true, template: { name: template.name, path: template.path, objective, flags: { ...flags }, args } };
 	} catch (error) {
 		return { ok: false, error: error instanceof Error ? error.message : String(error) };
 	}

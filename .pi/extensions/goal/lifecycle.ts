@@ -18,6 +18,7 @@ import {
 	MAX_NO_PROGRESS_AUTO_TURNS,
 	PAUSE_MESSAGE_TYPE,
 	GOAL_MONITOR_MESSAGE_TYPE,
+	QUEUE_MESSAGE_TYPE,
 } from "./constants";
 import { evaluateBudgetPressure, isBudgetHardStop, isBudgetReached, isBudgetWarning } from "./budget";
 import { cancelGoalContinuation, interruptActiveGoalTurn, scheduleBudgetLimitWrapUp, scheduleMaybeContinueGoal } from "./continuation";
@@ -25,6 +26,7 @@ import { buildBudgetLimitPrompt } from "./prompts";
 import { getGoal, getTelemetry, persistAccountGoal, persistTelemetry, persistUpdateGoal, replayGoalState } from "./state";
 import { cancelGoalMonitor, replayGoalMonitorState, scheduleGoalMonitor } from "./monitor";
 import { replayQueueState } from "./queue-state";
+import { queueSteeringStillValid, sendQueueSteering } from "./queue-steering";
 import { applyTurnTelemetry, consumeNextTurnOrigin, makeTurnSnapshot, noteBudgetHardStop, noteBudgetLimit, noteBudgetWarning, noteSafetyPause } from "./telemetry";
 import { notifyWarning, promptResumePausedGoal, syncGoalUi } from "./ui";
 import type { BudgetHardStopReason, BudgetLimitReason, BudgetPressure, GoalState, GoalTelemetrySnapshot, StreamBudgetSignal, TurnAccountingSnapshot } from "./types";
@@ -227,9 +229,14 @@ async function handleTurnEnd(pi: ExtensionAPI, event: TurnEndEvent, ctx: Extensi
 		return;
 	}
 
-	if (updated?.status === "active") scheduleGoalMonitor(pi, ctx);
-	else cancelGoalMonitor(updated?.goalId, "turn-end");
-	syncGoalUi(ctx, updated);
+	finishTurnGoal(pi, ctx, updated, turn.completedGoal);
+}
+
+function finishTurnGoal(pi: ExtensionAPI, ctx: ExtensionContext, goal: GoalState | null, completedThisTurn: boolean): void {
+	if (goal?.status === "active") scheduleGoalMonitor(pi, ctx);
+	else cancelGoalMonitor(goal?.goalId, "turn-end");
+	syncGoalUi(ctx, goal);
+	if (goal?.status === "complete" && completedThisTurn) sendQueueSteering(pi, "goal-complete");
 }
 
 async function pauseForSafety(
@@ -351,14 +358,22 @@ function classifyGoalSteeringMessage(message: unknown): "none" | "valid" | "inva
 	if (typeof message !== "object" || message === null) return "none";
 	const candidate = message as Record<string, unknown>;
 	if (!isGoalSteeringCustomType(candidate.customType)) return "none";
-	const details = typeof candidate.details === "object" && candidate.details !== null ? (candidate.details as Record<string, unknown>) : null;
+	return candidate.customType === QUEUE_MESSAGE_TYPE ? classifyQueueSteering(candidate) : classifyStatusGoalSteering(candidate);
+}
+
+function classifyQueueSteering(message: Record<string, unknown>): "valid" | "invalid" {
+	return queueSteeringStillValid(message) ? "valid" : "invalid";
+}
+
+function classifyStatusGoalSteering(message: Record<string, unknown>): "valid" | "invalid" {
+	const details = typeof message.details === "object" && message.details !== null ? (message.details as Record<string, unknown>) : null;
 	const current = getGoal();
 	if (!current || details?.goalId !== current.goalId) return "invalid";
-	return goalSteeringMatchesStatus(candidate.customType, details?.kind, current.status) ? "valid" : "invalid";
+	return goalSteeringMatchesStatus(String(message.customType), details?.kind, current.status) ? "valid" : "invalid";
 }
 
 function isGoalSteeringCustomType(customType: unknown): customType is string {
-	return [CONTINUATION_MESSAGE_TYPE, BUDGET_LIMIT_MESSAGE_TYPE, PAUSE_MESSAGE_TYPE, GOAL_MONITOR_MESSAGE_TYPE].includes(String(customType));
+	return [CONTINUATION_MESSAGE_TYPE, BUDGET_LIMIT_MESSAGE_TYPE, PAUSE_MESSAGE_TYPE, GOAL_MONITOR_MESSAGE_TYPE, QUEUE_MESSAGE_TYPE].includes(String(customType));
 }
 
 function goalSteeringMatchesStatus(customType: string, kind: unknown, status: GoalState["status"]): boolean {
