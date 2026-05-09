@@ -68,10 +68,6 @@ export function clearQueue(): QueuedGoal[] {
 	return removed;
 }
 
-export function advanceFromQueue(): QueuedGoal | undefined {
-	return runtimeQueue.shift();
-}
-
 export function replayQueueState(ctx: { sessionManager: { getBranch(): unknown[] } }): GoalQueueRuntimeState {
 	let queue: QueuedGoal[] = [];
 	for (const entry of ctx.sessionManager.getBranch()) {
@@ -99,9 +95,6 @@ export function persistRemove(pi: ExtensionAPI, queueId: string, reason: string)
 	pi.appendEntry(STATE_ENTRY_TYPE, { version: 1, kind: "remove", queueId, reason, at: Date.now() } as GoalQueueEvent);
 }
 
-export function persistClearQueue(pi: ExtensionAPI, reason: string): void {
-	pi.appendEntry(STATE_ENTRY_TYPE, { version: 1, kind: "clear", reason, at: Date.now() } as GoalQueueEvent);
-}
 
 function entryToQueueEvent(entry: unknown): GoalQueueEvent | null {
 	if (typeof entry !== "object" || entry === null) return null;
