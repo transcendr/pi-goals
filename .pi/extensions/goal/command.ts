@@ -17,7 +17,7 @@ import { notifyGoal, notifyInfo, notifyWarning, showGoalSummary, showNoGoal, syn
 import type { GoalCommandScheduler, GoalContinuationCanceller, GoalPauseInterrupter, GoalState } from "./types";
 
 type GoalSubcommand = {
-	name: "pause" | "resume" | "clear" | "churn-check";
+	name: "pause" | "resume" | "clear";
 	description: string;
 };
 
@@ -25,7 +25,6 @@ const GOAL_SUBCOMMANDS: GoalSubcommand[] = [
 	{ name: "pause", description: "Pause the current goal" },
 	{ name: "resume", description: "Resume a paused goal" },
 	{ name: "clear", description: "Clear the current goal" },
-	{ name: "churn-check", description: "Ask the churn monitor to review this goal" },
 ];
 
 export function registerGoalCommand(
@@ -95,10 +94,6 @@ async function handleGoalCommand(
 	if (control === "pause") return pauseGoal(pi, ctx, cancelContinuation, interruptActiveTurn);
 	if (control === "resume") return resumeGoal(pi, ctx, scheduleContinuation);
 	if (control === "clear") return clearGoal(pi, ctx, cancelContinuation);
-	if (control === "churn-check") {
-		notifyInfo(ctx, "Churn monitor is not wired yet in this build.");
-		return;
-	}
 
 	await setGoalObjective(pi, resolveTemplateOrObjective(trimmed, ctx), ctx, scheduleContinuation, cancelContinuation);
 }

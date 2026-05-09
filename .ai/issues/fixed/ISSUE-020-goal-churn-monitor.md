@@ -1,6 +1,6 @@
 # ISSUE-020 — Refine churn monitor / overseer for long-running goals
 
-Status: open — execution-ready
+Status: fixed — implemented and validated
 Priority: P1
 Owner: unassigned
 Created: 2026-05-08
@@ -19,7 +19,7 @@ Long-running agents can churn: repeat failing strategies, fixate on irrelevant a
 
 ## Desired behavior sketch
 
-- A churn check can run manually (`/goal churn-check`) or periodically after suspicious telemetry patterns.
+- Churn monitoring runs automatically after suspicious telemetry patterns while the user is away.
 - The monitor reads compact telemetry and selected recent context, not the entire transcript by default.
 - It classifies generic patterns such as `strategy_fixation`, `irrelevant_artifact_fixation`, `unsupported_assumption_loop`, or `complexity_escalation`.
 - It can produce a minimal steer, recommend pause/escalation, or simply report no churn.
@@ -51,7 +51,7 @@ Long-running agents can churn: repeat failing strategies, fixate on irrelevant a
 ## Refinement todos
 
 - [ ] Re-read `.ai/docs/pi-goal-future-churn-overseer.md` and current telemetry shape.
-- [ ] Decide stage: manual check, periodic check, or separate overseer.
+- [x] Decide stage: automatic sparse lifecycle monitor backed by a persistent third-party judge session.
 - [ ] Define classifier taxonomy and structured output schema.
 - [ ] Define steering/pause/user-escalation rules.
 - [ ] Define telemetry/context input limits and proof strategy.
@@ -63,7 +63,7 @@ The implementation must **not** be a watered-down deterministic telemetry parser
 
 Locked behavior:
 
-- Add a manual `/goal churn-check` command and an internal runtime helper that can invoke a persistent monitor agent for the current goal.
+- Add an internal runtime helper that can automatically invoke a persistent monitor agent for the current goal when telemetry indicates possible churn.
 - The monitor runs as a headless Pi session using `pi --session-dir <runtime-dir> --session <goal-scoped-id> -p <prompt>` so it has persistent context per goal across invocations.
 - Each invocation sends sparse current goal state, compact telemetry, and a small recent-session report. It does not send the full transcript by default.
 - The prompt requires real, identifiable churn before recommending correction. It must be patient, avoid impatience, and avoid steering merely because a goal is long-running.
@@ -79,7 +79,7 @@ Locked behavior:
 
 - [ ] Add churn monitor constants/types and prompt builder.
 - [ ] Add a churn monitor module that builds sparse reports, invokes persistent headless Pi, parses structured output, and appends a churn log.
-- [ ] Add `/goal churn-check` command and autocomplete entry.
+- [x] Wire automatic lifecycle invocation; do not expose a manual-first command as the product UX.
 - [ ] Add stale-guarded churn steering custom messages to context filtering.
 - [ ] Optionally invoke the monitor from lifecycle when no-progress/auto-turn telemetry indicates possible churn, but only with cooldown and confidence gating.
 - [ ] Add focused probes for prompt/report shape, JSON parsing, log cooldown behavior, and steering gating.
@@ -93,3 +93,35 @@ required_proofs[5]{name,command,condition}:
   sentrux_check,"sentrux check .pi/extensions/goal",exit 0
   pi_load,"pi --offline --no-session --no-tools -e .pi/extensions/goal/index.ts --list-models",exit 0
   tsc_attempt,"tsc --noEmit --target ES2022 --module ESNext --moduleResolution node --strict --skipLibCheck .pi/extensions/goal/*.ts",record result
+
+
+## Implementation closeout
+
+Implemented third-party churn monitor support:
+
+- Added `.pi/extensions/goal/churn.ts`.
+- Removed the manual-first `/goal churn-check` UX; churn monitoring now runs automatically from the goal lifecycle when telemetry indicates possible churn.
+- Churn monitor invokes a persistent headless Pi judge session with `pi --session-dir <runtime-dir> --session churn-<goalId> --no-tools --no-context-files -p <prompt>`.
+- Monitor prompt receives current goal state, compact telemetry, sparse recent branch report, trigger reason, current time, and recent goal-scoped churn log entries.
+- Monitor prompt explicitly requires identifiable churn before correction and asks for patient, project/goal/process-agnostic judgment.
+- Monitor output parser accepts structured JSON with `churn`, `confidence`, `pattern`, `evidence`, `steer`, `recommended_action`, and `cooldown_seconds`.
+- Steering is injected only when `churn === true`, `recommended_action === "steer"`, confidence is medium/high, and a non-empty steer is present.
+- Steering uses Pi-native `pi.sendMessage(..., { deliverAs: "steer" })` with custom type `pi-goal-churn-steer`.
+- Context filtering now stale-guards churn steering by goal id and active status.
+- Automatic review is wired from `agent_end`: telemetry decides when to ask the monitor, and the monitor decides whether to steer.
+- Monitor failures warn the user but do not break normal goal runtime.
+
+Validation:
+
+- `/tmp/pi-goal-churn-probe.cjs` passed prompt shape, structured output parsing, confidence/action steering gate, and automatic-review predicate checks.
+- `/tmp/pi-goal-template-probe.cjs` re-ran successfully to guard ISSUE-017 integration.
+- `sentrux gate .pi/extensions/goal` passed.
+- `sentrux check .pi/extensions/goal` passed.
+- `pi --offline --no-session --no-tools -e .pi/extensions/goal/index.ts --list-models` passed.
+- `tsc` attempted but unavailable: `/bin/bash: tsc: command not found`.
+
+Known constraints:
+
+- The monitor intentionally uses sparse branch summaries and compact telemetry by default; it does not send a full transcript.
+- Automatic monitor invocation is enabled only for active goals with strong no-progress/auto-turn signals and churn-log cooldown clearance.
+- Runtime churn logs and monitor sessions are written under `.pi-goal-churn/` at execution time and are not source artifacts.

@@ -13,12 +13,14 @@ import type {
 import {
 	BUDGET_LIMIT_MESSAGE_TYPE,
 	BUDGET_WARNING_PROMPT_ID,
+	CHURN_STEER_MESSAGE_TYPE,
 	CONTINUATION_MESSAGE_TYPE,
 	MAX_CONSECUTIVE_AUTO_TURNS,
 	MAX_NO_PROGRESS_AUTO_TURNS,
 	PAUSE_MESSAGE_TYPE,
 } from "./constants";
 import { evaluateBudgetPressure, isBudgetHardStop, isBudgetReached, isBudgetWarning } from "./budget";
+import { runChurnMonitor } from "./churn";
 import { cancelGoalContinuation, interruptActiveGoalTurn, scheduleBudgetLimitWrapUp, scheduleMaybeContinueGoal } from "./continuation";
 import { buildBudgetLimitPrompt } from "./prompts";
 import { getGoal, getTelemetry, persistAccountGoal, persistTelemetry, persistUpdateGoal, replayGoalState } from "./state";
@@ -39,7 +41,10 @@ export function registerGoalLifecycle(pi: ExtensionAPI): void {
 	pi.on("tool_call", (event) => handleToolCall(event));
 	pi.on("tool_result", (event) => handleToolResult(event));
 	pi.on("turn_end", async (event, ctx) => handleTurnEnd(pi, event, ctx));
-	pi.on("agent_end", async (_event, ctx) => scheduleMaybeContinueGoal(pi, ctx, "agentEnd"));
+	pi.on("agent_end", async (_event, ctx) => {
+		await runChurnMonitor(pi, ctx);
+		scheduleMaybeContinueGoal(pi, ctx, "agentEnd");
+	});
 	pi.on("message_update", (event, ctx) => handleMessageUpdate(pi, event, ctx));
 	pi.on("context", (event) => filterGoalContext(event));
 }
@@ -213,7 +218,6 @@ async function handleTurnEnd(pi: ExtensionAPI, event: TurnEndEvent, ctx: Extensi
 		await pauseForSafety(pi, ctx, updated, reason, "Goal paused by pi-goal safety limits. Run /goal resume to continue.");
 		return;
 	}
-
 	syncGoalUi(ctx, updated);
 }
 
@@ -332,12 +336,20 @@ function filterGoalContext(event: ContextEvent): ContextEventResult | undefined 
 function classifyGoalSteeringMessage(message: unknown): "none" | "valid" | "invalid" {
 	if (typeof message !== "object" || message === null) return "none";
 	const candidate = message as Record<string, unknown>;
-	const customType = candidate.customType;
-	if (customType !== CONTINUATION_MESSAGE_TYPE && customType !== BUDGET_LIMIT_MESSAGE_TYPE && customType !== PAUSE_MESSAGE_TYPE) return "none";
+	if (!isGoalSteeringType(candidate.customType)) return "none";
 	const details = typeof candidate.details === "object" && candidate.details !== null ? (candidate.details as Record<string, unknown>) : null;
 	const current = getGoal();
 	if (!current || details?.goalId !== current.goalId) return "invalid";
-	if (customType === CONTINUATION_MESSAGE_TYPE) return current.status === "active" && details?.kind === "continuation" ? "valid" : "invalid";
-	if (customType === BUDGET_LIMIT_MESSAGE_TYPE) return current.status === "budgetLimited" && details?.kind === "budgetLimit" ? "valid" : "invalid";
-	return current.status === "paused" && details?.kind === "pause" ? "valid" : "invalid";
+	return steeringMatchesGoal(candidate.customType, details, current) ? "valid" : "invalid";
+}
+
+function isGoalSteeringType(customType: unknown): boolean {
+	return customType === CONTINUATION_MESSAGE_TYPE || customType === BUDGET_LIMIT_MESSAGE_TYPE || customType === PAUSE_MESSAGE_TYPE || customType === CHURN_STEER_MESSAGE_TYPE;
+}
+
+function steeringMatchesGoal(customType: unknown, details: Record<string, unknown> | null, current: GoalState): boolean {
+	if (customType === CONTINUATION_MESSAGE_TYPE) return current.status === "active" && details?.kind === "continuation";
+	if (customType === BUDGET_LIMIT_MESSAGE_TYPE) return current.status === "budgetLimited" && details?.kind === "budgetLimit";
+	if (customType === PAUSE_MESSAGE_TYPE) return current.status === "paused" && details?.kind === "pause";
+	return current.status === "active" && details?.kind === "churnSteer";
 }
