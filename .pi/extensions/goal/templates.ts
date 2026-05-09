@@ -143,10 +143,15 @@ function parseInvocation(input: string): ParsedInvocation | undefined {
 	const name = match[1];
 	let rest = match[2] ?? "";
 	let args = "";
-	const delimiter = rest.indexOf(" -- ");
-	if (delimiter >= 0) {
-		args = rest.slice(delimiter + 4).trim();
-		rest = rest.slice(0, delimiter).trim();
+	if (rest.startsWith("-- ")) {
+		args = rest.slice(3).trim();
+		rest = "";
+	} else {
+		const delimiter = rest.indexOf(" -- ");
+		if (delimiter >= 0) {
+			args = rest.slice(delimiter + 4).trim();
+			rest = rest.slice(0, delimiter).trim();
+		}
 	}
 	return { name, flags: parseFlags(rest), args };
 }
