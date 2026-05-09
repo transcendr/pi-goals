@@ -201,7 +201,28 @@ type UpdateGoalInput = {
 type GoalUpdateResult = { ok: true; goal: GoalState; prefix: string; budgetChanged?: boolean } | { ok: false; error: string };
 
 function createGoalFromTool(pi: ExtensionAPI, runtime: GoalToolRuntime, params: CreateGoalInput, ctx: ExtensionContext) {
-	if (getGoal()) return errorResult("A goal already exists. Use clear_goal or ask the user before replacing it.");
+	return createGoalWithPolicy(pi, runtime, params, ctx, { replaceCompleted: false });
+}
+
+function createGoalFromTemplateTool(pi: ExtensionAPI, runtime: GoalToolRuntime, params: CreateGoalFromTemplateInput, ctx: ExtensionContext) {
+	const resolved = resolveGoalTemplateByName(params.template, params.flags ?? {}, params.args ?? "");
+	if (!resolved.ok) return "notTemplate" in resolved ? errorResult(`Unknown goal template '${params.template}'.`) : errorResult(resolved.error);
+	const created = createGoalWithPolicy(pi, runtime, { objective: resolved.template.objective, token_budget: params.token_budget, time_budget_seconds: params.time_budget_seconds }, ctx, { replaceCompleted: true });
+	if (!created.details.error) created.details.resolved_template = { name: resolved.template.name, path: resolved.template.path };
+	return created;
+}
+
+function createGoalWithPolicy(
+	pi: ExtensionAPI,
+	runtime: GoalToolRuntime,
+	params: CreateGoalInput,
+	ctx: ExtensionContext,
+	policy: { replaceCompleted: boolean },
+) {
+	const current = getGoal();
+	if (current && (!policy.replaceCompleted || current.status !== "complete")) {
+		return errorResult("A goal already exists. Use clear_goal or ask the user before replacing it.");
+	}
 	const validation = validateObjective(params.objective);
 	if (!validation.ok) return errorResult(validation.hint ? `${validation.message} ${validation.hint}` : validation.message);
 	const budgetError = validateBudgets(params.token_budget, params.time_budget_seconds);
@@ -211,15 +232,7 @@ function createGoalFromTool(pi: ExtensionAPI, runtime: GoalToolRuntime, params: 
 	persistSetGoal(pi, goal, telemetry, "tool");
 	syncGoalUi(ctx, goal);
 	runtime.scheduleMonitor?.(ctx);
-	return resultForGoal(goal, telemetry, "Goal created.");
-}
-
-function createGoalFromTemplateTool(pi: ExtensionAPI, runtime: GoalToolRuntime, params: CreateGoalFromTemplateInput, ctx: ExtensionContext) {
-	const resolved = resolveGoalTemplateByName(params.template, params.flags ?? {}, params.args ?? "");
-	if (!resolved.ok) return "notTemplate" in resolved ? errorResult(`Unknown goal template '${params.template}'.`) : errorResult(resolved.error);
-	const created = createGoalFromTool(pi, runtime, { objective: resolved.template.objective, token_budget: params.token_budget, time_budget_seconds: params.time_budget_seconds }, ctx);
-	if (!created.details.error) created.details.resolved_template = { name: resolved.template.name, path: resolved.template.path };
-	return created;
+	return resultForGoal(goal, telemetry, current?.status === "complete" ? "Goal created; replaced completed goal." : "Goal created.");
 }
 
 function updateGoalFromTool(pi: ExtensionAPI, runtime: GoalToolRuntime, params: UpdateGoalInput, ctx: ExtensionContext) {
