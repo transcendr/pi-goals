@@ -1,12 +1,12 @@
 # ISSUE-027 — Goal queue
 
-Status: open — execution-ready
+Status: fixed — implemented
 Priority: P1
-Owner: unassigned
+Owner: pi-goal automation
 Created: 2026-05-09
 Next best session: focused implementation/validation pass for persisted sequential goal queue
 Next best session rationale: The requested first pass can be implemented without resolving broader parallel-goal/worktree architecture; it extends current single-goal runtime with a persisted FIFO queue, command/tool surfaces, and stale-guarded next-goal prompting.
-Target bucket: open
+Target bucket: fixed
 Issue kind: feature
 Target repo roots: `/Users/bryan/dev/personal/experiments/pi-goals`
 Parent issue: `.ai/issues/fixed/ISSUE-001-pi-goal-extension.md`
@@ -103,6 +103,24 @@ Current implementation facts from inspected files:
 - In-memory queue only: fails durability/reviewability requirements.
 - Silent automatic creation of the next queued goal: fails agent-awareness requirement and risks surprising transitions.
 - Treat queued goals as paused active goals: blurs active goal semantics and complicates telemetry/budget accounting.
+
+## Implementation result
+
+Implemented in commit `228e1a5 feat: add goal queue for sequential goal management`.
+
+Summary:
+- New modules: queue-types.ts, queue-helpers.ts, queue-state.ts, queue-tools.ts
+- Persisted sequential FIFO queue with event-sourced replay
+- /goal queue subcommand: list and enqueue
+- Three-way Replace/Queue/Cancel dialog when objective conflicts with active goal
+- Tools: list_goal_queue, enqueue_goal, dequeue_goal, remove_queued_goal
+- Queue state replayed on session_start and session_tree
+- clear_goal and /goal clear hint about queued goals availability
+- Refactored queue tools into separate file to stay under Sentrux 450-line limit
+
+Validation passed:
+- /tmp/pi-goal-queue-probe.cjs (28 assertions)
+- npm run quality:goal (Sentrux gate/check, slop, TypeScript, Pi load)
 
 ## Implementation checklist
 
