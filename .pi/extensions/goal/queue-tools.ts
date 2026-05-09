@@ -74,9 +74,14 @@ function registerStartQueuedGoalTool(pi: ExtensionAPI, runtime: GoalQueueToolRun
 	pi.registerTool({
 		name: "start_queued_goal",
 		label: "Start Queued Goal",
-		description: "Start the next queued goal when no active goal is running, or when the current goal is complete. The queue item is removed only after goal creation succeeds.",
-		promptSnippet: "Start the next queued goal after a current goal completes or clears.",
-		promptGuidelines: ["Use this when queue steering says a queued goal is ready to start.", "Do not use create_goal first for queued handoff; this tool handles completed-goal replacement and safe dequeue after creation.", "If this reports an active non-complete goal, leave the queued goal in place and continue the active goal."],
+		description: "Start the next queued item only after deciding the queue head is a direct concrete goal. The queue item is removed only after goal creation succeeds.",
+		promptSnippet: "Start the queue head only when semantic classification says it is a direct goal.",
+		promptGuidelines: [
+			"Use this only after reading the queue head and deciding the queued text itself is the concrete goal to perform.",
+			"Do not use this when the queued text asks you to run/create/start another goal or goal template; use create_goal, create_goal_from_template, or enqueue_goal for that orchestration, then dequeue_goal after it is satisfied.",
+			"This tool handles completed-goal replacement and safe dequeue for direct queue items only.",
+			"If this reports an active non-complete goal, leave the queued goal in place and continue the active goal.",
+		],
 		parameters: EmptyParams,
 		async execute(_toolCallId, _params, _signal, _onUpdate, ctx) {
 			return startQueuedGoal(pi, runtime, ctx);
@@ -88,9 +93,13 @@ function registerDequeueGoalTool(pi: ExtensionAPI): void {
 	pi.registerTool({
 		name: "dequeue_goal",
 		label: "Dequeue Goal",
-		description: "Remove the first goal from the queue and return it. Prefer start_queued_goal for normal queued-goal handoff.",
-		promptSnippet: "Dequeue the next queued goal to inspect or manually start it.",
-		promptGuidelines: ["Use start_queued_goal for normal queued handoff; use dequeue_goal only when explicitly removing the head after separate successful handling."],
+		description: "Remove the first goal from the queue and return it. Prefer start_queued_goal for direct queued goals; use this after a prose/JIT orchestration item is fully satisfied.",
+		promptSnippet: "Remove the queue head after manual handling or completed prose/JIT orchestration.",
+		promptGuidelines: [
+			"Use start_queued_goal for direct queued goals.",
+			"Use dequeue_goal after you have separately satisfied a prose/JIT orchestration queue item, including any one-or-more consecutive active goals it required.",
+			"Do not dequeue an orchestration item just because you saw it; consume it only after successful handling, or when the user explicitly asks to remove it.",
+		],
 		parameters: EmptyParams,
 		async execute() {
 			const dequeued = dequeueGoal();

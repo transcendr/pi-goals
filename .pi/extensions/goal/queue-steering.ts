@@ -29,31 +29,33 @@ export function queueSteeringStillValid(message: Record<string, unknown>): boole
 
 function queueSteeringContent(goal: QueuedGoal): string {
 	const lines = [
-		"A queued goal is ready to start now. Continue immediately by starting the next queued goal.",
+		"A queued item is ready to handle. Do not start it blindly; first decide whether it is a direct goal or an orchestration instruction.",
 		"",
 		`Queue ID: ${goal.queueId}`,
 		budgetLine(goal),
 		"",
-		"Next queued objective:",
+		"Next queued item/objective:",
 		preview(goal.objective),
 		"",
 		"Required next steps:",
-		"0. First read the queued objective semantically using current context. It may be either a direct goal to start or a prose/JIT orchestration instruction that asks you to create/start/enqueue other goal(s).",
-		"0a. For a direct queued goal, use start_queued_goal so creation and dequeue are atomic.",
-		"0b. For prose/JIT orchestration, do not start the prose itself as the active goal and do not rely on extension-side parsing. Use the existing goal tools requested by the prose, such as create_goal, create_goal_from_template, or enqueue_goal, to create the concrete goal(s) from current context.",
-		"0c. One prose/JIT orchestration queue item may require one or more consecutive active goals before it is satisfied. Leave this queue item in place until the requested orchestration is complete, then call dequeue_goal exactly once to consume it.",
-		"0d. If the needed context is missing or a non-complete active goal blocks the next action, leave this queue item in place and continue/resolve the blocker instead of dequeuing it.",
+		"1. Classify the queue head semantically using current context before calling any queue-start tool.",
+		"2. Direct goal: if the text itself is the concrete goal to perform, call start_queued_goal so creation and dequeue are atomic.",
+		"3. Orchestration/JIT instruction: if the text asks you to run/create/start another goal, run/create/start a goal template, or create follow-up goals from current context, do NOT call start_queued_goal and do NOT make this prose itself the active goal.",
+		"4. For orchestration/JIT, use existing goal tools as appropriate: create_goal, create_goal_from_template, or enqueue_goal. Do not rely on extension-side prose parsing; you, the agent, resolve the intent from context.",
+		"5. One orchestration queue item may require one or more consecutive active goals before it is satisfied. Keep this queue item at the head while you execute those concrete goal(s).",
+		"6. After the concrete goal(s) requested by this orchestration item are complete/satisfied, call dequeue_goal exactly once to consume this queue item. If you see this same queue item again after satisfying it, dequeue it instead of recreating the same goal.",
+		"7. If needed context is missing or a non-complete active goal blocks the next action, leave this queue item in place and continue/resolve the blocker instead of dequeuing it.",
 	];
 	if (goal.template) {
 		lines.push(
-			"1. Use start_queued_goal to atomically create this goal and remove it from the queue only after creation succeeds.",
-			`2. This queued request came from reusable template '${goal.template}'; start_queued_goal will re-resolve it with flags=${JSON.stringify(goal.templateFlags ?? {})}, args=${JSON.stringify(goal.templateArgs ?? "")}.`,
-			"3. If you cannot use start_queued_goal, use create_goal_from_template rather than create_goal, and dequeue only after successful creation.",
+			"Structured template metadata: this queue item already stores a reusable template reference.",
+			`If classified as a direct goal, start_queued_goal will re-resolve template '${goal.template}' with flags=${JSON.stringify(goal.templateFlags ?? {})}, args=${JSON.stringify(goal.templateArgs ?? "")}.`,
+			"If you cannot use the direct path, use create_goal_from_template rather than create_goal, and dequeue only after successful direct creation or completed orchestration satisfaction.",
 		);
 	} else {
 		lines.push(
-			"1. Use start_queued_goal to atomically create this goal and remove it from the queue only after creation succeeds.",
-			"2. If start_queued_goal reports a non-complete active goal, leave this queued goal in place and continue the active goal.",
+			"Plain queue entry: use start_queued_goal only if you classified this item as a direct goal.",
+			"Example orchestration wording such as 'run/create/start the deslop-commit-range goal template' means use create_goal_from_template (or another existing goal tool), not start_queued_goal.",
 		);
 	}
 	return lines.filter((line) => line !== undefined).join("\n");

@@ -120,6 +120,9 @@ Summary:
 - Added unconditional `queueSteeringContent()` guidance that tells the agent to read the queue head semantically using current context.
 - Explicitly distinguishes direct queued goals from prose/JIT orchestration instructions.
 - Keeps `start_queued_goal` as the direct-goal atomic path.
+- Follow-up hardening after live probe failure changed the steering opener from start-first wording to classify-first wording.
+- Updated `start_queued_goal` tool metadata so agents use it only after deciding the queue head is a direct concrete goal.
+- Updated `dequeue_goal` tool metadata for prose/JIT orchestration consumption after satisfaction.
 - Tells the agent not to start orchestration prose itself as the active goal and not to rely on extension-side parsing.
 - Points orchestration handling at existing tools: `create_goal`, `create_goal_from_template`, `enqueue_goal`, and `dequeue_goal`.
 - Explicitly allows one prose/JIT orchestration item to require one or more consecutive active goals before it is satisfied.
@@ -130,6 +133,7 @@ Validation passed:
 - `npm run typecheck:goal`
 - `NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-orchestration-steer-probe.cjs`
 - `NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-template-steer-probe.cjs`
+- `NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-tool-guidance-probe.cjs`
 - `npm run quality:goal`
 
 ## Proof threat model
