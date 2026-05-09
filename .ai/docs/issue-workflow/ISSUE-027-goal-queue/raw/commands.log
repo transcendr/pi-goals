@@ -1,0 +1,20 @@
+# Commands and inspections
+
+- read AGENTS.md
+- read feature-workflow-pipelines SKILL.md
+- read canonical-issue-docs-and-toon-synthesis.md
+- read research-pass.md
+- read design-landscape-exploration-and-choice-locking.md
+- read toon-for-issues-and-execution-planning.md
+- read axi SKILL.md
+- read .pi/extensions/goal/command.ts
+- read .pi/extensions/goal/state.ts
+- read .pi/extensions/goal/continuation.ts
+- read .pi/extensions/goal/lifecycle.ts
+- read .pi/extensions/goal/tools.ts
+- read .pi/extensions/goal/types.ts
+- read .pi/extensions/goal/prompts.ts
+- read .pi/extensions/goal/constants.ts
+- read .ai/issues/refine/ISSUE-019-parallel-multiple-goals.md
+- read .ai/issues/refine/ISSUE-023-goal-dependency-triggers-and-watchers.md
+- rg -n "queue|Replace goal|clearGoal|persistClearGoal|status === \"complete\"|scheduleMaybeContinueGoal|sendMessage|deliverAs|followUp|steer" .pi/extensions/goal .ai/issues/refine .ai/issues/open .ai/issues/fixed
