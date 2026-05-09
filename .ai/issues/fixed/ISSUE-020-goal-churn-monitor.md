@@ -1,11 +1,11 @@
 # ISSUE-020 — Active persistent third-party churn monitor for pi-goal
 
-Status: open — execution-ready
+Status: fixed — implemented
 Priority: P0
 Owner: unassigned
 Created: 2026-05-08
-Next best session: focused implementation/validation pass for active persistent churn monitor
-Next best session rationale: The prior implementation was removed because it incorrectly gated monitoring behind deterministic heuristics and a manual command. This issue locks the requested product shape before reimplementation.
+Next best session: none — implemented
+Next best session rationale: Implementation completed with active interval scheduling, persistent monitor invocation, XML parsing, bounded churn log feedback, steering injection, and validation probes.
 Target repo roots: `/Users/bryan/dev/personal/experiments/pi-goals`
 Parent issue: `.ai/issues/fixed/ISSUE-001-pi-goal-extension.md`
 Depends on:
@@ -261,24 +261,47 @@ Required proof shape:
 
 ## Implementation checklist
 
-- [ ] Confirm the bad implementation is removed from code: no `churn.ts`, no churn constants/types, no lifecycle churn hook, no `/goal churn-check`.
-- [ ] Design monitor module boundaries and add them to Sentrux rules intentionally.
-- [ ] Add named monitor constants/config defaults: report interval `90s`, recent churn-log feedback limit `10`, report excerpt limits, process timeout, output cap.
-- [ ] Add reusable tolerant XML/model-output parsing helper.
-- [ ] Add per-goal monitor state/session/log storage.
-- [ ] Add active-goal report scheduling from goal creation/resume/session replay while active.
-- [ ] Add sparse report builder with timestamp, elapsed since previous report, goal state, telemetry, recent bounded context, and bounded recent churn log.
-- [ ] Add monitor prompt builder with the role/instruction requirements above and XML decision schema.
-- [ ] Add persistent monitor invocation using Pi-native session mechanics.
-- [ ] Add XML decision parsing and churn-log append/update.
-- [ ] Add steering injection using `pi.sendMessage(..., { deliverAs: "steer" })`.
-- [ ] Add context filtering/stale guards for monitor steering.
-- [ ] Add focused probes for scheduling, report content, log continuity/bounds, XML parsing, steering injection, escalation handling, and stale filtering.
-- [ ] Run Sentrux gate/check, Pi load validation, and TypeScript attempt.
+- [x] Confirm the bad implementation is removed from code: no `churn.ts`, no churn constants/types, no lifecycle churn hook, no `/goal churn-check`.
+- [x] Design monitor module boundaries and add them to Sentrux rules intentionally.
+- [x] Add named monitor constants/config defaults: report interval `90s`, recent churn-log feedback limit `10`, report excerpt limits, process timeout, output cap.
+- [x] Add reusable tolerant XML/model-output parsing helper.
+- [x] Add per-goal monitor state/session/log storage.
+- [x] Add active-goal report scheduling from goal creation/resume/session replay while active.
+- [x] Add sparse report builder with timestamp, elapsed since previous report, goal state, telemetry, recent bounded context, and bounded recent churn log.
+- [x] Add monitor prompt builder with the role/instruction requirements above and XML decision schema.
+- [x] Add persistent monitor invocation using Pi-native session mechanics.
+- [x] Add XML decision parsing and churn-log append/update.
+- [x] Add steering injection using `pi.sendMessage(..., { deliverAs: "steer" })`.
+- [x] Add context filtering/stale guards for monitor steering.
+- [x] Add focused probes for scheduling, report content, log continuity/bounds, XML parsing, steering injection, escalation handling, and stale filtering.
+- [x] Run Sentrux gate/check, Pi load validation, and TypeScript attempt.
+
+## Implementation evidence
+
+Implemented modules:
+
+- `.pi/extensions/goal/monitor.ts`: active interval scheduler, persistent headless Pi monitor invocation, XML decision handling, stale-guarded steering/escalation.
+- `.pi/extensions/goal/model-output.ts`: reusable tolerant XML extraction/tag helper for raw, prose-wrapped, and Markdown-fenced XML.
+- `.pi/extensions/goal/monitor-state.ts`: goal-scoped timestamped churn-log replay/persistence and bounded recent-log access.
+- `.pi/extensions/goal/monitor-report.ts`: sparse report builder with goal state, telemetry, session identity, bounded recent entries, and bounded recent churn log.
+- `.pi/extensions/goal/monitor-prompts.ts`: monitor role prompt, XML decision schema, and worker steering prompt.
+
+Validation run after implementation:
+
+- `! rg 'churn-check|consecutiveNoProgressTurns >= 2|consecutiveAutoTurns >= 8|shouldRequestAutomaticReview|runChurnMonitor|recommended_action|```json' .pi/extensions/goal` — passed.
+- `rg 'GOAL_MONITOR_REPORT_INTERVAL_SECONDS = 90|GOAL_MONITOR_RECENT_LOG_LIMIT = 10' .pi/extensions/goal/constants.ts` — passed.
+- `NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-monitor-schedule-probe.cjs` — passed.
+- `NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-monitor-report-probe.cjs` — passed.
+- `NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-monitor-xml-parser-probe.cjs` — passed.
+- `NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-monitor-steer-probe.cjs` — passed.
+- `sentrux gate .pi/extensions/goal` — passed.
+- `sentrux check .pi/extensions/goal` — passed.
+- `pi --offline --no-session --no-tools -e .pi/extensions/goal/index.ts --list-models` — passed.
+- `./node_modules/.bin/tsc --noEmit --target ES2022 --module ESNext --moduleResolution node --ignoreDeprecations 6.0 --types node --strict --skipLibCheck .pi/extensions/goal/*.ts` — passed after adding project-local TypeScript/dev type dependencies.
 
 ## Required proofs
 
-required_proofs[9]{name,command,condition}:
+required_proofs[10]{name,command,condition}:
   no_bad_churn_code,"! rg 'churn-check|consecutiveNoProgressTurns >= 2|consecutiveAutoTurns >= 8|shouldRequestAutomaticReview|runChurnMonitor' .pi/extensions/goal",exit 0 before reimplementation
   no_manual_command,"! rg 'churn-check' .pi/extensions/goal/command.ts",exit 0
   named_monitor_defaults,"rg 'MONITOR_.*90|CHURN_.*10|REPORT_.*INTERVAL|LOG_.*LIMIT' .pi/extensions/goal",exit 0 after implementation

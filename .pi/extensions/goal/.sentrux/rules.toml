@@ -25,7 +25,7 @@ order = 0
 
 [[layers]]
 name = "runtime"
-paths = ["lifecycle.ts", "continuation.ts"]
+paths = ["lifecycle.ts", "continuation.ts", "monitor.ts", "monitor-report.ts"]
 order = 1
 
 [[layers]]
@@ -35,17 +35,17 @@ order = 2
 
 [[layers]]
 name = "state"
-paths = ["state.ts", "telemetry.ts"]
+paths = ["state.ts", "telemetry.ts", "monitor-state.ts"]
 order = 3
 
 [[layers]]
 name = "prompts"
-paths = ["prompts.ts"]
+paths = ["prompts.ts", "monitor-prompts.ts"]
 order = 4
 
 [[layers]]
 name = "domain"
-paths = ["types.ts", "constants.ts", "format.ts", "budget.ts"]
+paths = ["types.ts", "constants.ts", "format.ts", "budget.ts", "model-output.ts"]
 order = 5
 
 # Domain helpers must remain pure and reusable.

@@ -87,7 +87,7 @@ export type TurnAccountingSnapshot = {
 	completedGoal: boolean;
 };
 
-export type GoalSteeringKind = "continuation" | "budgetLimit" | "pause";
+export type GoalSteeringKind = "continuation" | "budgetLimit" | "pause" | "monitorSteer";
 
 export type GoalSteeringDetails = {
 	goalId: string;
@@ -102,6 +102,63 @@ export type StreamBudgetSignal = "hardStop" | "reached" | "warning";
 export type GoalCommandScheduler = (ctx: ExtensionContext, reason: ContinuationReason) => void;
 export type GoalContinuationCanceller = (goalId?: string, reason?: string) => void;
 export type GoalPauseInterrupter = (ctx: ExtensionContext, goal: GoalState) => void;
+export type GoalMonitorScheduler = (ctx: ExtensionContext) => void;
+export type GoalMonitorCanceller = (goalId?: string, reason?: string) => void;
+
+export type GoalMonitorAction = "watch" | "steer" | "escalate";
+export type GoalMonitorConfidence = "low" | "medium" | "high";
+
+export type GoalMonitorDecision = {
+	action: GoalMonitorAction;
+	confidence: GoalMonitorConfidence;
+	pattern?: string;
+	evidence: string[];
+	steer?: string;
+	logNote: string;
+	parseWarnings?: string[];
+};
+
+export type GoalMonitorLogEntry = {
+	version: 1;
+	goalId: string;
+	reportId: string;
+	decisionId: string;
+	at: number;
+	action: GoalMonitorAction;
+	confidence: GoalMonitorConfidence;
+	pattern?: string;
+	evidenceSummary: string;
+	steerInjected: boolean;
+	logNote: string;
+};
+
+export type GoalMonitorRecentEntry = {
+	index: number;
+	type: string;
+	role?: string;
+	timestamp?: string | number;
+	toolName?: string;
+	isError?: boolean;
+	summary: string;
+};
+
+export type GoalMonitorReport = {
+	version: 1;
+	reportId: string;
+	goalId: string;
+	sentAt: number;
+	elapsedSinceGoalStartSeconds: number;
+	elapsedSincePreviousReportSeconds?: number;
+	goal: GoalState;
+	telemetry: GoalTelemetrySnapshot | null;
+	session: {
+		cwd: string;
+		sessionId?: string;
+		branchEntryCount: number;
+	};
+	recentEntries: GoalMonitorRecentEntry[];
+	recentLogEntries: GoalMonitorLogEntry[];
+};
 
 export type MutationResult = {
 	ok: boolean;

@@ -9,7 +9,7 @@ import type {
 	ToolResultEvent,
 	TurnEndEvent,
 	TurnStartEvent,
-} from "@earendil-works/pi-coding-agent";
+} from "@earendil-works/pi-coding-agent/dist/core/extensions/types.js";
 import {
 	BUDGET_LIMIT_MESSAGE_TYPE,
 	BUDGET_WARNING_PROMPT_ID,
@@ -17,11 +17,13 @@ import {
 	MAX_CONSECUTIVE_AUTO_TURNS,
 	MAX_NO_PROGRESS_AUTO_TURNS,
 	PAUSE_MESSAGE_TYPE,
+	GOAL_MONITOR_MESSAGE_TYPE,
 } from "./constants";
 import { evaluateBudgetPressure, isBudgetHardStop, isBudgetReached, isBudgetWarning } from "./budget";
 import { cancelGoalContinuation, interruptActiveGoalTurn, scheduleBudgetLimitWrapUp, scheduleMaybeContinueGoal } from "./continuation";
 import { buildBudgetLimitPrompt } from "./prompts";
 import { getGoal, getTelemetry, persistAccountGoal, persistTelemetry, persistUpdateGoal, replayGoalState } from "./state";
+import { cancelGoalMonitor, replayGoalMonitorState, scheduleGoalMonitor } from "./monitor";
 import { applyTurnTelemetry, consumeNextTurnOrigin, makeTurnSnapshot, noteBudgetHardStop, noteBudgetLimit, noteBudgetWarning, noteSafetyPause } from "./telemetry";
 import { notifyWarning, promptResumePausedGoal, syncGoalUi } from "./ui";
 import type { BudgetHardStopReason, BudgetLimitReason, BudgetPressure, GoalState, GoalTelemetrySnapshot, StreamBudgetSignal, TurnAccountingSnapshot } from "./types";
@@ -33,7 +35,10 @@ export function registerGoalLifecycle(pi: ExtensionAPI): void {
 	pi.on("session_start", async (event, ctx) => handleSessionStart(pi, event, ctx));
 	pi.on("session_tree", async (_event, ctx) => {
 		const state = replayGoalState(ctx);
+		replayGoalMonitorState(ctx);
 		syncGoalUi(ctx, state.goal);
+		if (state.goal?.status === "active") scheduleGoalMonitor(pi, ctx);
+		else cancelGoalMonitor(state.goal?.goalId, "session-tree");
 	});
 	pi.on("turn_start", (event) => { handleTurnStart(event); streamBudgetSignalsSent.clear(); });
 	pi.on("tool_call", (event) => handleToolCall(event));
@@ -46,13 +51,17 @@ export function registerGoalLifecycle(pi: ExtensionAPI): void {
 
 async function handleSessionStart(pi: ExtensionAPI, event: SessionStartEvent, ctx: ExtensionContext): Promise<void> {
 	const state = replayGoalState(ctx);
+	replayGoalMonitorState(ctx);
 	syncGoalUi(ctx, state.goal);
+	if (state.goal?.status === "active") scheduleGoalMonitor(pi, ctx);
+	else cancelGoalMonitor(state.goal?.goalId, "session-start");
 	if (event.reason !== "reload" && state.goal?.status === "paused" && ctx.hasUI) {
 		const resume = await promptResumePausedGoal(ctx, state.goal);
 		if (resume) {
 			const active: GoalState = { ...state.goal, status: "active", updatedAt: Date.now() };
 			persistUpdateGoal(pi, active, state.telemetry, "resume");
 			syncGoalUi(ctx, active);
+			scheduleGoalMonitor(pi, ctx);
 			scheduleMaybeContinueGoal(pi, ctx, "resumed");
 		}
 	}
@@ -98,6 +107,7 @@ function handleMessageUpdate(pi: ExtensionAPI, event: MessageUpdateEvent, ctx: E
 		const stopped: GoalState = { ...goal, status: "budgetLimited", updatedAt: Date.now() };
 		const nextTelemetry = noteBudgetHardStop(noteBudgetLimit(getTelemetry(), pressureBudgetLimitReason(pressure)), budgetHardStopReason(pressure));
 		persistUpdateGoal(pi, stopped, nextTelemetry, "budget");
+		cancelGoalMonitor(goal.goalId, "budget-hard-stop");
 		syncGoalUi(ctx, stopped);
 		notifyWarning(ctx, `${budgetResourceText(pressure)} budget hard stop enforced. Goal work stopped.`);
 		const prompt = buildBudgetLimitPrompt(estimated);
@@ -214,6 +224,8 @@ async function handleTurnEnd(pi: ExtensionAPI, event: TurnEndEvent, ctx: Extensi
 		return;
 	}
 
+	if (updated?.status === "active") scheduleGoalMonitor(pi, ctx);
+	else cancelGoalMonitor(updated?.goalId, "turn-end");
 	syncGoalUi(ctx, updated);
 }
 
@@ -225,6 +237,7 @@ async function pauseForSafety(
 	message: string,
 ): Promise<void> {
 	cancelGoalContinuation(goal.goalId, reason);
+	cancelGoalMonitor(goal.goalId, reason);
 	const paused: GoalState = { ...goal, status: "paused", updatedAt: Date.now() };
 	const telemetry = noteSafetyPause(getTelemetry(), reason);
 	persistUpdateGoal(pi, paused, telemetry, reason === "abort" ? "abort" : "safety");
@@ -255,17 +268,19 @@ function enforceBudgetHardStop(pi: ExtensionAPI, ctx: ExtensionContext, goal: Go
 		return { ok: true, goal, telemetry };
 	}
 	cancelGoalContinuation(goal.goalId, "budget-hard-stop");
+	cancelGoalMonitor(goal.goalId, "budget-hard-stop");
 	const stopped: GoalState = { ...goal, status: "budgetLimited", updatedAt: Date.now() };
 	const nextTelemetry = noteBudgetHardStop(noteBudgetLimit(telemetry, pressureBudgetLimitReason(pressure)), budgetHardStopReason(pressure));
 	const result = persistUpdateGoal(pi, stopped, nextTelemetry, "budget");
 	syncGoalUi(ctx, result.goal);
 	notifyWarning(ctx, `${budgetResourceText(pressure)} budget hard stop enforced. Goal work stopped.`);
-	interruptActiveGoalTurn(pi, ctx, result.goal);
+	if (result.goal) interruptActiveGoalTurn(pi, ctx, result.goal);
 	return result;
 }
 
 function markBudgetReached(pi: ExtensionAPI, ctx: ExtensionContext, goal: GoalState, pressure: BudgetPressure, telemetry: GoalTelemetrySnapshot | null) {
 	cancelGoalContinuation(goal.goalId, "budget-reached");
+	cancelGoalMonitor(goal.goalId, "budget-reached");
 	const limited: GoalState = { ...goal, status: "budgetLimited", updatedAt: Date.now() };
 	const result = persistUpdateGoal(pi, limited, noteBudgetLimit(telemetry, pressureBudgetLimitReason(pressure)), "budget");
 	if (result.goal) scheduleBudgetLimitWrapUp(pi, ctx, result.goal);
@@ -332,12 +347,20 @@ function filterGoalContext(event: ContextEvent): ContextEventResult | undefined 
 function classifyGoalSteeringMessage(message: unknown): "none" | "valid" | "invalid" {
 	if (typeof message !== "object" || message === null) return "none";
 	const candidate = message as Record<string, unknown>;
-	const customType = candidate.customType;
-	if (customType !== CONTINUATION_MESSAGE_TYPE && customType !== BUDGET_LIMIT_MESSAGE_TYPE && customType !== PAUSE_MESSAGE_TYPE) return "none";
+	if (!isGoalSteeringCustomType(candidate.customType)) return "none";
 	const details = typeof candidate.details === "object" && candidate.details !== null ? (candidate.details as Record<string, unknown>) : null;
 	const current = getGoal();
 	if (!current || details?.goalId !== current.goalId) return "invalid";
-	if (customType === CONTINUATION_MESSAGE_TYPE) return current.status === "active" && details?.kind === "continuation" ? "valid" : "invalid";
-	if (customType === BUDGET_LIMIT_MESSAGE_TYPE) return current.status === "budgetLimited" && details?.kind === "budgetLimit" ? "valid" : "invalid";
-	return current.status === "paused" && details?.kind === "pause" ? "valid" : "invalid";
+	return goalSteeringMatchesStatus(candidate.customType, details?.kind, current.status) ? "valid" : "invalid";
+}
+
+function isGoalSteeringCustomType(customType: unknown): customType is string {
+	return [CONTINUATION_MESSAGE_TYPE, BUDGET_LIMIT_MESSAGE_TYPE, PAUSE_MESSAGE_TYPE, GOAL_MONITOR_MESSAGE_TYPE].includes(String(customType));
+}
+
+function goalSteeringMatchesStatus(customType: string, kind: unknown, status: GoalState["status"]): boolean {
+	if (customType === CONTINUATION_MESSAGE_TYPE) return status === "active" && kind === "continuation";
+	if (customType === BUDGET_LIMIT_MESSAGE_TYPE) return status === "budgetLimited" && kind === "budgetLimit";
+	if (customType === GOAL_MONITOR_MESSAGE_TYPE) return status === "active" && kind === "monitorSteer";
+	return status === "paused" && kind === "pause";
 }

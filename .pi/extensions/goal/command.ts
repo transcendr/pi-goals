@@ -14,7 +14,7 @@ import {
 	persistUpdateGoal,
 } from "./state";
 import { notifyGoal, notifyInfo, notifyWarning, showGoalSummary, showNoGoal, syncGoalUi } from "./ui";
-import type { GoalCommandScheduler, GoalContinuationCanceller, GoalPauseInterrupter, GoalState } from "./types";
+import type { GoalCommandScheduler, GoalContinuationCanceller, GoalMonitorCanceller, GoalMonitorScheduler, GoalPauseInterrupter, GoalState } from "./types";
 
 type GoalSubcommand = {
 	name: "pause" | "resume" | "clear";
@@ -32,11 +32,13 @@ export function registerGoalCommand(
 	scheduleContinuation: GoalCommandScheduler,
 	cancelContinuation: GoalContinuationCanceller,
 	interruptActiveTurn: GoalPauseInterrupter,
+	scheduleMonitor: GoalMonitorScheduler,
+	cancelMonitor: GoalMonitorCanceller,
 ): void {
 	pi.registerCommand("goal", {
 		description: "Set or view the goal for a long-running task",
 		getArgumentCompletions: goalArgumentCompletions,
-		handler: async (args, ctx) => handleGoalCommand(pi, args, ctx, scheduleContinuation, cancelContinuation, interruptActiveTurn),
+		handler: async (args, ctx) => handleGoalCommand(pi, args, ctx, scheduleContinuation, cancelContinuation, interruptActiveTurn, scheduleMonitor, cancelMonitor),
 	});
 }
 
@@ -81,6 +83,8 @@ async function handleGoalCommand(
 	scheduleContinuation: GoalCommandScheduler,
 	cancelContinuation: GoalContinuationCanceller,
 	interruptActiveTurn: GoalPauseInterrupter,
+	scheduleMonitor: GoalMonitorScheduler,
+	cancelMonitor: GoalMonitorCanceller,
 ): Promise<void> {
 	const trimmed = args.trim();
 	if (!trimmed) {
@@ -91,11 +95,11 @@ async function handleGoalCommand(
 	}
 
 	const control = GOAL_SUBCOMMANDS.find((subcommand) => subcommand.name === trimmed.toLowerCase())?.name;
-	if (control === "pause") return pauseGoal(pi, ctx, cancelContinuation, interruptActiveTurn);
-	if (control === "resume") return resumeGoal(pi, ctx, scheduleContinuation);
-	if (control === "clear") return clearGoal(pi, ctx, cancelContinuation);
+	if (control === "pause") return pauseGoal(pi, ctx, cancelContinuation, interruptActiveTurn, cancelMonitor);
+	if (control === "resume") return resumeGoal(pi, ctx, scheduleContinuation, scheduleMonitor);
+	if (control === "clear") return clearGoal(pi, ctx, cancelContinuation, cancelMonitor);
 
-	await setGoalObjective(pi, resolveTemplateOrObjective(trimmed, ctx), ctx, scheduleContinuation, cancelContinuation);
+	await setGoalObjective(pi, resolveTemplateOrObjective(trimmed, ctx), ctx, scheduleContinuation, cancelContinuation, scheduleMonitor, cancelMonitor);
 }
 
 function resolveTemplateOrObjective(input: string, ctx: ExtensionCommandContext): string {
@@ -112,6 +116,8 @@ async function setGoalObjective(
 	ctx: ExtensionCommandContext,
 	scheduleContinuation: GoalCommandScheduler,
 	cancelContinuation: GoalContinuationCanceller,
+	scheduleMonitor: GoalMonitorScheduler,
+	cancelMonitor: GoalMonitorCanceller,
 ): Promise<void> {
 	if (!input) return;
 	const validation = validateObjective(input);
@@ -128,6 +134,7 @@ async function setGoalObjective(
 			return;
 		}
 		cancelContinuation(existing.goalId, "replace");
+		cancelMonitor(existing.goalId, "replace");
 	}
 
 	const goal = createGoalState(validation.objective);
@@ -135,6 +142,7 @@ async function setGoalObjective(
 	persistSetGoal(pi, goal, telemetry, "command");
 	syncGoalUi(ctx, goal);
 	notifyGoal(ctx, goal);
+	scheduleMonitor(ctx);
 	scheduleContinuation(ctx, "created");
 }
 
@@ -143,6 +151,7 @@ function pauseGoal(
 	ctx: ExtensionCommandContext,
 	cancelContinuation: GoalContinuationCanceller,
 	interruptActiveTurn: GoalPauseInterrupter,
+	cancelMonitor: GoalMonitorCanceller,
 ): void {
 	const goal = getGoal();
 	if (!goal) {
@@ -150,6 +159,7 @@ function pauseGoal(
 		return;
 	}
 	cancelContinuation(goal.goalId, "pause");
+	cancelMonitor(goal.goalId, "pause");
 	const paused: GoalState = { ...goal, status: "paused", updatedAt: Date.now() };
 	persistUpdateGoal(pi, paused, getTelemetry(), "command");
 	syncGoalUi(ctx, paused);
@@ -160,7 +170,7 @@ function pauseGoal(
 	}
 }
 
-function resumeGoal(pi: ExtensionAPI, ctx: ExtensionCommandContext, scheduleContinuation: GoalCommandScheduler): void {
+function resumeGoal(pi: ExtensionAPI, ctx: ExtensionCommandContext, scheduleContinuation: GoalCommandScheduler, scheduleMonitor: GoalMonitorScheduler): void {
 	const goal = getGoal();
 	if (!goal) {
 		notifyInfo(ctx, `${GOAL_USAGE}\n${GOAL_USAGE_HINT}`);
@@ -176,13 +186,15 @@ function resumeGoal(pi: ExtensionAPI, ctx: ExtensionCommandContext, scheduleCont
 	if (telemetry) persistTelemetry(pi, telemetry, "resume");
 	syncGoalUi(ctx, active);
 	notifyGoal(ctx, active);
+	scheduleMonitor(ctx);
 	scheduleContinuation(ctx, "resumed");
 }
 
-function clearGoal(pi: ExtensionAPI, ctx: ExtensionCommandContext, cancelContinuation: GoalContinuationCanceller): void {
+function clearGoal(pi: ExtensionAPI, ctx: ExtensionCommandContext, cancelContinuation: GoalContinuationCanceller, cancelMonitor: GoalMonitorCanceller): void {
 	const goal = getGoal();
 	const hadGoal = Boolean(goal);
 	cancelContinuation(goal?.goalId, "clear");
+	cancelMonitor(goal?.goalId, "clear");
 	const result = persistClearGoal(pi, "command");
 	syncGoalUi(ctx, result.goal);
 	notifyInfo(ctx, hadGoal ? "Goal cleared" : "No goal to clear\nThis session does not currently have a goal.");

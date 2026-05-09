@@ -5,7 +5,7 @@ import { isBudgetExhausted } from "./budget";
 import { createTelemetry, noteBudgetLimit } from "./telemetry";
 import { createGoalState, getGoal, getTelemetry, persistClearGoal, persistSetGoal, persistUpdateGoal } from "./state";
 import { syncGoalUi } from "./ui";
-import type { GoalCommandScheduler, GoalContinuationCanceller, GoalState, GoalStatus, GoalTelemetrySnapshot } from "./types";
+import type { GoalCommandScheduler, GoalContinuationCanceller, GoalMonitorCanceller, GoalMonitorScheduler, GoalState, GoalStatus, GoalTelemetrySnapshot } from "./types";
 
 const EmptyParams = Type.Object({});
 const CreateGoalParams = Type.Object({
@@ -33,16 +33,20 @@ type ToolDetails = {
 type GoalToolRuntime = {
 	scheduleContinuation?: GoalCommandScheduler;
 	cancelContinuation?: GoalContinuationCanceller;
+	scheduleMonitor?: GoalMonitorScheduler;
+	cancelMonitor?: GoalMonitorCanceller;
 };
 
 export function registerGoalTools(
 	pi: ExtensionAPI,
 	scheduleContinuation?: GoalCommandScheduler,
 	cancelContinuation?: GoalContinuationCanceller,
+	scheduleMonitor?: GoalMonitorScheduler,
+	cancelMonitor?: GoalMonitorCanceller,
 ): void {
-	const runtime: GoalToolRuntime = { scheduleContinuation, cancelContinuation };
+	const runtime: GoalToolRuntime = { scheduleContinuation, cancelContinuation, scheduleMonitor, cancelMonitor };
 	registerGetGoalTool(pi);
-	registerCreateGoalTool(pi);
+	registerCreateGoalTool(pi, runtime);
 	registerUpdateGoalTool(pi, runtime);
 	registerClearGoalTool(pi, runtime);
 }
@@ -61,7 +65,7 @@ function registerGetGoalTool(pi: ExtensionAPI): void {
 	});
 }
 
-function registerCreateGoalTool(pi: ExtensionAPI): void {
+function registerCreateGoalTool(pi: ExtensionAPI, runtime: GoalToolRuntime): void {
 	pi.registerTool({
 		name: "create_goal",
 		label: "Create Goal",
@@ -73,7 +77,7 @@ function registerCreateGoalTool(pi: ExtensionAPI): void {
 		],
 		parameters: CreateGoalParams,
 		async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
-			return createGoalFromTool(pi, params, ctx);
+			return createGoalFromTool(pi, runtime, params, ctx);
 		},
 	});
 }
@@ -106,6 +110,7 @@ function registerClearGoalTool(pi: ExtensionAPI, runtime: GoalToolRuntime): void
 		async execute(_toolCallId, _params, _signal, _onUpdate, ctx) {
 			const goal = getGoal();
 			runtime.cancelContinuation?.(goal?.goalId, "tool-clear");
+			runtime.cancelMonitor?.(goal?.goalId, "tool-clear");
 			persistClearGoal(pi, "tool");
 			syncGoalUi(ctx, null);
 			return resultForGoal(null, getTelemetry(), goal ? "Goal cleared." : "No goal was set.");
@@ -138,7 +143,7 @@ type UpdateGoalInput = {
 
 type GoalUpdateResult = { ok: true; goal: GoalState; prefix: string; budgetChanged?: boolean } | { ok: false; error: string };
 
-function createGoalFromTool(pi: ExtensionAPI, params: CreateGoalInput, ctx: ExtensionContext) {
+function createGoalFromTool(pi: ExtensionAPI, runtime: GoalToolRuntime, params: CreateGoalInput, ctx: ExtensionContext) {
 	if (getGoal()) return errorResult("A goal already exists. Use clear_goal or ask the user before replacing it.");
 	const validation = validateObjective(params.objective);
 	if (!validation.ok) return errorResult(validation.hint ? `${validation.message} ${validation.hint}` : validation.message);
@@ -148,6 +153,7 @@ function createGoalFromTool(pi: ExtensionAPI, params: CreateGoalInput, ctx: Exte
 	const telemetry = createTelemetry(goal.goalId, goal.createdAt);
 	persistSetGoal(pi, goal, telemetry, "tool");
 	syncGoalUi(ctx, goal);
+	runtime.scheduleMonitor?.(ctx);
 	return resultForGoal(goal, telemetry, "Goal created.");
 }
 
@@ -156,10 +162,16 @@ function updateGoalFromTool(pi: ExtensionAPI, runtime: GoalToolRuntime, params: 
 	if (!goal) return errorResult("No goal exists to update.");
 	const update = buildGoalUpdate(goal, params);
 	if (!update.ok) return errorResult(update.error);
-	if (update.goal.status === "paused" || update.goal.status === "budgetLimited") runtime.cancelContinuation?.(goal.goalId, "tool-status");
+	if (update.goal.status !== "active") {
+		runtime.cancelContinuation?.(goal.goalId, "tool-status");
+		runtime.cancelMonitor?.(goal.goalId, "tool-status");
+	}
 	persistUpdateGoal(pi, update.goal, telemetryForUpdate(update.goal), "tool");
 	syncGoalUi(ctx, update.goal);
-	if (goal.status !== "active" && update.goal.status === "active") runtime.scheduleContinuation?.(ctx, "resumed");
+	if (goal.status !== "active" && update.goal.status === "active") {
+		runtime.scheduleMonitor?.(ctx);
+		runtime.scheduleContinuation?.(ctx, "resumed");
+	}
 	return resultForGoal(update.goal, getTelemetry(), update.prefix);
 }
 

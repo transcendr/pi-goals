@@ -1,0 +1,28 @@
+{
+  "name": "pi-goals",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "typecheck:goal": "tsc --noEmit --target ES2022 --module ESNext --moduleResolution node --ignoreDeprecations 6.0 --types node --strict --skipLibCheck .pi/extensions/goal/*.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/transcendr/pi-goals.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/transcendr/pi-goals/issues"
+  },
+  "homepage": "https://github.com/transcendr/pi-goals#readme",
+  "devDependencies": {
+    "@earendil-works/pi-coding-agent": "^0.74.0",
+    "@earendil-works/pi-tui": "^0.74.0",
+    "@types/node": "^25.6.2",
+    "typebox": "^1.1.38",
+    "typescript": "^6.0.3"
+  }
+}
