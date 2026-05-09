@@ -78,7 +78,8 @@ function registerStartQueuedGoalTool(pi: ExtensionAPI, runtime: GoalQueueToolRun
 		promptSnippet: "Start the queue head only when semantic classification says it is a direct goal.",
 		promptGuidelines: [
 			"Use this only after reading the queue head and deciding the queued text itself is the concrete goal to perform.",
-			"Do not use this when the queued text asks you to run/create/start another goal or goal template; use create_goal, create_goal_from_template, or enqueue_goal for that orchestration, then dequeue_goal after it is satisfied.",
+			"Before using this, verify the queue head is not better handled by an existing reusable goal template; if uncertain, call list_goal_templates first.",
+			"Do not use this when the queued text asks you to run/create/start another goal or goal template, names a prompt-like workflow, or semantically matches a reusable template; use create_goal, create_goal_from_template, or enqueue_goal for that orchestration, then dequeue_goal after it is satisfied.",
 			"This tool handles completed-goal replacement and safe dequeue for direct queue items only.",
 			"If this reports an active non-complete goal, leave the queued goal in place and continue the active goal.",
 		],

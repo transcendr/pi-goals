@@ -92,8 +92,9 @@ function registerListGoalTemplatesTool(pi: ExtensionAPI): void {
 		description: "List reusable .pi-goals templates for explicit natural-language goal creation requests.",
 		promptSnippet: "Discover available reusable goal templates and their required inputs.",
 		promptGuidelines: [
-			"Use only when the user explicitly asks to create or start a persistent goal from a reusable prompt/template.",
-			"Use the returned placeholders to decide whether enough structured values are available before creating a goal from a template.",
+			"Use when the user explicitly asks to create or start a persistent goal from a reusable prompt/template.",
+			"Use when queue steering asks you to resolve an abstract or prompt-like queued item against reusable goal templates before deciding whether to call start_queued_goal.",
+			"Use the returned names, aliases, descriptions, and placeholders to decide whether a queued request semantically matches exactly one template and whether enough structured values are available before creating a goal from a template.",
 		],
 		parameters: EmptyParams,
 		async execute() {
@@ -127,8 +128,9 @@ function registerCreateGoalFromTemplateTool(pi: ExtensionAPI, runtime: GoalToolR
 		description: "Resolve a reusable .pi-goals template from structured parameters and create the resulting persistent goal.",
 		promptSnippet: "Create a persistent goal from an explicitly requested reusable goal template.",
 		promptGuidelines: [
-			"Use only when the user explicitly asks to create or start a persistent goal from a reusable prompt/template.",
-			"Fill template flags and args from the user's prose, but ask for missing required values instead of guessing.",
+			"Use when the user explicitly asks to create or start a persistent goal from a reusable prompt/template.",
+			"Use when queue steering and list_goal_templates identify exactly one reusable template that fits a queued orchestration item.",
+			"Fill template flags and args from the user's prose or current context, but ask for missing required values instead of guessing.",
 			"Do not use this for ordinary non-goal task requests.",
 		],
 		parameters: CreateGoalFromTemplateParams,

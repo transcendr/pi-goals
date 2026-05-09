@@ -29,7 +29,7 @@ export function queueSteeringStillValid(message: Record<string, unknown>): boole
 
 function queueSteeringContent(goal: QueuedGoal): string {
 	const lines = [
-		"A queued item is ready to handle. Do not start it blindly; first decide whether it is a direct goal or an orchestration instruction.",
+		"A queued item is ready to resolve. Do not start it blindly; first decide whether it should be handled by an existing reusable goal prompt or as a direct one-off goal.",
 		"",
 		`Queue ID: ${goal.queueId}`,
 		budgetLine(goal),
@@ -39,12 +39,14 @@ function queueSteeringContent(goal: QueuedGoal): string {
 		"",
 		"Required next steps:",
 		"1. Classify the queue head semantically using current context before calling any queue-start tool.",
-		"2. Direct goal: if the text itself is the concrete goal to perform, call start_queued_goal so creation and dequeue are atomic.",
-		"3. Orchestration/JIT instruction: if the text asks you to run/create/start another goal, run/create/start a goal template, or create follow-up goals from current context, do NOT call start_queued_goal and do NOT make this prose itself the active goal.",
-		"4. For orchestration/JIT, use existing goal tools as appropriate: create_goal, create_goal_from_template, or enqueue_goal. Do not rely on extension-side prose parsing; you, the agent, resolve the intent from context.",
-		"5. One orchestration queue item may require one or more consecutive active goals before it is satisfied. Keep this queue item at the head while you execute those concrete goal(s).",
-		"6. After the concrete goal(s) requested by this orchestration item are complete/satisfied, call dequeue_goal exactly once to consume this queue item. If you see this same queue item again after satisfying it, dequeue it instead of recreating the same goal.",
-		"7. If needed context is missing or a non-complete active goal blocks the next action, leave this queue item in place and continue/resolve the blocker instead of dequeuing it.",
+		"2. Reusable-prompt check: if the text names a prompt/template, uses a prompt-like slug, or describes a reusable workflow/task type, call list_goal_templates and compare the queue text with template names, aliases, descriptions, and required placeholders.",
+		"3. If exactly one reusable template fits and required values can be derived from the queue text or current context, use create_goal_from_template. Do NOT call start_queued_goal and do NOT make the prose itself the active goal.",
+		"4. If a likely template fits but required values are missing, ask for or gather the missing context. Leave this queue item in place until resolved.",
+		"5. Direct goal fallback: call start_queued_goal only when no reusable template fits, or when the text itself is clearly the concrete one-off goal to perform.",
+		"6. For orchestration/JIT work, use existing goal tools as appropriate: create_goal, create_goal_from_template, or enqueue_goal. Do not rely on extension-side prose parsing; you, the agent, resolve the intent from context.",
+		"7. One orchestration queue item may require one or more consecutive active goals before it is satisfied. Keep this queue item at the head while you execute those concrete goal(s).",
+		"8. After the concrete goal(s) requested by this orchestration item are complete/satisfied, call dequeue_goal exactly once to consume this queue item. If you see this same queue item again after satisfying it, dequeue it instead of recreating the same goal.",
+		"9. If needed context is missing or a non-complete active goal blocks the next action, leave this queue item in place and continue/resolve the blocker instead of dequeuing it.",
 	];
 	if (goal.template) {
 		lines.push(
