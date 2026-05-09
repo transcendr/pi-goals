@@ -18,7 +18,7 @@ Accept natural-language issue selectors such as `issue 026 through 028 and 035`;
 Do not ask the user for Solo `--instance` or `--project`. This prompt resolves those automatically. Do not manually invent workflow directory slugs, todo ids, run tags, or scratchpad names when the resolved tables below provide them.
 
 <repo_status>
-!`git status --short --untracked-files=all`
+!`git status --short --untracked-files=all | sed -n '1,120p'; test -n "$(git status --short --untracked-files=all)" || printf 'clean: true\n'`
 </repo_status>
 
 <resolved_execution_context>
