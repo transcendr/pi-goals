@@ -67,7 +67,7 @@ export function registerGoalTools(
 	registerCreateGoalTool(pi, runtime);
 	registerCreateGoalFromTemplateTool(pi, runtime);
 	registerUpdateGoalTool(pi, runtime);
-	registerGoalQueueTools(pi);
+	registerGoalQueueTools(pi, { scheduleMonitor });
 	registerClearGoalTool(pi, runtime);
 }
 

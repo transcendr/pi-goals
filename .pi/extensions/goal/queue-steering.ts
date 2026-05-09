@@ -41,15 +41,14 @@ function queueSteeringContent(goal: QueuedGoal): string {
 	];
 	if (goal.template) {
 		lines.push(
-			`1. Use create_goal_from_template, not create_goal, because this queued request came from reusable template '${goal.template}'.`,
-			`2. Pass template='${goal.template}', flags=${JSON.stringify(goal.templateFlags ?? {})}, args=${JSON.stringify(goal.templateArgs ?? "")}.`,
-			"3. After the goal is created successfully, call dequeue_goal to remove this queue item.",
+			"1. Use start_queued_goal to atomically create this goal and remove it from the queue only after creation succeeds.",
+			`2. This queued request came from reusable template '${goal.template}'; start_queued_goal will re-resolve it with flags=${JSON.stringify(goal.templateFlags ?? {})}, args=${JSON.stringify(goal.templateArgs ?? "")}.`,
+			"3. If you cannot use start_queued_goal, use create_goal_from_template rather than create_goal, and dequeue only after successful creation.",
 		);
 	} else {
 		lines.push(
-			"1. If a completed goal is still set and create_goal refuses to replace it, clear the completed goal first.",
-			"2. Use create_goal with the objective above.",
-			"3. After the goal is created successfully, call dequeue_goal to remove this queue item.",
+			"1. Use start_queued_goal to atomically create this goal and remove it from the queue only after creation succeeds.",
+			"2. If start_queued_goal reports a non-complete active goal, leave this queued goal in place and continue the active goal.",
 		);
 	}
 	return lines.filter((line) => line !== undefined).join("\n");

@@ -1,9 +1,11 @@
 import { Type } from "typebox";
-import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { validateObjective } from "./format";
+import { createTelemetry } from "./telemetry";
+import { resolveGoalTemplateByName } from "./templates";
+import { createGoalState, getGoal, getTelemetry, persistSetGoal } from "./state";
 import { enqueueGoal, dequeueGoal, removeGoal, persistEnqueue, persistDequeue, persistRemove, getQueue, type QueuedGoal } from "./queue-state";
-import { getGoal, getTelemetry } from "./state";
-import type { GoalState, GoalTelemetrySnapshot } from "./types";
+import type { GoalMonitorScheduler, GoalState, GoalTelemetrySnapshot } from "./types";
 import { syncGoalUi } from "./ui";
 
 const EmptyParams = Type.Object({});
@@ -17,42 +19,45 @@ type QueueToolDetails = {
 	goal: GoalState | null;
 	telemetry: GoalTelemetrySnapshot | null;
 	queue?: QueuedGoal[];
+	queued?: QueuedGoal;
 	dequeued?: QueuedGoal;
+	started?: QueuedGoal;
 	error?: string;
 };
 
-function errorResult(message: string) {
-	return { content: [{ type: "text" as const, text: `Error: ${message}` }], details: { goal: getGoal(), telemetry: getTelemetry(), error: message } as QueueToolDetails };
+type GoalQueueToolRuntime = {
+	scheduleMonitor?: GoalMonitorScheduler;
+};
+
+export function registerGoalQueueTools(pi: ExtensionAPI, runtime: GoalQueueToolRuntime = {}): void {
+	registerListGoalQueueTool(pi);
+	registerEnqueueGoalTool(pi);
+	registerStartQueuedGoalTool(pi, runtime);
+	registerDequeueGoalTool(pi);
+	registerRemoveQueuedGoalTool(pi);
 }
 
-export function registerGoalQueueTools(pi: ExtensionAPI): void {
+function registerListGoalQueueTool(pi: ExtensionAPI): void {
 	pi.registerTool({
 		name: "list_goal_queue",
 		label: "List Goal Queue",
 		description: "List queued goal objectives that will be started after the current goal completes or clears.",
 		promptSnippet: "Discover queued goals waiting to start after the current goal.",
-		promptGuidelines: [
-			"Use only when the user explicitly asks to see or review the goal queue.",
-			"Do not infer queue listing from ordinary task requests.",
-		],
+		promptGuidelines: ["Use only when the user explicitly asks to see or review the goal queue.", "Do not infer queue listing from ordinary task requests."],
 		parameters: EmptyParams,
 		async execute() {
-			const queue = getQueue();
-			if (!queue || queue.length === 0) return { content: [{ type: "text" as const, text: "No queued goals." }], details: { goal: getGoal(), telemetry: getTelemetry(), queue } as QueueToolDetails };
-			const lines = queue.map((g, i) => `${i + 1}. [${g.queueId}] ${g.objective.length > 120 ? g.objective.slice(0, 117) + "\u2026" : g.objective}`);
-			return { content: [{ type: "text" as const, text: `Queued goals (${queue.length}):\n${lines.join("\n")}` }], details: { goal: getGoal(), telemetry: getTelemetry(), queue } as QueueToolDetails };
+			return resultForQueue();
 		},
 	});
+}
 
+function registerEnqueueGoalTool(pi: ExtensionAPI): void {
 	pi.registerTool({
 		name: "enqueue_goal",
 		label: "Enqueue Goal",
 		description: "Add a goal to the queue to be started after the current goal completes or clears. Use only when the user explicitly asks to queue a goal for later.",
 		promptSnippet: "Queue a goal for later when the user explicitly asks.",
-		promptGuidelines: [
-			"Use only when the user explicitly asks to queue a goal for later, not for ordinary task requests.",
-			"Fill flags and args from the user's prose, but ask for missing required values instead of guessing.",
-		],
+		promptGuidelines: ["Use only when the user explicitly asks to queue a goal for later, not for ordinary task requests.", "Fill flags and args from the user's prose, but ask for missing required values instead of guessing."],
 		parameters: CreateGoalParams,
 		async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
 			const validation = validateObjective(params.objective);
@@ -60,18 +65,32 @@ export function registerGoalQueueTools(pi: ExtensionAPI): void {
 			const queued = enqueueGoal(validation.objective, "tool", { tokenBudget: params.token_budget, timeBudgetSeconds: params.time_budget_seconds });
 			persistEnqueue(pi, queued);
 			syncGoalUi(ctx, getGoal());
-			return { content: [{ type: "text" as const, text: `Queued goal: ${queued.queueId}\nObjective: ${queued.objective.length > 120 ? queued.objective.slice(0, 117) + "\u2026" : queued.objective}` }], details: { goal: getGoal(), telemetry: getTelemetry(), queued } as QueueToolDetails };
+			return resultForQueuedGoal(queued);
 		},
 	});
+}
 
+function registerStartQueuedGoalTool(pi: ExtensionAPI, runtime: GoalQueueToolRuntime): void {
+	pi.registerTool({
+		name: "start_queued_goal",
+		label: "Start Queued Goal",
+		description: "Start the next queued goal when no active goal is running, or when the current goal is complete. The queue item is removed only after goal creation succeeds.",
+		promptSnippet: "Start the next queued goal after a current goal completes or clears.",
+		promptGuidelines: ["Use this when queue steering says a queued goal is ready to start.", "Do not use create_goal first for queued handoff; this tool handles completed-goal replacement and safe dequeue after creation.", "If this reports an active non-complete goal, leave the queued goal in place and continue the active goal."],
+		parameters: EmptyParams,
+		async execute(_toolCallId, _params, _signal, _onUpdate, ctx) {
+			return startQueuedGoal(pi, runtime, ctx);
+		},
+	});
+}
+
+function registerDequeueGoalTool(pi: ExtensionAPI): void {
 	pi.registerTool({
 		name: "dequeue_goal",
 		label: "Dequeue Goal",
-		description: "Remove the first goal from the queue and return it. Use when the current goal completes or clears and the next queued goal should be started.",
-		promptSnippet: "Dequeue the next queued goal to start it.",
-		promptGuidelines: [
-			"Use when the current goal is complete or cleared and a queued goal is available to start.",
-		],
+		description: "Remove the first goal from the queue and return it. Prefer start_queued_goal for normal queued-goal handoff.",
+		promptSnippet: "Dequeue the next queued goal to inspect or manually start it.",
+		promptGuidelines: ["Use start_queued_goal for normal queued handoff; use dequeue_goal only when explicitly removing the head after separate successful handling."],
 		parameters: EmptyParams,
 		async execute() {
 			const dequeued = dequeueGoal();
@@ -80,15 +99,15 @@ export function registerGoalQueueTools(pi: ExtensionAPI): void {
 			return { content: [{ type: "text" as const, text: `Dequeued goal: ${dequeued.queueId}\nObjective: ${dequeued.objective}` }], details: { goal: getGoal(), telemetry: getTelemetry(), dequeued } as QueueToolDetails };
 		},
 	});
+}
 
+function registerRemoveQueuedGoalTool(pi: ExtensionAPI): void {
 	pi.registerTool({
 		name: "remove_queued_goal",
 		label: "Remove Queued Goal",
 		description: "Remove a specific goal from the queue by its queue ID.",
 		promptSnippet: "Remove a specific queued goal by ID.",
-		promptGuidelines: [
-			"Use only when the user explicitly asks to remove a specific queued goal.",
-		],
+		promptGuidelines: ["Use only when the user explicitly asks to remove a specific queued goal."],
 		parameters: Type.Object({ queueId: Type.String({ description: "Queue ID of the goal to remove" }) }),
 		async execute(_toolCallId, params, _signal, _onUpdate, _ctx) {
 			const removed = removeGoal(params.queueId);
@@ -97,4 +116,52 @@ export function registerGoalQueueTools(pi: ExtensionAPI): void {
 			return { content: [{ type: "text" as const, text: `Removed queued goal: ${removed.queueId}` }], details: { goal: getGoal(), telemetry: getTelemetry() } as QueueToolDetails };
 		},
 	});
+}
+
+function startQueuedGoal(pi: ExtensionAPI, runtime: GoalQueueToolRuntime, ctx: ExtensionContext) {
+	const current = getGoal();
+	if (current && current.status !== "complete") return errorResult("A non-complete goal is already active. The queued goal was left in the queue.");
+	const next = getQueue()[0];
+	if (!next) return { content: [{ type: "text" as const, text: "No queued goals." }], details: { goal: current, telemetry: getTelemetry(), queue: getQueue() } as QueueToolDetails };
+	const objective = resolveQueuedObjective(next);
+	if (!objective.ok) return errorResult(objective.error);
+	const validation = validateObjective(objective.objective);
+	if (!validation.ok) return errorResult(validation.hint ? `${validation.message} ${validation.hint}` : validation.message);
+	return createAndDequeueQueuedGoal(pi, runtime, ctx, next, validation.objective);
+}
+
+function createAndDequeueQueuedGoal(pi: ExtensionAPI, runtime: GoalQueueToolRuntime, ctx: ExtensionContext, next: QueuedGoal, objective: string) {
+	const goal = createGoalState(objective, next.tokenBudget, next.timeBudgetSeconds);
+	const telemetry = createTelemetry(goal.goalId, goal.createdAt);
+	persistSetGoal(pi, goal, telemetry, "tool");
+	const dequeued = dequeueGoal();
+	persistDequeue(pi, "start_queued_goal");
+	syncGoalUi(ctx, goal);
+	runtime.scheduleMonitor?.(ctx);
+	return { content: [{ type: "text" as const, text: `Started queued goal: ${dequeued?.queueId ?? next.queueId}\nObjective: ${goal.objective}` }], details: { goal, telemetry, started: dequeued ?? next, queue: getQueue() } as QueueToolDetails };
+}
+
+type QueuedObjectiveResolution = { ok: true; objective: string } | { ok: false; error: string };
+
+function resolveQueuedObjective(goal: QueuedGoal): QueuedObjectiveResolution {
+	if (!goal.template) return { ok: true, objective: goal.objective };
+	const resolved = resolveGoalTemplateByName(goal.template, goal.templateFlags ?? {}, goal.templateArgs ?? "");
+	if (!resolved.ok) return "notTemplate" in resolved ? { ok: false, error: `Unknown goal template '${goal.template}'.` } : { ok: false, error: resolved.error };
+	return { ok: true, objective: resolved.template.objective };
+}
+
+function resultForQueue() {
+	const queue = getQueue();
+	if (queue.length === 0) return { content: [{ type: "text" as const, text: "No queued goals." }], details: { goal: getGoal(), telemetry: getTelemetry(), queue } as QueueToolDetails };
+	const lines = queue.map((g, i) => `${i + 1}. [${g.queueId}] ${g.objective.length > 120 ? `${g.objective.slice(0, 117)}…` : g.objective}`);
+	return { content: [{ type: "text" as const, text: `Queued goals (${queue.length}):\n${lines.join("\n")}` }], details: { goal: getGoal(), telemetry: getTelemetry(), queue } as QueueToolDetails };
+}
+
+function resultForQueuedGoal(queued: QueuedGoal) {
+	const objective = queued.objective.length > 120 ? `${queued.objective.slice(0, 117)}…` : queued.objective;
+	return { content: [{ type: "text" as const, text: `Queued goal: ${queued.queueId}\nObjective: ${objective}` }], details: { goal: getGoal(), telemetry: getTelemetry(), queued } as QueueToolDetails };
+}
+
+function errorResult(message: string) {
+	return { content: [{ type: "text" as const, text: `Error: ${message}` }], details: { goal: getGoal(), telemetry: getTelemetry(), error: message } as QueueToolDetails };
 }
