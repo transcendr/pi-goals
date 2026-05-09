@@ -1,0 +1,20 @@
+$ git status --short --untracked-files=all
+?? .ai/.pi-goals/create-issue-doc.md
+?? .ai/issues/open/ISSUE-025-goal-line-breaks-widget-rendering.md
+
+$ rg -n "objectiveExcerpt|renderGoalWidget|contentLine|compactLines" .pi/extensions/goal/widget.ts .pi/extensions/goal/format.ts
+.pi/extensions/goal/format.ts:88:export function objectiveExcerpt(objective: string, maxChars = OBJECTIVE_EXCERPT_CHARS): string {
+.pi/extensions/goal/widget.ts:2:import { commandHint, formatElapsed, formatTokensCompact, goalStatusLabel, objectiveExcerpt } from "./format";
+.pi/extensions/goal/widget.ts:40:export function renderGoalWidget(goal: GoalState, theme: GoalWidgetTheme, width: number): string[] {
+.pi/extensions/goal/widget.ts:41:	if (width < MIN_CARD_WIDTH) return compactLines(goal, theme, width);
+.pi/extensions/goal/widget.ts:47:		contentLine(theme.fg("dim", objectiveExcerpt(goal.objective, contentWidth)), contentWidth, theme),
+.pi/extensions/goal/widget.ts:48:		contentLine(resourceLine(timeResource(goal), theme), contentWidth, theme),
+.pi/extensions/goal/widget.ts:49:		contentLine(resourceLine(tokenResource(goal), theme), contentWidth, theme),
+.pi/extensions/goal/widget.ts:50:		contentLine(commandLine(goal.status, theme), contentWidth, theme),
+.pi/extensions/goal/widget.ts:60:		return renderGoalWidget(this.goal, this.theme, width);
+.pi/extensions/goal/widget.ts:66:function compactLines(goal: GoalState, theme: GoalWidgetTheme, width: number): string[] {
+.pi/extensions/goal/widget.ts:70:		truncateToWidth(`${status} ${objectiveExcerpt(goal.objective, Math.max(6, width - 10))}`, width),
+.pi/extensions/goal/widget.ts:89:function contentLine(content: string, width: number, theme: GoalWidgetTheme): string {
+
+$ python3 image evidence path exists
+{'exists': True, 'bytes': 81298}
