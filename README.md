@@ -2,16 +2,17 @@
 
 Persistent goal tracking for [Pi](https://www.npmjs.com/package/@earendil-works/pi-coding-agent). Inspired by Codex CLI's `/goal`, `pi-goals` adds Pi-native UX, rewindable `/tree`-compatible goal state, time and token budgets, reusable token-aware prompts, automated churn monitoring, and more.
 
-> Early preview: this package is being prepared for open-source release. APIs and install ergonomics may change before `1.0.0`.
+> Early preview: `pi-goals` is usable, but install ergonomics and APIs may change before `1.0.0`.
 
-## What it provides
+## Features
 
 - `/goal` command for creating, pausing, resuming, replacing, and clearing a persistent objective.
-- Rewindable `/tree`-compatible goal state persisted into the Pi session branch.
-- Time/token budgets plus goal-aware runtime continuation and monitoring hooks.
+- Rewindable `/tree`-compatible state persisted into the Pi session branch.
+- Time and token budgets with goal-aware continuation behavior.
 - Reusable token-aware prompt templates.
 - Model tools for inspecting and updating the active goal.
-- Compact Pi UI status/widget integration.
+- Automated churn monitoring and steering for long-running goals.
+- Compact Pi status/widget integration.
 
 ## Install
 
@@ -27,17 +28,26 @@ The extension entrypoint is published as TypeScript source at:
 .pi/extensions/goal/index.ts
 ```
 
-Until a packaged loader is finalized, copy or reference the extension directory from `node_modules/pi-goals/.pi/extensions/goal` in your Pi setup.
+Until a packaged loader is finalized, copy or reference the extension directory from:
 
-For local validation:
+```text
+node_modules/pi-goals/.pi/extensions/goal
+```
+
+in your Pi setup.
+
+## Development
 
 ```bash
+npm install
 npm run quality:goal
 ```
 
+`npm run quality:goal` runs the project quality gate for the extension, including structure checks, TypeScript validation, and Pi extension load validation.
+
 ## Status
 
-This is an early release intended to claim the public package name and make the current implementation available for collaborators and early testers.
+This is an early public preview intended for collaborators and early testers. Expect rough edges and breaking changes before `1.0.0`.
 
 ## License
 

@@ -2,3 +2,5 @@ references/codex
 
 node_modules
 .pi/goal-monitor
+
+.ai/docs/
