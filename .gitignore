@@ -3,4 +3,6 @@ references/codex
 node_modules
 .pi/goal-monitor
 
-.ai/docs/
+.ai/docs/*
+!.ai/docs/issue-workflow/
+!.ai/docs/issue-workflow/**
