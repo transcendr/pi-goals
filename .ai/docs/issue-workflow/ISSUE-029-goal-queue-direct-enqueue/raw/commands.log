@@ -1,0 +1,64 @@
+$ git status --short --untracked-files=all
+?? .ai/docs/issue-workflow/ISSUE-028-goal-replacement-preview/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-028-goal-replacement-preview/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-028-goal-replacement-preview/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-028-goal-replacement-preview/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-028-goal-replacement-preview/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-028-goal-replacement-preview/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-028-goal-replacement-preview/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-028-goal-replacement-preview/raw/commands.log
+?? .ai/docs/issue-workflow/ISSUE-029-goal-queue-direct-enqueue/raw/commands.log
+?? .ai/issues/open/ISSUE-028-goal-replacement-preview.md
+
+$ rg -n "GOAL_SUBCOMMANDS|control =|handleQueueCommand|queue" .pi/extensions/goal/command.ts
+17:import { getQueue, enqueueGoal, persistEnqueue } from "./queue-state";
+22:	name: "pause" | "resume" | "clear" | "queue";
+26:const GOAL_SUBCOMMANDS: GoalSubcommand[] = [
+30:	{ name: "queue", description: "List queued goals or enqueue a new goal" },
+51:	const scored = GOAL_SUBCOMMANDS.map((subcommand) => ({
+100:	const control = GOAL_SUBCOMMANDS.find((subcommand) => subcommand.name === trimmed.toLowerCase())?.name;
+101:	if (control === "pause") return pauseGoal(pi, ctx, cancelContinuation, interruptActiveTurn, cancelMonitor);
+102:	if (control === "resume") return resumeGoal(pi, ctx, scheduleContinuation, scheduleMonitor);
+103:	if (control === "clear") return clearGoal(pi, ctx, cancelContinuation, cancelMonitor);
+104:	if (control === "queue") return handleQueueCommand(pi, trimmed, ctx);
+139:				const queued = enqueueGoal(validation.objective, "command");
+140:				persistEnqueue(pi, queued);
+141:				notifyInfo(ctx, `Queued goal: ${queued.queueId}`);
+217:	const queue = getQueue();
+218:	const queueHint = queue.length > 0 ? `\n${queue.length} queued goal${queue.length > 1 ? "s" : ""} available. Use /goal queue to list or /goal <objective> to start the next one.` : "";
+219:	notifyInfo(ctx, hadGoal ? `Goal cleared${queueHint}` : `No goal to clear\nThis session does not currently have a goal.${queueHint}`);
+222:function handleQueueCommand(pi: ExtensionAPI, input: string, ctx: ExtensionCommandContext): void {
+223:	const rest = input.slice("queue".length).trim();
+224:	const queue = getQueue();
+226:		if (queue.length === 0) {
+227:			notifyInfo(ctx, "No queued goals.");
+230:		const lines = queue.map((g, i) => `${i + 1}. [${g.queueId}] ${g.objective.length > 80 ? g.objective.slice(0, 77) + "\u2026" : g.objective}`);
+231:		notifyInfo(ctx, `Queued goals (${queue.length}):\n${lines.join("\n")}`);
+241:	const queued = enqueueGoal(validation.objective, "command");
+242:	persistEnqueue(pi, queued);
+243:	notifyInfo(ctx, `Queued goal: ${queued.queueId} \u2014 ${validation.objective.length > 80 ? validation.objective.slice(0, 77) + "\u2026" : validation.objective}`);
+
+$ rg -n "Replace|Queue|Cancel|setGoalObjective" .pi/extensions/goal/command.ts
+17:import { getQueue, enqueueGoal, persistEnqueue } from "./queue-state";
+19:import type { GoalCommandScheduler, GoalContinuationCanceller, GoalMonitorCanceller, GoalMonitorScheduler, GoalPauseInterrupter, GoalState } from "./types";
+36:	cancelContinuation: GoalContinuationCanceller,
+39:	cancelMonitor: GoalMonitorCanceller,
+87:	cancelContinuation: GoalContinuationCanceller,
+90:	cancelMonitor: GoalMonitorCanceller,
+104:	if (control === "queue") return handleQueueCommand(pi, trimmed, ctx);
+106:	await setGoalObjective(pi, resolveTemplateOrObjective(trimmed, ctx), ctx, scheduleContinuation, cancelContinuation, scheduleMonitor, cancelMonitor);
+117:async function setGoalObjective(
+122:	cancelContinuation: GoalContinuationCanceller,
+124:	cancelMonitor: GoalMonitorCanceller,
+135:		const choices = ["Replace", "Queue", "Cancel"];
+137:		if (choice === "Queue" || choice === "Cancel") {
+138:			if (choice === "Queue") {
+141:				notifyInfo(ctx, `Queued goal: ${queued.queueId}`);
+163:	cancelContinuation: GoalContinuationCanceller,
+165:	cancelMonitor: GoalMonitorCanceller,
+210:function clearGoal(pi: ExtensionAPI, ctx: ExtensionCommandContext, cancelContinuation: GoalContinuationCanceller, cancelMonitor: GoalMonitorCanceller): void {
+217:	const queue = getQueue();
+222:function handleQueueCommand(pi: ExtensionAPI, input: string, ctx: ExtensionCommandContext): void {
+224:	const queue = getQueue();
+231:		notifyInfo(ctx, `Queued goals (${queue.length}):\n${lines.join("\n")}`);
+243:	notifyInfo(ctx, `Queued goal: ${queued.queueId} \u2014 ${validation.objective.length > 80 ? validation.objective.slice(0, 77) + "\u2026" : validation.objective}`);
