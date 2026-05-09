@@ -8,8 +8,11 @@ Persistent goal tracking for [Pi](https://www.npmjs.com/package/@earendil-works/
 
 - `/goal` command for creating, pausing, resuming, replacing, and clearing a persistent objective.
 - Rewindable `/tree`-compatible state persisted into the Pi session branch.
-- Time and token budgets with goal-aware continuation behavior.
+- Time and token budgets with goal-aware continuation and wrap-up behavior.
 - Reusable token-aware prompt templates from `.pi-goals/` directories.
+- Durable FIFO goal queue for sequential goal work.
+- Queue-aware model tools for listing, enqueuing, starting, dequeuing, and removing queued goals.
+- Natural-language reusable prompt discovery via `list_goal_templates` and `create_goal_from_template`.
 - Model tools for inspecting and updating the active goal.
 - Automated churn monitoring and steering for long-running goals.
 - Compact Pi status/widget integration.
@@ -35,6 +38,8 @@ Use `/goal` to create and manage a persistent objective that survives across tur
 ```text
 /goal
 /goal <objective>
+/goal queue
+/goal queue <objective-or-template>
 /goal pause
 /goal resume
 /goal clear
@@ -44,11 +49,33 @@ Subcommands:
 
 - `/goal` — show the current goal summary, status, budgets, and progress metadata.
 - `/goal <objective>` — create a new active goal. If a goal already exists, Pi asks before replacing it.
+- `/goal queue` — list queued goals.
+- `/goal queue <objective-or-template>` — enqueue a direct objective or reusable template invocation for later.
 - `/goal pause` — pause continuation and churn monitoring. If a goal-driven turn is active, Pi interrupts it.
 - `/goal resume` — resume a paused goal and schedule continuation/monitoring again.
 - `/goal clear` — remove the current goal from active state.
 
-The extension also exposes model tools so agents can inspect, create, update, pause, resume, complete, or clear goals without string-parsing the slash command.
+The extension also exposes model tools so agents can inspect, create, update, pause, resume, complete, clear, or queue goals without string-parsing the slash command.
+
+## Goal queue
+
+`pi-goals` supports a durable FIFO queue for sequential work. Queued goals are persisted into the Pi branch alongside goal state, so replay and `/tree` semantics remain coherent.
+
+```text
+/goal queue
+/goal queue write the release notes
+/goal queue fix-issue --issue ISSUE-123 -- verify the fix
+```
+
+Agents can also manage the queue through model tools:
+
+- `list_goal_queue`
+- `enqueue_goal`
+- `start_queued_goal`
+- `dequeue_goal`
+- `remove_queued_goal`
+
+For queued prose that looks like a reusable workflow, agents can list templates with `list_goal_templates`, create a concrete goal with `create_goal_from_template`, then dequeue the original queue item after the concrete goal is satisfied.
 
 ## Natural language goal management
 
@@ -69,6 +96,8 @@ Mark the current goal complete and summarize what changed.
 ```
 
 Use `/goal` when you want direct command control; use natural language when you want the agent to decide the right goal operation in context.
+
+When a goal reaches its time or token budget, `pi-goals` steers the agent into wrap-up instead of silently continuing. Exhausted goals cannot be resumed until the budget is raised or the goal is cleared.
 
 ## Reusable `.pi-goals` prompts
 
@@ -107,6 +136,8 @@ Template features:
 - `description` appears in command completion.
 - `aliases` provide alternate invocation names.
 - Inline shell snippets with ``!`command` `` are supported only when `allow_commands: true`; commands are bounded by timeout and output limits.
+
+Reusable templates are available to both slash commands and model tools. Agents can call `list_goal_templates` to discover templates and `create_goal_from_template` to create a concrete goal from one. Template invocations also work through `/goal queue`.
 
 ## Automated churn monitor
 
