@@ -38,6 +38,11 @@ function queueSteeringContent(goal: QueuedGoal): string {
 		preview(goal.objective),
 		"",
 		"Required next steps:",
+		"0. First read the queued objective semantically using current context. It may be either a direct goal to start or a prose/JIT orchestration instruction that asks you to create/start/enqueue other goal(s).",
+		"0a. For a direct queued goal, use start_queued_goal so creation and dequeue are atomic.",
+		"0b. For prose/JIT orchestration, do not start the prose itself as the active goal and do not rely on extension-side parsing. Use the existing goal tools requested by the prose, such as create_goal, create_goal_from_template, or enqueue_goal, to create the concrete goal(s) from current context.",
+		"0c. One prose/JIT orchestration queue item may require one or more consecutive active goals before it is satisfied. Leave this queue item in place until the requested orchestration is complete, then call dequeue_goal exactly once to consume it.",
+		"0d. If the needed context is missing or a non-complete active goal blocks the next action, leave this queue item in place and continue/resolve the blocker instead of dequeuing it.",
 	];
 	if (goal.template) {
 		lines.push(
