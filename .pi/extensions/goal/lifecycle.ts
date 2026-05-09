@@ -24,6 +24,7 @@ import { cancelGoalContinuation, interruptActiveGoalTurn, scheduleBudgetLimitWra
 import { buildBudgetLimitPrompt } from "./prompts";
 import { getGoal, getTelemetry, persistAccountGoal, persistTelemetry, persistUpdateGoal, replayGoalState } from "./state";
 import { cancelGoalMonitor, replayGoalMonitorState, scheduleGoalMonitor } from "./monitor";
+import { replayQueueState } from "./queue-state";
 import { applyTurnTelemetry, consumeNextTurnOrigin, makeTurnSnapshot, noteBudgetHardStop, noteBudgetLimit, noteBudgetWarning, noteSafetyPause } from "./telemetry";
 import { notifyWarning, promptResumePausedGoal, syncGoalUi } from "./ui";
 import type { BudgetHardStopReason, BudgetLimitReason, BudgetPressure, GoalState, GoalTelemetrySnapshot, StreamBudgetSignal, TurnAccountingSnapshot } from "./types";
@@ -36,6 +37,7 @@ export function registerGoalLifecycle(pi: ExtensionAPI): void {
 	pi.on("session_tree", async (_event, ctx) => {
 		const state = replayGoalState(ctx);
 		replayGoalMonitorState(ctx);
+		replayQueueState(ctx);
 		syncGoalUi(ctx, state.goal);
 		if (state.goal?.status === "active") scheduleGoalMonitor(pi, ctx);
 		else cancelGoalMonitor(state.goal?.goalId, "session-tree");
@@ -52,6 +54,7 @@ export function registerGoalLifecycle(pi: ExtensionAPI): void {
 async function handleSessionStart(pi: ExtensionAPI, event: SessionStartEvent, ctx: ExtensionContext): Promise<void> {
 	const state = replayGoalState(ctx);
 	replayGoalMonitorState(ctx);
+	replayQueueState(ctx);
 	syncGoalUi(ctx, state.goal);
 	if (state.goal?.status === "active") scheduleGoalMonitor(pi, ctx);
 	else cancelGoalMonitor(state.goal?.goalId, "session-start");

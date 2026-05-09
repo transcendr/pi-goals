@@ -5,6 +5,8 @@ import { isBudgetExhausted, canActivateGoal } from "./budget";
 import { createTelemetry, noteBudgetLimit } from "./telemetry";
 import { listGoalTemplateMetadata, resolveGoalTemplateByName } from "./templates";
 import { createGoalState, getGoal, getTelemetry, persistClearGoal, persistSetGoal, persistUpdateGoal } from "./state";
+import { getQueue } from "./queue-state";
+import { registerGoalQueueTools } from "./queue-tools";
 import { syncGoalUi } from "./ui";
 import type { GoalCommandScheduler, GoalContinuationCanceller, GoalMonitorCanceller, GoalMonitorScheduler, GoalState, GoalStatus, GoalTelemetrySnapshot } from "./types";
 
@@ -63,6 +65,7 @@ scheduleBudgetLimitWrapUp?: (ctx: ExtensionContext, goal: GoalState) => void,
 	registerCreateGoalTool(pi, runtime);
 	registerCreateGoalFromTemplateTool(pi, runtime);
 	registerUpdateGoalTool(pi, runtime);
+	registerGoalQueueTools(pi);
 	registerClearGoalTool(pi, runtime);
 }
 
@@ -164,7 +167,9 @@ function registerClearGoalTool(pi: ExtensionAPI, runtime: GoalToolRuntime): void
 			runtime.cancelMonitor?.(goal?.goalId, "tool-clear");
 			persistClearGoal(pi, "tool");
 			syncGoalUi(ctx, null);
-			return resultForGoal(null, getTelemetry(), goal ? "Goal cleared." : "No goal was set.");
+			const queue = getQueue();
+			const queueHint = queue.length > 0 ? ` ${queue.length} queued goal${queue.length > 1 ? "s" : ""} available. Use list_goal_queue to see them or dequeue_goal to start the next one.` : "";
+			return resultForGoal(null, getTelemetry(), goal ? `Goal cleared.${queueHint}` : `No goal was set.${queueHint}`);
 		},
 	});
 }

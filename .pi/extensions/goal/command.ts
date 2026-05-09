@@ -2,7 +2,7 @@ import type { ExtensionAPI, ExtensionCommandContext } from "@earendil-works/pi-c
 import type { AutocompleteItem } from "@earendil-works/pi-tui";
 import { GOAL_USAGE, GOAL_USAGE_HINT } from "./constants";
 import { canActivateGoal, budgetLimitReason } from "./budget";
-import { validateObjective } from "./format";
+import { validateObjective, goalStatusLabel } from "./format";
 import { discoverGoalTemplates, resolveGoalTemplateInvocation } from "./templates";
 import { createTelemetry, resetSafetyCounters } from "./telemetry";
 import {
@@ -14,11 +14,12 @@ import {
 	persistTelemetry,
 	persistUpdateGoal,
 } from "./state";
+import { getQueue, enqueueGoal, persistEnqueue } from "./queue-state";
 import { notifyGoal, notifyInfo, notifyWarning, showGoalSummary, showNoGoal, syncGoalUi } from "./ui";
 import type { GoalCommandScheduler, GoalContinuationCanceller, GoalMonitorCanceller, GoalMonitorScheduler, GoalPauseInterrupter, GoalState } from "./types";
 
 type GoalSubcommand = {
-	name: "pause" | "resume" | "clear";
+	name: "pause" | "resume" | "clear" | "queue";
 	description: string;
 };
 
@@ -26,6 +27,7 @@ const GOAL_SUBCOMMANDS: GoalSubcommand[] = [
 	{ name: "pause", description: "Pause the current goal" },
 	{ name: "resume", description: "Resume a paused goal" },
 	{ name: "clear", description: "Clear the current goal" },
+	{ name: "queue", description: "List queued goals or enqueue a new goal" },
 ];
 
 export function registerGoalCommand(
@@ -99,6 +101,7 @@ async function handleGoalCommand(
 	if (control === "pause") return pauseGoal(pi, ctx, cancelContinuation, interruptActiveTurn, cancelMonitor);
 	if (control === "resume") return resumeGoal(pi, ctx, scheduleContinuation, scheduleMonitor);
 	if (control === "clear") return clearGoal(pi, ctx, cancelContinuation, cancelMonitor);
+	if (control === "queue") return handleQueueCommand(pi, trimmed, ctx);
 
 	await setGoalObjective(pi, resolveTemplateOrObjective(trimmed, ctx), ctx, scheduleContinuation, cancelContinuation, scheduleMonitor, cancelMonitor);
 }
@@ -129,9 +132,16 @@ async function setGoalObjective(
 
 	const existing = getGoal();
 	if (existing) {
-		const ok = await ctx.ui.confirm("Replace goal?", `New objective: ${validation.objective}`);
-		if (!ok) {
-			notifyInfo(ctx, "Goal replacement cancelled. Current goal kept.");
+		const choices = ["Replace", "Queue", "Cancel"];
+		const choice = await ctx.ui.select("Goal already active. Choose action:", choices);
+		if (choice === "Queue" || choice === "Cancel") {
+			if (choice === "Queue") {
+				const queued = enqueueGoal(validation.objective, "command");
+				persistEnqueue(pi, queued);
+				notifyInfo(ctx, `Queued goal: ${queued.queueId}`);
+			} else {
+				notifyInfo(ctx, "Goal creation cancelled.");
+			}
 			return;
 		}
 		cancelContinuation(existing.goalId, "replace");
@@ -204,5 +214,31 @@ function clearGoal(pi: ExtensionAPI, ctx: ExtensionCommandContext, cancelContinu
 	cancelMonitor(goal?.goalId, "clear");
 	const result = persistClearGoal(pi, "command");
 	syncGoalUi(ctx, result.goal);
-	notifyInfo(ctx, hadGoal ? "Goal cleared" : "No goal to clear\nThis session does not currently have a goal.");
+	const queue = getQueue();
+	const queueHint = queue.length > 0 ? `\n${queue.length} queued goal${queue.length > 1 ? "s" : ""} available. Use /goal queue to list or /goal <objective> to start the next one.` : "";
+	notifyInfo(ctx, hadGoal ? `Goal cleared${queueHint}` : `No goal to clear\nThis session does not currently have a goal.${queueHint}`);
+}
+
+function handleQueueCommand(pi: ExtensionAPI, input: string, ctx: ExtensionCommandContext): void {
+	const rest = input.slice("queue".length).trim();
+	const queue = getQueue();
+	if (!rest) {
+		if (queue.length === 0) {
+			notifyInfo(ctx, "No queued goals.");
+			return;
+		}
+		const lines = queue.map((g, i) => `${i + 1}. [${g.queueId}] ${g.objective.length > 80 ? g.objective.slice(0, 77) + "\u2026" : g.objective}`);
+		notifyInfo(ctx, `Queued goals (${queue.length}):\n${lines.join("\n")}`);
+		return;
+	}
+	const resolved = resolveTemplateOrObjective(rest, ctx);
+	if (!resolved) return;
+	const validation = validateObjective(resolved);
+	if (!validation.ok) {
+		notifyWarning(ctx, validation.hint ? `${validation.message}\n${validation.hint}` : validation.message);
+		return;
+	}
+	const queued = enqueueGoal(validation.objective, "command");
+	persistEnqueue(pi, queued);
+	notifyInfo(ctx, `Queued goal: ${queued.queueId} \u2014 ${validation.objective.length > 80 ? validation.objective.slice(0, 77) + "\u2026" : validation.objective}`);
 }
