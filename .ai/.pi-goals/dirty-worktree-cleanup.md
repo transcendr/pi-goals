@@ -7,7 +7,7 @@ allow_commands: true
 command_timeout_ms: 10000
 command_output_limit: 30000
 ---
-Create a goal to clean up the current dirty git worktree by reviewing all uncommitted changes and making focused, coherent commits.
+Clean up the current dirty git worktree by reviewing all uncommitted changes and making focused, coherent commits.
 
 <context>
 {{args}}
