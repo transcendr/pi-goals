@@ -1,12 +1,12 @@
 # ISSUE-030 — Start queued goals via steering after completion
 
-Status: open — execution-ready
+Status: fixed — implemented
 Priority: P1
-Owner: unassigned
+Owner: pi-goal automation
 Created: 2026-05-09
-Next best session: focused implementation/validation pass for queue completion steering
+Next best session: none — fixed for queue completion steering
 Next best session rationale: Queue persistence and manual queue tools exist; missing behavior is isolated to completion/clear handoff and steering prompt construction.
-Target bucket: open
+Target bucket: fixed
 Issue kind: feature
 Target repo roots: `/Users/bryan/dev/personal/experiments/pi-goals`
 Parent issue: `.ai/issues/fixed/ISSUE-027-goal-queue.md`
@@ -90,6 +90,19 @@ False greens:
 - Template-origin requests are restarted with plain `create_goal`.
 - Queue item is removed before successful next-goal creation.
 - Steering repeats every turn after completion.
+
+## Implementation result
+
+Implemented in commit `8ed0f47 fix: repair queued goal command flow`.
+
+Validation passed for this issue as part of the ISSUE-028..031 stack:
+
+- `NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-replacement-preview-probe.cjs`
+- `NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-direct-enqueue-probe.cjs`
+- `NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-completion-steer-probe.cjs`
+- `NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-template-steer-probe.cjs`
+- `NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-template-autocomplete-probe.cjs`
+- `npm run quality:goal`
 
 ## Required proofs
 

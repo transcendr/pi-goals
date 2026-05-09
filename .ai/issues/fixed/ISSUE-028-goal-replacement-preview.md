@@ -1,12 +1,12 @@
 # ISSUE-028 — Show resolved goal text before replacement choice
 
-Status: open — execution-ready
+Status: fixed — implemented
 Priority: P1
-Owner: unassigned
+Owner: pi-goal automation
 Created: 2026-05-09
-Next best session: focused implementation/validation pass for `/goal` replacement prompt regression
+Next best session: none — fixed for `/goal` replacement prompt regression
 Next best session rationale: The regression is isolated to the existing-goal decision path in `.pi/extensions/goal/command.ts`; implementation can be small and probe-driven.
-Target bucket: open
+Target bucket: fixed
 Issue kind: fix
 Target repo roots: `/Users/bryan/dev/personal/experiments/pi-goals`
 Parent issue: `.ai/issues/fixed/ISSUE-027-goal-queue.md`
@@ -84,6 +84,19 @@ False greens:
 - Prompt contains raw template syntax rather than resolved objective.
 - Preview works for freeform but not templates.
 - Queue option regresses while restoring preview.
+
+## Implementation result
+
+Implemented in commit `8ed0f47 fix: repair queued goal command flow`.
+
+Validation passed for this issue as part of the ISSUE-028..031 stack:
+
+- `NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-replacement-preview-probe.cjs`
+- `NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-direct-enqueue-probe.cjs`
+- `NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-completion-steer-probe.cjs`
+- `NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-template-steer-probe.cjs`
+- `NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-template-autocomplete-probe.cjs`
+- `npm run quality:goal`
 
 ## Required proofs
 

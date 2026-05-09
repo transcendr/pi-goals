@@ -1,12 +1,12 @@
 # ISSUE-031 — Autocomplete templates after goal queue
 
-Status: open — execution-ready
+Status: fixed — implemented
 Priority: P2
-Owner: unassigned
+Owner: pi-goal automation
 Created: 2026-05-09
-Next best session: focused implementation/validation pass for `/goal queue` autocomplete
+Next best session: none — fixed for `/goal queue` autocomplete
 Next best session rationale: Research isolates the gap to `goalArgumentCompletions()` whitespace handling in `.pi/extensions/goal/command.ts`; root template autocomplete can be reused.
-Target bucket: open
+Target bucket: fixed
 Issue kind: feature
 Target repo roots: `/Users/bryan/dev/personal/experiments/pi-goals`
 Parent issue: `.ai/issues/fixed/ISSUE-027-goal-queue.md`
@@ -89,6 +89,19 @@ False greens:
 - Queue autocomplete matches names but not aliases.
 - Queue autocomplete returns bare template names.
 - Fix breaks root autocomplete.
+
+## Implementation result
+
+Implemented in commit `8ed0f47 fix: repair queued goal command flow`.
+
+Validation passed for this issue as part of the ISSUE-028..031 stack:
+
+- `NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-replacement-preview-probe.cjs`
+- `NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-direct-enqueue-probe.cjs`
+- `NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-completion-steer-probe.cjs`
+- `NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-template-steer-probe.cjs`
+- `NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-template-autocomplete-probe.cjs`
+- `npm run quality:goal`
 
 ## Required proofs
 
