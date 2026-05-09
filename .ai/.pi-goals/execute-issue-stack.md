@@ -1,8 +1,8 @@
 ---
 description: Execute one or more issue docs with a resolved Solo/markdown todo graph, playbook, and per-issue active goals
 aliases: execute-issues,issue-stack,run-issues,solo-issue-stack
-usage: /goal issue-stack -- ISSUE-025 ISSUE-026
-examples: /goal execute-issues -- 25-26; /goal issue-stack -- ISSUE-012,ISSUE-025,ISSUE-026
+usage: /goal issue-stack -- issue 026 through 028 and 035
+examples: /goal execute-issues -- 25-26; /goal issue-stack -- ISSUE-012,ISSUE-025,ISSUE-026; /goal execute-issue-stack -- issue 026 through 028 and 035
 allow_commands: true
 command_timeout_ms: 10000
 command_output_limit: 30000
@@ -12,6 +12,8 @@ Create a goal to execute the resolved issue stack end-to-end with an auditable t
 <issue_stack_request>
 {{args}}
 </issue_stack_request>
+
+Accept natural-language issue selectors such as `issue 026 through 028 and 035`; the resolver below extracts ranges and standalone issue numbers deterministically. Do not require formatted comma lists.
 
 Do not ask the user for Solo `--instance` or `--project`. This prompt resolves those automatically. Do not manually invent workflow directory slugs, todo ids, run tags, or scratchpad names when the resolved tables below provide them.
 
@@ -24,69 +26,29 @@ Do not ask the user for Solo `--instance` or `--project`. This prompt resolves t
 </resolved_execution_context>
 
 <resolved_issue_stack>
-!`ISSUE_SELECTOR="{{args}}" node <<'NODE'
-const fs = require('fs');
-const path = require('path');
-const selector = process.env.ISSUE_SELECTOR || '';
-const roots = ['.ai/issues/open','.ai/issues/refine','.ai/issues/defer','.ai/issues/fixed','.ai/issues/closed'];
-const docs = [];
-for (const root of roots) {
-  if (!fs.existsSync(root)) continue;
-  for (const name of fs.readdirSync(root)) {
-    const match = name.match(/^ISSUE-(\d+)-(.+)\.md$/);
-    if (match) docs.push({ num: Number(match[1]), issue: `ISSUE-${match[1]}`, slug: match[2], path: path.join(root, name) });
-  }
-}
-docs.sort((a,b) => a.num - b.num || a.path.localeCompare(b.path));
-const requested = new Set();
-for (const r of selector.matchAll(/(?:ISSUE-)?(\d{1,3})\s*-\s*(?:ISSUE-)?(\d{1,3})/gi)) {
-  const a = Number(r[1]); const b = Number(r[2]); const lo = Math.min(a,b); const hi = Math.max(a,b);
-  for (let n = lo; n <= hi; n++) requested.add(n);
-}
-const withoutRanges = selector.replace(/(?:ISSUE-)?\d{1,3}\s*-\s*(?:ISSUE-)?\d{1,3}/gi, ' ');
-for (const r of withoutRanges.matchAll(/(?:ISSUE-)?(\d{1,3})(?=\D|$)/gi)) requested.add(Number(r[1]));
-const nums = [...requested].sort((a,b)=>a-b);
-if (nums.length === 0) {
-  console.log('resolution_status: missing_selector');
-  console.log('action: ask_one_clarification_for_issue_numbers');
-  process.exit(0);
-}
-const stack = [];
-const missing = [];
-const ambiguous = [];
-for (const num of nums) {
-  const matches = docs.filter(d => d.num === num);
-  if (matches.length === 0) { missing.push(`ISSUE-${String(num).padStart(3,'0')}`); continue; }
-  if (matches.length > 1) { ambiguous.push(`ISSUE-${String(num).padStart(3,'0')}:${matches.map(m=>m.path).join('|')}`); continue; }
-  stack.push(matches[0]);
-}
-if (missing.length || ambiguous.length) {
-  console.log('resolution_status: blocked');
-  if (missing.length) console.log('missing: '+missing.join(','));
-  if (ambiguous.length) console.log('ambiguous: '+ambiguous.join(','));
-  console.log('action: ask_one_clarification_before_mutating_state');
-  process.exit(0);
-}
-const issueNums = stack.map(d => String(d.num).padStart(3,'0'));
-const stackId = `issue-stack-${issueNums.join('-')}`;
-const first = stack[0];
-const primaryWorkflow = `.ai/docs/issue-workflow/${first.issue}-${first.slug}`;
-console.log('resolution_status: ok');
-console.log('stack_id: '+stackId);
-console.log('primary_issue: '+first.issue);
-console.log('primary_workflow_dir: '+primaryWorkflow);
-console.log('stack_index_path: '+`${primaryWorkflow}/todos/issue-stack-index.md`);
-console.log('stack_playbook_path: '+`${primaryWorkflow}/scratchpads/${stackId}-playbook.md`);
-console.log('stack_epic_markdown_path: '+`${primaryWorkflow}/todos/00-${stackId}-epic.md`);
-console.log('issues['+stack.length+']{issue,path,slug,workflow_dir,todos_dir,scratchpads_dir,issue_todo,implementation_todo,validation_todo,closeout_todo}:');
-for (const d of stack) {
-  const wf = `.ai/docs/issue-workflow/${d.issue}-${d.slug}`;
-  console.log(`  ${d.issue},${d.path},${d.slug},${wf},${wf}/todos,${wf}/scratchpads,${wf}/todos/10-${d.issue}-issue.md,${wf}/todos/20-${d.issue}-implementation.md,${wf}/todos/30-${d.issue}-validation.md,${wf}/todos/40-${d.issue}-closeout.md`);
-}
-console.log('default_dependency_edges: sequential_issue_closeout_blocks_next_issue_implementation');
-const markdownDirs = [`${primaryWorkflow}/todos`,`${primaryWorkflow}/scratchpads`,...stack.flatMap(d=>[`.ai/docs/issue-workflow/${d.issue}-${d.slug}/todos`,`.ai/docs/issue-workflow/${d.issue}-${d.slug}/scratchpads`])].filter((v,i,a)=>a.indexOf(v)===i);
-console.log('markdown_dirs_to_create['+markdownDirs.length+']:\n  '+markdownDirs.join('\n  '));
-NODE`
+!`ISSUE_SELECTOR="{{args}}" python3 -c 'import os,re,glob,json; sel=os.environ.get("ISSUE_SELECTOR",""); docs=[]
+for p in sorted(glob.glob(".ai/issues/*/ISSUE-*.md")):
+ m=re.search(r"ISSUE-(\d+)-([^/]+)\.md$",p)
+ if m: docs.append({"num":int(m.group(1)),"issue":f"ISSUE-{int(m.group(1)):03d}","slug":m.group(2),"path":p})
+nums=[]
+for a,b in re.findall(r"(?i)(?:issue[- ]*)?(\d{1,3})\s*(?:-|through|to|\.\.)\s*(?:issue[- ]*)?(\d{1,3})",sel):
+ lo,hi=sorted((int(a),int(b))); nums.extend(range(lo,hi+1))
+covered=[]
+for a,b in re.findall(r"(?i)(?:issue[- ]*)?(\d{1,3})\s*(?:-|through|to|\.\.)\s*(?:issue[- ]*)?(\d{1,3})",sel):
+ covered += [a,b]
+for n in re.findall(r"(?i)(?:issue[- ]*)?(\d{1,3})",sel):
+ if n not in covered: nums.append(int(n))
+seen=set(); nums=[n for n in nums if not (n in seen or seen.add(n))]
+by={d["num"]:d for d in docs}; missing=[f"ISSUE-{n:03d}" for n in nums if n not in by]; chosen=[by[n] for n in nums if n in by]
+if not nums: print("resolution_status: needs_clarification"); print("reason: no issue numbers found in request"); raise SystemExit
+if missing: print("resolution_status: needs_clarification"); print("missing_issues: "+", ".join(missing)); raise SystemExit
+stack="issue-stack-"+"-".join(d["issue"] for d in chosen); primary=".ai/docs/issue-workflow/{}-{}".format(chosen[0]["issue"],chosen[0]["slug"])
+print("resolution_status: ok"); print("stack_id: "+stack); print("primary_workflow_dir: "+primary); print("stack_epic_markdown_path: "+primary+"/todos/"+stack+"-EPIC.md"); print("stack_index_path: "+primary+"/todos/"+stack+"-INDEX.md"); print("stack_playbook_path: "+primary+"/scratchpads/"+stack+"-PLAYBOOK.md"); print("markdown_dirs_to_create:"); print("  - "+primary+"/todos"); print("  - "+primary+"/scratchpads"); print("issues:")
+for d in chosen:
+ wd=".ai/docs/issue-workflow/{}-{}".format(d["issue"],d["slug"]); print("  - issue: "+d["issue"]); print("    slug: "+d["slug"]); print("    path: "+d["path"]); print("    workflow_dir: "+wd); print("    issue_todo: "+wd+"/todos/"+d["issue"]+"-ISSUE.md"); print("    implementation_todo: "+wd+"/todos/"+d["issue"]+"-IMPLEMENTATION.md"); print("    validation_todo: "+wd+"/todos/"+d["issue"]+"-VALIDATION.md"); print("    closeout_todo: "+wd+"/todos/"+d["issue"]+"-CLOSEOUT.md"); print("    playbook_path: "+wd+"/scratchpads/"+d["issue"]+"-PLAYBOOK.md")
+if len(chosen)>1:
+ print("default_dependency_edges:")
+ for a,b in zip(chosen,chosen[1:]): print("  - "+a["issue"]+" closeout blocks "+b["issue"]+" implementation")'`
 </resolved_issue_stack>
 
 <solo_open_todos_if_solo_mode>
