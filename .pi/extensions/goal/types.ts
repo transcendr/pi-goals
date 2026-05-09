@@ -87,7 +87,7 @@ export type TurnAccountingSnapshot = {
 	completedGoal: boolean;
 };
 
-export type GoalSteeringKind = "continuation" | "budgetLimit" | "pause" | "churnSteer";
+export type GoalSteeringKind = "continuation" | "budgetLimit" | "pause";
 
 export type GoalSteeringDetails = {
 	goalId: string;
