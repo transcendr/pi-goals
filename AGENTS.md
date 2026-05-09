@@ -23,6 +23,11 @@ Use the modular source layout below from the start for maintainability and exten
   continuation.ts
   format.ts
   lifecycle.ts
+  model-output.ts
+  monitor.ts
+  monitor-prompts.ts
+  monitor-report.ts
+  monitor-state.ts
   prompts.ts
   state.ts
   telemetry.ts
@@ -45,6 +50,11 @@ Use the modular source layout below from the start for maintainability and exten
 - `tools.ts`: `get_goal`, `create_goal`, `update_goal`, TypeBox schemas, tool result formatting and restrictions.
 - `lifecycle.ts`: `session_start`, `session_tree`, `turn_start`, `turn_end`, `agent_end`, `tool_call`, `context` wiring.
 - `continuation.ts`: deferred `scheduleMaybeContinueGoal`, `maybeContinueGoal`, idle/pending/safety rechecks, hidden custom message sending, budget-limit wrap-up scheduling.
+- `model-output.ts`: reusable tolerant model-output extraction/parsing helpers, currently XML payload/tag parsing for monitor decisions.
+- `monitor.ts`: active persistent per-goal churn monitor scheduler, headless Pi monitor invocation, XML decision handling, stale-guarded steering/escalation.
+- `monitor-prompts.ts`: churn monitor role prompt, XML decision schema prompt, and worker steering prompt.
+- `monitor-report.ts`: sparse monitor report builder with timestamps, goal state, telemetry, bounded recent branch context, and bounded recent churn log.
+- `monitor-state.ts`: goal-scoped timestamped churn-log replay/persistence and recent-log bounds.
 
 ## Required Sentrux Usage
 
@@ -64,12 +74,13 @@ Before non-trivial implementation work:
 sentrux gate --save .pi/extensions/goal
 ```
 
-After implementation work:
+After implementation work, run the single combined quality gate:
 
 ```bash
-sentrux gate .pi/extensions/goal
-sentrux check .pi/extensions/goal
+npm run quality:goal
 ```
+
+This command runs Sentrux gate/check, the local slop guard, TypeScript validation, and Pi extension load validation.
 
 Rules file:
 
@@ -78,6 +89,8 @@ Rules file:
 ```
 
 If Sentrux reports degradation or rule failures, fix the structural cause before claiming completion unless the user explicitly accepts the tradeoff.
+
+Do not use TypeScript escape-hatch casts such as `as unknown as` or `as any` in `.pi/extensions/goal`. `npm run slop:goal` enforces this policy, and `npm run quality:goal` includes that guard.
 
 ## Architecture Expectations
 
@@ -92,8 +105,8 @@ For each task/todo:
 1. Read the relevant task section in the issue doc.
 2. Save a Sentrux baseline before substantial code changes.
 3. Implement the smallest coherent slice.
-4. Run Sentrux gate/check on `.pi/extensions/goal`.
-5. Run any available TypeScript/Pi reload validation.
+4. Run `npm run quality:goal`.
+5. If a focused probe exists for the issue, run it in addition to the combined gate.
 6. Report commands run and remaining failures.
 
 ## Solo Todos
