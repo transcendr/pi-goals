@@ -1,12 +1,12 @@
 # ISSUE-026 — NL reusable goal prompts
 
-Status: open — execution-ready
+Status: fixed — implemented
 Priority: P1
-Owner: unassigned
+Owner: pi-goal automation
 Created: 2026-05-09
-Next best session: focused implementation/validation pass for natural-language template goal creation
-Next best session rationale: Reusable `.pi-goals` command syntax already exists; this issue locks a model-facing tool path that lets explicit natural-language requests resolve templates deterministically and create persistent goals without bypassing guardrails.
-Target bucket: open
+Next best session: none — fixed
+Next best session rationale: Implemented in commit f99fe51 with required probes and `npm run quality:goal` passing.
+Target bucket: fixed
 Issue kind: feature
 Target repo roots: `/Users/bryan/dev/personal/experiments/pi-goals`
 Parent issue: `.ai/issues/fixed/ISSUE-001-pi-goal-extension.md`
@@ -148,6 +148,25 @@ Likely false greens:
 - Missing placeholders are guessed silently.
 - Existing template alias/inline-command behavior regresses.
 - The tool description encourages inferred goal creation from ordinary tasks.
+
+## Implementation result
+
+Implemented in commit `f99fe51 feat: create goals from reusable templates`.
+
+Summary:
+
+- Added reusable template metadata inventory via `listGoalTemplateMetadata()`.
+- Added model-facing `list_goal_templates` tool.
+- Added model-facing `create_goal_from_template` tool that resolves name/alias plus structured `flags` and `args` through the deterministic template resolver before reusing normal goal creation.
+- Preserved missing-placeholder failures, inline-command policy, existing active-goal replacement constraints, validation, persistence, telemetry, UI sync, and monitor scheduling.
+
+Validation passed:
+
+- `NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-template-probe.cjs`
+- `NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-nl-template-inventory-probe.cjs`
+- `NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-nl-template-create-probe.cjs`
+- `NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-nl-template-missing-input-probe.cjs`
+- `npm run quality:goal`
 
 ## Required proofs
 
