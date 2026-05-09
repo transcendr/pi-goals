@@ -1,7 +1,7 @@
 import { Type } from "typebox";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { formatElapsed, validateObjective } from "./format";
-import { isBudgetExhausted } from "./budget";
+import { isBudgetExhausted, canActivateGoal } from "./budget";
 import { createTelemetry, noteBudgetLimit } from "./telemetry";
 import { listGoalTemplateMetadata, resolveGoalTemplateByName } from "./templates";
 import { createGoalState, getGoal, getTelemetry, persistClearGoal, persistSetGoal, persistUpdateGoal } from "./state";
@@ -46,6 +46,7 @@ type GoalToolRuntime = {
 	cancelContinuation?: GoalContinuationCanceller;
 	scheduleMonitor?: GoalMonitorScheduler;
 	cancelMonitor?: GoalMonitorCanceller;
+	scheduleBudgetLimitWrapUp?: (ctx: ExtensionContext, goal: GoalState) => void;
 };
 
 export function registerGoalTools(
@@ -54,8 +55,9 @@ export function registerGoalTools(
 	cancelContinuation?: GoalContinuationCanceller,
 	scheduleMonitor?: GoalMonitorScheduler,
 	cancelMonitor?: GoalMonitorCanceller,
+scheduleBudgetLimitWrapUp?: (ctx: ExtensionContext, goal: GoalState) => void,
 ): void {
-	const runtime: GoalToolRuntime = { scheduleContinuation, cancelContinuation, scheduleMonitor, cancelMonitor };
+	const runtime: GoalToolRuntime = { scheduleContinuation, cancelContinuation, scheduleMonitor, cancelMonitor, scheduleBudgetLimitWrapUp };
 	registerGetGoalTool(pi);
 	registerListGoalTemplatesTool(pi);
 	registerCreateGoalTool(pi, runtime);
@@ -240,10 +242,18 @@ function updateGoalFromTool(pi: ExtensionAPI, runtime: GoalToolRuntime, params: 
 	if (!goal) return errorResult("No goal exists to update.");
 	const update = buildGoalUpdate(goal, params);
 	if (!update.ok) return errorResult(update.error);
+	// Refuse to reactivate a goal whose budgets are still exhausted.
+	if (update.goal.status === "active" && !canActivateGoal(update.goal)) {
+		const reason = isBudgetExhausted(update.goal);
+		const resource = reason === "tokenBudget" ? "token" : reason === "timeBudget" ? "time" : "budget";
+		return errorResult(`Cannot resume: ${resource} budget is still exhausted. Raise the budget or use clear_goal before resuming.`);
+	}
 	if (update.goal.status !== "active") {
 		runtime.cancelContinuation?.(goal.goalId, "tool-status");
 		runtime.cancelMonitor?.(goal.goalId, "tool-status");
 	}
+	// When a budget edit transitions active -> budgetLimited, schedule budget-limit wrap-up once.
+	budgetEditWrapUpIfNeeded(pi, ctx, runtime, goal, update.goal);
 	persistUpdateGoal(pi, update.goal, telemetryForUpdate(update.goal), "tool");
 	syncGoalUi(ctx, update.goal);
 	if (goal.status !== "active" && update.goal.status === "active") {
@@ -304,6 +314,13 @@ function applyBudgetUpdates(goal: GoalState, params: UpdateGoalInput, changes: s
 		budgetChanged = true;
 	}
 	return { ok: true, goal: next, prefix: "", budgetChanged };
+}
+
+function budgetEditWrapUpIfNeeded(pi: ExtensionAPI, ctx: ExtensionContext, runtime: GoalToolRuntime, previousGoal: GoalState, updatedGoal: GoalState) {
+	// Only schedule wrap-up when an active goal transitions to budgetLimited due to a budget edit.
+	if (previousGoal.status === "active" && updatedGoal.status === "budgetLimited" && isBudgetExhausted(updatedGoal)) {
+		runtime.scheduleBudgetLimitWrapUp?.(ctx, updatedGoal);
+	}
 }
 
 function recomputeStatusAfterBudgetEdit(goal: GoalState): GoalState {

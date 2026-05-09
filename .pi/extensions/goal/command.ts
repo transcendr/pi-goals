@@ -1,6 +1,7 @@
 import type { ExtensionAPI, ExtensionCommandContext } from "@earendil-works/pi-coding-agent";
 import type { AutocompleteItem } from "@earendil-works/pi-tui";
 import { GOAL_USAGE, GOAL_USAGE_HINT } from "./constants";
+import { canActivateGoal, budgetLimitReason } from "./budget";
 import { validateObjective } from "./format";
 import { discoverGoalTemplates, resolveGoalTemplateInvocation } from "./templates";
 import { createTelemetry, resetSafetyCounters } from "./telemetry";
@@ -178,6 +179,12 @@ function resumeGoal(pi: ExtensionAPI, ctx: ExtensionCommandContext, scheduleCont
 	}
 	if (goal.status === "complete") {
 		notifyInfo(ctx, "Goal is complete. Use /goal clear before starting a new goal.");
+		return;
+	}
+	if (!canActivateGoal(goal)) {
+		const reason = budgetLimitReason(goal);
+		const resource = reason === "tokenBudget" ? "token" : reason === "timeBudget" ? "time" : "budget";
+		notifyWarning(ctx, `Cannot resume: ${resource} budget is still exhausted. Raise the budget or use /goal clear before resuming.`);
 		return;
 	}
 	const active: GoalState = { ...goal, status: "active", updatedAt: Date.now() };

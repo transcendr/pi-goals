@@ -32,6 +32,12 @@ export function isBudgetExhausted(goal: GoalState): BudgetLimitReason | undefine
 	return undefined;
 }
 
+export function canActivateGoal(goal: GoalState): boolean {
+	if (goal.status === "complete") return true;
+	if (isBudgetExhausted(goal)) return false;
+	return true;
+}
+
 function tokenPressure(goal: GoalState): BudgetPressure {
 	if (goal.tokenBudget === undefined) return none();
 	const remaining = goal.tokenBudget - goal.tokensUsed;

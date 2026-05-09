@@ -80,6 +80,7 @@ export function commandHint(status: GoalStatus): string {
 		case "paused":
 			return "Commands: /goal resume, /goal clear";
 		case "budgetLimited":
+			return "Commands: /goal clear (budget still exhausted; raise budget to resume)";
 		case "complete":
 			return "Commands: /goal clear";
 	}
