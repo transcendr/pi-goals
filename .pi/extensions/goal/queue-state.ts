@@ -1,9 +1,37 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { STATE_ENTRY_TYPE } from "./constants";
-import { generateQueueId } from "./queue-helpers";
-import type { GoalQueueEvent, GoalQueueRuntimeState, QueuedGoal } from "./queue-types";
 
+export type QueuedGoal = {
+	queueId: string;
+	objective: string;
+	tokenBudget?: number;
+	timeBudgetSeconds?: number;
+	source: "command" | "tool";
+	template?: string;
+	templateFlags?: Record<string, string>;
+	templateArgs?: string;
+	createdAt: number;
+};
+
+type GoalQueueEvent = {
+	version: 1;
+	kind: "enqueue" | "dequeue" | "remove" | "clear";
+	queueId?: string;
+	goal?: QueuedGoal | null;
+	reason: string;
+	at: number;
+};
+
+export type GoalQueueRuntimeState = {
+	queue: QueuedGoal[];
+};
+
+let queueCounter = 0;
 let runtimeQueue: QueuedGoal[] = [];
+
+function generateQueueId(): string {
+	return `q-${Date.now()}-${++queueCounter}`;
+}
 
 export function getQueue(): QueuedGoal[] {
 	return runtimeQueue;
