@@ -13,9 +13,7 @@ Create a goal to execute the resolved issue stack end-to-end with an auditable t
 {{args}}
 </issue_stack_request>
 
-Accept natural-language issue selectors such as `issue 026 through 028 and 035`; the resolver below extracts ranges and standalone issue numbers deterministically, so comma-list formatting is unnecessary.
-
-The resolver injects the execution context, workflow directory slugs, todo paths, run tag, and playbook/scratchpad paths. Use those injected values as the execution plan inputs.
+Execution inputs are provided by the resolved context and issue stack blocks below: mode, project, issue docs, workflow directories, todo paths, stack id, dependency edges, and playbook path.
 
 <repo_status>
 !`git status --short --untracked-files=all | sed -n '1,120p'; test -n "$(git status --short --untracked-files=all)" || printf 'clean: true\n'`
