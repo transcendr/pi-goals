@@ -11,6 +11,13 @@
 # numbers so index/runtime/surfaces can import down into stable helpers, while
 # helpers cannot import back upward into orchestration or UI surfaces.
 
+# Slop guard: Sentrux's current rules engine enforces graph/metric/layer rules,
+# not arbitrary lexical bans. Keep the local Sentrux quality command paired with
+# `npm run slop:goal`, which fails on TypeScript escape-hatch casts:
+#   - `as unknown as`
+#   - `as any`
+# Use `npm run quality:goal` for the combined gate.
+
 [constraints]
 max_cycles = 0
 max_cc = 20

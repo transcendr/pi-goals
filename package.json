@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "typecheck:goal": "tsc --noEmit --target ES2022 --module ESNext --moduleResolution node --ignoreDeprecations 6.0 --types node --strict --skipLibCheck .pi/extensions/goal/*.ts"
+    "typecheck:goal": "tsc --noEmit --target ES2022 --module ESNext --moduleResolution node --ignoreDeprecations 6.0 --types node --strict --skipLibCheck .pi/extensions/goal/*.ts",
+    "slop:goal": "if rg -n 'as unknown as|as any' .pi/extensions/goal; then exit 1; else exit 0; fi",
+    "quality:goal": "sentrux gate .pi/extensions/goal && sentrux check .pi/extensions/goal && npm run slop:goal && npm run typecheck:goal"
   },
   "repository": {
     "type": "git",
