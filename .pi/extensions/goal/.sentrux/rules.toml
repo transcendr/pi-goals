@@ -32,7 +32,7 @@ order = 0
 
 [[layers]]
 name = "runtime"
-paths = ["lifecycle.ts", "continuation.ts", "monitor.ts", "monitor-report.ts"]
+paths = ["lifecycle.ts", "continuation.ts", "monitor.ts", "monitor-report.ts", "queue-steering.ts"]
 order = 1
 
 [[layers]]

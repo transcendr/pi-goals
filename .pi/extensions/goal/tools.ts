@@ -6,7 +6,6 @@ import { createTelemetry, noteBudgetLimit } from "./telemetry";
 import { listGoalTemplateMetadata, resolveGoalTemplateByName } from "./templates";
 import { createGoalState, getGoal, getTelemetry, persistClearGoal, persistSetGoal, persistUpdateGoal } from "./state";
 import { registerGoalQueueTools } from "./queue-tools";
-import { sendQueueSteering } from "./queue-steering";
 import { syncGoalUi } from "./ui";
 import type { GoalCommandScheduler, GoalContinuationCanceller, GoalMonitorCanceller, GoalMonitorScheduler, GoalState, GoalStatus, GoalTelemetrySnapshot } from "./types";
 
@@ -50,6 +49,7 @@ type GoalToolRuntime = {
 	cancelMonitor?: GoalMonitorCanceller;
 	scheduleBudgetLimitWrapUp?: (ctx: ExtensionContext, goal: GoalState) => void;
 	getQueueSize?: () => number;
+	sendQueueSteering?: (reason: "goal-clear") => boolean;
 };
 
 export function registerGoalTools(
@@ -60,6 +60,7 @@ export function registerGoalTools(
 	cancelMonitor?: GoalMonitorCanceller,
 	scheduleBudgetLimitWrapUp?: (ctx: ExtensionContext, goal: GoalState) => void,
 	getQueueSize?: () => number,
+	sendQueueSteering?: (reason: "goal-clear") => boolean,
 ): void {
 	const runtime: GoalToolRuntime = { scheduleContinuation, cancelContinuation, scheduleMonitor, cancelMonitor, scheduleBudgetLimitWrapUp, getQueueSize };
 	registerGetGoalTool(pi);
@@ -172,7 +173,7 @@ function registerClearGoalTool(pi: ExtensionAPI, runtime: GoalToolRuntime): void
 			persistClearGoal(pi, "tool");
 			syncGoalUi(ctx, null);
 			const queueSize = runtime.getQueueSize?.() ?? 0;
-			if (queueSize > 0) sendQueueSteering(pi, "goal-clear");
+			if (queueSize > 0) runtime.sendQueueSteering?.("goal-clear");
 			const queueHint = queueSize > 0 ? ` ${queueSize} queued goal${queueSize > 1 ? "s" : ""} available. Queue steering was sent to the agent context.` : "";
 			return resultForGoal(null, getTelemetry(), goal ? `Goal cleared.${queueHint}` : `No goal was set.${queueHint}`);
 		},

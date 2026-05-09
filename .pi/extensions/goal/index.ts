@@ -5,6 +5,7 @@ import { registerGoalLifecycle } from "./lifecycle";
 import { cancelGoalMonitor, scheduleGoalMonitor } from "./monitor";
 import { registerGoalTools } from "./tools";
 import { getQueue } from "./queue-state";
+import { sendQueueSteering } from "./queue-steering";
 
 export default function goalExtension(pi: ExtensionAPI): void {
 	registerGoalCommand(
@@ -14,7 +15,8 @@ export default function goalExtension(pi: ExtensionAPI): void {
 		(ctx, goal) => interruptActiveGoalTurn(pi, ctx, goal),
 		(ctx) => scheduleGoalMonitor(pi, ctx),
 		cancelGoalMonitor,
+		(reason) => sendQueueSteering(pi, reason),
 	);
-	registerGoalTools(pi, (ctx, reason) => scheduleMaybeContinueGoal(pi, ctx, reason), cancelGoalContinuation, (ctx) => scheduleGoalMonitor(pi, ctx), cancelGoalMonitor, (ctx, goal) => scheduleBudgetLimitWrapUp(pi, ctx, goal), () => getQueue().length);
+	registerGoalTools(pi, (ctx, reason) => scheduleMaybeContinueGoal(pi, ctx, reason), cancelGoalContinuation, (ctx) => scheduleGoalMonitor(pi, ctx), cancelGoalMonitor, (ctx, goal) => scheduleBudgetLimitWrapUp(pi, ctx, goal), () => getQueue().length, (reason) => sendQueueSteering(pi, reason));
 	registerGoalLifecycle(pi);
 }

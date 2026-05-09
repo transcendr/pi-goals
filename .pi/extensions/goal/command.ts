@@ -15,9 +15,8 @@ import {
 	persistUpdateGoal,
 } from "./state";
 import { getQueue, enqueueGoal, persistEnqueue } from "./queue-state";
-import { sendQueueSteering } from "./queue-steering";
 import { notifyGoal, notifyInfo, notifyWarning, showGoalSummary, showNoGoal, syncGoalUi } from "./ui";
-import type { GoalCommandScheduler, GoalContinuationCanceller, GoalMonitorCanceller, GoalMonitorScheduler, GoalPauseInterrupter, GoalState } from "./types";
+import type { GoalCommandScheduler, GoalContinuationCanceller, GoalMonitorCanceller, GoalMonitorScheduler, GoalPauseInterrupter, GoalQueueSteeringSender, GoalState } from "./types";
 
 type GoalSubcommand = {
 	name: "pause" | "resume" | "clear" | "queue";
@@ -38,11 +37,12 @@ export function registerGoalCommand(
 	interruptActiveTurn: GoalPauseInterrupter,
 	scheduleMonitor: GoalMonitorScheduler,
 	cancelMonitor: GoalMonitorCanceller,
+	sendQueueSteering: GoalQueueSteeringSender,
 ): void {
 	pi.registerCommand("goal", {
 		description: "Set or view the goal for a long-running task",
 		getArgumentCompletions: goalArgumentCompletions,
-		handler: async (args, ctx) => handleGoalCommand(pi, args, ctx, scheduleContinuation, cancelContinuation, interruptActiveTurn, scheduleMonitor, cancelMonitor),
+		handler: async (args, ctx) => handleGoalCommand(pi, args, ctx, scheduleContinuation, cancelContinuation, interruptActiveTurn, scheduleMonitor, cancelMonitor, sendQueueSteering),
 	});
 }
 
@@ -94,6 +94,7 @@ async function handleGoalCommand(
 	interruptActiveTurn: GoalPauseInterrupter,
 	scheduleMonitor: GoalMonitorScheduler,
 	cancelMonitor: GoalMonitorCanceller,
+	sendQueueSteering: GoalQueueSteeringSender,
 ): Promise<void> {
 	const trimmed = args.trim();
 	if (!trimmed) {
@@ -103,7 +104,7 @@ async function handleGoalCommand(
 		return;
 	}
 
-	const handled = handleGoalControlCommand(pi, trimmed, ctx, scheduleContinuation, cancelContinuation, interruptActiveTurn, scheduleMonitor, cancelMonitor);
+	const handled = handleGoalControlCommand(pi, trimmed, ctx, scheduleContinuation, cancelContinuation, interruptActiveTurn, scheduleMonitor, cancelMonitor, sendQueueSteering);
 	if (handled) return;
 
 	await setGoalObjective(pi, resolveTemplateOrObjective(trimmed, ctx), ctx, scheduleContinuation, cancelContinuation, scheduleMonitor, cancelMonitor);
@@ -118,6 +119,7 @@ function handleGoalControlCommand(
 	interruptActiveTurn: GoalPauseInterrupter,
 	scheduleMonitor: GoalMonitorScheduler,
 	cancelMonitor: GoalMonitorCanceller,
+	sendQueueSteering: GoalQueueSteeringSender,
 ): boolean {
 	const firstToken = trimmed.split(/\s+/, 1)[0].toLowerCase();
 	if (firstToken === "queue") {
@@ -126,7 +128,7 @@ function handleGoalControlCommand(
 	}
 	if (trimmed === "pause") pauseGoal(pi, ctx, cancelContinuation, interruptActiveTurn, cancelMonitor);
 	else if (trimmed === "resume") resumeGoal(pi, ctx, scheduleContinuation, scheduleMonitor);
-	else if (trimmed === "clear") clearGoal(pi, ctx, cancelContinuation, cancelMonitor);
+	else if (trimmed === "clear") clearGoal(pi, ctx, cancelContinuation, cancelMonitor, sendQueueSteering);
 	else return false;
 	return true;
 }
@@ -256,7 +258,7 @@ function resumeGoal(pi: ExtensionAPI, ctx: ExtensionCommandContext, scheduleCont
 	scheduleContinuation(ctx, "resumed");
 }
 
-function clearGoal(pi: ExtensionAPI, ctx: ExtensionCommandContext, cancelContinuation: GoalContinuationCanceller, cancelMonitor: GoalMonitorCanceller): void {
+function clearGoal(pi: ExtensionAPI, ctx: ExtensionCommandContext, cancelContinuation: GoalContinuationCanceller, cancelMonitor: GoalMonitorCanceller, sendQueueSteering: GoalQueueSteeringSender): void {
 	const goal = getGoal();
 	const hadGoal = Boolean(goal);
 	cancelContinuation(goal?.goalId, "clear");
@@ -264,7 +266,7 @@ function clearGoal(pi: ExtensionAPI, ctx: ExtensionCommandContext, cancelContinu
 	const result = persistClearGoal(pi, "command");
 	syncGoalUi(ctx, result.goal);
 	const queue = getQueue();
-	if (queue.length > 0) sendQueueSteering(pi, "goal-clear");
+	if (queue.length > 0) sendQueueSteering("goal-clear");
 	const queueHint = queue.length > 0 ? `\n${queue.length} queued goal${queue.length > 1 ? "s" : ""} available. Queue steering was sent to the agent context.` : "";
 	notifyInfo(ctx, hadGoal ? `Goal cleared${queueHint}` : `No goal to clear\nThis session does not currently have a goal.${queueHint}`);
 }
