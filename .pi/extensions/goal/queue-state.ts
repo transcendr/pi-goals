@@ -15,7 +15,7 @@ export type QueuedGoal = {
 
 type GoalQueueEvent = {
 	version: 1;
-	kind: "enqueue" | "dequeue" | "remove" | "clear";
+	kind: "enqueue" | "dequeue" | "remove";
 	queueId?: string;
 	goal?: QueuedGoal | null;
 	reason: string;
@@ -63,11 +63,6 @@ export function removeGoal(queueId: string): QueuedGoal | undefined {
 	return runtimeQueue.splice(index, 1)[0];
 }
 
-export function clearQueue(): QueuedGoal[] {
-	const removed = runtimeQueue.splice(0);
-	return removed;
-}
-
 export function replayQueueState(ctx: { sessionManager: { getBranch(): unknown[] } }): GoalQueueRuntimeState {
 	let queue: QueuedGoal[] = [];
 	for (const entry of ctx.sessionManager.getBranch()) {
@@ -104,7 +99,7 @@ function entryToQueueEvent(entry: unknown): GoalQueueEvent | null {
 	if (typeof data !== "object" || data === null) return null;
 	const d = data as Record<string, unknown>;
 	if (d.version !== 1) return null;
-	if (!["enqueue", "dequeue", "remove", "clear"].includes(String(d.kind))) return null;
+	if (!["enqueue", "dequeue", "remove"].includes(String(d.kind))) return null;
 	return d as GoalQueueEvent;
 }
 
@@ -122,9 +117,6 @@ function applyQueueEvent(queue: QueuedGoal[], event: GoalQueueEvent): QueuedGoal
 				const idx = q.findIndex((g) => g.queueId === event.queueId);
 				if (idx !== -1) q.splice(idx, 1);
 			}
-			break;
-		case "clear":
-			q.length = 0;
 			break;
 	}
 	return q;
