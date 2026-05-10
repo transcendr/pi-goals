@@ -1,4 +1,5 @@
 import { truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
+import { evaluateCompletionFloor } from "./floor";
 import { commandHint, formatElapsed, formatTokensCompact, goalStatusLabel, objectiveExcerpt } from "./format";
 import type { GoalState, GoalStatus } from "./types";
 
@@ -47,6 +48,7 @@ export function renderGoalWidget(goal: GoalState, theme: GoalWidgetTheme, width:
 		contentLine(theme.fg("dim", objectiveExcerpt(goal.objective, contentWidth)), contentWidth, theme),
 		contentLine(resourceLine(timeResource(goal), theme), contentWidth, theme),
 		contentLine(resourceLine(tokenResource(goal), theme), contentWidth, theme),
+		contentLine(floorLine(goal, theme), contentWidth, theme),
 		contentLine(commandLine(goal.status, theme), contentWidth, theme),
 		bottomBorder(cardWidth, theme),
 	];
@@ -69,6 +71,7 @@ function compactLines(goal: GoalState, theme: GoalWidgetTheme, width: number): s
 	return [
 		truncateToWidth(`${status} ${objectiveExcerpt(goal.objective, Math.max(6, width - 10))}`, width),
 		truncateToWidth(`${timeValue(goal)}  ${tokenValue(goal)}`, width),
+		truncateToWidth(compactFloorValue(goal), width),
 		truncateToWidth(commandHint(goal.status).replace(/^Commands: /, ""), width),
 	];
 }
@@ -120,12 +123,29 @@ function tokenResource(goal: GoalState): ResourceSpec {
 	return { icon: "◈", label: "Tokens", used: goal.tokensUsed, budget: goal.tokenBudget, format: formatTokensCompact, suffix: "tokens" };
 }
 
+function floorLine(goal: GoalState, theme: GoalWidgetTheme): string {
+	const floor = evaluateCompletionFloor(goal);
+	if (!floor.anyFloorConfigured) return `${theme.fg("muted", "floor")} none`;
+	const parts: string[] = [];
+	if (goal.minTimeSecondsBeforeWrapUp !== undefined) parts.push(`time ${formatElapsed(goal.timeUsedSeconds)} / ${formatElapsed(goal.minTimeSecondsBeforeWrapUp)}`);
+	if (goal.minTokensBeforeWrapUp !== undefined) parts.push(`tokens ${formatTokensCompact(goal.tokensUsed)} / ${formatTokensCompact(goal.minTokensBeforeWrapUp)}`);
+	const state = floor.allFloorsMet ? theme.fg("success", "met") : theme.fg("warning", "before wrap-up");
+	return `⌊ ${theme.fg("muted", "floor")}  ${parts.join("; ")}  ${state}`;
+}
+
 function timeValue(goal: GoalState): string {
 	return goal.timeBudgetSeconds === undefined ? `⏱ ${formatElapsed(goal.timeUsedSeconds)}` : `⏱ ${formatElapsed(goal.timeUsedSeconds)} / ${formatElapsed(goal.timeBudgetSeconds)}`;
 }
 
 function tokenValue(goal: GoalState): string {
 	return goal.tokenBudget === undefined ? `◈ ${formatTokensCompact(goal.tokensUsed)} tokens` : `◈ ${formatTokensCompact(goal.tokensUsed)} / ${formatTokensCompact(goal.tokenBudget)}`;
+}
+
+function compactFloorValue(goal: GoalState): string {
+	const floor = evaluateCompletionFloor(goal);
+	if (!floor.anyFloorConfigured) return "floor none";
+	if (goal.minTimeSecondsBeforeWrapUp !== undefined) return `floor ⏱ ${formatElapsed(goal.timeUsedSeconds)} / ${formatElapsed(goal.minTimeSecondsBeforeWrapUp)}`;
+	return `floor ◈ ${formatTokensCompact(goal.tokensUsed)} / ${formatTokensCompact(goal.minTokensBeforeWrapUp ?? 0)}`;
 }
 
 function resourceValue(value: number, format: (value: number) => string, suffix?: string): string {

@@ -1,9 +1,12 @@
 import { BUDGET_LIMIT_PROMPT_ID, CONTINUATION_PROMPT_ID, PAUSE_PROMPT_ID } from "./constants";
+import { evaluateCompletionFloor } from "./floor";
+import { buildFloorContinuationGuidance, selectFloorWorkCard } from "./floor-steering";
 import { escapeXml } from "./format";
-import type { GoalState, GoalSteeringDetails } from "./types";
+import type { GoalState, GoalSteeringDetails, GoalTelemetrySnapshot } from "./types";
 
-export function buildContinuationPrompt(goal: GoalState): { content: string; details: GoalSteeringDetails } {
+export function buildContinuationPrompt(goal: GoalState, telemetry: GoalTelemetrySnapshot | null = null): { content: string; details: GoalSteeringDetails } {
 	const budget = budgetLines(goal, true);
+	const floorGuidance = floorContinuationSection(goal, telemetry);
 	return {
 		content: `Continue working toward the active session goal.
 
@@ -14,7 +17,7 @@ ${escapeXml(goal.objective)}
 </untrusted_objective>
 
 Budget:
-${budget}
+${budget}${floorGuidance}
 
 Avoid repeating work that is already done. Choose the next concrete action toward the objective. Do not reply with only a planning or status update; either take a concrete tool-backed step, ask the user for missing required input, or complete the goal if the audit proves it is achieved.
 
@@ -73,14 +76,26 @@ Do not call update_goal unless the goal is actually complete.`,
 	};
 }
 
+function floorContinuationSection(goal: GoalState, telemetry: GoalTelemetrySnapshot | null): string {
+	const floor = evaluateCompletionFloor(goal);
+	if (!floor.anyFloorConfigured || floor.allFloorsMet) return "";
+	const card = selectFloorWorkCard({ goal, telemetry, floor });
+	if (!card) return "";
+	return `\n\nCompletion floor:\n${buildFloorContinuationGuidance({ goal, telemetry, floor, card })}`;
+}
+
 function budgetLines(goal: GoalState, includeRemaining: boolean): string {
 	const tokenBudget = goal.tokenBudget ?? "none";
 	const timeBudget = goal.timeBudgetSeconds === undefined ? "none" : `${goal.timeBudgetSeconds} seconds`;
+	const tokenFloor = goal.minTokensBeforeWrapUp === undefined ? "none" : `${goal.minTokensBeforeWrapUp} tokens`;
+	const timeFloor = goal.minTimeSecondsBeforeWrapUp === undefined ? "none" : `${goal.minTimeSecondsBeforeWrapUp} seconds`;
 	const lines = [
 		`- Time spent pursuing goal: ${goal.timeUsedSeconds} seconds`,
 		`- Time budget: ${timeBudget}`,
 		`- Tokens used: ${goal.tokensUsed}`,
 		`- Token budget: ${tokenBudget}`,
+		`- Minimum time before wrap-up: ${timeFloor}`,
+		`- Minimum tokens before wrap-up: ${tokenFloor}`,
 	];
 	if (includeRemaining) {
 		const tokensRemaining = goal.tokenBudget === undefined ? "unknown" : Math.max(0, goal.tokenBudget - goal.tokensUsed);

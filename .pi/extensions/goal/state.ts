@@ -3,6 +3,15 @@ import { STATE_ENTRY_TYPE, STATE_EVENT_VERSION } from "./constants";
 import { isTelemetry } from "./telemetry";
 import type { GoalRuntimeState, GoalState, GoalTelemetrySnapshot, MutationResult, PiGoalEventReason, PiGoalStateEvent } from "./types";
 
+export type CreateGoalStateInput = {
+	objective: string;
+	tokenBudget?: number;
+	timeBudgetSeconds?: number;
+	minTokensBeforeWrapUp?: number;
+	minTimeSecondsBeforeWrapUp?: number;
+	now?: number;
+};
+
 let runtimeState: GoalRuntimeState = { goal: null, telemetry: null };
 
 export function getGoal(): GoalState | null {
@@ -32,13 +41,16 @@ export function setRuntimeStateForTests(state: GoalRuntimeState): void {
 	runtimeState = state;
 }
 
-export function createGoalState(objective: string, tokenBudget?: number, timeBudgetSeconds?: number, now = Date.now()): GoalState {
+export function createGoalState(input: CreateGoalStateInput): GoalState {
+	const now = input.now ?? Date.now();
 	return {
 		goalId: crypto.randomUUID(),
-		objective,
+		objective: input.objective,
 		status: "active",
-		tokenBudget,
-		timeBudgetSeconds,
+		tokenBudget: input.tokenBudget,
+		timeBudgetSeconds: input.timeBudgetSeconds,
+		minTokensBeforeWrapUp: input.minTokensBeforeWrapUp,
+		minTimeSecondsBeforeWrapUp: input.minTimeSecondsBeforeWrapUp,
 		tokensUsed: 0,
 		timeUsedSeconds: 0,
 		createdAt: now,
@@ -116,7 +128,8 @@ function persistEvent(
 function applyEvent(state: GoalRuntimeState, event: PiGoalStateEvent): GoalRuntimeState {
 	if (event.kind === "clear") return { goal: null, telemetry: null };
 	if (event.goalId && state.goal && event.goalId !== state.goal.goalId && event.kind !== "set") return state;
-	const goal = isGoalState(event.goal) ? event.goal : state.goal;
+	const parsedGoal = toGoalState(event.goal);
+	const goal = parsedGoal ?? state.goal;
 	const telemetry = event.telemetry === null ? null : isTelemetry(event.telemetry) ? event.telemetry : state.telemetry;
 	return { goal, telemetry };
 }
@@ -134,8 +147,19 @@ function isGoalEvent(value: unknown): value is PiGoalStateEvent {
 	return v.version === STATE_EVENT_VERSION && typeof v.kind === "string" && typeof v.reason === "string";
 }
 
-function isGoalState(value: unknown): value is GoalState {
-	if (typeof value !== "object" || value === null) return false;
+function toGoalState(value: unknown): GoalState | null {
+	if (typeof value !== "object" || value === null) return null;
 	const v = value as Record<string, unknown>;
-	return typeof v.goalId === "string" && typeof v.objective === "string" && typeof v.status === "string";
+	if (typeof v.goalId !== "string" || typeof v.objective !== "string" || typeof v.status !== "string") return null;
+	const minTokensBeforeWrapUp = optionalPositiveInteger(v.minTokensBeforeWrapUp);
+	const minTimeSecondsBeforeWrapUp = optionalPositiveInteger(v.minTimeSecondsBeforeWrapUp);
+	return {
+		...(v as GoalState),
+		minTokensBeforeWrapUp,
+		minTimeSecondsBeforeWrapUp,
+	};
+}
+
+function optionalPositiveInteger(value: unknown): number | undefined {
+	return typeof value === "number" && Number.isInteger(value) && value > 0 ? value : undefined;
 }

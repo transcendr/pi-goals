@@ -9,6 +9,7 @@ Persistent goal tracking for [Pi](https://www.npmjs.com/package/@earendil-works/
 - `/goal` command for creating, pausing, resuming, replacing, and clearing a persistent objective.
 - Rewindable `/tree`-compatible state persisted into the Pi session branch.
 - Time and token budgets with goal-aware continuation and wrap-up behavior.
+- Optional completion floors that prevent premature wrap-up until minimum goal-directed work has happened.
 - Reusable token-aware prompt templates from `.pi-goals/` directories.
 - Durable FIFO goal queue for sequential goal work.
 - Queue-aware model tools for listing, enqueuing, starting, dequeuing, and removing queued goals.
@@ -99,6 +100,17 @@ Use `/goal` when you want direct command control; use natural language when you 
 
 When a goal reaches its time or token budget, `pi-goals` steers the agent into wrap-up instead of silently continuing. Exhausted goals cannot be resumed until the budget is raised or the goal is cleared.
 
+## Completion floors
+
+Model tools can set optional minimum work floors when creating or updating a goal:
+
+- `min_tokens_before_wrap_up`
+- `min_time_seconds_before_wrap_up`
+
+These are completion floors, not quota targets. If an agent calls `update_goal({ status: "complete" })` before configured floors are met, completion is deferred, the goal remains active, and the tool returns structured `completion_blocked_by_floor`, floor deltas, and a concrete `next_floor_pass` from the value-pass catalog. Steering asks for one objective-linked improvement pass such as requirement-gap audit, validation expansion, adversarial review, simplification/deslop, compatibility review, or docs/handoff evidence.
+
+Maximum budgets still win: budget-limited goals wrap up rather than working past a cap to satisfy a floor. Users can remove or lower a floor with `update_goal`, but floor edits and `status: "complete"` must be separate calls.
+
 ## Reusable `.pi-goals` prompts
 
 `pi-goals` can turn project prompt templates into reusable goal objectives. Put Markdown, `.markdown`, or `.txt` templates under any `.pi-goals/` directory in your workspace:
@@ -141,14 +153,15 @@ Reusable templates are available to both slash commands and model tools. Agents 
 
 ## Automated churn monitor
 
-Long-running goals can drift, loop, or stall. `pi-goals` runs a lightweight goal-scoped churn monitor that periodically reviews sparse session context, recent goal telemetry, and recent monitor decisions.
+Long-running goals can drift, loop, or stall. `pi-goals` runs a lightweight goal-scoped churn monitor that periodically reviews sparse session context, recent goal telemetry, recent completion-floor state, and recent monitor decisions.
 
 The monitor can:
 
 - detect no-progress loops and repeated automatic turns,
 - steer the worker back toward the objective,
 - escalate when a safety pause is needed,
-- keep its own bounded churn log in the Pi branch.
+- keep its own bounded churn log in the Pi branch,
+- identify floor-specific patterns such as `quota_filling_churn`, `floor_ignored_early_wrapup`, and `productive_floor_deepening`.
 
 Monitor state is goal-scoped and replayable, so branching and `/tree` operations stay aligned with the active goal history.
 

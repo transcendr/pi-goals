@@ -1,6 +1,6 @@
 # ISSUE-036 — Minimum goal spend floors
 
-Status: open — execution-ready
+Status: fixed
 Priority: P1
 Owner: pi-goal automation
 Created: 2026-05-10

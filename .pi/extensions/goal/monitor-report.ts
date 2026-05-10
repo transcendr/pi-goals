@@ -4,8 +4,9 @@ import {
 	GOAL_MONITOR_RECENT_BRANCH_ENTRY_LIMIT,
 	GOAL_MONITOR_RECENT_LOG_LIMIT,
 } from "./constants";
+import { evaluateCompletionFloor } from "./floor";
 import { getLastMonitorReportAt, getRecentMonitorLogs, noteMonitorReportSent } from "./monitor-state";
-import type { GoalMonitorRecentEntry, GoalMonitorReport, GoalState, GoalTelemetrySnapshot } from "./types";
+import type { GoalMonitorFloorReport, GoalMonitorRecentEntry, GoalMonitorReport, GoalState, GoalTelemetrySnapshot } from "./types";
 
 export function buildGoalMonitorReport(ctx: ExtensionContext, goal: GoalState, telemetry: GoalTelemetrySnapshot | null, now = Date.now()): GoalMonitorReport {
 	const lastSentAt = getLastMonitorReportAt(goal.goalId);
@@ -27,6 +28,20 @@ export function buildGoalMonitorReport(ctx: ExtensionContext, goal: GoalState, t
 		},
 		recentEntries: recentBranchEntries(branch),
 		recentLogEntries: getRecentMonitorLogs(goal.goalId, GOAL_MONITOR_RECENT_LOG_LIMIT),
+		floor: buildFloorReport(goal, telemetry),
+	};
+}
+
+function buildFloorReport(goal: GoalState, telemetry: GoalTelemetrySnapshot | null): GoalMonitorFloorReport {
+	const floor = evaluateCompletionFloor(goal);
+	return {
+		...floor,
+		completionBlockedByFloor: floor.anyFloorConfigured && !floor.allFloorsMet,
+		lastFloorCardId: telemetry?.lastFloorCardId,
+		completedFloorCardIds: telemetry?.completedFloorCardIds ?? [],
+		floorSteerCount: telemetry?.floorSteerCount ?? 0,
+		floorChurnSteerCount: telemetry?.floorChurnSteerCount ?? 0,
+		floorQualityState: telemetry?.floorQualityState ?? (floor.anyFloorConfigured && !floor.allFloorsMet ? "eligible" : "inactive"),
 	};
 }
 
