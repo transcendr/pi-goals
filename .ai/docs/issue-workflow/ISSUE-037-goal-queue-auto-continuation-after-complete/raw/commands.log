@@ -1,0 +1,7 @@
+# Command log — ISSUE-037
+
+## Commands/files inspected
+- Read feature-workflow-pipelines SKILL.md and references canonical-issue-docs-and-toon-synthesis.md, research-pass.md, design-landscape-exploration-and-choice-locking.md, toon-for-issues-and-execution-planning.md.
+- Read .pi/extensions/goal/lifecycle.ts, index.ts, tools.ts, continuation.ts, queue-state.ts, queue-steering.ts.
+- Ran list_goal_queue and observed q-1778443864560-5 and q-1778443864560-6 remained after q-1778443864560-4 completion.
+- Ran get_goal after q-1778443864560-4 completion and observed completed goal.
