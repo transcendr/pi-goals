@@ -1,6 +1,6 @@
 # ISSUE-034 — Prevent unsatisfied queued goal discard
 
-Status: open
+Status: fixed
 Priority: critical
 Owner: unassigned
 Created: 2026-05-10

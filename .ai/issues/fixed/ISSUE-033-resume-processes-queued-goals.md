@@ -1,6 +1,6 @@
 # ISSUE-033 — Resume processes queued goals from idle state
 
-Status: open
+Status: fixed
 Priority: high
 Owner: unassigned
 Created: 2026-05-10
