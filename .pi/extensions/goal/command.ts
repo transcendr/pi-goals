@@ -194,7 +194,7 @@ async function setGoalObjective(
 		cancelMonitor(existing.goalId, "replace");
 	}
 
-	const goal = createGoalState(validation.objective);
+	const goal = createGoalState({ objective: validation.objective });
 	const telemetry = createTelemetry(goal.goalId, goal.createdAt);
 	persistSetGoal(pi, goal, telemetry, "command");
 	syncGoalUi(ctx, goal);

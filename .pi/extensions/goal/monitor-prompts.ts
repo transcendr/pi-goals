@@ -27,6 +27,22 @@ Look for patterns such as:
 - thrash
 - user_escalation_needed
 
+Floor-specific stable pattern names when completion floors are unmet:
+- floor_ignored_early_wrapup
+- quota_filling_churn
+- repeated_floor_pass_no_new_evidence
+- productive_floor_deepening
+- floor_blocked_autonomous_fallback_needed
+- floor_quality_exhausted
+
+When completion floors are unmet, floors are a quality backstop, not a quota target:
+- return watch when the worker is doing a concrete catalog value pass and recent context shows new evidence, changed artifacts, proof output, compatibility findings, or a precise inspected no-gap finding;
+- return steer when the worker retries early wrap-up, repeats summaries, avoids tools/evidence, burns time/tokens without objective-linked improvement, repeats the same floor pass without new evidence, or asks the user for floor-unmet direction without explicit objective permission;
+- monitor steering must name one next value pass and one concrete next action, for example: "Switch to validation_expansion: add or run one probe that would fail if the current artifact missed the main invariant.";
+- do not return escalate merely because floors are unmet or no obvious next pass appears;
+- use escalate only when the objective explicitly allows user input or a separate safety/authorization blocker requires it;
+- after repeated bad/no-evidence floor work, use floor_quality_exhausted so the completion gate can allow completion with a recorded no_more_valuable_work_reason rather than trapping the worker in churn.
+
 Task-specific details belong in evidence, not in pattern names.
 
 If steering is warranted:
@@ -83,6 +99,7 @@ function renderReport(report: GoalMonitorReport): string {
     <branch_entry_count>${report.session.branchEntryCount}</branch_entry_count>
   </session>
   ${renderGoal(report)}
+  ${renderFloor(report)}
   ${renderTelemetry(report)}
   <recent_worker_context>
 ${report.recentEntries.map(renderRecentEntry).join("\n")}
@@ -105,6 +122,25 @@ function renderGoal(report: GoalMonitorReport): string {
     <created_at>${goal.createdAt}</created_at>
     <updated_at>${goal.updatedAt}</updated_at>
   </goal>`;
+}
+
+function renderFloor(report: GoalMonitorReport): string {
+	const floor = report.floor;
+	return `<floor>
+    <min_tokens_before_wrap_up>${floor.minTokensBeforeWrapUp ?? "none"}</min_tokens_before_wrap_up>
+    <min_time_seconds_before_wrap_up>${floor.minTimeSecondsBeforeWrapUp ?? "none"}</min_time_seconds_before_wrap_up>
+    <tokens_remaining_before_wrap_up>${floor.tokensRemainingBeforeWrapUp ?? "none"}</tokens_remaining_before_wrap_up>
+    <time_seconds_remaining_before_wrap_up>${floor.timeSecondsRemainingBeforeWrapUp ?? "none"}</time_seconds_remaining_before_wrap_up>
+    <token_floor_met>${floor.tokenFloorMet}</token_floor_met>
+    <time_floor_met>${floor.timeFloorMet}</time_floor_met>
+    <all_floors_met>${floor.allFloorsMet}</all_floors_met>
+    <completion_blocked_by_floor>${floor.completionBlockedByFloor}</completion_blocked_by_floor>
+    <last_floor_card_id>${escapeXml(floor.lastFloorCardId ?? "none")}</last_floor_card_id>
+    <completed_floor_card_ids>${escapeXml(floor.completedFloorCardIds.join(",") || "none")}</completed_floor_card_ids>
+    <floor_steer_count>${floor.floorSteerCount}</floor_steer_count>
+    <floor_churn_steer_count>${floor.floorChurnSteerCount}</floor_churn_steer_count>
+    <floor_quality_state>${floor.floorQualityState}</floor_quality_state>
+  </floor>`;
 }
 
 function renderTelemetry(report: GoalMonitorReport): string {
@@ -130,6 +166,12 @@ function renderTelemetry(report: GoalMonitorReport): string {
     <last_budget_hard_stop_reason>${escapeXml(telemetry.lastBudgetHardStopReason ?? "none")}</last_budget_hard_stop_reason>
     <token_budget_warning_sent>${telemetry.tokenBudgetWarningSent ?? false}</token_budget_warning_sent>
     <time_budget_warning_sent>${telemetry.timeBudgetWarningSent ?? false}</time_budget_warning_sent>
+    <last_floor_card_id>${escapeXml(telemetry.lastFloorCardId ?? "none")}</last_floor_card_id>
+    <completed_floor_card_ids>${escapeXml((telemetry.completedFloorCardIds ?? []).join(",") || "none")}</completed_floor_card_ids>
+    <floor_steer_count>${telemetry.floorSteerCount ?? 0}</floor_steer_count>
+    <floor_churn_steer_count>${telemetry.floorChurnSteerCount ?? 0}</floor_churn_steer_count>
+    <floor_quality_state>${escapeXml(telemetry.floorQualityState ?? "inactive")}</floor_quality_state>
+    <no_more_valuable_work_reason>${escapeXml(telemetry.noMoreValuableWorkReason ?? "none")}</no_more_valuable_work_reason>
     <updated_at>${telemetry.updatedAt}</updated_at>
   </telemetry>`;
 }

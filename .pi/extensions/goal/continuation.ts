@@ -85,7 +85,7 @@ async function maybeContinueGoal(pi: ExtensionAPI, ctx: ExtensionContext, reason
 	if (telemetry && telemetry.consecutiveAutoTurns >= MAX_CONSECUTIVE_AUTO_TURNS) return skip(pi, "safetyCap");
 	if (telemetry && telemetry.consecutiveNoProgressTurns >= MAX_NO_PROGRESS_AUTO_TURNS) return skip(pi, "safetyCap");
 
-	const prompt = buildContinuationPrompt(goal);
+	const prompt = buildContinuationPrompt(goal, telemetry);
 	setNextTurnOrigin("auto");
 	pi.sendMessage(
 		{ customType: CONTINUATION_MESSAGE_TYPE, content: prompt.content, display: false, details: { ...prompt.details, reason } },

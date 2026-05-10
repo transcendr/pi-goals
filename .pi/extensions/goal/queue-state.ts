@@ -6,6 +6,8 @@ export type QueuedGoal = {
 	objective: string;
 	tokenBudget?: number;
 	timeBudgetSeconds?: number;
+	minTokensBeforeWrapUp?: number;
+	minTimeSecondsBeforeWrapUp?: number;
 	source: "command" | "tool";
 	template?: string;
 	templateFlags?: Record<string, string>;
@@ -61,12 +63,14 @@ export function getQueue(): QueuedGoal[] {
 	return runtimeQueue;
 }
 
-export function enqueueGoal(objective: string, source: "command" | "tool", opts?: { tokenBudget?: number; timeBudgetSeconds?: number; template?: string; templateFlags?: Record<string, string>; templateArgs?: string }): QueuedGoal {
+export function enqueueGoal(objective: string, source: "command" | "tool", opts?: { tokenBudget?: number; timeBudgetSeconds?: number; minTokensBeforeWrapUp?: number; minTimeSecondsBeforeWrapUp?: number; template?: string; templateFlags?: Record<string, string>; templateArgs?: string }): QueuedGoal {
 	const goal: QueuedGoal = {
 		queueId: generateQueueId(),
 		objective,
 		tokenBudget: opts?.tokenBudget,
 		timeBudgetSeconds: opts?.timeBudgetSeconds,
+		minTokensBeforeWrapUp: opts?.minTokensBeforeWrapUp,
+		minTimeSecondsBeforeWrapUp: opts?.minTimeSecondsBeforeWrapUp,
 		source,
 		template: opts?.template,
 		templateFlags: opts?.templateFlags,
@@ -186,6 +190,10 @@ function toQueuedGoal(value: unknown): QueuedGoal | null {
 	if (!tokenBudget.ok) return null;
 	const timeBudgetSeconds = parseOptionalPositiveIntegerField(raw.timeBudgetSeconds);
 	if (!timeBudgetSeconds.ok) return null;
+	const minTokensBeforeWrapUp = parseOptionalPositiveIntegerField(raw.minTokensBeforeWrapUp);
+	if (!minTokensBeforeWrapUp.ok) return null;
+	const minTimeSecondsBeforeWrapUp = parseOptionalPositiveIntegerField(raw.minTimeSecondsBeforeWrapUp);
+	if (!minTimeSecondsBeforeWrapUp.ok) return null;
 	const templateFlags = parseOptionalStringRecordField(raw.templateFlags);
 	if (!templateFlags.ok) return null;
 	const template = parseOptionalStringField(raw.template);
@@ -198,6 +206,8 @@ function toQueuedGoal(value: unknown): QueuedGoal | null {
 		objective,
 		tokenBudget: tokenBudget.value,
 		timeBudgetSeconds: timeBudgetSeconds.value,
+		minTokensBeforeWrapUp: minTokensBeforeWrapUp.value,
+		minTimeSecondsBeforeWrapUp: minTimeSecondsBeforeWrapUp.value,
 		source,
 		template: template.value,
 		templateFlags: templateFlags.value,

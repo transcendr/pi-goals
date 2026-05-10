@@ -11,7 +11,8 @@ import { extractXmlPayload, readXmlTag, readXmlTags, requireXmlTag } from "./mod
 import { buildGoalMonitorPrompt, buildGoalMonitorSteerPrompt } from "./monitor-prompts";
 import { buildGoalMonitorReport } from "./monitor-report";
 import { persistMonitorDecisionLog, replayGoalMonitorLogs, resetGoalMonitorLogRuntime } from "./monitor-state";
-import { getGoal, getTelemetry } from "./state";
+import { getGoal, getTelemetry, persistTelemetry } from "./state";
+import { applyMonitorDecisionToFloorTelemetry } from "./telemetry";
 import { notifyWarning } from "./ui";
 import type { GoalMonitorConfidence, GoalMonitorDecision, GoalMonitorReport } from "./types";
 
@@ -120,8 +121,17 @@ async function handleMonitorOutput(pi: ExtensionAPI, ctx: ExtensionContext, repo
 	const steerInjected = shouldAcceptDecision(report) && parsed.decision.action === "steer" && Boolean(parsed.decision.steer);
 	persistMonitorDecisionLog(pi, report.goalId, report.reportId, parsed.decision, steerInjected);
 	if (!shouldAcceptDecision(report)) return;
+	persistAcceptedMonitorFloorTelemetry(pi, report, parsed.decision);
 	if (parsed.decision.action === "steer" && parsed.decision.steer) injectMonitorSteer(pi, report, parsed.decision.steer);
 	if (parsed.decision.action === "escalate") notifyWarning(ctx, monitorEscalationText(parsed.decision));
+}
+
+function persistAcceptedMonitorFloorTelemetry(pi: ExtensionAPI, report: GoalMonitorReport, decision: GoalMonitorDecision): void {
+	if (!report.floor.completionBlockedByFloor) return;
+	const current = getGoal();
+	if (!current || current.goalId !== report.goalId || current.updatedAt !== report.goal.updatedAt) return;
+	const next = applyMonitorDecisionToFloorTelemetry(getTelemetry(), decision);
+	if (next) persistTelemetry(pi, next, "floor");
 }
 
 function injectMonitorSteer(pi: ExtensionAPI, report: GoalMonitorReport, steer: string): void {

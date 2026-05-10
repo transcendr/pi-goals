@@ -1,4 +1,5 @@
 import { budgetLimitReason } from "./budget";
+import { evaluateCompletionFloor } from "./floor";
 import { GOAL_USAGE, GOAL_USAGE_HINT, LONG_OBJECTIVE_HINT, MAX_OBJECTIVE_CHARS, OBJECTIVE_EXCERPT_CHARS } from "./constants";
 import type { GoalState, GoalStatus } from "./types";
 
@@ -105,8 +106,20 @@ export function formatTokenResource(goal: GoalState): string {
 	return `Tokens: ${used} / ${formatTokensCompact(goal.tokenBudget)}`;
 }
 
+export function formatTimeFloor(goal: GoalState): string | undefined {
+	if (goal.minTimeSecondsBeforeWrapUp === undefined) return undefined;
+	const floor = evaluateCompletionFloor(goal);
+	return `Time floor: ${formatElapsed(goal.timeUsedSeconds)} / ${formatElapsed(goal.minTimeSecondsBeforeWrapUp)}${floor.timeFloorMet ? " met" : " before wrap-up"}`;
+}
+
+export function formatTokenFloor(goal: GoalState): string | undefined {
+	if (goal.minTokensBeforeWrapUp === undefined) return undefined;
+	const floor = evaluateCompletionFloor(goal);
+	return `Token floor: ${formatTokensCompact(goal.tokensUsed)} / ${formatTokensCompact(goal.minTokensBeforeWrapUp)}${floor.tokenFloorMet ? " met" : " before wrap-up"}`;
+}
+
 export function goalUsageSummary(goal: GoalState): string {
-	return `${formatTimeResource(goal)}; ${formatTokenResource(goal)}`;
+	return [formatTimeResource(goal), formatTokenResource(goal), formatTimeFloor(goal), formatTokenFloor(goal)].filter(Boolean).join("; ");
 }
 
 export function footerStatusText(goal: GoalState): string {
@@ -137,6 +150,11 @@ function footerUsage(goal: GoalState): string | undefined {
 		const budget = formatElapsed(goal.timeBudgetSeconds);
 		return goal.status === "complete" ? used : `${used} / ${budget}`;
 	}
+	const floor = evaluateCompletionFloor(goal);
+	if (floor.anyFloorConfigured && !floor.allFloorsMet) {
+		if (floor.minTimeSecondsBeforeWrapUp !== undefined) return `floor ${formatElapsed(goal.timeUsedSeconds)} / ${formatElapsed(floor.minTimeSecondsBeforeWrapUp)}`;
+		if (floor.minTokensBeforeWrapUp !== undefined) return `floor ${formatTokensCompact(goal.tokensUsed)} / ${formatTokensCompact(floor.minTokensBeforeWrapUp)}`;
+	}
 	return goal.timeUsedSeconds > 0 ? formatElapsed(goal.timeUsedSeconds) : undefined;
 }
 
@@ -150,6 +168,8 @@ export function goalSummaryLines(goal: GoalState): string[] {
 	];
 	if (goal.tokenBudget !== undefined) lines.push(`Token budget: ${formatTokensCompact(goal.tokenBudget)}`);
 	if (goal.timeBudgetSeconds !== undefined) lines.push(`Time budget: ${formatElapsed(goal.timeBudgetSeconds)}`);
+	if (goal.minTokensBeforeWrapUp !== undefined) lines.push(`Token wrap-up floor: ${formatTokensCompact(goal.tokensUsed)} / ${formatTokensCompact(goal.minTokensBeforeWrapUp)}`);
+	if (goal.minTimeSecondsBeforeWrapUp !== undefined) lines.push(`Time wrap-up floor: ${formatElapsed(goal.timeUsedSeconds)} / ${formatElapsed(goal.minTimeSecondsBeforeWrapUp)}`);
 	lines.push("", commandHint(goal.status));
 	return lines;
 }

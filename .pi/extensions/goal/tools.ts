@@ -1,12 +1,16 @@
 import { Type } from "typebox";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
-import { formatElapsed, validateObjective } from "./format";
+import { validateObjective } from "./format";
 import { isBudgetExhausted, canActivateGoal } from "./budget";
-import { createTelemetry, noteBudgetLimit } from "./telemetry";
+import { decideGoalCompletion, type CompletionDecision } from "./completion-gate";
+import { evaluateCompletionFloor, validateFloorConfig, type CompletionFloorEvaluation } from "./floor";
+import { createTelemetry, noteBudgetLimit, noteFloorCompletionDeferred } from "./telemetry";
 import { listGoalTemplateMetadata, resolveGoalTemplateInvocationArgs } from "./templates";
-import { createGoalState, getGoal, getTelemetry, persistClearGoal, persistSetGoal, persistUpdateGoal } from "./state";
+import { createGoalState, getGoal, getTelemetry, persistClearGoal, persistSetGoal, persistTelemetry, persistUpdateGoal } from "./state";
 import { registerGoalQueueTools } from "./queue-tools";
+import { getRecentMonitorLogs } from "./monitor-state";
 import { syncGoalUi } from "./ui";
+import { errorResult, formatToolGoal, remainingTime, remainingTokens, resultForGoal, resultForTemplates, type ToolDetails } from "./tool-results";
 import type { GoalCommandScheduler, GoalContinuationCanceller, GoalMonitorCanceller, GoalMonitorScheduler, GoalState, GoalStatus, GoalTelemetrySnapshot } from "./types";
 
 const EmptyParams = Type.Object({});
@@ -14,6 +18,8 @@ const CreateGoalParams = Type.Object({
 	objective: Type.String({ description: "Goal objective explicitly requested by the user" }),
 	token_budget: Type.Optional(Type.Number({ description: "Optional positive token budget" })),
 	time_budget_seconds: Type.Optional(Type.Number({ description: "Optional positive time budget in seconds" })),
+	min_tokens_before_wrap_up: Type.Optional(Type.Number({ description: "Optional positive minimum tokens before normal wrap-up/completion is allowed" })),
+	min_time_seconds_before_wrap_up: Type.Optional(Type.Number({ description: "Optional positive minimum time seconds before normal wrap-up/completion is allowed" })),
 });
 const TemplateFlags = Type.Record(Type.String(), Type.String());
 const CreateGoalFromTemplateParams = Type.Object({
@@ -22,6 +28,8 @@ const CreateGoalFromTemplateParams = Type.Object({
 	args: Type.Optional(Type.String({ description: "Template invocation arguments parsed like `/goal <template> ...`: use `--flag value` and `-- trailing args`." })),
 	token_budget: Type.Optional(Type.Number({ description: "Optional positive token budget" })),
 	time_budget_seconds: Type.Optional(Type.Number({ description: "Optional positive time budget in seconds" })),
+	min_tokens_before_wrap_up: Type.Optional(Type.Number({ description: "Optional positive minimum tokens before normal wrap-up/completion is allowed" })),
+	min_time_seconds_before_wrap_up: Type.Optional(Type.Number({ description: "Optional positive minimum time seconds before normal wrap-up/completion is allowed" })),
 });
 const NullableNumber = Type.Union([Type.Number(), Type.Null()]);
 const UpdateGoalParams = Type.Object({
@@ -29,18 +37,9 @@ const UpdateGoalParams = Type.Object({
 	objective: Type.Optional(Type.String({ description: "Optional replacement objective explicitly requested by the user" })),
 	token_budget: Type.Optional(NullableNumber),
 	time_budget_seconds: Type.Optional(NullableNumber),
+	min_tokens_before_wrap_up: Type.Optional(NullableNumber),
+	min_time_seconds_before_wrap_up: Type.Optional(NullableNumber),
 });
-
-type ToolDetails = {
-	goal: GoalState | null;
-	telemetry?: GoalTelemetrySnapshot | null;
-	remaining_tokens?: number;
-	remaining_time_seconds?: number;
-	completion_budget_report?: string;
-	templates?: ReturnType<typeof listGoalTemplateMetadata>;
-	resolved_template?: { name: string; path: string };
-	error?: string;
-};
 
 type GoalToolRuntime = {
 	scheduleContinuation?: GoalCommandScheduler;
@@ -194,6 +193,8 @@ type CreateGoalInput = {
 	objective: string;
 	token_budget?: number;
 	time_budget_seconds?: number;
+	min_tokens_before_wrap_up?: number;
+	min_time_seconds_before_wrap_up?: number;
 };
 
 type CreateGoalFromTemplateInput = {
@@ -202,6 +203,8 @@ type CreateGoalFromTemplateInput = {
 	args?: string;
 	token_budget?: number;
 	time_budget_seconds?: number;
+	min_tokens_before_wrap_up?: number;
+	min_time_seconds_before_wrap_up?: number;
 };
 
 type UpdateGoalInput = {
@@ -209,6 +212,8 @@ type UpdateGoalInput = {
 	objective?: string;
 	token_budget?: number | null;
 	time_budget_seconds?: number | null;
+	min_tokens_before_wrap_up?: number | null;
+	min_time_seconds_before_wrap_up?: number | null;
 };
 
 type GoalUpdateResult = { ok: true; goal: GoalState; prefix: string; budgetChanged?: boolean } | { ok: false; error: string };
@@ -220,7 +225,7 @@ function createGoalFromTool(pi: ExtensionAPI, runtime: GoalToolRuntime, params: 
 function createGoalFromTemplateTool(pi: ExtensionAPI, runtime: GoalToolRuntime, params: CreateGoalFromTemplateInput, ctx: ExtensionContext) {
 	const resolved = resolveGoalTemplateInvocationArgs(params.template, params.args ?? "", params.flags ?? {});
 	if (!resolved.ok) return "notTemplate" in resolved ? errorResult(`Unknown goal template '${params.template}'.`) : errorResult(resolved.error);
-	const created = createGoalWithPolicy(pi, runtime, { objective: resolved.template.objective, token_budget: params.token_budget, time_budget_seconds: params.time_budget_seconds }, ctx, { replaceCompleted: true });
+	const created = createGoalWithPolicy(pi, runtime, { objective: resolved.template.objective, token_budget: params.token_budget, time_budget_seconds: params.time_budget_seconds, min_tokens_before_wrap_up: params.min_tokens_before_wrap_up, min_time_seconds_before_wrap_up: params.min_time_seconds_before_wrap_up }, ctx, { replaceCompleted: true });
 	if (!created.details.error) created.details.resolved_template = { name: resolved.template.name, path: resolved.template.path };
 	return created;
 }
@@ -240,7 +245,9 @@ function createGoalWithPolicy(
 	if (!validation.ok) return errorResult(validation.hint ? `${validation.message} ${validation.hint}` : validation.message);
 	const budgetError = validateBudgets(params.token_budget, params.time_budget_seconds);
 	if (budgetError) return errorResult(budgetError);
-	const goal = createGoalState(validation.objective, params.token_budget, params.time_budget_seconds);
+	const floorError = validateFloorConfig({ tokenBudget: params.token_budget, timeBudgetSeconds: params.time_budget_seconds, minTokensBeforeWrapUp: params.min_tokens_before_wrap_up, minTimeSecondsBeforeWrapUp: params.min_time_seconds_before_wrap_up });
+	if (floorError) return errorResult(floorError);
+	const goal = createGoalState({ objective: validation.objective, tokenBudget: params.token_budget, timeBudgetSeconds: params.time_budget_seconds, minTokensBeforeWrapUp: params.min_tokens_before_wrap_up, minTimeSecondsBeforeWrapUp: params.min_time_seconds_before_wrap_up });
 	const telemetry = createTelemetry(goal.goalId, goal.createdAt);
 	persistSetGoal(pi, goal, telemetry, "tool");
 	syncGoalUi(ctx, goal);
@@ -259,19 +266,54 @@ function updateGoalFromTool(pi: ExtensionAPI, runtime: GoalToolRuntime, params: 
 		const resource = reason === "tokenBudget" ? "token" : reason === "timeBudget" ? "time" : "budget";
 		return errorResult(`Cannot resume: ${resource} budget is still exhausted. Raise the budget or use clear_goal before resuming.`);
 	}
+	const completionDecision = decideGoalCompletion({
+		currentGoal: goal,
+		candidateGoal: update.goal,
+		telemetry: getTelemetry(),
+		recentMonitorPatterns: getRecentMonitorLogs(goal.goalId).map((entry) => entry.pattern ?? "").filter(Boolean),
+	});
+	if (completionDecision.kind === "defer_and_steer") return floorCompletionDeferredResult(pi, ctx, goal, completionDecision);
 	if (update.goal.status !== "active") {
 		runtime.cancelContinuation?.(goal.goalId, "tool-status");
 		runtime.cancelMonitor?.(goal.goalId, "tool-status");
 	}
 	// When a budget edit transitions active -> budgetLimited, schedule budget-limit wrap-up once.
 	budgetEditWrapUpIfNeeded(pi, ctx, runtime, goal, update.goal);
-	persistUpdateGoal(pi, update.goal, telemetryForUpdate(update.goal), "tool");
+	persistUpdateGoal(pi, update.goal, telemetryForUpdate(update.goal, completionDecision), "tool");
 	syncGoalUi(ctx, update.goal);
 	if (goal.status !== "active" && update.goal.status === "active") {
 		runtime.scheduleMonitor?.(ctx);
 		runtime.scheduleContinuation?.(ctx, "resumed");
 	}
 	return resultForGoal(update.goal, getTelemetry(), update.prefix);
+}
+
+function floorCompletionDeferredResult(
+	pi: ExtensionAPI,
+	ctx: ExtensionContext,
+	goal: GoalState,
+	decision: Extract<CompletionDecision, { kind: "defer_and_steer" }>,
+) {
+	const telemetry = noteFloorCompletionDeferred(getTelemetry(), decision.card.id);
+	if (telemetry) persistTelemetry(pi, telemetry, "floor");
+	syncGoalUi(ctx, goal);
+	return {
+		content: [{ type: "text" as const, text: `${decision.message}
+${formatToolGoal(goal)}` }],
+		details: {
+			goal,
+			telemetry: telemetry ?? getTelemetry(),
+			completion_blocked_by_floor: true,
+			floor: decision.floor,
+			next_floor_pass: {
+				id: decision.card.id,
+				label: decision.card.label,
+				concrete_first_action: decision.card.concreteFirstAction,
+				required_evidence: decision.card.requiredEvidence,
+				avoid: decision.card.avoid,
+			},
+		} as ToolDetails,
+	};
 }
 
 function validateBudgets(tokenBudget?: number, timeBudgetSeconds?: number): string | undefined {
@@ -290,7 +332,14 @@ function buildGoalUpdate(goal: GoalState, params: UpdateGoalInput): GoalUpdateRe
 	next = objectiveResult.goal;
 	const budgetResult = applyBudgetUpdates(next, params, changes);
 	if (!budgetResult.ok) return budgetResult;
-	next = budgetResult.budgetChanged && params.status === undefined ? recomputeStatusAfterBudgetEdit(budgetResult.goal) : budgetResult.goal;
+	next = budgetResult.goal;
+	const floorResult = applyFloorUpdates(next, params, changes);
+	if (!floorResult.ok) return floorResult;
+	next = floorResult.floorChanged && params.status === "complete" ? floorResult.goal : floorResult.goal;
+	const floorError = validateFloorConfig({ tokenBudget: next.tokenBudget, timeBudgetSeconds: next.timeBudgetSeconds, minTokensBeforeWrapUp: next.minTokensBeforeWrapUp, minTimeSecondsBeforeWrapUp: next.minTimeSecondsBeforeWrapUp });
+	if (floorError) return { ok: false, error: floorError };
+	if (floorResult.floorChanged && params.status === "complete") return { ok: false, error: "Floor edits and status complete must be separate update_goal calls." };
+	next = budgetResult.budgetChanged && params.status === undefined ? recomputeStatusAfterBudgetEdit(next) : next;
 	if (params.status !== undefined) {
 		const status = parseToolStatus(params.status);
 		if (!status) return { ok: false, error: "status must be active, paused, or complete when provided." };
@@ -327,6 +376,24 @@ function applyBudgetUpdates(goal: GoalState, params: UpdateGoalInput, changes: s
 	return { ok: true, goal: next, prefix: "", budgetChanged };
 }
 
+function applyFloorUpdates(goal: GoalState, params: UpdateGoalInput, changes: string[]): GoalUpdateResult & { floorChanged?: boolean } {
+	let next = goal;
+	let floorChanged = false;
+	if (params.min_tokens_before_wrap_up !== undefined) {
+		if (params.min_tokens_before_wrap_up !== null && (!Number.isInteger(params.min_tokens_before_wrap_up) || params.min_tokens_before_wrap_up <= 0)) return { ok: false, error: "min_tokens_before_wrap_up must be a positive integer or null when provided." };
+		next = { ...next, minTokensBeforeWrapUp: params.min_tokens_before_wrap_up === null ? undefined : params.min_tokens_before_wrap_up };
+		changes.push("token wrap-up floor");
+		floorChanged = true;
+	}
+	if (params.min_time_seconds_before_wrap_up !== undefined) {
+		if (params.min_time_seconds_before_wrap_up !== null && (!Number.isInteger(params.min_time_seconds_before_wrap_up) || params.min_time_seconds_before_wrap_up <= 0)) return { ok: false, error: "min_time_seconds_before_wrap_up must be a positive integer or null when provided." };
+		next = { ...next, minTimeSecondsBeforeWrapUp: params.min_time_seconds_before_wrap_up === null ? undefined : params.min_time_seconds_before_wrap_up };
+		changes.push("time wrap-up floor");
+		floorChanged = true;
+	}
+	return { ok: true, goal: next, prefix: "", floorChanged };
+}
+
 function budgetEditWrapUpIfNeeded(pi: ExtensionAPI, ctx: ExtensionContext, runtime: GoalToolRuntime, previousGoal: GoalState, updatedGoal: GoalState) {
 	// Only schedule wrap-up when an active goal transitions to budgetLimited due to a budget edit.
 	if (previousGoal.status === "active" && updatedGoal.status === "budgetLimited" && isBudgetExhausted(updatedGoal)) {
@@ -339,56 +406,17 @@ function recomputeStatusAfterBudgetEdit(goal: GoalState): GoalState {
 	return isBudgetExhausted(goal) ? { ...goal, status: "budgetLimited" } : { ...goal, status: "active" };
 }
 
-function telemetryForUpdate(goal: GoalState): GoalTelemetrySnapshot | null {
+function telemetryForUpdate(goal: GoalState, completionDecision: CompletionDecision): GoalTelemetrySnapshot | null {
 	const reason = isBudgetExhausted(goal);
 	if (goal.status === "budgetLimited" && reason) return noteBudgetLimit(getTelemetry(), reason);
+	if (completionDecision.kind === "allow_with_reason") {
+		const telemetry = getTelemetry();
+		return telemetry ? { ...telemetry, noMoreValuableWorkReason: completionDecision.reason === "max_budget_requires_wrap_up" ? "max_budget_requires_wrap_up" : completionDecision.reason, floorQualityState: completionDecision.reason === "max_budget_requires_wrap_up" ? "overriddenByMaxBudget" : telemetry.floorQualityState, updatedAt: Date.now() } : telemetry;
+	}
 	return getTelemetry();
 }
 
 function parseToolStatus(status: string): GoalStatus | undefined {
 	if (status === "active" || status === "paused" || status === "complete") return status;
 	return undefined;
-}
-
-function resultForGoal(goal: GoalState | null, telemetry: GoalTelemetrySnapshot | null, prefix?: string) {
-	const details: ToolDetails = { goal, telemetry, remaining_tokens: remainingTokens(goal), remaining_time_seconds: remainingTime(goal) };
-	if (goal?.status === "complete" && (goal.tokenBudget !== undefined || goal.timeBudgetSeconds !== undefined)) {
-		details.completion_budget_report = `Goal achieved. Report final budget usage to the user: tokens used: ${goal.tokensUsed}${goal.tokenBudget === undefined ? "" : ` of ${goal.tokenBudget}`}; time used: ${goal.timeUsedSeconds}${goal.timeBudgetSeconds === undefined ? "" : ` of ${goal.timeBudgetSeconds}`} seconds.`;
-	}
-	return { content: [{ type: "text" as const, text: `${prefix ? `${prefix}\n` : ""}${formatToolGoal(goal)}` }], details };
-}
-
-function resultForTemplates(templates: ReturnType<typeof listGoalTemplateMetadata>) {
-	const lines = templates.map((template) => {
-		const aliases = template.aliases.length ? ` aliases=${template.aliases.join(",")}` : "";
-		const placeholders = template.requiredPlaceholders.length ? ` placeholders=${template.requiredPlaceholders.join(",")}` : " placeholders=none";
-		return `${template.name}${aliases}${placeholders} path=${template.path}${template.description ? ` — ${template.description}` : ""}`;
-	});
-	return { content: [{ type: "text" as const, text: lines.length ? lines.join("\n") : "No reusable goal templates found." }], details: { goal: getGoal(), telemetry: getTelemetry(), templates } as ToolDetails };
-}
-
-function errorResult(error: string) {
-	return { content: [{ type: "text" as const, text: `Error: ${error}` }], details: { goal: getGoal(), telemetry: getTelemetry(), error } as ToolDetails };
-}
-
-function remainingTokens(goal: GoalState | null): number | undefined {
-	return goal?.tokenBudget === undefined ? undefined : Math.max(0, goal.tokenBudget - goal.tokensUsed);
-}
-
-function remainingTime(goal: GoalState | null): number | undefined {
-	return goal?.timeBudgetSeconds === undefined ? undefined : Math.max(0, goal.timeBudgetSeconds - goal.timeUsedSeconds);
-}
-
-function formatToolGoal(goal: GoalState | null): string {
-	if (!goal) return "No goal is currently set.";
-	const tokenBudget = goal.tokenBudget === undefined ? "none" : `${goal.tokenBudget} (${remainingTokens(goal)} remaining)`;
-	const timeBudget = goal.timeBudgetSeconds === undefined ? "none" : `${formatElapsed(goal.timeBudgetSeconds)} (${remainingTime(goal)} seconds remaining)`;
-	return [
-		`Goal: ${goal.status}`,
-		`Objective: ${goal.objective}`,
-		`Time used: ${goal.timeUsedSeconds} seconds`,
-		`Tokens used: ${goal.tokensUsed}`,
-		`Token budget: ${tokenBudget}`,
-		`Time budget: ${timeBudget}`,
-	].join("\n");
 }

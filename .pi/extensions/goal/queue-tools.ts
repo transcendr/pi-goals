@@ -1,6 +1,7 @@
 import { Type } from "typebox";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { validateObjective } from "./format";
+import { validateFloorConfig } from "./floor";
 import { createTelemetry } from "./telemetry";
 import { resolveGoalTemplateByName } from "./templates";
 import { createGoalState, getGoal, getTelemetry, persistSetGoal } from "./state";
@@ -13,6 +14,8 @@ const CreateGoalParams = Type.Object({
 	objective: Type.String({ description: "Goal objective explicitly requested by the user" }),
 	token_budget: Type.Optional(Type.Number({ description: "Optional positive token budget" })),
 	time_budget_seconds: Type.Optional(Type.Number({ description: "Optional positive time budget in seconds" })),
+	min_tokens_before_wrap_up: Type.Optional(Type.Number({ description: "Optional positive minimum tokens before normal wrap-up/completion is allowed" })),
+	min_time_seconds_before_wrap_up: Type.Optional(Type.Number({ description: "Optional positive minimum time seconds before normal wrap-up/completion is allowed" })),
 });
 const DequeueGoalParams = Type.Object({
 	rationale: Type.String({ description: "Why this queue head is being dequeued now" }),
@@ -67,7 +70,9 @@ function registerEnqueueGoalTool(pi: ExtensionAPI): void {
 		async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
 			const validation = validateObjective(params.objective);
 			if (!validation.ok) return errorResult(validation.hint ? `${validation.message} ${validation.hint}` : validation.message);
-			const queued = enqueueGoal(validation.objective, "tool", { tokenBudget: params.token_budget, timeBudgetSeconds: params.time_budget_seconds });
+			const floorError = validateFloorConfig({ tokenBudget: params.token_budget, timeBudgetSeconds: params.time_budget_seconds, minTokensBeforeWrapUp: params.min_tokens_before_wrap_up, minTimeSecondsBeforeWrapUp: params.min_time_seconds_before_wrap_up });
+			if (floorError) return errorResult(floorError);
+			const queued = enqueueGoal(validation.objective, "tool", { tokenBudget: params.token_budget, timeBudgetSeconds: params.time_budget_seconds, minTokensBeforeWrapUp: params.min_tokens_before_wrap_up, minTimeSecondsBeforeWrapUp: params.min_time_seconds_before_wrap_up });
 			persistEnqueue(pi, queued);
 			syncGoalUi(ctx, getGoal());
 			return resultForQueuedGoal(queued);
@@ -149,7 +154,9 @@ function startQueuedGoal(pi: ExtensionAPI, runtime: GoalQueueToolRuntime, ctx: E
 }
 
 function createAndDequeueQueuedGoal(pi: ExtensionAPI, runtime: GoalQueueToolRuntime, ctx: ExtensionContext, next: QueuedGoal, objective: string) {
-	const goal = createGoalState(objective, next.tokenBudget, next.timeBudgetSeconds);
+	const floorError = validateFloorConfig({ tokenBudget: next.tokenBudget, timeBudgetSeconds: next.timeBudgetSeconds, minTokensBeforeWrapUp: next.minTokensBeforeWrapUp, minTimeSecondsBeforeWrapUp: next.minTimeSecondsBeforeWrapUp });
+	if (floorError) return errorResult(floorError);
+	const goal = createGoalState({ objective, tokenBudget: next.tokenBudget, timeBudgetSeconds: next.timeBudgetSeconds, minTokensBeforeWrapUp: next.minTokensBeforeWrapUp, minTimeSecondsBeforeWrapUp: next.minTimeSecondsBeforeWrapUp });
 	const telemetry = createTelemetry(goal.goalId, goal.createdAt);
 	persistSetGoal(pi, goal, telemetry, "tool");
 	const dequeued = dequeueGoal();

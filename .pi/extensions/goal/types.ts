@@ -8,6 +8,8 @@ export type GoalState = {
 	status: GoalStatus;
 	tokenBudget?: number;
 	timeBudgetSeconds?: number;
+	minTokensBeforeWrapUp?: number;
+	minTimeSecondsBeforeWrapUp?: number;
 	tokensUsed: number;
 	timeUsedSeconds: number;
 	createdAt: number;
@@ -16,13 +18,43 @@ export type GoalState = {
 
 export type TurnOrigin = "user" | "auto" | "budgetWrapUp";
 export type ContinuationReason = "created" | "resumed" | "agentEnd";
-export type ContinuationSkipReason = "notIdle" | "pendingMessages" | "notActive" | "budgetLimited" | "safetyCap" | "noProgress";
+export type ContinuationSkipReason = "notIdle" | "pendingMessages" | "notActive" | "budgetLimited" | "safetyCap" | "noProgress" | "floorExhausted" | "budgetExhausted";
 export type SafetyPauseReason = "maxAutoTurns" | "noProgress" | "abort";
 export type BudgetLimitReason = "tokenBudget" | "timeBudget";
 export type BudgetWarningReason = "tokenWarning" | "timeWarning";
 export type BudgetHardStopReason = "tokenHardStop" | "timeHardStop";
 export type BudgetPressureKind = "none" | BudgetWarningReason | "tokenReached" | "timeReached" | BudgetHardStopReason;
 export type BudgetPressure = { kind: BudgetPressureKind; remaining?: number };
+
+export type FloorValuePassId =
+	| "requirement_gap_audit"
+	| "adversarial_review"
+	| "alternate_perspective"
+	| "research_expansion"
+	| "validation_expansion"
+	| "simplification_deslop"
+	| "compatibility_review"
+	| "docs_handoff_evidence";
+
+export type FloorQualityState = "inactive" | "eligible" | "steering" | "qualityWarning" | "exhausted" | "overriddenByMaxBudget";
+
+export type NoMoreValuableWorkReason = "objective_fully_satisfied" | "no_safe_autonomous_work" | "max_budget_requires_wrap_up" | "user_requested_stop";
+
+export type GoalMonitorFloorReport = {
+	minTokensBeforeWrapUp?: number;
+	minTimeSecondsBeforeWrapUp?: number;
+	tokensRemainingBeforeWrapUp?: number;
+	timeSecondsRemainingBeforeWrapUp?: number;
+	tokenFloorMet: boolean;
+	timeFloorMet: boolean;
+	allFloorsMet: boolean;
+	completionBlockedByFloor: boolean;
+	lastFloorCardId?: FloorValuePassId;
+	completedFloorCardIds: FloorValuePassId[];
+	floorSteerCount: number;
+	floorChurnSteerCount: number;
+	floorQualityState: FloorQualityState;
+};
 
 export type GoalTelemetrySnapshot = {
 	version: 1;
@@ -46,6 +78,12 @@ export type GoalTelemetrySnapshot = {
 	lastBudgetHardStopReason?: BudgetHardStopReason;
 	tokenBudgetWarningSent?: boolean;
 	timeBudgetWarningSent?: boolean;
+	lastFloorCardId?: FloorValuePassId;
+	completedFloorCardIds?: FloorValuePassId[];
+	floorSteerCount?: number;
+	floorChurnSteerCount?: number;
+	floorQualityState?: FloorQualityState;
+	noMoreValuableWorkReason?: NoMoreValuableWorkReason;
 	updatedAt: number;
 };
 
@@ -59,7 +97,8 @@ export type PiGoalEventReason =
 	| "resume"
 	| "reload"
 	| "continuation"
-	| "safety";
+	| "safety"
+	| "floor";
 
 export type PiGoalStateEvent = {
 	version: 1;
@@ -160,6 +199,7 @@ export type GoalMonitorReport = {
 	};
 	recentEntries: GoalMonitorRecentEntry[];
 	recentLogEntries: GoalMonitorLogEntry[];
+	floor: GoalMonitorFloorReport;
 };
 
 export type MutationResult = {

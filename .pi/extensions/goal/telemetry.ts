@@ -5,6 +5,8 @@ import type {
 	BudgetWarningReason,
 	ContinuationReason,
 	ContinuationSkipReason,
+	FloorValuePassId,
+	GoalMonitorDecision,
 	GoalTelemetrySnapshot,
 	SafetyPauseReason,
 	TurnAccountingSnapshot,
@@ -148,6 +150,84 @@ export function applyTurnTelemetry(
 	};
 }
 
+export function noteFloorCompletionDeferred(
+	telemetry: GoalTelemetrySnapshot | null,
+	cardId: FloorValuePassId,
+	now = Date.now(),
+): GoalTelemetrySnapshot | null {
+	if (!telemetry) return null;
+	return {
+		...telemetry,
+		lastFloorCardId: cardId,
+		floorSteerCount: (telemetry.floorSteerCount ?? 0) + 1,
+		floorQualityState: "steering",
+		updatedAt: now,
+	};
+}
+
+export function noteProductiveFloorWork(
+	telemetry: GoalTelemetrySnapshot | null,
+	now = Date.now(),
+): GoalTelemetrySnapshot | null {
+	if (!telemetry?.lastFloorCardId) return telemetry;
+	const completed = uniqueFloorCards([...(telemetry.completedFloorCardIds ?? []), telemetry.lastFloorCardId]);
+	return {
+		...telemetry,
+		completedFloorCardIds: completed,
+		floorQualityState: "eligible",
+		updatedAt: now,
+	};
+}
+
+export function noteFloorChurnSteer(
+	telemetry: GoalTelemetrySnapshot | null,
+	now = Date.now(),
+): GoalTelemetrySnapshot | null {
+	if (!telemetry) return null;
+	return {
+		...telemetry,
+		floorChurnSteerCount: (telemetry.floorChurnSteerCount ?? 0) + 1,
+		floorQualityState: "qualityWarning",
+		updatedAt: now,
+	};
+}
+
+export function noteFloorQualityExhausted(
+	telemetry: GoalTelemetrySnapshot | null,
+	now = Date.now(),
+): GoalTelemetrySnapshot | null {
+	if (!telemetry) return null;
+	return {
+		...telemetry,
+		floorQualityState: "exhausted",
+		noMoreValuableWorkReason: "no_safe_autonomous_work",
+		updatedAt: now,
+	};
+}
+
+export function applyMonitorDecisionToFloorTelemetry(
+	telemetry: GoalTelemetrySnapshot | null,
+	decision: GoalMonitorDecision,
+): GoalTelemetrySnapshot | null {
+	switch (decision.pattern) {
+		case "productive_floor_deepening":
+			return noteProductiveFloorWork(telemetry);
+		case "quota_filling_churn":
+		case "repeated_floor_pass_no_new_evidence":
+		case "floor_ignored_early_wrapup":
+		case "floor_blocked_autonomous_fallback_needed":
+			return noteFloorChurnSteer(telemetry);
+		case "floor_quality_exhausted":
+			return noteFloorQualityExhausted(telemetry);
+		default:
+			return telemetry;
+	}
+}
+
 export function makeTurnSnapshot(goalId: string, origin: TurnOrigin, startedAt = Date.now()): TurnAccountingSnapshot {
 	return { goalId, origin, startedAt, toolCallCount: 0, toolResultCount: 0, progressCount: 0, completedGoal: false };
+}
+
+function uniqueFloorCards(cards: FloorValuePassId[]): FloorValuePassId[] {
+	return Array.from(new Set(cards));
 }
