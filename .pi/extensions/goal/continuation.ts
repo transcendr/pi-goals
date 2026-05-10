@@ -9,7 +9,7 @@ import {
 import { buildBudgetLimitPrompt, buildContinuationPrompt, buildPausePrompt } from "./prompts";
 import { getGoal, getTelemetry, persistTelemetry } from "./state";
 import { noteBudgetWrapUpSent, noteContinuationScheduled, noteContinuationSkipped, setNextTurnOrigin } from "./telemetry";
-import type { ContinuationReason, GoalState } from "./types";
+import type { ContinuationReason, ContinuationSkipReason, GoalState } from "./types";
 
 type PendingContinuation = {
 	goalId: string;
@@ -28,6 +28,7 @@ let budgetWrapUps = new Map<string, PendingBudgetWrapUp>();
 export function scheduleMaybeContinueGoal(pi: ExtensionAPI, ctx: ExtensionContext, reason: ContinuationReason): void {
 	const goal = getGoal();
 	if (!goal || goal.status !== "active") return;
+	if (shouldSuppressAgentEndContinuation(reason)) return skip(pi, "noProgress");
 	cancelGoalContinuation(goal.goalId, "reschedule-continuation");
 	const telemetry = noteContinuationScheduled(getTelemetry(), reason);
 	if (telemetry) persistTelemetry(pi, telemetry, "continuation");
@@ -107,7 +108,13 @@ async function maybeSendBudgetWrapUp(pi: ExtensionAPI, ctx: ExtensionContext, go
 	if (telemetry) persistTelemetry(pi, telemetry, "budget");
 }
 
-function skip(pi: ExtensionAPI, reason: "notIdle" | "pendingMessages" | "notActive" | "budgetLimited" | "safetyCap"): void {
+function shouldSuppressAgentEndContinuation(reason: ContinuationReason): boolean {
+	if (reason !== "agentEnd") return false;
+	const telemetry = getTelemetry();
+	return telemetry?.lastTurnOrigin === "auto" && telemetry.lastTurnToolCallCount === 0 && telemetry.lastTurnToolResultCount === 0 && !telemetry.lastTurnCompletedGoal;
+}
+
+function skip(pi: ExtensionAPI, reason: ContinuationSkipReason): void {
 	const telemetry = noteContinuationSkipped(getTelemetry(), reason);
 	if (telemetry) persistTelemetry(pi, telemetry, "continuation");
 }

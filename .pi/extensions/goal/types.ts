@@ -16,7 +16,7 @@ export type GoalState = {
 
 export type TurnOrigin = "user" | "auto" | "budgetWrapUp";
 export type ContinuationReason = "created" | "resumed" | "agentEnd";
-export type ContinuationSkipReason = "notIdle" | "pendingMessages" | "notActive" | "budgetLimited" | "safetyCap";
+export type ContinuationSkipReason = "notIdle" | "pendingMessages" | "notActive" | "budgetLimited" | "safetyCap" | "noProgress";
 export type SafetyPauseReason = "maxAutoTurns" | "noProgress" | "abort";
 export type BudgetLimitReason = "tokenBudget" | "timeBudget";
 export type BudgetWarningReason = "tokenWarning" | "timeWarning";
