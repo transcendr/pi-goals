@@ -1,0 +1,32 @@
+# Request snapshot
+create issue doc for behavior: `/goal resume` with no active goal or idle completed goal should start an agent turn that processes queued goals; queueing remains distinct from starting.
+
+# Discovery commands run
+$ git status --short --untracked-files=all
+$ find .ai/issues -maxdepth 2 -type d | sort
+$ find .ai/issues/open .ai/issues/refine .ai/issues/fixed .ai/issues/defer .ai/issues/closed -maxdepth 1 -type f -name 'ISSUE-*.md' 2>/dev/null | sort | tail -80
+$ find .ai/issues -type f -name 'ISSUE-*.md' 2>/dev/null | sed -E 's#.*/ISSUE-([0-9]+).*#\1#' | sort -n | tail -1 | awk '{printf("ISSUE-%03d", $1+1)}'
+$ rg -n "resume|queue|start_queued_goal|sendQueueSteering|goal-clear|No goal|complete" .pi/extensions/goal -g '*.ts'
+
+# Key outputs
+Next issue number: ISSUE-033
+Existing current worktree included untracked .ai/.pi-goals/release-readme-review.md unrelated to this issue-doc pass.
+
+command.ts resumeGoal current behavior:
+- no goal: notify usage/hint and return
+- complete goal: notify "Goal is complete. Use /goal clear before starting a new goal." and return
+- paused/active resumable goal: set active, schedule monitor, schedule continuation
+
+clearGoal current behavior:
+- after clear, if queue length > 0, sendQueueSteering("goal-clear")
+
+finishTurnGoal current behavior:
+- only sends queue steering when goal?.status === "complete" && completedThisTurn
+
+queue-tools startQueuedGoal current behavior:
+- permits completed goal replacement
+- refuses non-complete active goal
+- creates next queued goal and dequeues only after successful creation
+
+queue-steering current behavior:
+- hidden steering explains semantic classification/template resolution before start_queued_goal

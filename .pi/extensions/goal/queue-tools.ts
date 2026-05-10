@@ -14,6 +14,10 @@ const CreateGoalParams = Type.Object({
 	token_budget: Type.Optional(Type.Number({ description: "Optional positive token budget" })),
 	time_budget_seconds: Type.Optional(Type.Number({ description: "Optional positive time budget in seconds" })),
 });
+const DequeueGoalParams = Type.Object({
+	rationale: Type.String({ description: "Why this queue head is being dequeued now" }),
+	authority: Type.String({ description: "Your perceived authorization for dequeuing this goal, such as completed requested work or explicit user instruction" }),
+});
 
 type QueueToolDetails = {
 	goal: GoalState | null;
@@ -22,6 +26,7 @@ type QueueToolDetails = {
 	queued?: QueuedGoal;
 	dequeued?: QueuedGoal;
 	started?: QueuedGoal;
+	dequeue_audit?: { rationale: string; authority: string };
 	error?: string;
 };
 
@@ -99,14 +104,17 @@ function registerDequeueGoalTool(pi: ExtensionAPI): void {
 		promptGuidelines: [
 			"Use start_queued_goal for direct queued goals.",
 			"Use dequeue_goal after you have separately satisfied a prose/JIT orchestration queue item, including any one-or-more consecutive active goals it required.",
-			"Do not dequeue an orchestration item just because you saw it; consume it only after successful handling, or when the user explicitly asks to remove it.",
+			"Never discard unfinished queued work. Do not call this unless the queue head is actually satisfied or the user explicitly authorized removing that specific queued item.",
+			"The rationale and authority arguments are saved to session history for auditability; be truthful and specific.",
 		],
-		parameters: EmptyParams,
-		async execute() {
+		parameters: DequeueGoalParams,
+		async execute(_toolCallId, params) {
+			const audit = validateDequeueAudit(params.rationale, params.authority);
+			if (!audit.ok) return errorResult(audit.error);
 			const dequeued = dequeueGoal();
 			if (!dequeued) return { content: [{ type: "text" as const, text: "No queued goals." }], details: { goal: getGoal(), telemetry: getTelemetry() } as QueueToolDetails };
-			persistDequeue(pi, "dequeued");
-			return { content: [{ type: "text" as const, text: `Dequeued goal: ${dequeued.queueId}\nObjective: ${dequeued.objective}` }], details: { goal: getGoal(), telemetry: getTelemetry(), dequeued } as QueueToolDetails };
+			persistDequeue(pi, "dequeued", audit.value);
+			return { content: [{ type: "text" as const, text: `Dequeued goal: ${dequeued.queueId}\nObjective: ${dequeued.objective}\nRationale: ${audit.value.rationale}\nAuthority: ${audit.value.authority}` }], details: { goal: getGoal(), telemetry: getTelemetry(), dequeued, dequeue_audit: audit.value } as QueueToolDetails };
 		},
 	});
 }
@@ -145,7 +153,7 @@ function createAndDequeueQueuedGoal(pi: ExtensionAPI, runtime: GoalQueueToolRunt
 	const telemetry = createTelemetry(goal.goalId, goal.createdAt);
 	persistSetGoal(pi, goal, telemetry, "tool");
 	const dequeued = dequeueGoal();
-	persistDequeue(pi, "start_queued_goal");
+	persistDequeue(pi, "start_queued_goal", { rationale: "Started queued goal as a direct concrete goal after successful goal creation.", authority: "start_queued_goal atomic create-then-dequeue path" });
 	syncGoalUi(ctx, goal);
 	runtime.scheduleMonitor?.(ctx);
 	return { content: [{ type: "text" as const, text: `Started queued goal: ${dequeued?.queueId ?? next.queueId}\nObjective: ${goal.objective}` }], details: { goal, telemetry, started: dequeued ?? next, queue: getQueue() } as QueueToolDetails };
@@ -158,6 +166,16 @@ function resolveQueuedObjective(goal: QueuedGoal): QueuedObjectiveResolution {
 	const resolved = resolveGoalTemplateByName(goal.template, goal.templateFlags ?? {}, goal.templateArgs ?? "");
 	if (!resolved.ok) return "notTemplate" in resolved ? { ok: false, error: `Unknown goal template '${goal.template}'.` } : { ok: false, error: resolved.error };
 	return { ok: true, objective: resolved.template.objective };
+}
+
+type DequeueAuditResult = { ok: true; value: { rationale: string; authority: string } } | { ok: false; error: string };
+
+function validateDequeueAudit(rationale: string | undefined, authority: string | undefined): DequeueAuditResult {
+	const trimmedRationale = rationale?.trim() ?? "";
+	const trimmedAuthority = authority?.trim() ?? "";
+	if (!trimmedRationale) return { ok: false, error: "rationale is required to dequeue a queued goal." };
+	if (!trimmedAuthority) return { ok: false, error: "authority is required to dequeue a queued goal." };
+	return { ok: true, value: { rationale: trimmedRationale, authority: trimmedAuthority } };
 }
 
 function resultForQueue() {

@@ -62,7 +62,7 @@ export function registerGoalTools(
 	getQueueSize?: () => number,
 	sendQueueSteering?: (reason: "goal-clear") => boolean,
 ): void {
-	const runtime: GoalToolRuntime = { scheduleContinuation, cancelContinuation, scheduleMonitor, cancelMonitor, scheduleBudgetLimitWrapUp, getQueueSize };
+	const runtime: GoalToolRuntime = { scheduleContinuation, cancelContinuation, scheduleMonitor, cancelMonitor, scheduleBudgetLimitWrapUp, getQueueSize, sendQueueSteering };
 	registerGetGoalTool(pi);
 	registerListGoalTemplatesTool(pi);
 	registerCreateGoalTool(pi, runtime);

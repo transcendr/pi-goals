@@ -2,11 +2,11 @@ import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { QUEUE_MESSAGE_TYPE, QUEUE_PROMPT_ID } from "./constants";
 import { getQueue, type QueuedGoal } from "./queue-state";
 
-export type QueueSteeringReason = "goal-complete" | "goal-clear";
+export type QueueSteeringReason = "goal-complete" | "goal-clear" | "goal-resume";
 
 const OBJECTIVE_PREVIEW_CHARS = 4_000;
 
-export function sendQueueSteering(pi: ExtensionAPI, reason: QueueSteeringReason): boolean {
+export function sendQueueSteering(pi: ExtensionAPI, reason: QueueSteeringReason, opts: { triggerTurn?: boolean } = {}): boolean {
 	const next = getQueue()[0];
 	if (!next) return false;
 	pi.sendMessage(
@@ -16,7 +16,7 @@ export function sendQueueSteering(pi: ExtensionAPI, reason: QueueSteeringReason)
 			display: false,
 			details: { kind: "queueNext", promptId: QUEUE_PROMPT_ID, queueId: next.queueId, reason, createdAt: Date.now() },
 		},
-		{ deliverAs: "steer" },
+		{ deliverAs: "steer", triggerTurn: opts.triggerTurn },
 	);
 	return true;
 }

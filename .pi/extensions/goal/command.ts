@@ -127,7 +127,7 @@ function handleGoalControlCommand(
 		return true;
 	}
 	if (trimmed === "pause") pauseGoal(pi, ctx, cancelContinuation, interruptActiveTurn, cancelMonitor);
-	else if (trimmed === "resume") resumeGoal(pi, ctx, scheduleContinuation, scheduleMonitor);
+	else if (trimmed === "resume") resumeGoal(pi, ctx, scheduleContinuation, scheduleMonitor, sendQueueSteering);
 	else if (trimmed === "clear") clearGoal(pi, ctx, cancelContinuation, cancelMonitor, sendQueueSteering);
 	else return false;
 	return true;
@@ -232,13 +232,24 @@ function pauseGoal(
 	}
 }
 
-function resumeGoal(pi: ExtensionAPI, ctx: ExtensionCommandContext, scheduleContinuation: GoalCommandScheduler, scheduleMonitor: GoalMonitorScheduler): void {
+function resumeGoal(pi: ExtensionAPI, ctx: ExtensionCommandContext, scheduleContinuation: GoalCommandScheduler, scheduleMonitor: GoalMonitorScheduler, sendQueueSteering: GoalQueueSteeringSender): void {
 	const goal = getGoal();
+	const queue = getQueue();
 	if (!goal) {
+		if (queue.length > 0) {
+			sendQueueSteering("goal-resume", { triggerTurn: true });
+			notifyInfo(ctx, `No active goal. Resuming queued goal processing for ${queue.length} queued goal${queue.length > 1 ? "s" : ""}.`);
+			return;
+		}
 		notifyInfo(ctx, `${GOAL_USAGE}\n${GOAL_USAGE_HINT}`);
 		return;
 	}
 	if (goal.status === "complete") {
+		if (queue.length > 0) {
+			sendQueueSteering("goal-resume", { triggerTurn: true });
+			notifyInfo(ctx, `Goal is complete. Resuming queued goal processing for ${queue.length} queued goal${queue.length > 1 ? "s" : ""}.`);
+			return;
+		}
 		notifyInfo(ctx, "Goal is complete. Use /goal clear before starting a new goal.");
 		return;
 	}

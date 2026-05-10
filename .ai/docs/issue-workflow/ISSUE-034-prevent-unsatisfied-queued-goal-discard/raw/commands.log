@@ -1,0 +1,40 @@
+# Incident/request
+User asked to restore an improperly dequeued queued goal and create a create-issue-doc goal investigating how the discard happened and how to prevent it.
+
+# Recovery action already performed
+Restored dequeued queued goal with enqueue_goal:
+- objective: test queuing a goal when agent is idle ande there is a complete goal uncleared ... /goal resume starts processing the queue.
+- new queue id observed: q-1778372292756-3
+
+# Queue state observed after restoration
+Queued goals (2):
+1. [q-1778371755866-2] investigate why the agent failed to create a goal from the create-issue-doc template: create_goal_from_template Err…
+2. [q-1778372292756-3] restored live-test goal
+
+# Discovery commands
+$ git status --short --untracked-files=all
+$ find .ai/issues -type f -name 'ISSUE-*.md' | sed -E 's#.*/ISSUE-([0-9]+).*#\1#' | sort -n | tail -1
+$ read .pi/extensions/goal/queue-tools.ts
+$ read .pi/extensions/goal/queue-steering.ts
+$ read .pi/extensions/goal/tools.ts around create_goal_from_template and clear_goal
+$ read AGENTS.md
+
+# Grounded findings
+queue-tools.ts dequeue_goal:
+- removes the first queue item immediately
+- persists dequeue with reason "dequeued"
+- no parameter for proof/satisfaction reason
+- no guard against active non-complete goal
+- no distinction between explicit user removal and agent-claimed satisfaction
+
+queue-steering.ts:
+- says dequeue_goal after concrete goals requested by orchestration item are complete/satisfied
+- but this is prompt guidance only; tool permits premature dequeue
+
+AGENTS.md:
+- tells agents to dequeue prose item only after concrete template goal is satisfied
+- prompt guidance failed under operator error
+
+tools.ts clear_goal:
+- clear_goal sends queue steering when queue exists
+- the remediation goal creation path used clear_goal to replace a completed goal because create_goal_from_template tool schema exposed by harness could not pass required flags
