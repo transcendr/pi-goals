@@ -3,7 +3,7 @@ import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-a
 import { formatElapsed, validateObjective } from "./format";
 import { isBudgetExhausted, canActivateGoal } from "./budget";
 import { createTelemetry, noteBudgetLimit } from "./telemetry";
-import { listGoalTemplateMetadata, resolveGoalTemplateByName } from "./templates";
+import { listGoalTemplateMetadata, resolveGoalTemplateInvocationArgs } from "./templates";
 import { createGoalState, getGoal, getTelemetry, persistClearGoal, persistSetGoal, persistUpdateGoal } from "./state";
 import { registerGoalQueueTools } from "./queue-tools";
 import { syncGoalUi } from "./ui";
@@ -19,7 +19,7 @@ const TemplateFlags = Type.Record(Type.String(), Type.String());
 const CreateGoalFromTemplateParams = Type.Object({
 	template: Type.String({ description: "Reusable goal template name or alias explicitly requested by the user" }),
 	flags: Type.Optional(TemplateFlags),
-	args: Type.Optional(Type.String({ description: "Trailing prose for the template {{args}} placeholder" })),
+	args: Type.Optional(Type.String({ description: "Template invocation arguments parsed like `/goal <template> ...`: use `--flag value` and `-- trailing args`." })),
 	token_budget: Type.Optional(Type.Number({ description: "Optional positive token budget" })),
 	time_budget_seconds: Type.Optional(Type.Number({ description: "Optional positive time budget in seconds" })),
 });
@@ -218,7 +218,7 @@ function createGoalFromTool(pi: ExtensionAPI, runtime: GoalToolRuntime, params: 
 }
 
 function createGoalFromTemplateTool(pi: ExtensionAPI, runtime: GoalToolRuntime, params: CreateGoalFromTemplateInput, ctx: ExtensionContext) {
-	const resolved = resolveGoalTemplateByName(params.template, params.flags ?? {}, params.args ?? "");
+	const resolved = resolveGoalTemplateInvocationArgs(params.template, params.args ?? "", params.flags ?? {});
 	if (!resolved.ok) return "notTemplate" in resolved ? errorResult(`Unknown goal template '${params.template}'.`) : errorResult(resolved.error);
 	const created = createGoalWithPolicy(pi, runtime, { objective: resolved.template.objective, token_budget: params.token_budget, time_budget_seconds: params.time_budget_seconds }, ctx, { replaceCompleted: true });
 	if (!created.details.error) created.details.resolved_template = { name: resolved.template.name, path: resolved.template.path };
