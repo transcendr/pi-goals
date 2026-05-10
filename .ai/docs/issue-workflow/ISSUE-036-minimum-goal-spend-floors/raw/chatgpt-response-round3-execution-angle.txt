@@ -1,0 +1,1042 @@
+## 1. Minimal safe patch order
+
+Use this order to keep behavior changes isolated and testable:
+
+1. **Types + pure floor helpers only**
+
+   * `types.ts`: add optional floor fields and floor telemetry types.
+   * `floor.ts`: add pure evaluation + validation helpers.
+   * No prompt/tool/runtime behavior yet.
+
+2. **State creation + propagation**
+
+   * Update `createGoalState(...)`.
+   * Update create/template/queue inputs to accept floors.
+   * Ensure replayed old state still loads with floors undefined.
+
+3. **Tool validation, but no completion gate yet**
+
+   * Add create/update validation for min floors.
+   * Add `null` removal support.
+   * Add formatting in `get_goal` / tool output.
+   * Tests: create/update/remove/reject impossible configs.
+
+4. **Add `floor-steering.ts` catalog and prompt builders**
+
+   * Pure deterministic catalog selection.
+   * No monitor integration yet.
+   * Tests: no repeat, fallback order, objective user-fallback matcher.
+
+5. **Add `completion-gate.ts` and wire only `update_goal(status:"complete")`**
+
+   * This is the first behavior-changing step.
+   * Must run before cancellation, monitor cancellation, state persistence, queue-complete steering.
+
+6. **Update continuation lifecycle**
+
+   * Add floor-aware `agentEnd` continuation suppression logic.
+   * Add floor guidance to `buildContinuationPrompt`.
+
+7. **Monitor report + prompt + telemetry pattern handling**
+
+   * Add floor report fields.
+   * Add prompt rules.
+   * Apply known floor patterns to telemetry.
+
+8. **UI/widget/README/probes/live probe**
+
+   * Do this after behavior is stable.
+   * UI/doc-only changes are not proof.
+
+This avoids the classic false green: schema fields exist, prompts mention floors, but `update_goal(status:"complete")` still completes.
+
+---
+
+## 2. Exact insertion points and ordering constraints
+
+### `tools.ts`
+
+#### Type inputs
+
+At the current input types:
+
+```ts
+type CreateGoalInput = {
+	objective: string;
+	token_budget?: number;
+	time_budget_seconds?: number;
+};
+```
+
+add:
+
+```ts
+	min_tokens_before_wrap_up?: number;
+	min_time_seconds_before_wrap_up?: number;
+```
+
+Same for `CreateGoalFromTemplateInput`.
+
+For `UpdateGoalInput`:
+
+```ts
+type UpdateGoalInput = {
+	status?: string;
+	objective?: string;
+	token_budget?: number | null;
+	time_budget_seconds?: number | null;
+	min_tokens_before_wrap_up?: number | null;
+	min_time_seconds_before_wrap_up?: number | null;
+};
+```
+
+Do **not** add model-facing `no_more_valuable_work_reason` in first release unless it is explicitly ignored by the gate. It is too easy for the worker to self-bypass.
+
+#### Create path
+
+Current:
+
+```ts
+const budgetError = validateBudgets(params.token_budget, params.time_budget_seconds);
+if (budgetError) return errorResult(budgetError);
+const goal = createGoalState(validation.objective, params.token_budget, params.time_budget_seconds);
+```
+
+Replace with combined validation:
+
+```ts
+const configError = validateBudgetFloorConfig({
+	tokenBudget: params.token_budget,
+	timeBudgetSeconds: params.time_budget_seconds,
+	minTokensBeforeWrapUp: params.min_tokens_before_wrap_up,
+	minTimeSecondsBeforeWrapUp: params.min_time_seconds_before_wrap_up,
+});
+if (configError) return errorResult(configError);
+
+const goal = createGoalState({
+	objective: validation.objective,
+	tokenBudget: params.token_budget,
+	timeBudgetSeconds: params.time_budget_seconds,
+	minTokensBeforeWrapUp: params.min_tokens_before_wrap_up,
+	minTimeSecondsBeforeWrapUp: params.min_time_seconds_before_wrap_up,
+});
+```
+
+Safer than expanding positional args. Positional `createGoalState(objective, tokenBudget, timeBudget, floor...)` will become unreadable quickly.
+
+#### Update path: critical ordering
+
+Current risky section:
+
+```ts
+const update = buildGoalUpdate(goal, params);
+if (!update.ok) return errorResult(update.error);
+// Refuse to reactivate...
+if (update.goal.status === "active" && !canActivateGoal(update.goal)) { ... }
+if (update.goal.status !== "active") {
+	runtime.cancelContinuation?.(...)
+	runtime.cancelMonitor?.(...)
+}
+...
+persistUpdateGoal(...)
+```
+
+Insert the completion gate **after candidate validation and active-resume budget check**, but **before non-active cancellation and persistence**:
+
+```ts
+const update = buildGoalUpdate(goal, params);
+if (!update.ok) return errorResult(update.error);
+
+if (update.goal.status === "active" && !canActivateGoal(update.goal)) {
+	...
+}
+
+const completionDecision = decideGoalCompletion({
+	currentGoal: goal,
+	candidateGoal: update.goal,
+	telemetry: getTelemetry(),
+	recentMonitorPatterns: recentGoalMonitorPatterns(goal.goalId),
+});
+
+if (completionDecision.kind === "defer_and_steer") {
+	const telemetry = noteFloorCompletionDeferred(getTelemetry(), completionDecision.card.id);
+	if (telemetry) persistTelemetry(pi, telemetry, "floor");
+	syncGoalUi(ctx, goal);
+	return floorCompletionDeferredResult(goal, telemetry ?? getTelemetry(), completionDecision);
+}
+
+const telemetry = telemetryForUpdateWithCompletionDecision(update.goal, completionDecision);
+```
+
+Then keep the existing cancellation/persist path.
+
+Ordering invariant:
+
+```text
+early completion attempt under unmet floor
+must not call cancelContinuation
+must not call cancelMonitor
+must not persist status complete
+must not emit queue-complete steering
+must persist only telemetry floor deferral
+```
+
+Add a test that spies on all four.
+
+#### `buildGoalUpdate`
+
+Current order:
+
+```ts
+applyObjectiveUpdate
+applyBudgetUpdates
+recomputeStatusAfterBudgetEdit
+parse status
+```
+
+Recommended order:
+
+```ts
+applyObjectiveUpdate
+applyBudgetUpdates
+applyFloorUpdates
+validateBudgetFloorConfig(final next config)
+recomputeStatusAfterBudgetEdit if budget changed and status absent
+parse status
+```
+
+But with a caveat: validate combined config **before** status handling, so impossible floor/budget edits fail even if the same call also tries to complete.
+
+Do **not** let this pass in one call:
+
+```json
+{
+  "status": "complete",
+  "min_tokens_before_wrap_up": null
+}
+```
+
+when the current floor is unmet. That is effectively a force-complete override. First release should require two steps: remove/lower the floor, then complete.
+
+---
+
+### `continuation.ts`
+
+Change:
+
+```ts
+if (shouldSuppressAgentEndContinuation(reason)) return skip(pi, "noProgress");
+```
+
+to:
+
+```ts
+const telemetry = getTelemetry();
+if (shouldSuppressAgentEndContinuation(reason, goal, telemetry)) {
+	return skip(pi, floorSuppressionSkipReason(goal, telemetry));
+}
+```
+
+Refine helper:
+
+```ts
+function shouldSuppressAgentEndContinuation(
+	reason: ContinuationReason,
+	goal: GoalState,
+	telemetry: GoalTelemetrySnapshot | null,
+): boolean {
+	if (reason !== "agentEnd") return false;
+
+	if (isCompletionFloorUnmet(goal)) {
+		if (isBudgetExhausted(goal)) return true;
+		return telemetry?.floorQualityState === "exhausted";
+	}
+
+	return telemetry?.lastTurnOrigin === "auto"
+		&& telemetry.lastTurnToolCallCount === 0
+		&& telemetry.lastTurnToolResultCount === 0
+		&& !telemetry.lastTurnCompletedGoal;
+}
+```
+
+Also add a skip reason instead of lying with `"noProgress"`:
+
+```ts
+export type ContinuationSkipReason =
+	| ...
+	| "floorExhausted"
+	| "budgetExhausted";
+```
+
+In `maybeContinueGoal`, change:
+
+```ts
+const prompt = buildContinuationPrompt(goal);
+```
+
+to:
+
+```ts
+const prompt = buildContinuationPrompt(goal, telemetry);
+```
+
+Important: budget safety still wins. If the goal is active but budget-exhausted due to timing, do not schedule floor continuation.
+
+---
+
+### `prompts.ts`
+
+Keep `buildBudgetLimitPrompt` floor-free except maybe one explanatory line. Budget wrap-up must not suggest more floor work.
+
+Change:
+
+```ts
+export function buildContinuationPrompt(goal: GoalState)
+```
+
+to:
+
+```ts
+export function buildContinuationPrompt(
+	goal: GoalState,
+	telemetry: GoalTelemetrySnapshot | null,
+)
+```
+
+Append floor guidance only when:
+
+```ts
+isCompletionFloorUnmet(goal)
+&& telemetry?.floorQualityState !== "exhausted"
+&& !isBudgetExhausted(goal)
+```
+
+Do not bury floor guidance above the existing completion audit. Put it after budget lines and before “Avoid repeating work…”, because it changes what “complete” means for this continuation.
+
+---
+
+### `monitor-report.ts`
+
+Add:
+
+```ts
+import { evaluateCompletionFloor } from "./floor";
+```
+
+In `buildGoalMonitorReport`, compute once:
+
+```ts
+const floor = buildGoalMonitorFloorReport(goal, telemetry);
+```
+
+and include:
+
+```ts
+floor,
+```
+
+Do not recompute in `monitor-prompts.ts`; report construction owns report data.
+
+Add floor history fields even though the issue’s excerpt only shows status fields:
+
+```ts
+floor: {
+	...evaluation,
+	completionBlockedByFloor: evaluation.anyFloorConfigured && !evaluation.allFloorsMet,
+	lastFloorCardId: telemetry?.lastFloorCardId,
+	completedFloorCardIds: telemetry?.completedFloorCardIds ?? [],
+	floorSteerCount: telemetry?.floorSteerCount ?? 0,
+	floorChurnSteerCount: telemetry?.floorChurnSteerCount ?? 0,
+	floorQualityState: telemetry?.floorQualityState ?? "inactive",
+}
+```
+
+Without history, the monitor cannot distinguish first floor pass from repeated churn.
+
+---
+
+### `monitor-prompts.ts`
+
+Add `<floor>` inside `<latest_sparse_report>`, not inside `<goal>`, because it is derived runtime state.
+
+```xml
+<floor>
+  <min_tokens_before_wrap_up>...</min_tokens_before_wrap_up>
+  <min_time_seconds_before_wrap_up>...</min_time_seconds_before_wrap_up>
+  <tokens_remaining_before_wrap_up>...</tokens_remaining_before_wrap_up>
+  <time_seconds_remaining_before_wrap_up>...</time_seconds_remaining_before_wrap_up>
+  <token_floor_met>true|false</token_floor_met>
+  <time_floor_met>true|false</time_floor_met>
+  <all_floors_met>true|false</all_floors_met>
+  <completion_blocked_by_floor>true|false</completion_blocked_by_floor>
+  <last_floor_card_id>...</last_floor_card_id>
+  <completed_floor_card_ids>...</completed_floor_card_ids>
+  <floor_steer_count>...</floor_steer_count>
+  <floor_churn_steer_count>...</floor_churn_steer_count>
+  <floor_quality_state>...</floor_quality_state>
+</floor>
+```
+
+Ordering: render floor after telemetry, before recent context. The monitor needs state first, evidence second.
+
+---
+
+### `monitor.ts`
+
+After parsing and logging the decision, but before sending steer:
+
+```ts
+const telemetry = applyFloorMonitorDecision(getTelemetry(), report, decision);
+if (telemetry) persistTelemetry(pi, telemetry, "floor");
+```
+
+Guard it:
+
+```ts
+if (report.floor.completionBlockedByFloor) {
+	...
+}
+```
+
+Do not mutate floor telemetry from floor pattern names when floors are not currently blocking completion. Otherwise old/stale monitor responses can poison future gate decisions.
+
+For `floor_quality_exhausted`, persist telemetry before injecting the steer so the next `update_goal(status:"complete")` can pass.
+
+---
+
+### `telemetry.ts`
+
+Add pure helpers only. No imports from `monitor.ts`, `monitor-prompts.ts`, or `floor-steering.ts`.
+
+Good shape:
+
+```ts
+export function noteFloorCompletionDeferred(
+	telemetry: GoalTelemetrySnapshot | null,
+	cardId: FloorValuePassId,
+	now = Date.now(),
+): GoalTelemetrySnapshot | null
+```
+
+```ts
+export function noteProductiveFloorWork(...)
+export function noteFloorChurnSteer(...)
+export function noteFloorQualityExhausted(...)
+export function noteFloorOverriddenByMaxBudget(...)
+```
+
+Also cap history:
+
+```ts
+function appendUniqueFloorCard(
+	cards: FloorValuePassId[] | undefined,
+	cardId: FloorValuePassId,
+): FloorValuePassId[] {
+	return [...new Set([...(cards ?? []), cardId])].slice(-8);
+}
+```
+
+No unbounded telemetry arrays.
+
+---
+
+### Queue paths
+
+Likely touch:
+
+```text
+.pi/extensions/goal/queue-tools.ts
+.pi/extensions/goal/queue.ts
+.pi/extensions/goal/command.ts
+```
+
+Exact constraints:
+
+* `QueuedGoal` gets optional floor fields.
+* `enqueue_goal` schema accepts min fields.
+* Validate impossible min > max at enqueue time.
+* `start_queued_goal` passes floors into `createGoalState`.
+* Queue display includes floors, but do not render them as max-budget “remaining”.
+* Template-created queued goals must preserve floor params.
+
+Probe must verify:
+
+```text
+enqueue -> inspect queue -> start_queued_goal -> get_goal
+```
+
+retains both floor fields.
+
+---
+
+### UI / format
+
+In `formatToolGoal`, after budget lines:
+
+```ts
+const tokenFloor =
+	goal.minTokensBeforeWrapUp === undefined
+		? "none"
+		: `${goal.minTokensBeforeWrapUp} (${Math.max(0, goal.minTokensBeforeWrapUp - goal.tokensUsed)} before wrap-up)`;
+
+const timeFloor =
+	goal.minTimeSecondsBeforeWrapUp === undefined
+		? "none"
+		: `${formatElapsed(goal.minTimeSecondsBeforeWrapUp)} (${Math.max(0, goal.minTimeSecondsBeforeWrapUp - goal.timeUsedSeconds)} seconds before wrap-up)`;
+```
+
+Render separately:
+
+```text
+Token budget: ...
+Token floor before wrap-up: ...
+Time budget: ...
+Time floor before wrap-up: ...
+```
+
+Do not call floor deltas “remaining budget”.
+
+Widget/footer should use labels like:
+
+```text
+floor unmet
+floor met
+wrap-up floor
+```
+
+not “minimum spend remaining” unless the public docs already use that wording.
+
+---
+
+### README
+
+Add only user-visible behavior:
+
+* Fields.
+* Valid/invalid combinations.
+* Max budgets override floors.
+* Floors block normal completion, not budget-limited wrap-up.
+* First release has no force-complete override.
+* Escape hatch is update/remove floor, pause, clear, or max-budget-limited wrap-up.
+
+Also document the two-step early-end behavior:
+
+```text
+To end a floor-protected goal early, first remove/lower the floor, then complete the goal after the state update succeeds.
+```
+
+That avoids same-call bypass ambiguity.
+
+---
+
+## 3. Type/API shape refinements to avoid cycles and casts
+
+### Put shared floor unions in `types.ts`
+
+Do this:
+
+```ts
+export type FloorValuePassId =
+	| "requirement_gap_audit"
+	| "adversarial_review"
+	| "alternate_perspective"
+	| "research_expansion"
+	| "validation_expansion"
+	| "simplification_deslop"
+	| "compatibility_review"
+	| "docs_handoff_evidence";
+
+export type FloorQualityState =
+	| "inactive"
+	| "eligible"
+	| "steering"
+	| "qualityWarning"
+	| "exhausted"
+	| "overriddenByMaxBudget";
+
+export type NoMoreValuableWorkReason =
+	| "objective_fully_satisfied"
+	| "no_safe_autonomous_work"
+	| "max_budget_requires_wrap_up"
+	| "user_requested_stop";
+```
+
+Do **not** make `types.ts` import from `floor-steering.ts`. That will create unnecessary gravity.
+
+Dependency direction should be:
+
+```text
+types.ts
+  ↑
+floor.ts
+  ↑
+floor-steering.ts
+  ↑
+completion-gate.ts
+  ↑
+tools.ts
+```
+
+`telemetry.ts` can import only from `types.ts`.
+
+### Avoid positional `createGoalState`
+
+Prefer:
+
+```ts
+export type CreateGoalStateInput = {
+	objective: string;
+	tokenBudget?: number;
+	timeBudgetSeconds?: number;
+	minTokensBeforeWrapUp?: number;
+	minTimeSecondsBeforeWrapUp?: number;
+	now?: number;
+};
+
+export function createGoalState(input: CreateGoalStateInput): GoalState
+```
+
+Then queue/template/tool paths cannot swap `timeBudgetSeconds` and `minTimeSecondsBeforeWrapUp`.
+
+### Add explicit `ToolDetails` fields
+
+Instead of `as ToolDetails` escape hatches, extend the existing tool details type:
+
+```ts
+type ToolDetails = {
+	goal: GoalState | null;
+	telemetry: GoalTelemetrySnapshot | null;
+	remaining_tokens?: number;
+	remaining_time_seconds?: number;
+	completion_budget_report?: string;
+	error?: string;
+
+	completion_blocked_by_floor?: boolean;
+	floor?: CompletionFloorEvaluation;
+	next_floor_pass?: {
+		id: FloorValuePassId;
+		label: string;
+		concrete_first_action: string;
+		required_evidence: string[];
+		avoid: string[];
+	};
+	no_more_valuable_work_reason?: NoMoreValuableWorkReason | "max_budget_requires_wrap_up";
+};
+```
+
+### Keep `CompletionFloorEvaluation` in `floor.ts`
+
+Do not put every derived report type in `types.ts`. `types.ts` should own persisted shapes and shared unions. `floor.ts` should own derived evaluation.
+
+---
+
+## 4. State / replay / backward-compat risks
+
+### Optional `GoalState` fields
+
+Old replay events will not have:
+
+```ts
+minTokensBeforeWrapUp
+minTimeSecondsBeforeWrapUp
+```
+
+So all floor helpers must treat `undefined` as “no floor”.
+
+Do not normalize old state by writing `0`; that will confuse positive-integer validation and display.
+
+### Optional telemetry history
+
+Old telemetry will not have:
+
+```ts
+completedFloorCardIds
+floorSteerCount
+floorChurnSteerCount
+floorQualityState
+```
+
+Every helper should default internally:
+
+```ts
+telemetry.floorSteerCount ?? 0
+telemetry.completedFloorCardIds ?? []
+telemetry.floorQualityState ?? "inactive"
+```
+
+Do not require migration.
+
+### `PiGoalEventReason`
+
+Add `"floor"`:
+
+```ts
+export type PiGoalEventReason = ... | "floor";
+```
+
+Otherwise implementation will use casts like:
+
+```ts
+persistTelemetry(pi, telemetry, "floor" as PiGoalEventReason)
+```
+
+which is exactly the kind of escape hatch that later hides replay bugs.
+
+### Replay permissiveness
+
+If state parsing currently only checks `version` and `goalId`, optional fields are safe. If any stricter `isGoalState` exists outside the excerpt, it must allow missing floors and validate present floors as positive integers only defensively.
+
+Recommendation: on replay, ignore malformed floor values rather than crashing the extension. On tool input, reject them strictly.
+
+---
+
+## 5. Race / lifecycle risks
+
+### Completion deferral vs cancellation
+
+Biggest concrete risk in this patch.
+
+Bad ordering:
+
+```ts
+candidate complete
+cancel monitor
+cancel continuation
+gate rejects completion
+```
+
+This leaves an active goal with its monitor canceled.
+
+Probe this directly with spies.
+
+### Agent-end suppression
+
+Existing suppression:
+
+```ts
+lastTurnOrigin === "auto"
+&& lastTurnToolCallCount === 0
+&& lastTurnToolResultCount === 0
+&& !lastTurnCompletedGoal
+```
+
+is hostile to floors. A floor continuation that produced only a final-style answer could suppress the very follow-up needed to correct it.
+
+Floor-aware rule:
+
+```text
+floor unmet + active + not exhausted + not budget exhausted
+=> do not suppress agentEnd continuation solely because last auto turn had no tools
+```
+
+But keep existing safety caps in `maybeContinueGoal`.
+
+### Monitor timing
+
+Monitor may run immediately after completion deferral before the worker has had a chance to act. That should usually be `watch`, not churn.
+
+Prompt and telemetry should distinguish:
+
+```text
+floorSteerCount incremented
+but no post-steer worker action yet
+```
+
+Do not mark `quota_filling_churn` solely because `floorSteerCount > 0`.
+
+### Budget-limited interaction
+
+Max budget must dominate in three places:
+
+1. `completion-gate.ts`
+2. `continuation.ts`
+3. `prompts.ts`
+
+Concrete invariant:
+
+```text
+if isBudgetExhausted(goal), floor steering must not schedule new substantive continuation
+```
+
+`buildBudgetLimitPrompt` must never include “choose a floor pass”.
+
+### Stale contexts
+
+All floor continuation/refusal prompts should include `goalId` in details and stale-goal text already used elsewhere:
+
+```text
+If get_goal reports this goal is paused, absent, complete, budget-limited, or has a different goal id, ignore this floor guidance.
+```
+
+Completion deferral result is immediate, but monitor/continuation prompts are delayed and can go stale.
+
+### Same-call floor removal + completion
+
+This is a product/security race, not just code.
+
+If allowed, the model can bypass the floor by doing:
+
+```json
+{ "min_tokens_before_wrap_up": null, "status": "complete" }
+```
+
+Recommendation for first release:
+
+```text
+completion gate evaluates currentGoal floors
+same-call floor removal does not bypass completion gate
+```
+
+Document the two-step user escape hatch.
+
+---
+
+## 6. Probe/test design that catches false greens
+
+### Probe A — wrong insertion order
+
+Set active goal with unmet floor. Call `update_goal(status:"complete")`.
+
+Assert:
+
+```text
+goal.status === "active"
+persistUpdateGoal not called with complete
+runtime.cancelContinuation not called
+runtime.cancelMonitor not called
+queue steering not sent
+persistTelemetry called with reason floor
+result.details.completion_blocked_by_floor === true
+```
+
+This catches wiring the gate after cancellation/persistence.
+
+### Probe B — prompt-only implementation
+
+Create goal with min floor. Immediately call complete.
+
+Assert state does not complete.
+
+This fails any implementation that only updates prompts/README/schema.
+
+### Probe C — schema-only implementation
+
+Create goal with min fields and call `get_goal`.
+
+Assert fields display. Then call complete.
+
+Assert blocked. This separates schema propagation from behavior.
+
+### Probe D — currentGoal vs candidateGoal
+
+Current goal:
+
+```ts
+minTokensBeforeWrapUp: 10_000,
+tokensUsed: 100
+```
+
+Call:
+
+```json
+{
+  "status": "complete",
+  "min_tokens_before_wrap_up": null
+}
+```
+
+Expected first release:
+
+```text
+completion blocked by current floor
+goal remains active
+floor not removed in same call
+```
+
+This proves the gate evaluates `currentGoal`, not the candidate.
+
+### Probe E — max budget precedence
+
+Valid config:
+
+```ts
+tokenBudget: 1000,
+minTokensBeforeWrapUp: 900,
+tokensUsed: 1000
+```
+
+Expected:
+
+```text
+no floor continuation is scheduled
+completion gate returns allow_with_reason max_budget_requires_wrap_up or existing budgetLimited path wins
+budget wrap-up prompt contains no floor-work instruction
+```
+
+Invalid config:
+
+```ts
+tokenBudget: 1000,
+minTokensBeforeWrapUp: 1001
+```
+
+Expected rejection at create/update/enqueue.
+
+### Probe F — agentEnd suppression
+
+Telemetry:
+
+```ts
+lastTurnOrigin: "auto",
+lastTurnToolCallCount: 0,
+lastTurnToolResultCount: 0,
+lastTurnCompletedGoal: false
+```
+
+Goal floor unmet.
+
+Call `scheduleMaybeContinueGoal(..., "agentEnd")`.
+
+Expected:
+
+```text
+continuation scheduled unless floorQualityState === exhausted or budget exhausted
+```
+
+This catches leaving `shouldSuppressAgentEndContinuation` unchanged.
+
+### Probe G — monitor stale floor patterns
+
+Report with:
+
+```ts
+floor.completionBlockedByFloor === false
+decision.pattern === "floor_quality_exhausted"
+```
+
+Expected:
+
+```text
+telemetry.floorQualityState not mutated
+```
+
+This catches stale monitor poisoning.
+
+### Probe H — queue preservation
+
+Run:
+
+```text
+enqueue_goal with min floors
+start_queued_goal
+get_goal
+```
+
+Expected:
+
+```text
+GoalState floors match queued fields
+```
+
+Also assert queue list formatting includes floors.
+
+### Probe I — update validation cross-product
+
+Cases:
+
+```text
+set min token floor > existing token budget => reject
+lower token budget below existing min token floor => reject
+set min time floor > existing time budget => reject
+remove floor with null => ok
+remove budget while floor remains => ok
+set budget after floor exists, budget >= floor => ok
+```
+
+This catches partial validation only on create.
+
+### Probe J — telemetry history defaults
+
+Replay old telemetry with no floor fields.
+
+Expected:
+
+```text
+monitor report renders floor counts as 0/default
+no crash
+no cast
+```
+
+---
+
+## 7. Issue-doc improvements worth making before implementation
+
+Add these clarifications before coding:
+
+1. **Same-call floor removal + completion**
+
+   * Explicitly state it is not a supported first-release escape hatch.
+   * Require two separate updates.
+
+2. **Telemetry mutation source of truth**
+
+   * Define exactly which functions set:
+
+     * `lastFloorCardId`
+     * `completedFloorCardIds`
+     * `floorSteerCount`
+     * `floorChurnSteerCount`
+     * `floorQualityState`
+
+3. **Budget precedence in prompts**
+
+   * Say budget-limited prompts must not include floor continuation guidance.
+
+4. **Monitor stale-pattern guard**
+
+   * Apply floor monitor telemetry mutations only when the report says `completionBlockedByFloor`.
+
+5. **Non-error deferral result**
+
+   * State completion deferral is a successful tool result with rejected state mutation, not `Error:`.
+
+6. **Bounded history**
+
+   * Cap `completedFloorCardIds` or keep it unique and limited to the catalog size.
+
+7. **Queue checklist**
+
+   * Name exact queue paths that must preserve floors:
+
+     * enqueue schema
+     * queued state
+     * start queued goal
+     * queue display
+     * template enqueue if present
+
+---
+
+## 8. Over-specified / under-specified for first release
+
+### Over-specified
+
+* Full “evidence delta scoring” engine. Use monitor prompt + simple telemetry counters first.
+* Rich UI bars for floors. Plain text/status is enough.
+* Sophisticated selector penalties. Deterministic no-repeat + fallback order is enough.
+* External research automation for `research_expansion`. Keep it as a card, not a subsystem.
+* Treating `noMoreValuableWorkReason` as a model tool parameter. Record it internally first.
+
+### Under-specified
+
+* Exact `tools.ts` insertion point. The issue now mentions it, but implementation checklist should explicitly say “before non-active cancellation.”
+* Same-call floor edit + completion semantics.
+* `agentEnd` suppression behavior when the last auto turn had no tools.
+* Whether `floor_quality_exhausted` is monitor-only, gate-derived, or both. Recommendation: monitor can set it; gate can also allow no-card exhaustion after prior floor work.
+* How queue validation handles `min > max`.
+* Whether malformed replayed floor fields are ignored or crash. Recommendation: ignore malformed replay fields; reject malformed tool input.
+
+The main maintainer invariant I’d put at the top of the patch plan:
+
+```text
+An unmet completion floor may block completion, but it must never cancel the active goal machinery, never override max-budget safety, and never be bypassed by same-call self-declared “no more valuable work.”
+```

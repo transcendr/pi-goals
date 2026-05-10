@@ -43,15 +43,15 @@ export function parseQueueBlockItems(input: string): QueueBlockItem[] | null {
 }
 
 function parseMarkerCandidate(line: string, lineIndex: number): MarkerCandidate | null {
-	const bracket = line.match(/^\[(\d+)\]\s*/);
+	const bracket = line.match(/^\s*\[(\d+)\]\s*/);
 	if (bracket) return { kind: "ordered", style: "bracket", number: Number(bracket[1]), lineIndex, markerLength: bracket[0].length, marker: `[${bracket[1]}]` };
-	const dot = line.match(/^(\d+)\.\s*/);
+	const dot = line.match(/^\s*(\d+)\.\s*/);
 	if (dot) return { kind: "ordered", style: "dot", number: Number(dot[1]), lineIndex, markerLength: dot[0].length, marker: `${dot[1]}.` };
-	const paren = line.match(/^(\d+)\)\s*/);
+	const paren = line.match(/^\s*(\d+)\)\s*/);
 	if (paren) return { kind: "ordered", style: "paren", number: Number(paren[1]), lineIndex, markerLength: paren[0].length, marker: `${paren[1]})` };
-	const dash = line.match(/^-\s+/);
+	const dash = line.match(/^\s*-\s+/);
 	if (dash) return { kind: "bullet", style: "dash", lineIndex, markerLength: dash[0].length, marker: "-" };
-	const star = line.match(/^\*\s+/);
+	const star = line.match(/^\s*\*\s+/);
 	if (star) return { kind: "bullet", style: "star", lineIndex, markerLength: star[0].length, marker: "*" };
 	return null;
 }

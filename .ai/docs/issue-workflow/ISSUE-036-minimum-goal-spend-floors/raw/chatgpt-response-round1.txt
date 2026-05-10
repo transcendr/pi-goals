@@ -1,0 +1,578 @@
+Round 1 critique: the feature should **not** be “minimum spend.” That framing invites token laundering. It should be **“premature completion prevention with useful-work steering.”** The floor is only a guardrail that says: “before declaring done, make one more high-value pass from a reusable work catalog unless there is a real blocker, max budget conflict, or no valuable autonomous work remains.”
+
+Pi has the right extension hooks for this: extensions can register model-callable tools, intercept lifecycle/model/tool events, persist session state, and send/inject messages; current goal packages already expose `/goal`, `get_goal`, `create_goal`, `update_goal`, continuation prompts, and token/time budget surfaces. ([pi.dev][1])
+
+## 1. Main design critique
+
+The dangerous implementation is:
+
+> floor unmet → reject completion → “keep working until floor is met”
+
+That creates churn.
+
+The better implementation is:
+
+> floor unmet → completion gate asks catalog for the best next valuable work card → agent must do that work with evidence → churn monitor judges whether the floor work is real → completion allowed once floors met or valuable work is exhausted.
+
+So the invariant should be:
+
+> A floor can delay completion, but it cannot justify unrelated work.
+
+## 2. Suggested module split
+
+Use a small set of explicit modules instead of burying this inside `update_goal`.
+
+```ts
+src/
+  goal-state.ts
+  usage-accounting.ts
+  completion-gate.ts
+  floor-policy.ts
+  floor-steering/
+    catalog.ts
+    selector.ts
+    prompt.ts
+    work-cards.ts
+  churn-monitor/
+    signals.ts
+    scorer.ts
+    actions.ts
+  validation/
+    probes.ts
+```
+
+Core responsibilities:
+
+`usage-accounting.ts`
+Tracks active elapsed time and token usage. Use Pi’s context usage where available, but keep your own goal-start snapshots so the floor is relative to the goal, not the whole session. Pi exposes `ctx.getContextUsage()` for current model context/token accounting. ([pi.dev][1])
+
+`completion-gate.ts`
+Owns the decision: complete, steer, ask, pause, or hard-stop.
+
+`catalog.ts`
+Reusable catalog of valuable follow-up work patterns.
+
+`selector.ts`
+Chooses one card based on objective, changed files, prior actions, evidence, floor deficit, and churn history.
+
+`churn-monitor`
+Existing intelligent churn monitor becomes the quality layer. It does not merely say “agent is looping”; it says “this attempted floor work is not advancing the objective.”
+
+## 3. API shape
+
+Extend goal creation:
+
+```ts
+type CreateGoalInput = {
+  objective: string;
+
+  max_tokens?: number;
+  max_time_seconds?: number;
+
+  min_tokens_before_wrap_up?: number;
+  min_time_seconds_before_wrap_up?: number;
+
+  floor_policy?: {
+    mode?: "off" | "soft" | "strict";
+    user_fallback?: "never" | "objective_allows" | "always";
+    no_value_escape?: "allow_complete" | "pause_goal" | "ask_user";
+    max_floor_steers?: number;
+    max_churn_steers?: number;
+  };
+};
+```
+
+Extend goal state:
+
+```ts
+type GoalFloorState = {
+  min_tokens_before_wrap_up?: number;
+  min_time_seconds_before_wrap_up?: number;
+
+  token_floor_met: boolean;
+  time_floor_met: boolean;
+
+  token_deficit: number;
+  time_deficit_seconds: number;
+
+  floor_steer_count: number;
+  churn_steer_count: number;
+
+  last_floor_card_id?: string;
+  completed_floor_card_ids: string[];
+
+  floor_quality_state:
+    | "inactive"
+    | "eligible"
+    | "steering"
+    | "quality_warning"
+    | "exhausted"
+    | "overridden_by_max_budget";
+};
+```
+
+Extend completion:
+
+```ts
+type UpdateGoalInput = {
+  status: "complete";
+
+  completion_summary?: string;
+  evidence?: string[];
+  remaining_risks?: string[];
+
+  no_more_valuable_work_reason?:
+    | "objective_fully_satisfied"
+    | "blocked_without_user_input"
+    | "no_safe_autonomous_work"
+    | "max_budget_requires_wrap_up"
+    | "user_requested_stop";
+};
+```
+
+Behavior:
+
+If `update_goal({ status: "complete" })` arrives while floors are unmet, do **not** mark complete immediately. Return a structured tool result:
+
+```ts
+{
+  outcome: "completion_deferred_floor_unmet",
+  floor: {
+    token_deficit: 4200,
+    time_deficit_seconds: 180
+  },
+  next_work: {
+    card_id: "validation_probe",
+    instruction: "Run one focused validation pass against the changed behavior and capture exact evidence."
+  },
+  rule: "Do not ask the user unless blocked or the objective explicitly requires user choice."
+}
+```
+
+Important: don’t throw an error for normal floor deferral. Throwing makes it feel like a failure. Return a successful tool result that clearly instructs continuation.
+
+## 4. Catalog-driven steering
+
+Do not generate fresh “keep working” prompts from scratch. Use cards.
+
+Example card type:
+
+```ts
+type FloorWorkCard = {
+  id: string;
+  label: string;
+
+  applies_when: {
+    objective_tags?: string[];
+    changed_files?: string[];
+    tools_seen?: string[];
+    missing_evidence?: string[];
+  };
+
+  forbidden_when?: {
+    already_done?: string[];
+    max_repeats?: number;
+    no_files_changed?: boolean;
+    user_requested_minimal_answer?: boolean;
+  };
+
+  instruction_template: string;
+
+  expected_evidence: string[];
+
+  success_signals: string[];
+  churn_signals: string[];
+
+  probe?: {
+    kind: "command" | "static_review" | "test_gap" | "diff_review";
+    suggested_commands?: string[];
+  };
+};
+```
+
+Starter catalog:
+
+```ts
+const FLOOR_WORK_CARDS = [
+  {
+    id: "read_relevant_surface",
+    label: "Map the relevant implementation surface",
+    instruction_template:
+      "Inspect the smallest relevant set of files for the objective. Identify one concrete gap, risk, or validation target. Do not summarize broadly.",
+    expected_evidence: ["specific file paths", "specific finding or no-gap conclusion"],
+    churn_signals: ["reads same files repeatedly", "broad architecture summary without decision"]
+  },
+  {
+    id: "test_gap_probe",
+    label: "Find or add a focused validation probe",
+    instruction_template:
+      "Look for existing tests around the changed behavior. Run the most relevant test, or add one small regression test if the objective clearly supports it.",
+    expected_evidence: ["test command", "pass/fail output", "reason test is relevant"],
+    churn_signals: ["runs unrelated full suite repeatedly", "adds test unrelated to objective"]
+  },
+  {
+    id: "edge_case_review",
+    label: "Check edge cases and failure modes",
+    instruction_template:
+      "Review the implementation for one concrete edge case: empty input, missing file, malformed config, timeout, cancellation, resumed session, or budget collision. Fix only if clearly in scope.",
+    expected_evidence: ["edge case checked", "fix or explicit no-fix rationale"],
+    churn_signals: ["speculative refactor", "generic list of possible bugs"]
+  },
+  {
+    id: "integration_contract_review",
+    label: "Verify API/tool contract compatibility",
+    instruction_template:
+      "Check that public tool schemas, prompt snippets, persisted state, and resumed-session compatibility remain stable.",
+    expected_evidence: ["schema fields checked", "compatibility result"],
+    churn_signals: ["renames public fields unnecessarily"]
+  },
+  {
+    id: "proof_pack",
+    label: "Produce final proof packet",
+    instruction_template:
+      "Before completion, collect exact evidence: changed files, commands run, passing checks, and remaining risks. Do not do cosmetic work.",
+    expected_evidence: ["diff summary", "commands", "risks"],
+    churn_signals: ["long narrative with no new evidence"]
+  }
+];
+```
+
+The selector should rank cards like this:
+
+```ts
+score =
+  objective_relevance
+  + missing_evidence_value
+  + risk_reduction_value
+  + changed_file_relevance
+  - repeat_penalty
+  - churn_penalty
+  - invasiveness_penalty
+  - max_budget_pressure;
+```
+
+The best card is not always the biggest task. Often it should be “run the exact missing validation” or “audit resume/compaction behavior.”
+
+## 5. Prompt mechanics
+
+Inject this into the system/continuation prompt only when a goal is active and floor is relevant.
+
+```text
+Goal floor policy:
+- Minimum floors are not quotas.
+- If you attempt to finish before the floor is met, you must perform one genuinely useful next step selected from the provided floor-work card.
+- Do not pad with summaries, broad restatements, cosmetic edits, or unrelated refactors.
+- Prefer autonomous work: inspect, validate, test, tighten, document only when directly useful.
+- Do not ask the user for more work unless the objective explicitly allows user choice or you are blocked.
+- If no valuable autonomous work remains, say so through update_goal with a concrete no_more_valuable_work_reason.
+```
+
+Floor steering prompt:
+
+```text
+Completion deferred: minimum goal floor is unmet.
+
+Current deficit:
+- tokens: {{token_deficit}}
+- active seconds: {{time_deficit_seconds}}
+
+Selected useful-work card:
+{{card.label}}
+
+Instruction:
+{{card.instruction_template}}
+
+Required evidence before trying to complete again:
+{{card.expected_evidence}}
+
+Anti-churn constraints:
+- Do not repeat prior completed floor cards.
+- Do not perform unrelated cleanup.
+- Do not write filler summaries.
+- Stop and report no_more_valuable_work_reason if this card cannot be completed safely.
+```
+
+Avoid telling the agent “spend 4,000 more tokens.” Tell it “do this useful pass; the floor is why completion was deferred.”
+
+## 6. Autonomous no-user fallback
+
+Default rule:
+
+> The floor system must not ask the user “what else should I do?” unless the original objective explicitly permits user choice.
+
+Examples:
+
+Allowed to ask:
+
+```text
+/goal Explore possible UI designs and ask me before choosing one
+```
+
+Not allowed to ask:
+
+```text
+/goal Implement min_time_seconds_before_wrap_up and validate it
+```
+
+For ordinary coding goals, the fallback order should be:
+
+1. Select next catalog card.
+2. Select lower-invasiveness validation card.
+3. Produce proof pack.
+4. If still unmet but no valuable work remains, allow completion with:
+   `no_more_valuable_work_reason: "no_safe_autonomous_work"`.
+5. If max budget is near/exceeded, max budget wins.
+
+Do **not** let the floor trap the agent in a fake work loop.
+
+## 7. Churn monitor rules
+
+Use three levels: watch, steer, escalate.
+
+### Watch signals
+
+Monitor these during floor-enforced continuation:
+
+```ts
+type ChurnSignal =
+  | "repeated_same_file_reads"
+  | "repeated_same_command"
+  | "summary_without_new_evidence"
+  | "cosmetic_edit_only"
+  | "unrelated_refactor"
+  | "validation_theater"
+  | "asks_user_without_permission"
+  | "completion_retry_without_new_work"
+  | "tool_loop_no_state_delta"
+  | "large_diff_low_relevance";
+```
+
+Concrete examples:
+
+* Reads the same files twice and produces no new finding.
+* Runs `ls`, `pwd`, `grep` repeatedly without narrowing.
+* Writes docs when the objective was implementation and no public behavior changed.
+* Makes formatting-only changes to satisfy a time floor.
+* Says “I’ll do another review pass” but produces no file path, command, or finding.
+* Asks “what else should I do?” when objective does not allow user fallback.
+
+### Steer rules
+
+First churn hit:
+
+```ts
+action = "inject_steering";
+message = "Your last step did not produce new objective evidence. Use the selected card and produce one concrete artifact, command result, or finding.";
+```
+
+Second churn hit:
+
+```ts
+action = "narrow_scope";
+message = "Do not browse generally. Choose exactly one: run the relevant test, inspect one named file, or produce no_more_valuable_work_reason.";
+```
+
+Third churn hit:
+
+```ts
+action = "floor_quality_exhausted";
+```
+
+At that point, stop enforcing the floor. Either allow completion with a warning or pause the goal, depending on policy.
+
+### Escalation rules
+
+```ts
+if (maxBudgetExceeded) {
+  complete_or_pause_with_wrapup("overridden_by_max_budget");
+}
+
+if (churn_steer_count >= max_churn_steers) {
+  allow_completion_with_floor_quality_exhausted();
+}
+
+if (agent_asks_user && user_fallback !== "allowed") {
+  block_question_and_inject_autonomous_card();
+}
+
+if (same_card_repeated && no_new_evidence) {
+  select_different_card_or_exhaust();
+}
+```
+
+The churn monitor should be able to say:
+
+> “The floor is unmet, but the agent has exhausted valuable autonomous work. Completion is safer than more churn.”
+
+That’s the anti-slop escape hatch.
+
+## 8. Event mechanics
+
+Use these hooks:
+
+* `before_agent_start`: inject current goal/floor status into prompt.
+* `tool_call`: intercept `update_goal(status: complete)` and run completion gate. Pi tool events can block/mutate tool calls before execution. ([pi.dev][1])
+* `tool_result`: update churn/evidence state based on actual command results and tool outputs. Pi allows tool result handlers to modify results and attach details. ([pi.dev][1])
+* `turn_end` / `agent_end`: detect “soft wrap-up without calling update_goal” and auto-send a continuation prompt if floor is unmet.
+* `appendEntry`: persist goal/floor/churn history in the session, matching the current goal packages’ session-persistent pattern. ([pi.dev][2])
+
+One important footgun: don’t rely only on `update_goal`. Agents often “final answer” without calling the tool. Add a wrap-up detector at `agent_end`.
+
+## 9. Completion decision table
+
+```ts
+function decideCompletion(goal, usage, monitor): CompletionDecision {
+  if (goal.status !== "active") return { kind: "allow" };
+
+  if (maxBudgetExceeded(goal, usage)) {
+    return { kind: "allow_or_pause", reason: "max_budget_requires_wrap_up" };
+  }
+
+  if (floorsMet(goal, usage)) {
+    return { kind: "allow" };
+  }
+
+  if (monitor.qualityState === "floor_quality_exhausted") {
+    return { kind: "allow", reason: "no_safe_autonomous_work" };
+  }
+
+  const card = selectFloorWorkCard(goal, usage, monitor);
+
+  if (card) {
+    return { kind: "defer_and_steer", card };
+  }
+
+  if (goal.floor_policy.user_fallback === "objective_allows" && objectiveAllowsUserFallback(goal.objective)) {
+    return { kind: "ask_user" };
+  }
+
+  return { kind: "allow", reason: "no_safe_autonomous_work" };
+}
+```
+
+## 10. Validation probes
+
+Add probes that intentionally try to break the feature.
+
+### Probe 1: premature completion
+
+Goal:
+
+```text
+/goal Review this small change and verify it
+min_tokens_before_wrap_up=10000
+```
+
+Agent immediately calls `update_goal(status: complete)`.
+
+Expected:
+
+* completion rejected/deferred
+* selected catalog card returned
+* goal remains active
+* no user question
+
+### Probe 2: soft final answer without tool call
+
+Agent says:
+
+```text
+Done. Everything looks good.
+```
+
+Expected:
+
+* `agent_end` detects wrap-up language
+* floor unmet
+* continuation prompt injected
+* selected card is specific
+
+### Probe 3: quota-filling summary
+
+Agent writes a long generic summary with no new commands, files, or findings.
+
+Expected:
+
+* churn monitor flags `summary_without_new_evidence`
+* next prompt narrows scope
+* churn count increments
+
+### Probe 4: repeated command loop
+
+Agent runs same test or same `grep` three times.
+
+Expected:
+
+* first repeat: watch
+* second repeat: steer
+* third repeat: floor quality exhausted or forced different card
+
+### Probe 5: user fallback forbidden
+
+Agent asks:
+
+```text
+What else would you like me to do?
+```
+
+Expected:
+
+* blocked or counter-steered
+* autonomous card selected
+* no user interaction unless objective explicitly allowed it
+
+### Probe 6: max budget collision
+
+Minimum floor unmet, but max token/time budget exceeded.
+
+Expected:
+
+* max budget wins
+* wrap-up/hard stop behavior preserved
+* state records `overridden_by_max_budget`
+
+### Probe 7: no valuable work remains
+
+Agent has run tests, reviewed diff, checked edge cases, and produced proof.
+
+Expected:
+
+* completion allowed even if floor still technically unmet
+* reason: `no_safe_autonomous_work`
+* no churn loop
+
+### Probe 8: resume/compaction
+
+Start goal, floor steer once, reload/resume/fork.
+
+Expected:
+
+* floor history persists
+* completed cards are not repeated
+* usage accounting still sane
+* no duplicate continuation prompts
+
+## 11. Concrete design improvements to make now
+
+1. Rename internal concept from `minimum spend` to `completion floor` or `premature wrap-up floor`.
+2. Make `update_goal(status: complete)` pass through `completion-gate.ts`; don’t mutate goal state directly.
+3. Add a reusable `FloorWorkCard` catalog before adding prompt text.
+4. Store `completed_floor_card_ids` and `last_floor_card_id`; repetition is the root of floor slop.
+5. Add `no_more_valuable_work_reason`; floors need an honorable escape hatch.
+6. Treat “ask user what next?” as a policy-controlled action, default denied.
+7. Make the churn monitor floor-aware: it should judge whether floor work produced new objective evidence.
+8. Add `floor_quality_exhausted`; after repeated bad floor work, stop enforcing the floor.
+9. Ensure max budgets override min floors. A min floor must never defeat a hard stop.
+10. Validate with adversarial probes, not just happy-path tests.
+
+The core mantra I’d put in the implementation comments:
+
+```text
+Minimum floors are not quotas.
+They are completion skepticism.
+When skeptical, steer toward the next most valuable bounded proof-producing action.
+When no such action exists, allow completion rather than manufacture work.
+```
+
+[1]: https://pi.dev/docs/latest/extensions "Pi Coding Agent"
+[2]: https://pi.dev/packages/pi-codex-goal "Pi Coding Agent"

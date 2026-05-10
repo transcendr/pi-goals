@@ -1,0 +1,325 @@
+1. Top 10 issue-doc amendments (web_descendant), Value: 2
+					4292 text 1. Top 10 issue-doc amendments (web_descendant)
+				4293 heading 1. Same-call floor removal + completion is not allowed (web_descendant), Value: 3
+					4294 text 1. Same-call floor removal + completion is not allowed (web_descendant)
+				4295 text Location/section to edit: (web_descendant)
+				4296 text “Locked design choices” → “Field naming” or “User escape hatches” (web_descendant)
+				4297 text Exact requirement wording to add: (web_descendant)
+				4298 text Markdown (web_descendant)
+				4299 button Copy (web_descendant)
+				4300 text A single `update_goal` call must not both remove/lower an unmet completion floor and mark the goal `status:"complete"`. Completion gating evaluates the current persisted goal floors before applying candidate floor edits. (web_descendant)
+				4301 text Why it matters: (web_descendant)
+				4302 text Without this, the model can bypass the whole feature with (web_descendant)
+				4303 text { min_tokens_before_wrap_up: null, status: "complete" } (web_descendant)
+				4304 text . (web_descendant)
+				4305 text False-green/probe it catches: (web_descendant)
+				4306 text “currentGoal vs candidateGoal” probe; same-call floor removal + completion bypass. (web_descendant)
+				4307 splitter (web_descendant, disabled)
+				4308 heading 2. no_more_valuable_work_reason is not a first-release model tool escape hatch (web_descendant), Value: 3
+					4309 text 2. no_more_valuable_work_reason is not a first-release model tool escape hatch (web_descendant)
+				4310 text Location/section to edit: (web_descendant)
+				4311 text “Autonomous floor-value continuation design” near (web_descendant)
+				4312 text noMoreValuableWorkReason (web_descendant)
+				4313 text Exact requirement wording to add: (web_descendant)
+				4314 text Markdown (web_descendant)
+				4315 button Copy (web_descendant)
+				4316 text `noMoreValuableWorkReason` is an internal recorded outcome on telemetry/tool details, not a first-release model tool parameter that can authorize completion. A worker-supplied `no_more_valuable_work_reason` must not bypa (web_descendant)
+				4317 text Why it matters: (web_descendant)
+				4318 text The current text could be read as “agent can say no safe work remains and complete.” (web_descendant)
+				4319 text False-green/probe it catches: (web_descendant)
+				4320 text Fake no-more-work bypass probe. (web_descendant)
+				4321 splitter (web_descendant, disabled)
+				4322 heading 3. Completion deferral must be a successful blocked-update result, not Error: (web_descendant)
+					4323 text 3. Completion deferral must be a successful blocked-update result, not Error: (web_descendant)
+				4324 text Location/section to edit: (web_descendant)
+				4325 text “Hard pre-wrap-up gate” (web_descendant)
+				4326 text Exact requirement wording to add: (web_descendant)
+				4327 text Markdown (web_descendant)
+				4328 button Copy (web_descendant)
+				4329 text An unmet-floor completion attempt rejects the state mutation but should return a successful tool result, not a generic `Error:` result. The result must state that completion was deferred, the goal remains active, include (web_descendant)
+				4330 text Why it matters: (web_descendant)
+				4331 text A generic error result encourages retry loops or model confusion. This also forces structured proof that the gate actually ran. (web_descendant)
+				4332 text False-green/probe it catches: (web_descendant)
+				4333 text Prompt-only/schema-only implementation; deferral result shape probe. (web_descendant)
+				4334 splitter (web_descendant, disabled)
+				4335 heading 4. Completion gate must run before all non-active side effects (web_descendant), Value: 3
+					4336 text 4. Completion gate must run before all non-active side effects (web_descendant)
+				4337 text Location/section to edit: (web_descendant)
+				4338 text “Autonomous floor-value continuation design” under (web_descendant)
+				4339 text completion-gate.ts (web_descendant)
+				4340 text Exact requirement wording to add: (web_descendant)
+				4341 text Markdown (web_descendant)
+				4342 button Copy (web_descendant)
+				4343 text In `tools.ts`, `decideGoalCompletion(...)` must run after `buildGoalUpdate(...)` validation and active-resume budget checks, but before any non-active side effect: `cancelContinuation`, `cancelMonitor`, `persistUpdateGoa (web_descendant)
+				4344 text Why it matters: (web_descendant)
+				4345 text Wrong insertion order can leave an active goal with its continuation/monitor canceled. (web_descendant)
+				4346 text False-green/probe it catches: (web_descendant)
+				4347 text Wrong insertion-order spy probe. (web_descendant)
+				4348 splitter (web_descendant, disabled)
+				4349 heading 5. Budget-limited prompts must never include floor-work instructions (web_descendant), Value: 3
+					4350 text 5. Budget-limited prompts must never include floor-work instructions (web_descendant)
+				4351 text Location/section to edit: (web_descendant)
+				4352 text “Maximum budget precedence” (web_descendant)
+				4353 text Exact requirement wording to add: (web_descendant)
+				4354 text Markdown (web_descendant)
+				4355 button Copy (web_descendant)
+				4356 text When a max token/time budget is exhausted and the goal is or becomes `budgetLimited`, max-budget behavior is authoritative. `buildBudgetLimitPrompt(...)` must not include floor-value pass instructions, must not ask the w (web_descendant)
+				4357 text Why it matters: (web_descendant)
+				4358 text Otherwise the floor can accidentally override the hard safety cap. (web_descendant)
+				4359 text False-green/probe it catches: (web_descendant)
+				4360 text Max budget beats min floor probe; budget-limited prompt inspection. (web_descendant)
+				4361 splitter (web_descendant, disabled)
+				4362 heading 6. Monitor floor-pattern telemetry must be stale-guarded (web_descendant), Value: 3
+					4363 text 6. Monitor floor-pattern telemetry must be stale-guarded (web_descendant)
+				4364 text Location/section to edit: (web_descendant)
+				4365 text “Floor-aware monitor design” (web_descendant)
+				4366 text Exact requirement wording to add: (web_descendant)
+				4367 text Markdown (web_descendant)
+				4368 button Copy (web_descendant)
+				4369 text Floor-related monitor decisions may mutate floor telemetry only when the monitor report’s `floor.completionBlockedByFloor` is true, the report goal id still matches the current active goal, and the current goal is not pa (web_descendant)
+				4370 text Why it matters: (web_descendant)
+				4371 text An old monitor response could poison telemetry and let a later completion bypass the floor. (web_descendant)
+				4372 text False-green/probe it catches: (web_descendant)
+				4373 text Monitor stale pattern poisoning probe. (web_descendant)
+				4374 splitter (web_descendant, disabled)
+				4375 heading 7. Replay parsing must tolerate malformed optional floor fields (web_descendant), Value: 3
+					4376 text 7. Replay parsing must tolerate malformed optional floor fields (web_descendant)
+				4377 text Location/section to edit: (web_descendant)
+				4378 text “State/replay/backward compatibility” or implementation checklist near (web_descendant)
+				4379 text state.ts (web_descendant)
+				4380 text Exact requirement wording to add: (web_descendant)
+				4381 text Markdown (web_descendant)
+				4382 button Copy (web_descendant)
+				4383 text Tool input validation is strict, but replay/loading of historical `pi-goal-state` events must be defensive. Missing floor fields mean no floor. Malformed replayed floor fields, such as non-integers, non-positive numbers, (web_descendant)
+				4384 text Why it matters: (web_descendant)
+				4385 text Optional fields are backward-compatible only if old and malformed events do not break state reconstruction. (web_descendant)
+				4386 text False-green/probe it catches: (web_descendant)
+				4387 text Telemetry/history replay defaults probe; malformed replay value probe. (web_descendant)
+				4388 splitter (web_descendant, disabled)
+				4389 heading 8. createGoalState must move to an options object (web_descendant), Value: 3
+					4390 text 8. createGoalState must move to an options object (web_descendant)
+				4391 text Location/section to edit: (web_descendant)
+				4392 text Implementation checklist item: “Extend (web_descendant)
+				4393 text createGoalState() (web_descendant)
+				4394 text …” (web_descendant)
+				4395 text Exact requirement wording to add: (web_descendant)
+				4396 text Markdown (web_descendant)
+				4397 button Copy (web_descendant)
+				4398 text Change `createGoalState` to accept a named options object rather than adding positional arguments. Required shape: `{ objective, tokenBudget?, timeBudgetSeconds?, minTokensBeforeWrapUp?, minTimeSecondsBeforeWrapUp?, now? (web_descendant)
+				4399 text Why it matters: (web_descendant)
+				4400 text Adding two optional positional args after existing budget args is a silent integration footgun. (web_descendant)
+				4401 text False-green/probe it catches: (web_descendant)
+				4402 text Queue/template/create propagation probe; TypeScript API misuse review. (web_descendant)
+				4403 splitter (web_descendant, disabled)
+				4404 heading 9. Queue/template propagation must name exact surfaces (web_descendant), Value: 3
+					4405 text 9. Queue/template propagation must name exact surfaces (web_descendant)
+				4406 text Location/section to edit: (web_descendant)
+				4407 text Implementation checklist item: “queued goal can preserve floor settings” (web_descendant)
+				4408 text Exact requirement wording to add: (web_descendant)
+				4409 text Markdown (web_descendant)
+				4410 button Copy (web_descendant)
+				4411 text Floor propagation must be implemented and probed across all creation surfaces: `create_goal`, `create_goal_from_template`, `/goal` command parsing if it accepts budgets, `enqueue_goal`, queued goal persisted metadata, qu (web_descendant)
+				4412 text Why it matters: (web_descendant)
+				4413 text Queue/template paths are easy to miss because (web_descendant)
+				4414 text tools.ts (web_descendant)
+				4415 text create works while queued goals silently drop floors. (web_descendant)
+				4416 text False-green/probe it catches: (web_descendant)
+				4417 text Queue preservation probe; template-created goal floor probe. (web_descendant)
+				4418 splitter (web_descendant, disabled)
+				4419 heading 10. Agent-end suppression must be floor-aware (web_descendant), Value: 3
+					4420 text 10. Agent-end suppression must be floor-aware (web_descendant)
+				4421 text Location/section to edit: (web_descendant)
+				4422 text Implementation checklist item: “Add (web_descendant)
+				4423 text agent_end (web_descendant)
+				4424 text / turn-end soft-wrap-up detection…” (web_descendant)
+				4425 text Exact requirement wording to add: (web_descendant)
+				4426 text Markdown (web_descendant)
+				4427 button Copy (web_descendant)
+				4428 text Existing `agentEnd` continuation suppression for no-tool auto turns must not suppress floor-unmet steering. If a goal is active, floors are unmet, budget is not exhausted, and `floorQualityState` is not `exhausted`, an a (web_descendant)
+				4429 text Why it matters: (web_descendant)
+				4430 text A soft final answer without (web_descendant)
+				4431 text update_goal (web_descendant)
+				4432 text can otherwise stop the loop while the goal remains active and floor-unmet. (web_descendant)
+				4433 text False-green/probe it catches: (web_descendant)
+				4434 text Soft final answer / agentEnd suppression probe. (web_descendant)
+				4435 splitter (web_descendant, disabled)
+				4436 heading 2. Contradictions or risky wording in the current design (web_descendant)
+					4437 text 2. Contradictions or risky wording in the current design (web_descendant)
+				4438 heading Same-call floor removal + status:"complete" (web_descendant), Value: 3
+					4439 text Same-call floor removal + status:"complete" (web_descendant)
+				4440 text Current design says update accepts (web_descendant)
+				4441 text null (web_descendant)
+				4442 text to remove floors and user escape hatches include lowering/removing floors. It also says the gate evaluates current goal floors. That creates an ambiguity: can one call remove the floor and complete? (web_descendant)
+				4443 text Resolution needed: explicitly require two calls. Gate evaluates current persisted floors and blocks same-call completion. (web_descendant)
+				4444 splitter (web_descendant, disabled)
+				4445 heading no_more_valuable_work_reason (web_descendant), Value: 3
+					4446 text no_more_valuable_work_reason (web_descendant)
+				4447 text Current text says “return/record (web_descendant)
+				4448 text noMoreValuableWorkReason (web_descendant)
+				4449 text ” and lists it in telemetry. That is good, but it can be misread as a model-supplied tool field. (web_descendant)
+				4450 text Resolution needed: first release should not expose it as a completion-bypass param. It is internal telemetry/tool detail unless a future explicit override API is designed. (web_descendant)
+				4451 splitter (web_descendant, disabled)
+				4452 heading budgetLimited + unmet floor semantics (web_descendant), Value: 3
+					4453 text budgetLimited + unmet floor semantics (web_descendant)
+				4454 text Current text says max budgets override floors, but the implementation checklist also says update continuation prompts with floor state. Risk: budget wrap-up prompt accidentally includes floor pass guidance. (web_descendant)
+				4455 text Resolution needed: budget-limited state must suppress floor continuation guidance. Budget wrap-up summarizes progress; it never asks the worker to satisfy floors. (web_descendant)
+				4456 splitter (web_descendant, disabled)
+				4457 heading Monitor stale pattern poisoning (web_descendant), Value: 3
+					4458 text Monitor stale pattern poisoning (web_descendant)
+				4459 text Current design says monitor can recommend (web_descendant)
+				4460 text floor_quality_exhausted (web_descendant)
+				4461 text , but does not say the report must still be current and floor-blocked. (web_descendant)
+				4462 text Resolution needed: mutate telemetry from floor monitor patterns only when current active goal id matches and (web_descendant)
+				4463 text completionBlockedByFloor (web_descendant)
+				4464 text is true. (web_descendant)
+				4465 splitter (web_descendant, disabled)
+				4466 heading Malformed replay values (web_descendant), Value: 3
+					4467 text Malformed replay values (web_descendant)
+				4468 text Current design says optional fields are backward-compatible because parsing is permissive, but does not define behavior for malformed present values. (web_descendant)
+				4469 text Resolution needed: strict reject for tool inputs; defensive ignore/sanitize for replay. (web_descendant)
+				4470 splitter (web_descendant, disabled)
+				4471 heading createGoalState positional args (web_descendant), Value: 3
+					4472 text createGoalState positional args (web_descendant)
+				4473 text Current design says extend (web_descendant)
+				4474 text createGoalState() (web_descendant)
+				4475 text , but not how. Adding two more optional positional args is risky. (web_descendant)
+				4476 text Resolution needed: mandate a named options object. (web_descendant)
+				4477 splitter (web_descendant, disabled)
+				4478 heading Queue/template floor propagation (web_descendant), Value: 3
+					4479 text Queue/template floor propagation (web_descendant)
+				4480 text Current design says queue/template must preserve floor settings, but the checklist is broad. It does not name all surfaces where dropping can happen. (web_descendant)
+				4481 text Resolution needed: name enqueue schema, queued persisted metadata, queue display, start queued goal, create from template, and command parsing if relevant. (web_descendant)
+				4482 splitter (web_descendant, disabled)
+				4483 heading Completion deferral result wording (web_descendant), Value: 3
+					4484 text Completion deferral result wording (web_descendant)
+				4485 text Current design says “tool rejects the update.” That can lead implementers to use (web_descendant)
+				4486 text errorResult (web_descendant)
+				4487 text . (web_descendant)
+				4488 text Resolution needed: “rejects state mutation, but returns successful deferral result” should be explicit. (web_descendant)
+				4489 splitter (web_descendant, disabled)
+				4490 heading Floor exhaustion authority (web_descendant), Value: 3
+					4491 text Floor exhaustion authority (web_descendant)
+				4492 text Current design says selector exhaustion after concrete floor work, monitor (web_descendant)
+				4493 text floor_quality_exhausted (web_descendant)
+				4494 text , and no-safe-autonomous-work allow completion. It does not define enough constraints around “after concrete floor work.” (web_descendant)
+				4495 text Resolution needed: require at least one prior floor deferral or monitor-backed exhaustion before allowing no-card/no-safe-work completion. (web_descendant)
+				4496 splitter (web_descendant, disabled)
+				4497 heading Telemetry history growth (web_descendant), Value: 3
+					4498 text Telemetry history growth (web_descendant)
+				4499 text Current design says add (web_descendant)
+				4500 text completedFloorCardIds (web_descendant)
+				4501 text , but does not bound it. (web_descendant)
+				4502 text Resolution needed: unique + capped to catalog size or fixed small cap. No unbounded telemetry arrays. (web_descendant)
+				4503 splitter (web_descendant, disabled)
+				4504 heading 3. Final minimal implementation invariant list (web_descendant), Value: 2
+					4505 text 3. Final minimal implementation invariant list (web_descendant)
+				4506 text Markdown (web_descendant)
+				4507 button Copy (web_descendant)
+				4508 text ### Minimum floor implementation invariants (web_descendant)
+				4509 text - Completion floors are evaluated against the current persisted goal, not a candidate goal already edited to remove/lower floors or set `status:"complete"`. (web_descendant)
+				4510 text - A single `update_goal` call must not both remove/lower an unmet floor and complete the goal. (web_descendant)
+				4511 text - `noMoreValuableWorkReason` is an internal recorded outcome, not a first-release model-granted bypass. (web_descendant)
+				4512 text - An unmet-floor completion attempt rejects the completion mutation but returns a successful structured deferral result, not a generic error. (web_descendant)
+				4513 text - Completion deferral must not cancel continuations, cancel monitors, persist `complete`, or emit queue-complete steering. (web_descendant)
+				4514 text - Max token/time budgets always override min floors; budget-limited wrap-up must not schedule or prompt floor-value work. (web_descendant)
+				4515 text - Agent-end continuation suppression must not swallow floor-unmet steering unless budget is exhausted, floor quality is exhausted, or existing safety caps apply. (web_descendant)
+				4516 text - Floor monitor pattern decisions may mutate telemetry only for the matching current active goal while `completionBlockedByFloor` is true. (web_descendant)
+				4517 text - Tool input validation is strict; replay/loading of optional historical floor fields is defensive and must not crash on missing or malformed values. (web_descendant)
+				4518 text - Floor settings must propagate through create, template, update, enqueue, queued persistence, queue display, and start-queued-goal paths. (web_descendant)
+				4519 text - `createGoalState` must use a named options object for max budgets and min floors. (web_descendant)
+				4520 text - Floor history telemetry must be default-safe, unique/bounded, and optional for backward compatibility. (web_descendant)
+				4521 container Response actions (web_descendant)
+					4522 button Copy response (web_descendant)
+					4523 checkbox Good response (web_descendant, integer), Value: 0
+					4524 checkbox Bad response (web_descendant, integer), Value: 0
+					4525 button Share (web_descendant)
+					4526 pop up button Switch model (web_descendant, collapsed)
+					4527 pop up button More actions (web_descendant, collapsed)
+				4528 text Is this conversation helpful so far? (web_descendant)
+				4529 checkbox Yes, this is helpful (web_descendant, integer), Value: 0
+				4530 checkbox No, this is not helpful (web_descendant, integer), Value: 0
+				4531 button Dismiss rating prompt (web_descendant)
+				4532 container (web_descendant)
+				4533 pop up button Add files and more (web_descendant, collapsed)
+				4534 text entry area Chat with ChatGPT (web_descendant, settable, string), Contents: Ask anything
+				4535 pop up button Heavy (web_descendant, collapsed)
+				4536 button Start dictation (web_descendant)
+				4537 container Use Voice, Control, Shift, V (web_descendant)
+					4538 container Control (web_descendant)
+						4539 text ⌃ (web_descendant)
+					4540 container Shift (web_descendant)
+						4541 text ⇧ (web_descendant)
+					4542 text V (web_descendant)
+				4543 button Start Voice (web_descendant)
+				4544 text ChatGPT can make mistakes. Check important info. See (web_descendant)
+				4545 text Cookie Preferences (web_descendant)
+				4546 text . (web_descendant)
+	4547 image, ID: WindowControlShadowView._shadowImageView
+	4548 toolbar
+		4549 container, Secondary Actions: Move next, Remove from toolbar
+			4550 button show sidebar, ID: SidebarButton
+			4551 menu button Tab Group picker, ID: TabGroupPickerButton?TabGroup=
+		4552 container, Secondary Actions: Move previous, Move next, Remove from toolbar
+			4553 button Go back, ID: BackButton
+			4554 button Go forward (disabled), ID: ForwardButton
+		4555 container https://chatgpt.com/c/6a00cd3a-3084-83eb-85ff-8ac75ad28ca3, Secondary Actions: Move previous, Move next, Remove from toolbar
+			4556 button Page Menu, ID: AssistantButton
+			4557 button Add page to Reading List, ID: OneStepBookmarkingButton
+			4558 text field https://chatgpt.com/c/6a00cd3a-3084-83eb-85ff-8ac75ad28ca3 (settable, string), Description: smart search field, ID: WEB_BROWSER_ADDRESS_AND_SEARCH_FIELD
+			4559 button Translation Available, ID: TranslationButton
+			4560 button Reload this page, ID: ReloadButton
+		4561 button Bookmarks, Secondary Actions: Move previous, Move next, Remove from toolbar
+		4562 button Share, ID: ShareButton, Secondary Actions: Move previous, Move next, Remove from toolbar
+		4563 button New Tab, ID: NewTabButton, Secondary Actions: Move previous, Move next, Remove from toolbar
+			4564 button new tab, ID: NewTabButton
+				4565 button add
+		4566 button Tab Overview, ID: TabOverviewButton, Secondary Actions: Move previous, Remove from toolbar
+	4567 opaque provider group, Description: Tab bar, 12 tabs, 5 pinned tabs, ID: TabBar?isSeparate=false
+		4568 radio button Threads - Reflection - Slack (boolean), Value: off, ID: TabBarTab?isPinned=true&isNarrow=true&isActive=false
+			4569 image, ID: FaviconImageView
+		4570 radio button Refactor URL launches for REF-503 by transcendr · Pull Request #1057 · reflectionapp/reflection_flutter (boolean), Value: off, ID: TabBarTab?isPinned=true&isNarrow=true&isActive=false
+			4571 image, ID: FaviconImageView
+		4572 radio button GPT-Realtime-2: Building a Live Translator - YouTube (boolean), Value: off, ID: TabBarTab?isPinned=true&isNarrow=true&isActive=false
+			4573 image, ID: FaviconImageView
+		4574 radio button Is Anthropic's Own OpenClaw Finally Here? - YouTube (boolean), Value: off, ID: TabBarTab?isPinned=true&isNarrow=true&isActive=false
+			4575 image, ID: FaviconImageView
+		4576 radio button Reflection App - Remote Config - Parameters - Firebase console (boolean), Value: off, ID: TabBarTab?isPinned=true&isNarrow=true&isActive=false
+			4577 image, ID: FaviconImageView
+		4578 radio button openai/codex: Lightweight coding agent that runs in your terminal (boolean), Value: off, ID: TabBarTab?isPinned=false&isNarrow=false&isActive=false, Secondary Actions: close tab
+		4579 radio button Deslop Skill for AI (boolean), Value: off, ID: TabBarTab?isPinned=false&isNarrow=false&isActive=false, Secondary Actions: close tab
+		4580 radio button sentrux/sentrux: Real-time architectural sensor that helps AI agents close the feedback loop, enabling recursive self-improvement of code quality. Pure Rust. (boolean), Value: off, ID: TabBarTab?isPinned=false&isNarrow=false&isActive=false, Secondary Actions: close tab
+		4581 radio button SATOSHI VISION on X: "@slopwareindy @crazyunclelou Arch manning is the best quarterback on this list" / X (boolean), Value: off, ID: TabBarTab?isPinned=false&isNarrow=false&isActive=false, Secondary Actions: close tab
+		4582 radio button Domain Name Search: Find Available Domains Instantly (boolean), Value: off, ID: TabBarTab?isPinned=false&isNarrow=false&isActive=false, Secondary Actions: close tab
+		4583 radio button npm package name checker (boolean), Value: off, ID: TabBarTab?isPinned=false&isNarrow=false&isActive=false, Secondary Actions: close tab
+		4584 radio button Michaelliv/pi-goal: Persistent autonomous goals for pi (boolean), Value: off, ID: TabBarTab?isPinned=false&isNarrow=false&isActive=false, Secondary Actions: close tab
+		4585 radio button pi-goals - npm (boolean), Value: off, ID: TabBarTab?isPinned=false&isNarrow=false&isActive=false, Secondary Actions: close tab
+		4586 radio button [npm] OTP for logging in to your account: bryanpricemc - transcendrstudio@gmail.com - Gmail (boolean), Value: off, ID: TabBarTab?isPinned=false&isNarrow=false&isActive=false, Secondary Actions: close tab
+		4587 radio button transcendr/pi-goals: Pi goals experiment (boolean), Value: off, ID: TabBarTab?isPinned=false&isNarrow=false&isActive=false, Secondary Actions: close tab
+		4588 radio button ‘Monster’ Mom Kills Son Over Turning 18 - YouTube (boolean), Value: off, ID: TabBarTab?isPinned=false&isNarrow=false&isActive=false, Secondary Actions: close tab
+		4589 radio button Premature Completion Prevention (boolean), ID: TabBarTab?isPinned=false&isNarrow=false&isActive=true, Secondary Actions: close tab
+	4590 container, Description: Favorites bar, ID: FavoritesBarView?DisplayMode=0
+		4591 button show start page
+		4592 menu button Google, ID: FavoritesBarButton?Type=Bookmark&PerBookmarkShowTitle=true
+		4593 menu button AI Reader V1, ID: FavoritesBarButton?Type=Bookmark&PerBookmarkShowTitle=true
+		4594 menu button Merge requests · v2 · GitLab, ID: FavoritesBarButton?Type=Bookmark&PerBookmarkShowTitle=true
+		4595 menu button Merge request… SPI · GitLab, ID: FavoritesBarButton?Type=Bookmark&PerBookmarkShowTitle=true
+		4596 menu button Strada Dev, ID: FavoritesBarButton?Type=Bookmark&PerBookmarkShowTitle=true
+		4597 menu button Strada app.dev domain, ID: FavoritesBarButton?Type=Bookmark&PerBookmarkShowTitle=true
+		4598 menu button Strada (old dev), ID: FavoritesBarButton?Type=Bookmark&PerBookmarkShowTitle=true
+		4599 menu button Codex Changelog, ID: FavoritesBarButton?Type=Bookmark&PerBookmarkShowTitle=true
+	4600 close button
+	4601 full screen button, Secondary Actions: zoom the window
+	4602 minimize button
+4603 menu bar, ID: _NS:1080
+	4604 menu bar item Safari, ID: _NS:1085
+	4605 menu bar item File, ID: _NS:1099
+	4606 menu bar item Edit, ID: _NS:1102
+	4607 menu bar item View, ID: SafariViewMenu
+	4608 menu bar item History, ID: _NS:1105
+	4609 menu bar item Bookmarks, ID: SafariBookmarksMenu
+	4610 menu bar item Develop
+	4611 menu bar item Window, ID: SafariWindowMenu
+	4612 menu bar item Help, ID: SafariHelpMenu
+
+The focused UI element is 3 HTML content.
+Focus line: 3 HTML content (focused, web_descendant), Description: Premature Completion Prevention, URL: https://chatgpt.com/c/6a00cd3a-3084-83eb-85ff-8ac75ad28ca3

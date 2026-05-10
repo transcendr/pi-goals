@@ -1,0 +1,21 @@
+Great. Now do Round 3B: adversarial self-critique of your maintainer/test-engineer patch plan.
+
+Assume I can only make small targeted issue-doc improvements before implementation starts. Identify the highest-value concrete amendments to ISSUE-036 that are still missing or too ambiguous after your Round 3A answer.
+
+Output exactly:
+1. Top 10 issue-doc amendments, each with:
+   - location/section to edit,
+   - exact requirement wording to add,
+   - why it matters,
+   - which false-green/probe it catches.
+2. Any contradictions or risky wording in the current design, especially around:
+   - same-call floor removal + `status:"complete"`,
+   - whether `no_more_valuable_work_reason` is a model tool param or internal recorded outcome,
+   - `budgetLimited` + unmet floor semantics,
+   - monitor stale pattern poisoning,
+   - malformed replay values,
+   - `createGoalState` positional args vs options object,
+   - queue/template floor propagation.
+3. A final minimal implementation invariant list suitable for adding to the issue doc.
+
+Do not reprint the full patch plan. Be specific and implementation-actionable.

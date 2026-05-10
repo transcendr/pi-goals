@@ -16,7 +16,7 @@ ${escapeXml(goal.objective)}
 Budget:
 ${budget}
 
-Avoid repeating work that is already done. Choose the next concrete action toward the objective.
+Avoid repeating work that is already done. Choose the next concrete action toward the objective. Do not reply with only a planning or status update; either take a concrete tool-backed step, ask the user for missing required input, or complete the goal if the audit proves it is achieved.
 
 Before doing substantive goal work, inspect the active goal state if needed. If get_goal reports this goal is paused, absent, complete, budget-limited, or has a different goal id, stop and wait for /goal resume instead of following this continuation text.
 
