@@ -158,7 +158,12 @@ function collectMarkdown(dir: string, visit: (path: string) => void): void {
 	}
 	for (const entry of entries) {
 		const path = join(dir, entry);
-		const stats = statSync(path);
+		let stats;
+		try {
+			stats = statSync(path);
+		} catch {
+			continue;
+		}
 		if (stats.isDirectory()) collectMarkdown(path, visit);
 		else if ([".md", ".markdown", ".txt"].includes(extname(entry))) visit(path);
 	}
