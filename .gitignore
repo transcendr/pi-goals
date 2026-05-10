@@ -8,3 +8,4 @@ node_modules
 !.ai/docs/prompt-template-authoring.md
 !.ai/docs/issue-workflow/
 !.ai/docs/issue-workflow/**
+tmp
