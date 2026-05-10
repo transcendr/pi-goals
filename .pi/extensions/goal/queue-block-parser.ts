@@ -62,20 +62,24 @@ function selectBulletMarkers(firstCandidate: BulletMarkerCandidate, candidates: 
 
 function selectOrderedMarkers(firstCandidate: OrderedMarkerCandidate, candidates: MarkerCandidate[]): MarkerCandidate[] {
 	const ordered = candidates.filter((candidate): candidate is OrderedMarkerCandidate => candidate.kind === "ordered" && candidate.style === firstCandidate.style && candidate.lineIndex >= firstCandidate.lineIndex);
-	return bestOrderedSequence(firstCandidate, ordered);
+	return bestOrderedSequence(firstCandidate, ordered, new Map<number, OrderedMarkerCandidate[]>());
 }
 
-function bestOrderedSequence(start: OrderedMarkerCandidate, candidates: OrderedMarkerCandidate[]): OrderedMarkerCandidate[] {
-	const nextCandidates = candidates.filter((candidate) => candidate.lineIndex > start.lineIndex && candidate.number === start.number + 1);
+function bestOrderedSequence(start: OrderedMarkerCandidate, candidates: OrderedMarkerCandidate[], memo: Map<number, OrderedMarkerCandidate[]>): OrderedMarkerCandidate[] {
+	const cached = memo.get(start.lineIndex);
+	if (cached) return cached;
 	let best: OrderedMarkerCandidate[] = [start];
-	for (const next of nextCandidates) {
-		const sequence = [start, ...bestOrderedSequence(next, candidates)];
+	for (const next of candidates) {
+		if (next.lineIndex <= start.lineIndex || next.number !== start.number + 1) continue;
+		const sequence = [start, ...bestOrderedSequence(next, candidates, memo)];
 		if (compareMarkerSequences(sequence, best) > 0) best = sequence;
 	}
+	memo.set(start.lineIndex, best);
 	return best;
 }
 
 function compareMarkerSequences(left: OrderedMarkerCandidate[], right: OrderedMarkerCandidate[]): number {
+	// Prefer later equal-length delimiter chains so earlier nested/example markers stay inside the previous objective.
 	if (left.length !== right.length) return left.length - right.length;
 	const leftLast = left[left.length - 1]?.lineIndex ?? -1;
 	const rightLast = right[right.length - 1]?.lineIndex ?? -1;

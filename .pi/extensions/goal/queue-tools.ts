@@ -4,7 +4,7 @@ import { validateObjective } from "./format";
 import { createTelemetry } from "./telemetry";
 import { resolveGoalTemplateByName } from "./templates";
 import { createGoalState, getGoal, getTelemetry, persistSetGoal } from "./state";
-import { enqueueGoal, dequeueGoal, removeGoal, persistEnqueue, persistDequeue, persistRemove, getQueue, type QueuedGoal } from "./queue-state";
+import { enqueueGoal, dequeueGoal, removeGoal, persistEnqueue, persistDequeue, persistRemove, getQueue, type DequeueAudit, type QueuedGoal } from "./queue-state";
 import type { GoalMonitorScheduler, GoalState, GoalTelemetrySnapshot } from "./types";
 import { syncGoalUi } from "./ui";
 
@@ -26,7 +26,7 @@ type QueueToolDetails = {
 	queued?: QueuedGoal;
 	dequeued?: QueuedGoal;
 	started?: QueuedGoal;
-	dequeue_audit?: { rationale: string; authority: string };
+	dequeue_audit?: DequeueAudit;
 	error?: string;
 };
 
@@ -113,7 +113,7 @@ function registerDequeueGoalTool(pi: ExtensionAPI): void {
 			if (!audit.ok) return errorResult(audit.error);
 			const dequeued = dequeueGoal();
 			if (!dequeued) return { content: [{ type: "text" as const, text: "No queued goals." }], details: { goal: getGoal(), telemetry: getTelemetry() } as QueueToolDetails };
-			persistDequeue(pi, "dequeued", audit.value);
+			persistDequeue(pi, "dequeued", { queueId: dequeued.queueId, audit: audit.value });
 			return { content: [{ type: "text" as const, text: `Dequeued goal: ${dequeued.queueId}\nObjective: ${dequeued.objective}\nRationale: ${audit.value.rationale}\nAuthority: ${audit.value.authority}` }], details: { goal: getGoal(), telemetry: getTelemetry(), dequeued, dequeue_audit: audit.value } as QueueToolDetails };
 		},
 	});
@@ -153,10 +153,11 @@ function createAndDequeueQueuedGoal(pi: ExtensionAPI, runtime: GoalQueueToolRunt
 	const telemetry = createTelemetry(goal.goalId, goal.createdAt);
 	persistSetGoal(pi, goal, telemetry, "tool");
 	const dequeued = dequeueGoal();
-	persistDequeue(pi, "start_queued_goal", { rationale: "Started queued goal as a direct concrete goal after successful goal creation.", authority: "start_queued_goal atomic create-then-dequeue path" });
+	const started = dequeued ?? next;
+	persistDequeue(pi, "start_queued_goal", { queueId: started.queueId, audit: { rationale: "Started queued goal as a direct concrete goal after successful goal creation.", authority: "start_queued_goal atomic create-then-dequeue path" } });
 	syncGoalUi(ctx, goal);
 	runtime.scheduleMonitor?.(ctx);
-	return { content: [{ type: "text" as const, text: `Started queued goal: ${dequeued?.queueId ?? next.queueId}\nObjective: ${goal.objective}` }], details: { goal, telemetry, started: dequeued ?? next, queue: getQueue() } as QueueToolDetails };
+	return { content: [{ type: "text" as const, text: `Started queued goal: ${started.queueId}\nObjective: ${goal.objective}` }], details: { goal, telemetry, started, queue: getQueue() } as QueueToolDetails };
 }
 
 type QueuedObjectiveResolution = { ok: true; objective: string } | { ok: false; error: string };
@@ -168,7 +169,7 @@ function resolveQueuedObjective(goal: QueuedGoal): QueuedObjectiveResolution {
 	return { ok: true, objective: resolved.template.objective };
 }
 
-type DequeueAuditResult = { ok: true; value: { rationale: string; authority: string } } | { ok: false; error: string };
+type DequeueAuditResult = { ok: true; value: DequeueAudit } | { ok: false; error: string };
 
 function validateDequeueAudit(rationale: string | undefined, authority: string | undefined): DequeueAuditResult {
 	const trimmedRationale = rationale?.trim() ?? "";

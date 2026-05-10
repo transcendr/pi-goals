@@ -141,10 +141,6 @@ type ResolvedObjectiveInput = {
 	templateArgs?: string;
 };
 
-type ValidatedQueueItem = ResolvedObjectiveInput & {
-	objective: string;
-};
-
 function resolveTemplateOrObjective(input: string, ctx: ExtensionCommandContext): string {
 	return resolveTemplateOrObjectiveDetails(input, ctx)?.objective ?? "";
 }
@@ -330,8 +326,8 @@ function truncateObjective(objective: string): string {
 	return objective.length > 80 ? `${objective.slice(0, 77)}\u2026` : objective;
 }
 
-function resolveAndValidateQueueItems(items: QueueBlockItem[], ctx: ExtensionCommandContext): ValidatedQueueItem[] | null {
-	const resolvedItems: ValidatedQueueItem[] = [];
+function resolveAndValidateQueueItems(items: QueueBlockItem[], ctx: ExtensionCommandContext): ResolvedObjectiveInput[] | null {
+	const resolvedItems: ResolvedObjectiveInput[] = [];
 	for (let i = 0; i < items.length; i++) {
 		const item = items[i];
 		const resolved = resolveTemplateOrObjectiveDetails(item.objectiveInput, ctx);

@@ -13,6 +13,16 @@ export type QueuedGoal = {
 	createdAt: number;
 };
 
+export type DequeueAudit = {
+	rationale: string;
+	authority: string;
+};
+
+type DequeuePersistMetadata = {
+	queueId?: string;
+	audit?: DequeueAudit;
+};
+
 type GoalQueueEvent = {
 	version: 1;
 	kind: "enqueue" | "dequeue" | "remove";
@@ -84,8 +94,8 @@ export function persistEnqueue(pi: ExtensionAPI, goal: QueuedGoal): void {
 	pi.appendEntry(STATE_ENTRY_TYPE, { version: 1, kind: "enqueue", queueId: goal.queueId, goal, reason: "enqueue", at: Date.now() } as GoalQueueEvent);
 }
 
-export function persistDequeue(pi: ExtensionAPI, reason: string, audit?: { rationale: string; authority: string }): void {
-	pi.appendEntry(STATE_ENTRY_TYPE, { version: 1, kind: "dequeue", reason, rationale: audit?.rationale, authority: audit?.authority, at: Date.now() } as GoalQueueEvent);
+export function persistDequeue(pi: ExtensionAPI, reason: string, metadata: DequeuePersistMetadata = {}): void {
+	pi.appendEntry(STATE_ENTRY_TYPE, { version: 1, kind: "dequeue", queueId: metadata.queueId, reason, rationale: metadata.audit?.rationale, authority: metadata.audit?.authority, at: Date.now() } as GoalQueueEvent);
 }
 
 export function persistRemove(pi: ExtensionAPI, queueId: string, reason: string): void {
