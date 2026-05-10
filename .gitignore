@@ -4,5 +4,6 @@ node_modules
 .pi/goal-monitor
 
 .ai/docs/*
+!.ai/docs/pi-goals-live-probe-testing.md
 !.ai/docs/issue-workflow/
 !.ai/docs/issue-workflow/**
