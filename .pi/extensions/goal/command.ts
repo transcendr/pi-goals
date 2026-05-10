@@ -14,6 +14,7 @@ import {
 	persistTelemetry,
 	persistUpdateGoal,
 } from "./state";
+import { parseQueueBlockItems, type QueueBlockItem } from "./queue-block-parser";
 import { getQueue, enqueueGoal, persistEnqueue } from "./queue-state";
 import { notifyGoal, notifyInfo, notifyWarning, showGoalSummary, showNoGoal, syncGoalUi } from "./ui";
 import type { GoalCommandScheduler, GoalContinuationCanceller, GoalMonitorCanceller, GoalMonitorScheduler, GoalPauseInterrupter, GoalQueueSteeringSender, GoalState } from "./types";
@@ -138,6 +139,10 @@ type ResolvedObjectiveInput = {
 	template?: string;
 	templateFlags?: Record<string, string>;
 	templateArgs?: string;
+};
+
+type ValidatedQueueItem = ResolvedObjectiveInput & {
+	objective: string;
 };
 
 function resolveTemplateOrObjective(input: string, ctx: ExtensionCommandContext): string {
@@ -290,10 +295,25 @@ function handleQueueCommand(pi: ExtensionAPI, input: string, ctx: ExtensionComma
 			notifyInfo(ctx, "No queued goals.");
 			return;
 		}
-		const lines = queue.map((g, i) => `${i + 1}. [${g.queueId}] ${g.objective.length > 80 ? g.objective.slice(0, 77) + "\u2026" : g.objective}`);
+		const lines = queue.map((g, i) => `${i + 1}. [${g.queueId}] ${truncateObjective(g.objective)}`);
 		notifyInfo(ctx, `Queued goals (${queue.length}):\n${lines.join("\n")}`);
 		return;
 	}
+
+	const blockItems = parseQueueBlockItems(rest);
+	if (blockItems) {
+		const validatedItems = resolveAndValidateQueueItems(blockItems, ctx);
+		if (!validatedItems) return;
+		const queued = validatedItems.map((item) => {
+			const goal = enqueueGoal(item.objective, "command", { template: item.template, templateFlags: item.templateFlags, templateArgs: item.templateArgs });
+			persistEnqueue(pi, goal);
+			return goal;
+		});
+		const lines = queued.map((g, i) => `${i + 1}. [${g.queueId}] ${truncateObjective(g.objective)}`);
+		notifyInfo(ctx, `Queued ${queued.length} goals:\n${lines.join("\n")}`);
+		return;
+	}
+
 	const resolved = resolveTemplateOrObjectiveDetails(rest, ctx);
 	if (!resolved) return;
 	const validation = validateObjective(resolved.objective);
@@ -303,5 +323,29 @@ function handleQueueCommand(pi: ExtensionAPI, input: string, ctx: ExtensionComma
 	}
 	const queued = enqueueGoal(validation.objective, "command", { template: resolved.template, templateFlags: resolved.templateFlags, templateArgs: resolved.templateArgs });
 	persistEnqueue(pi, queued);
-	notifyInfo(ctx, `Queued goal: ${queued.queueId} \u2014 ${validation.objective.length > 80 ? validation.objective.slice(0, 77) + "\u2026" : validation.objective}`);
+	notifyInfo(ctx, `Queued goal: ${queued.queueId} \u2014 ${truncateObjective(validation.objective)}`);
+}
+
+function truncateObjective(objective: string): string {
+	return objective.length > 80 ? `${objective.slice(0, 77)}\u2026` : objective;
+}
+
+function resolveAndValidateQueueItems(items: QueueBlockItem[], ctx: ExtensionCommandContext): ValidatedQueueItem[] | null {
+	const resolvedItems: ValidatedQueueItem[] = [];
+	for (let i = 0; i < items.length; i++) {
+		const item = items[i];
+		const resolved = resolveTemplateOrObjectiveDetails(item.objectiveInput, ctx);
+		if (!resolved) {
+			notifyWarning(ctx, `Queue item ${i + 1} (${item.marker} on line ${item.lineIndex + 1}) could not be resolved. No goals were queued.`);
+			return null;
+		}
+		const validation = validateObjective(resolved.objective);
+		if (!validation.ok) {
+			const message = validation.hint ? `${validation.message}\n${validation.hint}` : validation.message;
+			notifyWarning(ctx, `Queue item ${i + 1} (${item.marker} on line ${item.lineIndex + 1}) is invalid. No goals were queued.\n${message}`);
+			return null;
+		}
+		resolvedItems.push({ ...resolved, objective: validation.objective });
+	}
+	return resolvedItems;
 }

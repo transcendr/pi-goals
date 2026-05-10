@@ -1,6 +1,6 @@
 # ISSUE-035 — Support multi-item /goal queue block input
 
-Status: open — execution-ready
+Status: fixed
 Priority: P1
 Owner: pi-goal automation
 Created: 2026-05-10
@@ -158,17 +158,17 @@ Key facts:
 
 ## Implementation checklist
 
-- [ ] Run `sentrux gate --save .pi/extensions/goal` before substantial implementation.
-- [ ] Add a small parser/helper for ordered marker-delimited queue block detection, marker stripping, continuation-line preservation, and nested/example marker disambiguation.
-- [ ] Add a bulk path in `handleQueueCommand()` that validates/resolves all rows before enqueueing.
-- [ ] Persist each accepted row using existing queue persistence in input order.
-- [ ] Add compact success notification listing all queued rows and ids.
-- [ ] Add invalid-item notification with marker/index/text and no queue mutation.
-- [ ] Preserve current no-rest list behavior.
-- [ ] Preserve current single objective enqueue behavior.
-- [ ] Add deterministic probe(s) for request example, continuation lines, nested/example marker disambiguation, marker variants, FIFO order, atomic invalid failure, and existing behavior regressions.
-- [ ] Run `npm run quality:goal`.
-- [ ] Run live probe against `pi-goals-live-probe` for a realistic multi-line `/goal queue` paste unless skipped with explicit visible rationale.
+- [x] Run `sentrux gate --save .pi/extensions/goal` before substantial implementation.
+- [x] Add a small parser/helper for ordered marker-delimited queue block detection, marker stripping, continuation-line preservation, and nested/example marker disambiguation.
+- [x] Add a bulk path in `handleQueueCommand()` that validates/resolves all rows before enqueueing.
+- [x] Persist each accepted row using existing queue persistence in input order.
+- [x] Add compact success notification listing all queued rows and ids.
+- [x] Add invalid-item notification with marker/index/text and no queue mutation.
+- [x] Preserve current no-rest list behavior.
+- [x] Preserve current single objective enqueue behavior.
+- [x] Add deterministic probe(s) for request example, continuation lines, nested/example marker disambiguation, marker variants, FIFO order, atomic invalid failure, and existing behavior regressions.
+- [x] Run `npm run quality:goal`.
+- [x] Run live probe against `pi-goals-live-probe` for a realistic multi-line `/goal queue` paste unless skipped with explicit visible rationale.
 
 ## Acceptance criteria
 
@@ -184,6 +184,10 @@ Key facts:
 - `npm run quality:goal` passes.
 - The exact ordered-marker/nested-example test from the user passes in a live `pi-goals-live-probe` agent test; this proof is mandatory and must not be skipped.
 - Live probe evidence is recorded at closeout.
+
+## Implementation closeout
+
+Implementation and proof details are recorded in `.ai/docs/issue-workflow/ISSUE-035-multi-item-goal-queue-block/07-implementation-closeout.md`.
 
 ## Proof threat model
 
