@@ -1,12 +1,11 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { QUEUE_MESSAGE_TYPE, QUEUE_PROMPT_ID } from "./constants";
 import { getQueue, type QueuedGoal } from "./queue-state";
-
-export type QueueSteeringReason = "goal-complete" | "goal-clear" | "goal-resume";
+import type { GoalQueueSteeringReason } from "./types";
 
 const OBJECTIVE_PREVIEW_CHARS = 4_000;
 
-export function sendQueueSteering(pi: ExtensionAPI, reason: QueueSteeringReason, opts: { triggerTurn?: boolean } = {}): boolean {
+export function sendQueueSteering(pi: ExtensionAPI, reason: GoalQueueSteeringReason, opts: { triggerTurn?: boolean } = {}): boolean {
 	const next = getQueue()[0];
 	if (!next) return false;
 	pi.sendMessage(

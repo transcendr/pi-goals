@@ -285,8 +285,8 @@ function clearGoal(pi: ExtensionAPI, ctx: ExtensionCommandContext, cancelContinu
 
 function handleQueueCommand(pi: ExtensionAPI, input: string, ctx: ExtensionCommandContext): void {
 	const rest = input.slice("queue".length).trim();
-	const queue = getQueue();
 	if (!rest) {
+		const queue = getQueue();
 		if (queue.length === 0) {
 			notifyInfo(ctx, "No queued goals.");
 			return;
