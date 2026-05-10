@@ -1,0 +1,258 @@
+# raw command transcript for ISSUE-035
+created_at: 2026-05-10T08:41:26Z
+$ rg -n "function handleQueueCommand|enqueueGoal|goalArgumentCompletions" .pi/extensions/goal .ai/issues/fixed/ISSUE-027-goal-queue.md README.md
+.pi/extensions/goal/command.ts:17:import { getQueue, enqueueGoal, persistEnqueue } from "./queue-state";
+.pi/extensions/goal/command.ts:44:		getArgumentCompletions: goalArgumentCompletions,
+.pi/extensions/goal/command.ts:49:export function goalArgumentCompletions(argumentPrefix: string): AutocompleteItem[] | null {
+.pi/extensions/goal/command.ts:184:				const queued = enqueueGoal(validation.objective, "command");
+.pi/extensions/goal/command.ts:285:function handleQueueCommand(pi: ExtensionAPI, input: string, ctx: ExtensionCommandContext): void {
+.pi/extensions/goal/command.ts:304:	const queued = enqueueGoal(validation.objective, "command", { template: resolved.template, templateFlags: resolved.templateFlags, templateArgs: resolved.templateArgs });
+.pi/extensions/goal/queue-tools.ts:7:import { enqueueGoal, dequeueGoal, removeGoal, persistEnqueue, persistDequeue, persistRemove, getQueue, type QueuedGoal } from "./queue-state";
+.pi/extensions/goal/queue-tools.ts:70:			const queued = enqueueGoal(validation.objective, "tool", { tokenBudget: params.token_budget, timeBudgetSeconds: params.time_budget_seconds });
+.pi/extensions/goal/queue-state.ts:42:export function enqueueGoal(objective: string, source: "command" | "tool", opts?: { tokenBudget?: number; timeBudgetSeconds?: number; template?: string; templateFlags?: Record<string, string>; templateArgs?: string }): QueuedGoal {
+$ rg -n "queue" .pi/extensions/goal/command.ts .pi/extensions/goal/queue-state.ts .pi/extensions/goal/templates.ts .pi/extensions/goal/queue-tools.ts | head -120
+.pi/extensions/goal/queue-state.ts:5:	queueId: string;
+.pi/extensions/goal/queue-state.ts:18:	kind: "enqueue" | "dequeue" | "remove";
+.pi/extensions/goal/queue-state.ts:19:	queueId?: string;
+.pi/extensions/goal/queue-state.ts:28:	queue: QueuedGoal[];
+.pi/extensions/goal/queue-state.ts:31:let queueCounter = 0;
+.pi/extensions/goal/queue-state.ts:35:	return `q-${Date.now()}-${++queueCounter}`;
+.pi/extensions/goal/queue-state.ts:42:export function enqueueGoal(objective: string, source: "command" | "tool", opts?: { tokenBudget?: number; timeBudgetSeconds?: number; template?: string; templateFlags?: Record<string, string>; templateArgs?: string }): QueuedGoal {
+.pi/extensions/goal/queue-state.ts:44:		queueId: generateQueueId(),
+.pi/extensions/goal/queue-state.ts:58:export function dequeueGoal(): QueuedGoal | undefined {
+.pi/extensions/goal/queue-state.ts:62:export function removeGoal(queueId: string): QueuedGoal | undefined {
+.pi/extensions/goal/queue-state.ts:63:	const index = runtimeQueue.findIndex((g) => g.queueId === queueId);
+.pi/extensions/goal/queue-state.ts:69:	let queue: QueuedGoal[] = [];
+.pi/extensions/goal/queue-state.ts:73:		queue = applyQueueEvent(queue, event);
+.pi/extensions/goal/queue-state.ts:75:	runtimeQueue = queue;
+.pi/extensions/goal/queue-state.ts:76:	return { queue };
+.pi/extensions/goal/queue-state.ts:80:	runtimeQueue = state.queue;
+.pi/extensions/goal/queue-state.ts:83:export function persistEnqueue(pi: ExtensionAPI, goal: QueuedGoal): void {
+.pi/extensions/goal/queue-state.ts:84:	pi.appendEntry(STATE_ENTRY_TYPE, { version: 1, kind: "enqueue", queueId: goal.queueId, goal, reason: "enqueue", at: Date.now() } as GoalQueueEvent);
+.pi/extensions/goal/queue-state.ts:87:export function persistDequeue(pi: ExtensionAPI, reason: string, audit?: { rationale: string; authority: string }): void {
+.pi/extensions/goal/queue-state.ts:88:	pi.appendEntry(STATE_ENTRY_TYPE, { version: 1, kind: "dequeue", reason, rationale: audit?.rationale, authority: audit?.authority, at: Date.now() } as GoalQueueEvent);
+.pi/extensions/goal/queue-state.ts:91:export function persistRemove(pi: ExtensionAPI, queueId: string, reason: string): void {
+.pi/extensions/goal/queue-state.ts:92:	pi.appendEntry(STATE_ENTRY_TYPE, { version: 1, kind: "remove", queueId, reason, at: Date.now() } as GoalQueueEvent);
+.pi/extensions/goal/queue-state.ts:104:	if (!["enqueue", "dequeue", "remove"].includes(String(d.kind))) return null;
+.pi/extensions/goal/queue-state.ts:108:function applyQueueEvent(queue: QueuedGoal[], event: GoalQueueEvent): QueuedGoal[] {
+.pi/extensions/goal/queue-state.ts:109:	const q = [...queue];
+.pi/extensions/goal/queue-state.ts:111:		case "enqueue":
+.pi/extensions/goal/queue-state.ts:114:		case "dequeue":
+.pi/extensions/goal/queue-state.ts:118:			if (event.queueId) {
+.pi/extensions/goal/queue-state.ts:119:				const idx = q.findIndex((g) => g.queueId === event.queueId);
+.pi/extensions/goal/command.ts:17:import { getQueue, enqueueGoal, persistEnqueue } from "./queue-state";
+.pi/extensions/goal/command.ts:22:	name: "pause" | "resume" | "clear" | "queue";
+.pi/extensions/goal/command.ts:30:	{ name: "queue", description: "List queued goals or enqueue a new goal" },
+.pi/extensions/goal/command.ts:51:	if (/^queue\s/.test(query)) return templateCompletions(query.slice("queue".length).trimStart(), "queue ");
+.pi/extensions/goal/command.ts:125:	if (firstToken === "queue") {
+.pi/extensions/goal/command.ts:184:				const queued = enqueueGoal(validation.objective, "command");
+.pi/extensions/goal/command.ts:185:				persistEnqueue(pi, queued);
+.pi/extensions/goal/command.ts:186:				notifyInfo(ctx, `Queued goal: ${queued.queueId}`);
+.pi/extensions/goal/command.ts:237:	const queue = getQueue();
+.pi/extensions/goal/command.ts:239:		if (queue.length > 0) {
+.pi/extensions/goal/command.ts:241:			notifyInfo(ctx, `No active goal. Resuming queued goal processing for ${queue.length} queued goal${queue.length > 1 ? "s" : ""}.`);
+.pi/extensions/goal/command.ts:248:		if (queue.length > 0) {
+.pi/extensions/goal/command.ts:250:			notifyInfo(ctx, `Goal is complete. Resuming queued goal processing for ${queue.length} queued goal${queue.length > 1 ? "s" : ""}.`);
+.pi/extensions/goal/command.ts:279:	const queue = getQueue();
+.pi/extensions/goal/command.ts:280:	if (queue.length > 0) sendQueueSteering("goal-clear");
+.pi/extensions/goal/command.ts:281:	const queueHint = queue.length > 0 ? `\n${queue.length} queued goal${queue.length > 1 ? "s" : ""} available. Queue steering was sent to the agent context.` : "";
+.pi/extensions/goal/command.ts:282:	notifyInfo(ctx, hadGoal ? `Goal cleared${queueHint}` : `No goal to clear\nThis session does not currently have a goal.${queueHint}`);
+.pi/extensions/goal/command.ts:286:	const rest = input.slice("queue".length).trim();
+.pi/extensions/goal/command.ts:287:	const queue = getQueue();
+.pi/extensions/goal/command.ts:289:		if (queue.length === 0) {
+.pi/extensions/goal/command.ts:290:			notifyInfo(ctx, "No queued goals.");
+.pi/extensions/goal/command.ts:293:		const lines = queue.map((g, i) => `${i + 1}. [${g.queueId}] ${g.objective.length > 80 ? g.objective.slice(0, 77) + "\u2026" : g.objective}`);
+.pi/extensions/goal/command.ts:294:		notifyInfo(ctx, `Queued goals (${queue.length}):\n${lines.join("\n")}`);
+.pi/extensions/goal/command.ts:304:	const queued = enqueueGoal(validation.objective, "command", { template: resolved.template, templateFlags: resolved.templateFlags, templateArgs: resolved.templateArgs });
+.pi/extensions/goal/command.ts:305:	persistEnqueue(pi, queued);
+.pi/extensions/goal/command.ts:306:	notifyInfo(ctx, `Queued goal: ${queued.queueId} \u2014 ${validation.objective.length > 80 ? validation.objective.slice(0, 77) + "\u2026" : validation.objective}`);
+.pi/extensions/goal/queue-tools.ts:7:import { enqueueGoal, dequeueGoal, removeGoal, persistEnqueue, persistDequeue, persistRemove, getQueue, type QueuedGoal } from "./queue-state";
+.pi/extensions/goal/queue-tools.ts:17:const DequeueGoalParams = Type.Object({
+.pi/extensions/goal/queue-tools.ts:18:	rationale: Type.String({ description: "Why this queue head is being dequeued now" }),
+.pi/extensions/goal/queue-tools.ts:25:	queue?: QueuedGoal[];
+.pi/extensions/goal/queue-tools.ts:26:	queued?: QueuedGoal;
+.pi/extensions/goal/queue-tools.ts:27:	dequeued?: QueuedGoal;
+.pi/extensions/goal/queue-tools.ts:29:	dequeue_audit?: { rationale: string; authority: string };
+.pi/extensions/goal/queue-tools.ts:39:	registerEnqueueGoalTool(pi);
+.pi/extensions/goal/queue-tools.ts:41:	registerDequeueGoalTool(pi);
+.pi/extensions/goal/queue-tools.ts:47:		name: "list_goal_queue",
+.pi/extensions/goal/queue-tools.ts:49:		description: "List queued goal objectives that will be started after the current goal completes or clears.",
+.pi/extensions/goal/queue-tools.ts:50:		promptSnippet: "Discover queued goals waiting to start after the current goal.",
+.pi/extensions/goal/queue-tools.ts:51:		promptGuidelines: ["Use only when the user explicitly asks to see or review the goal queue.", "Do not infer queue listing from ordinary task requests."],
+.pi/extensions/goal/queue-tools.ts:59:function registerEnqueueGoalTool(pi: ExtensionAPI): void {
+.pi/extensions/goal/queue-tools.ts:61:		name: "enqueue_goal",
+.pi/extensions/goal/queue-tools.ts:62:		label: "Enqueue Goal",
+.pi/extensions/goal/queue-tools.ts:63:		description: "Add a goal to the queue to be started after the current goal completes or clears. Use only when the user explicitly asks to queue a goal for later.",
+.pi/extensions/goal/queue-tools.ts:65:		promptGuidelines: ["Use only when the user explicitly asks to queue a goal for later, not for ordinary task requests.", "Fill flags and args from the user's prose, but ask for missing required values instead of guessing."],
+.pi/extensions/goal/queue-tools.ts:70:			const queued = enqueueGoal(validation.objective, "tool", { tokenBudget: params.token_budget, timeBudgetSeconds: params.time_budget_seconds });
+.pi/extensions/goal/queue-tools.ts:71:			persistEnqueue(pi, queued);
+.pi/extensions/goal/queue-tools.ts:73:			return resultForQueuedGoal(queued);
+.pi/extensions/goal/queue-tools.ts:80:		name: "start_queued_goal",
+.pi/extensions/goal/queue-tools.ts:82:		description: "Start the next queued item only after deciding the queue head is a direct concrete goal. The queue item is removed only after goal creation succeeds.",
+.pi/extensions/goal/queue-tools.ts:83:		promptSnippet: "Start the queue head only when semantic classification says it is a direct goal.",
+.pi/extensions/goal/queue-tools.ts:85:			"Use this only after reading the queue head and deciding the queued text itself is the concrete goal to perform.",
+.pi/extensions/goal/queue-tools.ts:86:			"Before using this, verify the queue head is not better handled by an existing reusable goal template; if uncertain, call list_goal_templates first.",
+.pi/extensions/goal/queue-tools.ts:87:			"Do not use this when the queued text asks you to run/create/start another goal or goal template, names a prompt-like workflow, or semantically matches a reusable template; use create_goal, create_goal_from_template, or enqueue_goal for that orchestration, then dequeue_goal after it is satisfied.",
+.pi/extensions/goal/queue-tools.ts:88:			"This tool handles completed-goal replacement and safe dequeue for direct queue items only.",
+.pi/extensions/goal/queue-tools.ts:89:			"If this reports an active non-complete goal, leave the queued goal in place and continue the active goal.",
+.pi/extensions/goal/queue-tools.ts:98:function registerDequeueGoalTool(pi: ExtensionAPI): void {
+.pi/extensions/goal/queue-tools.ts:100:		name: "dequeue_goal",
+.pi/extensions/goal/queue-tools.ts:101:		label: "Dequeue Goal",
+.pi/extensions/goal/queue-tools.ts:102:		description: "Remove the first goal from the queue and return it. Prefer start_queued_goal for direct queued goals; use this after a prose/JIT orchestration item is fully satisfied.",
+.pi/extensions/goal/queue-tools.ts:103:		promptSnippet: "Remove the queue head after manual handling or completed prose/JIT orchestration.",
+.pi/extensions/goal/queue-tools.ts:105:			"Use start_queued_goal for direct queued goals.",
+.pi/extensions/goal/queue-tools.ts:106:			"Use dequeue_goal after you have separately satisfied a prose/JIT orchestration queue item, including any one-or-more consecutive active goals it required.",
+.pi/extensions/goal/queue-tools.ts:107:			"Never discard unfinished queued work. Do not call this unless the queue head is actually satisfied or the user explicitly authorized removing that specific queued item.",
+.pi/extensions/goal/queue-tools.ts:110:		parameters: DequeueGoalParams,
+.pi/extensions/goal/queue-tools.ts:112:			const audit = validateDequeueAudit(params.rationale, params.authority);
+.pi/extensions/goal/queue-tools.ts:114:			const dequeued = dequeueGoal();
+.pi/extensions/goal/queue-tools.ts:115:			if (!dequeued) return { content: [{ type: "text" as const, text: "No queued goals." }], details: { goal: getGoal(), telemetry: getTelemetry() } as QueueToolDetails };
+.pi/extensions/goal/queue-tools.ts:116:			persistDequeue(pi, "dequeued", audit.value);
+.pi/extensions/goal/queue-tools.ts:117:			return { content: [{ type: "text" as const, text: `Dequeued goal: ${dequeued.queueId}\nObjective: ${dequeued.objective}\nRationale: ${audit.value.rationale}\nAuthority: ${audit.value.authority}` }], details: { goal: getGoal(), telemetry: getTelemetry(), dequeued, dequeue_audit: audit.value } as QueueToolDetails };
+.pi/extensions/goal/queue-tools.ts:124:		name: "remove_queued_goal",
+.pi/extensions/goal/queue-tools.ts:126:		description: "Remove a specific goal from the queue by its queue ID.",
+.pi/extensions/goal/queue-tools.ts:127:		promptSnippet: "Remove a specific queued goal by ID.",
+.pi/extensions/goal/queue-tools.ts:128:		promptGuidelines: ["Use only when the user explicitly asks to remove a specific queued goal."],
+.pi/extensions/goal/queue-tools.ts:129:		parameters: Type.Object({ queueId: Type.String({ description: "Queue ID of the goal to remove" }) }),
+.pi/extensions/goal/queue-tools.ts:131:			const removed = removeGoal(params.queueId);
+.pi/extensions/goal/queue-tools.ts:132:			if (!removed) return errorResult(`No queued goal found with id ${params.queueId}.`);
+.pi/extensions/goal/queue-tools.ts:133:			persistRemove(pi, params.queueId, "tool_remove");
+.pi/extensions/goal/queue-tools.ts:134:			return { content: [{ type: "text" as const, text: `Removed queued goal: ${removed.queueId}` }], details: { goal: getGoal(), telemetry: getTelemetry() } as QueueToolDetails };
+.pi/extensions/goal/queue-tools.ts:141:	if (current && current.status !== "complete") return errorResult("A non-complete goal is already active. The queued goal was left in the queue.");
+.pi/extensions/goal/queue-tools.ts:143:	if (!next) return { content: [{ type: "text" as const, text: "No queued goals." }], details: { goal: current, telemetry: getTelemetry(), queue: getQueue() } as QueueToolDetails };
+.pi/extensions/goal/queue-tools.ts:148:	return createAndDequeueQueuedGoal(pi, runtime, ctx, next, validation.objective);
+.pi/extensions/goal/queue-tools.ts:151:function createAndDequeueQueuedGoal(pi: ExtensionAPI, runtime: GoalQueueToolRuntime, ctx: ExtensionContext, next: QueuedGoal, objective: string) {
+.pi/extensions/goal/queue-tools.ts:155:	const dequeued = dequeueGoal();
+.pi/extensions/goal/queue-tools.ts:156:	persistDequeue(pi, "start_queued_goal", { rationale: "Started queued goal as a direct concrete goal after successful goal creation.", authority: "start_queued_goal atomic create-then-dequeue path" });
+.pi/extensions/goal/queue-tools.ts:159:	return { content: [{ type: "text" as const, text: `Started queued goal: ${dequeued?.queueId ?? next.queueId}\nObjective: ${goal.objective}` }], details: { goal, telemetry, started: dequeued ?? next, queue: getQueue() } as QueueToolDetails };
+.pi/extensions/goal/queue-tools.ts:171:type DequeueAuditResult = { ok: true; value: { rationale: string; authority: string } } | { ok: false; error: string };
+.pi/extensions/goal/queue-tools.ts:173:function validateDequeueAudit(rationale: string | undefined, authority: string | undefined): DequeueAuditResult {
+.pi/extensions/goal/queue-tools.ts:176:	if (!trimmedRationale) return { ok: false, error: "rationale is required to dequeue a queued goal." };
+.pi/extensions/goal/queue-tools.ts:177:	if (!trimmedAuthority) return { ok: false, error: "authority is required to dequeue a queued goal." };
+.pi/extensions/goal/queue-tools.ts:182:	const queue = getQueue();
+.pi/extensions/goal/queue-tools.ts:183:	if (queue.length === 0) return { content: [{ type: "text" as const, text: "No queued goals." }], details: { goal: getGoal(), telemetry: getTelemetry(), queue } as QueueToolDetails };
+$ git status --short --untracked-files=all
+ M .gitignore
+ M AGENTS.md
+?? .ai/docs/issue-workflow/ISSUE-035-multi-item-goal-queue-block/raw/commands.log
+?? .ai/docs/pi-goals-live-probe-testing.md
+README.md:13:- Durable FIFO goal queue for sequential goal work.
+README.md:14:- Queue-aware model tools for listing, enqueuing, starting, dequeuing, and removing queued goals.
+README.md:41:/goal queue
+README.md:42:/goal queue <objective-or-template>
+README.md:52:- `/goal queue` — list queued goals.
+README.md:53:- `/goal queue <objective-or-template>` — enqueue a direct objective or reusable template invocation for later.
+README.md:58:The extension also exposes model tools so agents can inspect, create, update, pause, resume, complete, clear, or queue goals without string-parsing the slash command.
+README.md:60:## Goal queue
+README.md:62:`pi-goals` supports a durable FIFO queue for sequential work. Queued goals are persisted into the Pi branch alongside goal state, so replay and `/tree` semantics remain coherent.
+README.md:65:/goal queue
+README.md:66:/goal queue write the release notes
+README.md:67:/goal queue fix-issue --issue ISSUE-123 -- verify the fix
+README.md:70:Agents can also manage the queue through model tools:
+README.md:72:- `list_goal_queue`
+README.md:73:- `enqueue_goal`
+README.md:74:- `start_queued_goal`
+README.md:75:- `dequeue_goal`
+README.md:76:- `remove_queued_goal`
+README.md:78:For queued prose that looks like a reusable workflow, agents can list templates with `list_goal_templates`, create a concrete goal with `create_goal_from_template`, then dequeue the original queue item after the concrete goal is satisfied.
+README.md:140:Reusable templates are available to both slash commands and model tools. Agents can call `list_goal_templates` to discover templates and `create_goal_from_template` to create a concrete goal from one. Template invocations also work through `/goal queue`.
+README.md:159:npm run quality:goal
+README.md:162:`npm run quality:goal` runs the project quality gate for the extension, including [Sentrux](https://github.com/sentrux/sentrux) structure checks, TypeScript validation, and Pi extension load validation.
+package.json:14:    "quality:goal": "sentrux gate .pi/extensions/goal && sentrux check .pi/extensions/goal && npm run slop:goal && npm run typecheck:goal && pi --offline --no-session --no-tools -e .pi/extensions/goal/index.ts --list-models >/tmp/pi-goal-quality-load.txt"
+.pi/extensions/goal/command.ts:17:import { getQueue, enqueueGoal, persistEnqueue } from "./queue-state";
+.pi/extensions/goal/command.ts:22:	name: "pause" | "resume" | "clear" | "queue";
+.pi/extensions/goal/command.ts:30:	{ name: "queue", description: "List queued goals or enqueue a new goal" },
+.pi/extensions/goal/command.ts:51:	if (/^queue\s/.test(query)) return templateCompletions(query.slice("queue".length).trimStart(), "queue ");
+.pi/extensions/goal/command.ts:125:	if (firstToken === "queue") {
+.pi/extensions/goal/command.ts:184:				const queued = enqueueGoal(validation.objective, "command");
+.pi/extensions/goal/command.ts:185:				persistEnqueue(pi, queued);
+.pi/extensions/goal/command.ts:186:				notifyInfo(ctx, `Queued goal: ${queued.queueId}`);
+.pi/extensions/goal/command.ts:237:	const queue = getQueue();
+.pi/extensions/goal/command.ts:239:		if (queue.length > 0) {
+.pi/extensions/goal/command.ts:241:			notifyInfo(ctx, `No active goal. Resuming queued goal processing for ${queue.length} queued goal${queue.length > 1 ? "s" : ""}.`);
+.pi/extensions/goal/command.ts:248:		if (queue.length > 0) {
+.pi/extensions/goal/command.ts:250:			notifyInfo(ctx, `Goal is complete. Resuming queued goal processing for ${queue.length} queued goal${queue.length > 1 ? "s" : ""}.`);
+.pi/extensions/goal/command.ts:279:	const queue = getQueue();
+.pi/extensions/goal/command.ts:280:	if (queue.length > 0) sendQueueSteering("goal-clear");
+.pi/extensions/goal/command.ts:281:	const queueHint = queue.length > 0 ? `\n${queue.length} queued goal${queue.length > 1 ? "s" : ""} available. Queue steering was sent to the agent context.` : "";
+.pi/extensions/goal/command.ts:282:	notifyInfo(ctx, hadGoal ? `Goal cleared${queueHint}` : `No goal to clear\nThis session does not currently have a goal.${queueHint}`);
+.pi/extensions/goal/command.ts:286:	const rest = input.slice("queue".length).trim();
+.pi/extensions/goal/command.ts:287:	const queue = getQueue();
+.pi/extensions/goal/command.ts:289:		if (queue.length === 0) {
+.pi/extensions/goal/command.ts:290:			notifyInfo(ctx, "No queued goals.");
+.pi/extensions/goal/command.ts:293:		const lines = queue.map((g, i) => `${i + 1}. [${g.queueId}] ${g.objective.length > 80 ? g.objective.slice(0, 77) + "\u2026" : g.objective}`);
+.pi/extensions/goal/command.ts:294:		notifyInfo(ctx, `Queued goals (${queue.length}):\n${lines.join("\n")}`);
+.pi/extensions/goal/command.ts:304:	const queued = enqueueGoal(validation.objective, "command", { template: resolved.template, templateFlags: resolved.templateFlags, templateArgs: resolved.templateArgs });
+.pi/extensions/goal/command.ts:305:	persistEnqueue(pi, queued);
+.pi/extensions/goal/command.ts:306:	notifyInfo(ctx, `Queued goal: ${queued.queueId} \u2014 ${validation.objective.length > 80 ? validation.objective.slice(0, 77) + "\u2026" : validation.objective}`);
+.pi/extensions/goal/index.ts:7:import { getQueue } from "./queue-state";
+.pi/extensions/goal/index.ts:8:import { sendQueueSteering } from "./queue-steering";
+.pi/extensions/goal/tools.ts:8:import { registerGoalQueueTools } from "./queue-tools";
+.pi/extensions/goal/tools.ts:97:			"Use when queue steering asks you to resolve an abstract or prompt-like queued item against reusable goal templates before deciding whether to call start_queued_goal.",
+.pi/extensions/goal/tools.ts:98:			"Use the returned names, aliases, descriptions, and placeholders to decide whether a queued request semantically matches exactly one template and whether enough structured values are available before creating a goal from a template.",
+.pi/extensions/goal/tools.ts:133:			"Use when queue steering and list_goal_templates identify exactly one reusable template that fits a queued orchestration item.",
+.pi/extensions/goal/tools.ts:175:			const queueSize = runtime.getQueueSize?.() ?? 0;
+.pi/extensions/goal/tools.ts:176:			if (queueSize > 0) runtime.sendQueueSteering?.("goal-clear");
+.pi/extensions/goal/tools.ts:177:			const queueHint = queueSize > 0 ? ` ${queueSize} queued goal${queueSize > 1 ? "s" : ""} available. Queue steering was sent to the agent context.` : "";
+.pi/extensions/goal/tools.ts:178:			return resultForGoal(null, getTelemetry(), goal ? `Goal cleared.${queueHint}` : `No goal was set.${queueHint}`);
+.pi/extensions/goal/queue-tools.ts:7:import { enqueueGoal, dequeueGoal, removeGoal, persistEnqueue, persistDequeue, persistRemove, getQueue, type QueuedGoal } from "./queue-state";
+.pi/extensions/goal/queue-tools.ts:17:const DequeueGoalParams = Type.Object({
+.pi/extensions/goal/queue-tools.ts:18:	rationale: Type.String({ description: "Why this queue head is being dequeued now" }),
+.pi/extensions/goal/queue-tools.ts:25:	queue?: QueuedGoal[];
+.pi/extensions/goal/queue-tools.ts:26:	queued?: QueuedGoal;
+.pi/extensions/goal/queue-tools.ts:27:	dequeued?: QueuedGoal;
+.pi/extensions/goal/queue-tools.ts:29:	dequeue_audit?: { rationale: string; authority: string };
+.pi/extensions/goal/queue-tools.ts:39:	registerEnqueueGoalTool(pi);
+.pi/extensions/goal/queue-tools.ts:41:	registerDequeueGoalTool(pi);
+.pi/extensions/goal/queue-tools.ts:47:		name: "list_goal_queue",
+.pi/extensions/goal/queue-tools.ts:49:		description: "List queued goal objectives that will be started after the current goal completes or clears.",
+.pi/extensions/goal/queue-tools.ts:50:		promptSnippet: "Discover queued goals waiting to start after the current goal.",
+.pi/extensions/goal/queue-tools.ts:51:		promptGuidelines: ["Use only when the user explicitly asks to see or review the goal queue.", "Do not infer queue listing from ordinary task requests."],
+.pi/extensions/goal/queue-tools.ts:59:function registerEnqueueGoalTool(pi: ExtensionAPI): void {
+.pi/extensions/goal/queue-tools.ts:61:		name: "enqueue_goal",
+.pi/extensions/goal/queue-tools.ts:62:		label: "Enqueue Goal",
+.pi/extensions/goal/queue-tools.ts:63:		description: "Add a goal to the queue to be started after the current goal completes or clears. Use only when the user explicitly asks to queue a goal for later.",
+.pi/extensions/goal/queue-tools.ts:65:		promptGuidelines: ["Use only when the user explicitly asks to queue a goal for later, not for ordinary task requests.", "Fill flags and args from the user's prose, but ask for missing required values instead of guessing."],
+.pi/extensions/goal/queue-tools.ts:70:			const queued = enqueueGoal(validation.objective, "tool", { tokenBudget: params.token_budget, timeBudgetSeconds: params.time_budget_seconds });
+.pi/extensions/goal/queue-tools.ts:71:			persistEnqueue(pi, queued);
+.pi/extensions/goal/queue-tools.ts:73:			return resultForQueuedGoal(queued);
+.pi/extensions/goal/queue-tools.ts:80:		name: "start_queued_goal",
+.pi/extensions/goal/queue-tools.ts:82:		description: "Start the next queued item only after deciding the queue head is a direct concrete goal. The queue item is removed only after goal creation succeeds.",
+.pi/extensions/goal/queue-tools.ts:83:		promptSnippet: "Start the queue head only when semantic classification says it is a direct goal.",
+.pi/extensions/goal/queue-tools.ts:85:			"Use this only after reading the queue head and deciding the queued text itself is the concrete goal to perform.",
+.pi/extensions/goal/queue-tools.ts:86:			"Before using this, verify the queue head is not better handled by an existing reusable goal template; if uncertain, call list_goal_templates first.",
+.pi/extensions/goal/queue-tools.ts:87:			"Do not use this when the queued text asks you to run/create/start another goal or goal template, names a prompt-like workflow, or semantically matches a reusable template; use create_goal, create_goal_from_template, or enqueue_goal for that orchestration, then dequeue_goal after it is satisfied.",
+.pi/extensions/goal/queue-tools.ts:88:			"This tool handles completed-goal replacement and safe dequeue for direct queue items only.",
+.pi/extensions/goal/queue-tools.ts:89:			"If this reports an active non-complete goal, leave the queued goal in place and continue the active goal.",
+.pi/extensions/goal/queue-tools.ts:98:function registerDequeueGoalTool(pi: ExtensionAPI): void {
+.pi/extensions/goal/queue-tools.ts:100:		name: "dequeue_goal",
+.pi/extensions/goal/queue-tools.ts:101:		label: "Dequeue Goal",
+.pi/extensions/goal/queue-tools.ts:102:		description: "Remove the first goal from the queue and return it. Prefer start_queued_goal for direct queued goals; use this after a prose/JIT orchestration item is fully satisfied.",
+.pi/extensions/goal/queue-tools.ts:103:		promptSnippet: "Remove the queue head after manual handling or completed prose/JIT orchestration.",
+.pi/extensions/goal/queue-tools.ts:105:			"Use start_queued_goal for direct queued goals.",
+.pi/extensions/goal/queue-tools.ts:106:			"Use dequeue_goal after you have separately satisfied a prose/JIT orchestration queue item, including any one-or-more consecutive active goals it required.",
+.pi/extensions/goal/queue-tools.ts:107:			"Never discard unfinished queued work. Do not call this unless the queue head is actually satisfied or the user explicitly authorized removing that specific queued item.",
+.pi/extensions/goal/queue-tools.ts:110:		parameters: DequeueGoalParams,
+.pi/extensions/goal/queue-tools.ts:112:			const audit = validateDequeueAudit(params.rationale, params.authority);
+.pi/extensions/goal/queue-tools.ts:114:			const dequeued = dequeueGoal();
+.pi/extensions/goal/queue-tools.ts:115:			if (!dequeued) return { content: [{ type: "text" as const, text: "No queued goals." }], details: { goal: getGoal(), telemetry: getTelemetry() } as QueueToolDetails };
+.pi/extensions/goal/queue-tools.ts:116:			persistDequeue(pi, "dequeued", audit.value);
+.pi/extensions/goal/queue-tools.ts:117:			return { content: [{ type: "text" as const, text: `Dequeued goal: ${dequeued.queueId}\nObjective: ${dequeued.objective}\nRationale: ${audit.value.rationale}\nAuthority: ${audit.value.authority}` }], details: { goal: getGoal(), telemetry: getTelemetry(), dequeued, dequeue_audit: audit.value } as QueueToolDetails };
+.pi/extensions/goal/queue-tools.ts:124:		name: "remove_queued_goal",
+.pi/extensions/goal/queue-tools.ts:126:		description: "Remove a specific goal from the queue by its queue ID.",
+.pi/extensions/goal/queue-tools.ts:127:		promptSnippet: "Remove a specific queued goal by ID.",
+.pi/extensions/goal/queue-tools.ts:128:		promptGuidelines: ["Use only when the user explicitly asks to remove a specific queued goal."],
+.pi/extensions/goal/queue-tools.ts:129:		parameters: Type.Object({ queueId: Type.String({ description: "Queue ID of the goal to remove" }) }),
+.pi/extensions/goal/queue-tools.ts:131:			const removed = removeGoal(params.queueId);
+.pi/extensions/goal/queue-tools.ts:132:			if (!removed) return errorResult(`No queued goal found with id ${params.queueId}.`);
+.pi/extensions/goal/queue-tools.ts:133:			persistRemove(pi, params.queueId, "tool_remove");
+.pi/extensions/goal/queue-tools.ts:134:			return { content: [{ type: "text" as const, text: `Removed queued goal: ${removed.queueId}` }], details: { goal: getGoal(), telemetry: getTelemetry() } as QueueToolDetails };
+.pi/extensions/goal/queue-tools.ts:141:	if (current && current.status !== "complete") return errorResult("A non-complete goal is already active. The queued goal was left in the queue.");
+.pi/extensions/goal/queue-tools.ts:143:	if (!next) return { content: [{ type: "text" as const, text: "No queued goals." }], details: { goal: current, telemetry: getTelemetry(), queue: getQueue() } as QueueToolDetails };
+.pi/extensions/goal/queue-tools.ts:148:	return createAndDequeueQueuedGoal(pi, runtime, ctx, next, validation.objective);
+.pi/extensions/goal/queue-tools.ts:151:function createAndDequeueQueuedGoal(pi: ExtensionAPI, runtime: GoalQueueToolRuntime, ctx: ExtensionContext, next: QueuedGoal, objective: string) {
+.pi/extensions/goal/queue-tools.ts:155:	const dequeued = dequeueGoal();
+.pi/extensions/goal/queue-tools.ts:156:	persistDequeue(pi, "start_queued_goal", { rationale: "Started queued goal as a direct concrete goal after successful goal creation.", authority: "start_queued_goal atomic create-then-dequeue path" });
+.pi/extensions/goal/queue-tools.ts:159:	return { content: [{ type: "text" as const, text: `Started queued goal: ${dequeued?.queueId ?? next.queueId}\nObjective: ${goal.objective}` }], details: { goal, telemetry, started: dequeued ?? next, queue: getQueue() } as QueueToolDetails };
+.pi/extensions/goal/queue-tools.ts:171:type DequeueAuditResult = { ok: true; value: { rationale: string; authority: string } } | { ok: false; error: string };
+.pi/extensions/goal/queue-tools.ts:173:function validateDequeueAudit(rationale: string | undefined, authority: string | undefined): DequeueAuditResult {

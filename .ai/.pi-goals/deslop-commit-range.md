@@ -1,13 +1,13 @@
 ---
-description: Run a deslop boomerang review over a commit range with configurable rethrows
+description: Run a deslop boomerang review over a commit range
 aliases: deslop-range,deslop-commits
-usage: /goal deslop-range --rethrow 3 -- HEAD~5..HEAD
-examples: /goal deslop-commits --rethrow 2 -- 5ed1650..HEAD; /goal deslop-range --rethrow 1 -- 440a9ae^..440a9ae
+usage: /goal deslop-range -- HEAD~5..HEAD
+examples: /goal deslop-commits -- 5ed1650..HEAD; /goal deslop-range -- 440a9ae^..440a9ae
 allow_commands: true
 command_timeout_ms: 10000
 command_output_limit: 20000
 ---
-/boomerang --rethrow {{rethrow}} Run a rigorous deslop pass over this commit range:
+Run a rigorous deslop pass over this commit range:
 
 <commit_range>
 {{args}}
