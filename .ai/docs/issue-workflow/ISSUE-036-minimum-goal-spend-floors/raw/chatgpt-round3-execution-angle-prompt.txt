@@ -1,0 +1,389 @@
+You already gave a grounded Round 2 design review for pi-goals ISSUE-036. Now do a DIFFERENT ANGLE / ROUND 3 pass: implementation execution risk audit from a maintainer/test-engineer perspective.
+
+Do not repeat the prior high-level product framing. Assume the current design already requires hard completion floors, autonomous floor steering, `completion-gate.ts`, `floor.ts`, `floor-steering.ts`, monitor floor patterns, `floor_quality_exhausted`, and no user fallback unless explicitly allowed.
+
+Task: produce a concrete implementation-design review focused on the actual patch plan and failure modes in this repo.
+
+Please answer with:
+1. A minimal safe patch order across existing modules that reduces integration risk.
+2. Exact insertion points and ordering constraints in `tools.ts`, `continuation.ts`, `monitor.ts`, `telemetry.ts`, queue paths, UI/format, README, and probes.
+3. TypeScript type/API shape refinements that reduce cycles and avoid TypeScript escape-hatch casts.
+4. State/replay/backward-compatibility risks for optional floor fields and telemetry history.
+5. Race/lifecycle risks: agent_end suppression, monitor timing, completion deferral vs cancellation, budgetLimited interaction, stale contexts.
+6. Probe/test design details that would catch wrong insertion order or prompt-only/schema-only false greens.
+7. Any issue-doc improvements still worth making before implementation.
+8. Anything now over-specified or under-specified for a first release.
+
+Use these grounded excerpts.
+
+# Current updated ISSUE-036 excerpt
+```md
+### Autonomous floor-value continuation design
+
+The qualitative steering must be implemented as concrete shared logic, not only hand-written prompt prose. Add narrow design surfaces:
+
+1. `.pi/extensions/goal/floor.ts` owns pure completion-floor evaluation and min/max validation helpers.
+2. `.pi/extensions/goal/completion-gate.ts` owns completion decisions and is called by `update_goal(status:"complete")` after candidate validation but before any completion side effects, continuation/monitor cancellation, or state persistence.
+3. `.pi/extensions/goal/floor-steering.ts` owns catalog-backed floor work selection and prompt/refusal text.
+
+Internally, prefer the terms `completion floor` or `premature wrap-up floor` over `minimum spend`; the public tool fields can remain `min_*_before_wrap_up` for clarity, but implementation comments should stress that floors are not quotas.
+
+`completion-gate.ts` should expose:
+
+- `type CompletionDecision = { kind: "allow" } | { kind: "defer_and_steer"; card: FloorWorkCard; floor: CompletionFloorEvaluation; message: string } | { kind: "allow_with_reason"; reason: NoMoreValuableWorkReason | "max_budget_requires_wrap_up"; floor: CompletionFloorEvaluation }`;
+- `decideGoalCompletion(input: { currentGoal; candidateGoal; telemetry; recentMonitorPatterns }): CompletionDecision`;
+- `buildCompletionGateResult(decision)` / `floorCompletionDeferredResult(...)` for tool details and prompt text.
+
+The gate must evaluate floors against the **current** goal, not a candidate already changed to `status: "complete"`. It must run before `update_goal` cancels continuations/monitors or persists a non-active status.
+
+`floor-steering.ts` should expose:
+
+- `type FloorValuePassId` for stable pass ids;
+- `type FloorWorkCard` for bounded useful-work cards;
+- `FLOOR_VALUE_PASS_CATALOG`, a structured table of autonomous value-adding passes;
+- `selectFloorWorkCard(goal, telemetry, floor, recentEvidence)` with repeat/churn penalties;
+- `buildFloorContinuationGuidance(goal, telemetry, context)` for continuation/monitor prompt text;
+- `buildFloorCompletionRefusal(goal, telemetry)` for deferred-completion tool responses;
+- helper formatting for unmet floor deltas and the next-pass selection rules.
+
+Add floor-work history to telemetry so the selector and monitor can avoid repetition:
+
+- `lastFloorCardId?: FloorValuePassId`;
+- `completedFloorCardIds?: FloorValuePassId[]`;
+- `floorSteerCount?: number`;
+- `floorChurnSteerCount?: number`;
+- `floorQualityState?: "inactive" | "eligible" | "steering" | "qualityWarning" | "exhausted" | "overriddenByMaxBudget"`;
+- `noMoreValuableWorkReason?: "objective_fully_satisfied" | "no_safe_autonomous_work" | "max_budget_requires_wrap_up" | "user_requested_stop"`.
+
+Important: when useful autonomous work is exhausted, the system should allow completion with a recorded `noMoreValuableWorkReason` / `floorQualityState: "exhausted"` rather than manufacture work just to satisfy a numeric floor. Round 2 research refined this further: `noMoreValuableWorkReason` is a **recorded outcome**, not a model-granted permission. A first early completion attempt cannot bypass floors merely by supplying `no_more_valuable_work_reason`; the gate should honor it only after max-budget exhaustion, monitor/telemetry-backed floor exhaustion, explicit user floor removal/change, or an exhausted selector after concrete floor work.
+
+Minimum first-pass catalog:
+
+| Pass id | Choose when | Concrete first actions | Required evidence/artifact | Avoid |
+| --- | --- | --- | --- | --- |
+| `requirement_gap_audit` | Deliverable may not cover every explicit requirement | Re-read objective, map requirements to artifacts/proofs, inspect missing or weak rows | checklist delta, added/fixed artifact, or precise gap closure | restating the same checklist without inspecting evidence |
+| `adversarial_review` | Existing solution may false-green or miss edge cases | Attack assumptions, enumerate failure modes, add/adjust proof threat model or tests | new risk, test, validation row, or mitigation | generic “looks good” review |
+| `alternate_perspective` | Design/product/API may have unexamined tradeoffs | Review from user/operator/maintainer/runtime perspectives and reconcile consequences | design adjustment, rejected alternative, or documented invariant | brainstorming with no decision/writeback |
+| `research_expansion` | More external/contextual evidence can improve quality | Inspect relevant docs, code, web/GitHub/open-source examples when available | cited finding with impact on artifact/design | unrelated browsing or source dumping |
+| `validation_expansion` | Proof coverage is thin | Add/run targeted test/probe/replay/live validation or improve proof commands | command output, new probe, stronger pass condition | rerunning unrelated green checks only |
+| `simplification_deslop` | Artifact/code/design is overcomplex or AI-sloppy | Remove duplication, tighten wording/API, simplify flow, improve maintainability | concrete diff or simplified section with behavior preserved | style-only churn |
+| `compatibility_review` | Change may affect replay, queue, budgets, UI, safety, security, performance, or accessibility | Inspect cross-surface compatibility and add guardrails | compatibility finding, invariant, or acceptance criterion | speculative concern with no action |
+| `docs_handoff_evidence` | Work is technically done but hard to verify or continue | Improve README, issue, comments, closeout, proof links, or handoff evidence | clearer handoff/evidence artifact | summary-only final answer |
+
+Prompt algorithm for unmet floors:
+
+1. State that floor(s) are unmet and normal wrap-up/completion is blocked by a completion floor, not by a quota target.
+2. Instruct the worker to choose exactly one `next_floor_pass` / `FloorWorkCard` from the catalog before more work.
+3. Choose by priority: unresolved explicit requirement > weak proof/validation > unresolved design/research uncertainty > quality/simplification gap > docs/handoff/evidence gap.
+4. Require at least one concrete tool-backed inspection/edit/proof when tools are available.
+5. Require a tangible new evidence/artifact delta before another completion attempt.
+6. Avoid repeating the same pass twice in a row unless new evidence changes the reason; use `lastFloorCardId` and `completedFloorCardIds` to enforce this.
+7. Forbid repetitive summaries, quota-filling, and low-value churn.
+8. If no card can safely produce new objective-linked evidence, return/record `noMoreValuableWorkReason: "no_safe_autonomous_work"` and allow completion rather than inventing busywork.
+
+### Autonomous-by-default rule
+
+Do not ask the user merely because a floor is unmet or because the next valuable pass is not obvious. Unless the goal objective explicitly permits or requests user decisions, floor-unmet behavior must be autonomous.
+
+If the worker cannot identify an obvious high-value pass, it must use this autonomous fallback ladder instead of asking the user:
+
+1. requirement/gap audit;
+2. validation/proof expansion;
+3. alternate-perspective or adversarial review;
+4. deeper local/external research when available;
+5. simplification/deslop/maintainability pass;
+6. documentation, handoff, and evidence hardening.
+
+The only exception is an independent safety/destructive-action boundary that requires explicit user authorization. Floor-unmet state by itself is not such a boundary.
+
+Add a conservative helper such as `objectiveAllowsUserFloorFallback(objective: string)` for this rule. It should match explicit phrases like `ask me`, `confirm with me`, `wait for my decision`, `let me choose`, or `before choosing`, and must not treat vague words like `discuss`, `explore`, or `recommend` as permission to ask the user for floor-unmet direction.
+
+### Floor-aware monitor design
+
+The churn monitor should be the primary quality backstop for floor-driven work.
+
+Extend `GoalMonitorReport` with a floor object shaped like:
+
+```ts
+floor: {
+  minTokensBeforeWrapUp?: number;
+  minTimeSecondsBeforeWrapUp?: number;
+  tokensRemainingBeforeWrapUp?: number;
+  timeSecondsRemainingBeforeWrapUp?: number;
+  tokenFloorMet: boolean;
+  timeFloorMet: boolean;
+  allFloorsMet: boolean;
+  completionBlockedByFloor: boolean;
+}
+```
+
+Render this state in `monitor-prompts.ts` alongside goal/budget/telemetry fields. Update the monitor prompt with explicit floor-unmet decision rules:
+
+- return `watch` when the worker is doing a concrete value pass from the catalog and recent context shows new evidence or artifact movement;
+- return `steer` when the worker attempts early wrap-up, repeats summaries, avoids tools/evidence, or appears to burn time/tokens without improving the deliverable;
+- do not return `escalate` just because floors are unmet or no obvious next pass appears;
+- use `escalate` only when the objective explicitly allows user input or a separate safety/authorization blocker requires it.
+
+Stable floor-related monitor pattern names:
+
+- `floor_ignored_early_wrapup`
+- `quota_filling_churn`
+- `repeated_floor_pass_no_new_evidence`
+- `productive_floor_deepening`
+- `floor_blocked_autonomous_fallback_needed`
+- `floor_quality_exhausted`
+
+Monitor steering text must name one next value pass and one concrete next action, for example: `Switch to validation_expansion: add or run one probe that would fail if the current artifact missed the main invariant.` It must not merely say “keep going until the floor is met.”
+
+The monitor should score floor work by objective-linked evidence deltas, not by elapsed tokens/time. Strong floor-work evidence includes changed files, new proof commands/output, new issue/doc rows, new compatibility findings, or a precise no-gap finding tied to inspected files. Churn evidence includes repeated same-file reads, repeated same commands, summary-only turns, cosmetic edits, unrelated refactors, validation theater, asking the user without permission, completion retries without new work, and tool loops with no state delta.
+
+After repeated bad/no-evidence floor work, the monitor should set or recommend `floorQualityState: "exhausted"` / pattern `floor_quality_exhausted` so the completion gate can allow completion with `no_more_valuable_work_reason` instead of trapping the worker in churn.
+
+### Maximum budget precedence
+
+Existing maximum budgets remain safety caps. If a maximum token/time budget is reached before a minimum floor is satisfied, the goal still follows existing `budgetLimited` behavior. Minimum floors must never force work beyond a maximum budget or hard stop.
+
+### User escape hatches
+
+First release does not add a force-complete override. A user can end early by:
+
+- lowering or removing the floor through `update_goal`;
+- pausing the goal;
+- clearing/replacing the goal;
+- accepting a maximum-budget-limited wrap-up as incomplete progress when a cap is reached first.
+
+## Grounded research findings
+
+Full research is in `.ai/docs/issue-workflow/ISSUE-036-minimum-goal-spend-floors/02-grounded-research.md`.
+
+Key code facts:
+
+- `.pi/extensions/goal/types.ts` defines `GoalState` with max budgets and usage counters but no minimum floor fields.
+- `.pi/extensions/goal/state.ts` persists branch-replayable custom `pi-goal-state` events; optional floor fields can be backward-compatible because goal parsing is permissive.
+- `.pi/extensions/goal/budget.ts` centralizes max budget warning/reached/hard-stop logic and should stay authoritative for caps.
+- `.pi/extensions/goal/tools.ts` is the critical model-tool path for create/update/complete behavior; `update_goal(status:"complete")` currently has no floor gate.
+- `.pi/extensions/goal/command.ts` and `.pi/extensions/goal/queue-tools.ts` create and start goals through `createGoalState()` and queue metadata; these paths must preserve floor settings where supported.
+- `.pi/extensions/goal/prompts.ts` owns continuation and budget wrap-up prompts; it is the natural home for qualitative floor guidance.
+- `.pi/extensions/goal/monitor-prompts.ts` and `.pi/extensions/goal/monitor.ts` run the third-party churn monitor; reports currently include max budgets, usage, and telemetry but no min-floor state.
+- `.pi/extensions/goal/format.ts`, `.pi/extensions/goal/widget.ts`, and `.pi/extensions/goal/ui.ts` render status, summaries, widget bars, and footer text; they must display floors differently from max budgets.
+- `package.json` already defines `npm run quality:goal` as the required implementation gate.
+- `.ai/docs/pi-goals-live-probe-testing.md` requires real Pi live probe validation for behavior-changing goal runtime work unless explicitly skipped with a strong reason.
+- `sentrux check .pi/extensions/goal` passed during planning (`33 rules checked`, quality `6243`).
+- BCU + ChatGPT Round 2 reviewed the grounded repo/module context and added concrete design refinements: a pure `floor.ts`, careful completion-gate insertion order, non-error completion deferral text, narrow user-fallback detection, telemetry mutation helpers, soft final-answer bypass handling, and a skeptical no-value escape.
+
+## Locked design choices
+
+Full design lock is in `.ai/docs/issue-workflow/ISSUE-036-minimum-goal-spend-floors/03-design-lock.md`.
+
+### Chosen product/API behavior
+
+Use hard gates with qualitative continuation steering.
+
+Rejected alternatives:
+
+- Soft guidance only: rejected because fields/prompt text without a completion gate would false-green the main invariant.
+- Hybrid override: deferred because reliably distinguishing model initiative from explicit user force-complete intent needs additional API semantics. First release keeps simpler proof semantics.
+
+### Field naming
+
+Use behavior-specific names to avoid confusing floors with existing max budgets:
+
+- `GoalState.minTokensBeforeWrapUp?: number`
+- `GoalState.minTimeSecondsBeforeWrapUp?: number`
+- `QueuedGoal.minTokensBeforeWrapUp?: number`
+- `QueuedGoal.minTimeSecondsBeforeWrapUp?: number`
+
+Agent-facing model tool parameters:
+
+- `min_tokens_before_wrap_up`
+- `min_time_seconds_before_wrap_up`
+
+Update tool parameters accept `null` to remove a configured floor, matching existing max-budget edit conventions.
+
+### Satisfaction rule
+
+- Token floor is met when `tokensUsed >= minTokensBeforeWrapUp`.
+- Time floor is met when `timeUsedSeconds >= minTimeSecondsBeforeWrapUp`.
+- If both floors are set, both must be met.
+- Floors must be positive integers.
+- If a max budget exists for the same resource, the minimum floor must be less than or equal to the max budget. Reject impossible configurations at create/update/enqueue time.
+
+### Status model
+
+Do not add a new `GoalStatus` in the first release. Preserve:
+
+- `active`
+- `paused`
+- `budgetLimited`
+- `complete`
+
+Floor readiness is derived from goal fields and usage, not encoded as a status.
+
+## Implementation checklist
+
+- [ ] Run `sentrux gate --save .pi/extensions/goal` before substantial implementation.
+- [ ] Add optional minimum floor fields to `GoalState`, queued goal state, tool detail types, and state/replay helpers.
+- [ ] Add `.pi/extensions/goal/floor.ts` with pure floor evaluation and validation helpers:
+  - no floors;
+  - token floor met/unmet;
+  - time floor met/unmet;
+  - both floors;
+  - remaining floor deltas;
+  - impossible min > max validation.
+- [ ] Add `completion-gate.ts` so `update_goal(status:"complete")`, soft wrap-up detection, and monitor floor decisions share one completion decision path.
+- [ ] Extend `createGoalState()` and tool/queue create paths to accept and preserve floors.
+- [ ] Extend model tool schemas/descriptions for `create_goal`, `create_goal_from_template`, `enqueue_goal`, and `update_goal` with floor parameters.
+- [ ] Add update handling for setting/removing floors and recomputing floor readiness without changing paused/complete semantics unexpectedly.
+- [ ] Gate `update_goal(status:"complete")` so unmet floors defer completion before state mutation, with actionable high-value continuation guidance and structured `completion_blocked_by_floor` details.
+- [ ] Add the concrete floor-steering module/catalog and reuse it from continuation prompts, completion-refusal text, and monitor steering.
+- [ ] Add floor-work telemetry/history (`lastFloorCardId`, `completedFloorCardIds`, floor/churn steer counts, `floorQualityState`, `noMoreValuableWorkReason`) plus mutation helpers (`noteFloorCompletionDeferred`, `noteProductiveFloorWork`, `noteFloorChurnSteer`, `noteFloorQualityExhausted`).
+- [ ] Update continuation prompts with floor state, the pass-selection algorithm, the autonomous fallback ladder, no-user-question rule, and no-safe-autonomous-work completion escape.
+- [ ] Update budget/floor interactions so max budget reached/hard-stop behavior remains authoritative.
+- [ ] Add monitor report floor fields, floor pattern names, evidence-delta scoring, floor-quality exhaustion, and prompt decision rules for `watch` vs `steer` vs tightly limited `escalate`.
+- [ ] Add `agent_end` / turn-end soft-wrap-up detection so final-answer-style wrap-up without `update_goal(status:"complete")` is steered when floors remain unmet.
+- [ ] Update UI/tool formatting to show floors separately from max budgets.
+- [ ] Update README user-facing docs with floor semantics, examples, and escape hatches.
+- [ ] Add deterministic focused probes for floor helpers, tool validation, completion blocking/acceptance, queue preservation, prompt text, and max-budget precedence.
+- [ ] Run `npm run quality:goal`.
+- [ ] Run the mandatory live probe using `.ai/docs/pi-goals-live-probe-testing.md` and record evidence in implementation closeout.
+
+## Acceptance criteria
+
+- A goal can be created through model tools with `min_tokens_before_wrap_up` and/or `min_time_seconds_before_wrap_up`.
+- A template-created goal can receive the same minimum floor settings.
+- A queued goal can preserve floor settings through enqueue and `start_queued_goal`.
+- Updating a goal can set, change, or remove floors using positive integers or `null`.
+- Invalid floors are rejected:
+  - non-integer values;
+  - non-positive values;
+
+... [excerpt truncated]
+
+```
+
+# Current tools.ts update path excerpt
+```ts
+function updateGoalFromTool(pi: ExtensionAPI, runtime: GoalToolRuntime, params: UpdateGoalInput, ctx: ExtensionContext) {
+	const goal = getGoal();
+	if (!goal) return errorResult("No goal exists to update.");
+	const update = buildGoalUpdate(goal, params);
+	if (!update.ok) return errorResult(update.error);
+	// Refuse to reactivate a goal whose budgets are still exhausted.
+	if (update.goal.status === "active" && !canActivateGoal(update.goal)) {
+		const reason = isBudgetExhausted(update.goal);
+		const resource = reason === "tokenBudget" ? "token" : reason === "timeBudget" ? "time" : "budget";
+		return errorResult(`Cannot resume: ${resource} budget is still exhausted. Raise the budget or use clear_goal before resuming.`);
+	}
+	if (update.goal.status !== "active") {
+		runtime.cancelContinuation?.(goal.goalId, "tool-status");
+		runtime.cancelMonitor?.(goal.goalId, "tool-status");
+	}
+	// When a budget edit transitions active -> budgetLimited, schedule budget-limit wrap-up once.
+	budgetEditWrapUpIfNeeded(pi, ctx, runtime, goal, update.goal);
+	persistUpdateGoal(pi, update.goal, telemetryForUpdate(update.goal), "tool");
+	syncGoalUi(ctx, update.goal);
+	if (goal.status !== "active" && update.goal.status === "active") {
+		runtime.scheduleMonitor?.(ctx);
+		runtime.scheduleContinuation?.(ctx, "resumed");
+	}
+	return resultForGoal(update.goal, getTelemetry(), update.prefix);
+}
+
+
+```
+
+# Current continuation.ts lifecycle excerpt
+```ts
+export function scheduleMaybeContinueGoal(pi: ExtensionAPI, ctx: ExtensionContext, reason: ContinuationReason): void {
+	const goal = getGoal();
+	if (!goal || goal.status !== "active") return;
+	if (shouldSuppressAgentEndContinuation(reason)) return skip(pi, "noProgress");
+	cancelGoalContinuation(goal.goalId, "reschedule-continuation");
+	const telemetry = noteContinuationScheduled(getTelemetry(), reason);
+	if (telemetry) persistTelemetry(pi, telemetry, "continuation");
+	const goalId = goal.goalId;
+	const timer = setTimeout(() => {
+		if (pendingContinuation?.goalId === goalId) pendingContinuation = undefined;
+		void safelyRun(() => maybeContinueGoal(pi, ctx, reason, goalId));
+	}, 25);
+	pendingContinuation = { goalId, reason, timer };
+}
+
+export function scheduleBudgetLimitWrapUp(pi: ExtensionAPI, ctx: ExtensionContext, goal: GoalState): void {
+	if (budgetWrapUps.has(goal.goalId)) return;
+	const timer = setTimeout(() => {
+		budgetWrapUps.delete(goal.goalId);
+		void safelyRun(() => maybeSendBudgetWrapUp(pi, ctx, goal.goalId));
+	}, 25);
+	budgetWrapUps.set(goal.goalId, { goalId: goal.goalId, timer });
+}
+
+export function cancelGoalContinuation(goalId?: string, _reason = "cancelled"): void {
+	if (pendingContinuation && (!goalId || pendingContinuation.goalId === goalId)) {
+		clearTimeout(pendingContinuation.timer);
+		pendingContinuation = undefined;
+	}
+	for (const [pendingGoalId, pending] of budgetWrapUps) {
+		if (!goalId || pendingGoalId === goalId) {
+			clearTimeout(pending.timer);
+			budgetWrapUps.delete(pendingGoalId);
+		}
+	}
+}
+
+export function interruptActiveGoalTurn(pi: ExtensionAPI, ctx: ExtensionContext, goal: GoalState): void {
+	if (ctx.isIdle()) return;
+	const prompt = buildPausePrompt(goal);
+	pi.sendMessage(
+		{ customType: PAUSE_MESSAGE_TYPE, content: prompt.content, display: false, details: prompt.details },
+		{ deliverAs: "steer" },
+	);
+	ctx.abort();
+}
+
+export function resetContinuationRuntime(): void {
+	cancelGoalContinuation();
+}
+
+async function maybeContinueGoal(pi: ExtensionAPI, ctx: ExtensionContext, reason: ContinuationReason, goalId: string): Promise<void> {
+	const goal = getGoal();
+	if (!goal || goal.goalId !== goalId || goal.status !== "active") return skip(pi, "notActive");
+	if (!ctx.isIdle()) return skip(pi, "notIdle");
+	if (ctx.hasPendingMessages()) return skip(pi, "pendingMessages");
+	const telemetry = getTelemetry();
+	if (telemetry && telemetry.consecutiveAutoTurns >= MAX_CONSECUTIVE_AUTO_TURNS) return skip(pi, "safetyCap");
+	if (telemetry && telemetry.consecutiveNoProgressTurns >= MAX_NO_PROGRESS_AUTO_TURNS) return skip(pi, "safetyCap");
+
+	const prompt = buildContinuationPrompt(goal);
+	setNextTurnOrigin("auto");
+	pi.sendMessage(
+		{ customType: CONTINUATION_MESSAGE_TYPE, content: prompt.content, display: false, details: { ...prompt.details, reason } },
+		{ triggerTurn: true, deliverAs: "followUp" },
+	);
+}
+
+async function maybeSendBudgetWrapUp(pi: ExtensionAPI, ctx: ExtensionContext, goalId: string): Promise<void> {
+	const goal = getGoal();
+	if (!goal || goal.goalId !== goalId || goal.status !== "budgetLimited") return;
+	if (!ctx.isIdle()) return;
+	if (ctx.hasPendingMessages()) return;
+	const prompt = buildBudgetLimitPrompt(goal);
+	setNextTurnOrigin("budgetWrapUp");
+	pi.sendMessage(
+		{ customType: BUDGET_LIMIT_MESSAGE_TYPE, content: prompt.content, display: false, details: prompt.details },
+		{ triggerTurn: true, deliverAs: "followUp" },
+	);
+	const telemetry = noteBudgetWrapUpSent(getTelemetry());
+	if (telemetry) persistTelemetry(pi, telemetry, "budget");
+}
+
+function shouldSuppressAgentEndContinuation(reason: ContinuationReason): boolean {
+	if (reason !== "agentEnd") return false;
+	const telemetry = getTelemetry();
+	return telemetry?.lastTurnOrigin === "auto" && telemetry.lastTurnToolCallCount === 0 && telemetry.lastTurnToolResultCount === 0 && !telemetry.lastTurnCompletedGoal;
+}
+
+
+```
+
+Remember: focus on a new angle. Be concise but concrete; prefer actionable patch sequencing, exact hazards, and proofable invariants over general advice.

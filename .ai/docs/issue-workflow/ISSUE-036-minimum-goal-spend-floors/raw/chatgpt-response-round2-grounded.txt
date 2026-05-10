@@ -1,0 +1,952 @@
+I checked the public repo shape against your pasted excerpts: the current package is exactly the right size for this as a small behavior pass, not a framework rewrite. The repo already advertises persistent `/goal`, rewindable state, budgets, model tools, churn monitoring, and compact UI/status surfaces; the `.pi/extensions/goal` folder also already has the clean module seams this issue wants: `budget.ts`, `tools.ts`, `continuation.ts`, `prompts.ts`, `monitor-*`, `telemetry.ts`, `queue-*`, `ui.ts`, and `widget.ts`. ([GitHub][1]) ([GitHub][2])
+
+## 1. Concrete gaps / risky ambiguities
+
+### Gap A — “no valuable work remains” is currently a bypass hole
+
+The issue says allow completion with `noMoreValuableWorkReason`, but does not lock who may assert that. If `update_goal` accepts `no_more_valuable_work_reason` directly from the worker and uses it to bypass floors, the feature becomes ornamental.
+
+Design rule:
+
+```ts
+// Worker may report this, but cannot self-authorize floor bypass.
+noMoreValuableWorkReason?: NoMoreValuableWorkReason;
+```
+
+The completion gate should only honor it when one of these is true:
+
+```ts
+telemetry.floorQualityState === "exhausted"
+|| max budget is exhausted
+|| floor selector returns no eligible card after prior concrete floor work
+|| user explicitly changed/removed the floor
+```
+
+Do not allow:
+
+```ts
+update_goal({ status: "complete", no_more_valuable_work_reason: "no_safe_autonomous_work" })
+```
+
+to pass on the first early completion attempt.
+
+### Gap B — current `updateGoalFromTool` order will mutate/cancel too early unless gate is inserted carefully
+
+Current flow:
+
+```ts
+buildGoalUpdate()
+if non-active: cancel continuation/monitor
+budget edit wrap-up
+persistUpdateGoal()
+```
+
+The floor gate must run **after validation/building the candidate update**, but **before** this block:
+
+```ts
+if (update.goal.status !== "active") {
+  runtime.cancelContinuation?.(...)
+  runtime.cancelMonitor?.(...)
+}
+```
+
+Otherwise an early completion attempt can cancel active monitoring/continuation even though completion is rejected.
+
+Target shape:
+
+```ts
+const update = buildGoalUpdate(goal, params);
+if (!update.ok) return errorResult(update.error);
+
+const gate = decideGoalCompletion({
+  currentGoal: goal,
+  candidateGoal: update.goal,
+  telemetry: getTelemetry(),
+  recentMonitorLogs: getRecentMonitorLogs(goal.goalId, ...),
+});
+
+if (gate.kind === "defer_and_steer") {
+  const telemetry = noteFloorCompletionDeferred(getTelemetry(), gate.card.id);
+  if (telemetry) persistTelemetry(pi, telemetry, "floor");
+  return floorCompletionDeferredResult(goal, telemetry, gate);
+}
+
+// only now cancel monitor/continuation or persist complete
+```
+
+### Gap C — “tool rejects the update” should not use normal `errorResult`
+
+`errorResult("Cannot complete...")` risks the model treating this as a failed tool call rather than an instruction to continue. The state mutation should be rejected, but the tool response should be a **successful deferral result** with structured `details`.
+
+Add:
+
+```ts
+function floorCompletionDeferredResult(
+  goal: GoalState,
+  telemetry: GoalTelemetrySnapshot | null,
+  decision: Extract<CompletionDecision, { kind: "defer_and_steer" }>,
+): ToolResult
+```
+
+Text prefix should be:
+
+```text
+Completion deferred by goal floor. The goal remains active.
+```
+
+Not:
+
+```text
+Error:
+```
+
+### Gap D — current `agentEnd` continuation suppression can defeat floors
+
+`shouldSuppressAgentEndContinuation()` currently suppresses auto continuations when the last auto turn had no tools/results and did not complete. That is normally good loop protection, but it creates an escape path:
+
+1. Floor unmet.
+2. Agent gives soft final answer without `update_goal`.
+3. No tool calls.
+4. Agent-end continuation gets suppressed.
+5. Goal remains active but may stop being actively steered.
+
+Change signature:
+
+```ts
+function shouldSuppressAgentEndContinuation(
+  reason: ContinuationReason,
+  goal: GoalState,
+  telemetry: GoalTelemetrySnapshot | null,
+): boolean
+```
+
+Then:
+
+```ts
+if (reason === "agentEnd" && isCompletionFloorUnmet(goal)) {
+  return telemetry?.floorQualityState === "exhausted"
+    || (telemetry?.floorSteerCount ?? 0) >= MAX_FLOOR_STEERS;
+}
+```
+
+This preserves loop protection while still catching early soft wrap-up.
+
+### Gap E — floor history in telemetry needs explicit mutation points
+
+The issue says add `lastFloorCardId`, `completedFloorCardIds`, `floorSteerCount`, etc., but does not specify who updates them.
+
+Use three mutation points:
+
+1. Completion gate defers completion:
+   `noteFloorCompletionDeferred(telemetry, card.id)`
+
+2. Monitor sees productive floor work:
+   `noteProductiveFloorWork(telemetry, cardId)`
+
+3. Monitor sees repeated/no-evidence floor churn:
+   `noteFloorChurnSteer(telemetry, pattern)`
+
+Without these functions, the selector cannot reliably avoid repetition.
+
+### Gap F — current issue over-trusts catalog selection without objective/user-fallback detection
+
+“Objective explicitly allows user decisions” needs a conservative utility, not ad hoc prompt prose.
+
+Add:
+
+```ts
+export function objectiveAllowsUserFloorFallback(objective: string): boolean
+```
+
+Keep it intentionally narrow:
+
+```ts
+const ALLOW_USER_FALLBACK_PATTERNS = [
+  /\bask me\b/i,
+  /\bconfirm with me\b/i,
+  /\bwait for my decision\b/i,
+  /\blet me choose\b/i,
+  /\bbefore choosing\b/i,
+];
+```
+
+Do not treat vague words like “discuss”, “explore”, or “recommend” as permission to ask.
+
+## 2. Exact modules / types / functions to add
+
+### Add `.pi/extensions/goal/floor.ts`
+
+This should mirror `budget.ts`: pure evaluation + validation.
+
+```ts
+import type { GoalState } from "./types";
+
+export type CompletionFloorEvaluation = {
+  minTokensBeforeWrapUp?: number;
+  minTimeSecondsBeforeWrapUp?: number;
+  tokensRemainingBeforeWrapUp?: number;
+  timeSecondsRemainingBeforeWrapUp?: number;
+  tokenFloorMet: boolean;
+  timeFloorMet: boolean;
+  allFloorsMet: boolean;
+  anyFloorConfigured: boolean;
+};
+
+export type GoalBudgetFloorConfig = {
+  tokenBudget?: number;
+  timeBudgetSeconds?: number;
+  minTokensBeforeWrapUp?: number;
+  minTimeSecondsBeforeWrapUp?: number;
+};
+
+export function evaluateCompletionFloor(goal: GoalState): CompletionFloorEvaluation {
+  const tokenFloorMet =
+    goal.minTokensBeforeWrapUp === undefined ||
+    goal.tokensUsed >= goal.minTokensBeforeWrapUp;
+
+  const timeFloorMet =
+    goal.minTimeSecondsBeforeWrapUp === undefined ||
+    goal.timeUsedSeconds >= goal.minTimeSecondsBeforeWrapUp;
+
+  return {
+    minTokensBeforeWrapUp: goal.minTokensBeforeWrapUp,
+    minTimeSecondsBeforeWrapUp: goal.minTimeSecondsBeforeWrapUp,
+    tokensRemainingBeforeWrapUp:
+      goal.minTokensBeforeWrapUp === undefined
+        ? undefined
+        : Math.max(0, goal.minTokensBeforeWrapUp - goal.tokensUsed),
+    timeSecondsRemainingBeforeWrapUp:
+      goal.minTimeSecondsBeforeWrapUp === undefined
+        ? undefined
+        : Math.max(0, goal.minTimeSecondsBeforeWrapUp - goal.timeUsedSeconds),
+    tokenFloorMet,
+    timeFloorMet,
+    allFloorsMet: tokenFloorMet && timeFloorMet,
+    anyFloorConfigured:
+      goal.minTokensBeforeWrapUp !== undefined ||
+      goal.minTimeSecondsBeforeWrapUp !== undefined,
+  };
+}
+
+export function isCompletionFloorUnmet(goal: GoalState): boolean {
+  const floor = evaluateCompletionFloor(goal);
+  return floor.anyFloorConfigured && !floor.allFloorsMet;
+}
+
+export function validateBudgetFloorConfig(config: GoalBudgetFloorConfig): string | undefined {
+  if (config.minTokensBeforeWrapUp !== undefined) {
+    if (!Number.isInteger(config.minTokensBeforeWrapUp) || config.minTokensBeforeWrapUp <= 0) {
+      return "min_tokens_before_wrap_up must be a positive integer when provided.";
+    }
+    if (config.tokenBudget !== undefined && config.minTokensBeforeWrapUp > config.tokenBudget) {
+      return "min_tokens_before_wrap_up must be less than or equal to token_budget.";
+    }
+  }
+
+  if (config.minTimeSecondsBeforeWrapUp !== undefined) {
+    if (!Number.isInteger(config.minTimeSecondsBeforeWrapUp) || config.minTimeSecondsBeforeWrapUp <= 0) {
+      return "min_time_seconds_before_wrap_up must be a positive integer when provided.";
+    }
+    if (config.timeBudgetSeconds !== undefined && config.minTimeSecondsBeforeWrapUp > config.timeBudgetSeconds) {
+      return "min_time_seconds_before_wrap_up must be less than or equal to time_budget_seconds.";
+    }
+  }
+
+  return undefined;
+}
+```
+
+### Extend `.pi/extensions/goal/types.ts`
+
+```ts
+export type GoalState = {
+  goalId: string;
+  objective: string;
+  status: GoalStatus;
+  tokenBudget?: number;
+  timeBudgetSeconds?: number;
+  minTokensBeforeWrapUp?: number;
+  minTimeSecondsBeforeWrapUp?: number;
+  tokensUsed: number;
+  timeUsedSeconds: number;
+  createdAt: number;
+  updatedAt: number;
+};
+```
+
+Telemetry additions:
+
+```ts
+export type FloorQualityState =
+  | "inactive"
+  | "eligible"
+  | "steering"
+  | "qualityWarning"
+  | "exhausted"
+  | "overriddenByMaxBudget";
+
+export type NoMoreValuableWorkReason =
+  | "objective_fully_satisfied"
+  | "no_safe_autonomous_work"
+  | "max_budget_requires_wrap_up"
+  | "user_requested_stop";
+
+export type GoalTelemetrySnapshot = {
+  // existing fields...
+
+  lastFloorCardId?: FloorValuePassId;
+  completedFloorCardIds?: FloorValuePassId[];
+  floorSteerCount?: number;
+  floorChurnSteerCount?: number;
+  floorQualityState?: FloorQualityState;
+  noMoreValuableWorkReason?: NoMoreValuableWorkReason;
+};
+```
+
+Avoid importing `FloorValuePassId` from `floor-steering.ts` into `types.ts` if that creates a cycle. Either define `FloorValuePassId` in `types.ts`, or put shared unions in `floor.ts`.
+
+### Add `.pi/extensions/goal/floor-steering.ts`
+
+```ts
+import type {
+  FloorValuePassId,
+  GoalState,
+  GoalTelemetrySnapshot,
+} from "./types";
+import type { CompletionFloorEvaluation } from "./floor";
+
+export type FloorValuePassId =
+  | "requirement_gap_audit"
+  | "adversarial_review"
+  | "alternate_perspective"
+  | "research_expansion"
+  | "validation_expansion"
+  | "simplification_deslop"
+  | "compatibility_review"
+  | "docs_handoff_evidence";
+
+export type FloorWorkCard = {
+  id: FloorValuePassId;
+  label: string;
+  chooseWhen: string;
+  concreteFirstAction: string;
+  requiredEvidence: string[];
+  avoid: string[];
+};
+
+export type FloorWorkSelectionContext = {
+  goal: GoalState;
+  telemetry: GoalTelemetrySnapshot | null;
+  floor: CompletionFloorEvaluation;
+  recentMonitorPatterns: string[];
+};
+
+export const FLOOR_VALUE_PASS_CATALOG: readonly FloorWorkCard[] = [
+  {
+    id: "requirement_gap_audit",
+    label: "Requirement gap audit",
+    chooseWhen: "Explicit requirements may not all be mapped to evidence.",
+    concreteFirstAction:
+      "Re-read the objective and map each explicit requirement to a concrete artifact, command, file, or proof.",
+    requiredEvidence: ["requirement-to-evidence delta", "fixed gap or precise no-gap finding"],
+    avoid: ["restating the checklist without inspecting evidence"],
+  },
+  {
+    id: "validation_expansion",
+    label: "Validation expansion",
+    chooseWhen: "Proof coverage is thin or completion depends on unverified behavior.",
+    concreteFirstAction:
+      "Run or add one targeted probe that would fail if the main invariant is wrong.",
+    requiredEvidence: ["command/probe output", "why the probe covers the invariant"],
+    avoid: ["rerunning unrelated green checks"],
+  },
+  // keep the rest as data, not prose-only prompt text
+];
+
+export function selectFloorWorkCard(context: FloorWorkSelectionContext): FloorWorkCard | undefined;
+
+export function buildFloorContinuationGuidance(context: {
+  goal: GoalState;
+  floor: CompletionFloorEvaluation;
+  card: FloorWorkCard;
+}): string;
+
+export function buildFloorCompletionRefusal(context: {
+  goal: GoalState;
+  floor: CompletionFloorEvaluation;
+  card: FloorWorkCard;
+}): string;
+
+export function objectiveAllowsUserFloorFallback(objective: string): boolean;
+```
+
+Selection rule should be boring and deterministic:
+
+```ts
+export function selectFloorWorkCard(context: FloorWorkSelectionContext): FloorWorkCard | undefined {
+  const completed = new Set(context.telemetry?.completedFloorCardIds ?? []);
+  const last = context.telemetry?.lastFloorCardId;
+
+  const candidates = FLOOR_VALUE_PASS_CATALOG
+    .filter((card) => card.id !== last)
+    .filter((card) => !completed.has(card.id));
+
+  return (
+    preferByObjectiveKeywords(candidates, context.goal.objective) ??
+    candidates.find((card) => card.id === "requirement_gap_audit") ??
+    candidates[0]
+  );
+}
+```
+
+Do **not** add an LLM selector in release one. The worker/monitor are already LLM-ish enough.
+
+### Add `.pi/extensions/goal/completion-gate.ts`
+
+```ts
+import { isBudgetExhausted } from "./budget";
+import { evaluateCompletionFloor, type CompletionFloorEvaluation } from "./floor";
+import {
+  buildFloorCompletionRefusal,
+  selectFloorWorkCard,
+  type FloorWorkCard,
+} from "./floor-steering";
+import type {
+  GoalState,
+  GoalTelemetrySnapshot,
+  NoMoreValuableWorkReason,
+} from "./types";
+
+export type CompletionDecision =
+  | { kind: "allow" }
+  | {
+      kind: "defer_and_steer";
+      floor: CompletionFloorEvaluation;
+      card: FloorWorkCard;
+      message: string;
+    }
+  | {
+      kind: "allow_with_reason";
+      reason: NoMoreValuableWorkReason | "max_budget_requires_wrap_up";
+      floor: CompletionFloorEvaluation;
+    };
+
+export type GoalCompletionGateInput = {
+  currentGoal: GoalState;
+  candidateGoal: GoalState;
+  telemetry: GoalTelemetrySnapshot | null;
+  recentMonitorPatterns: string[];
+};
+
+export function decideGoalCompletion(input: GoalCompletionGateInput): CompletionDecision {
+  if (input.candidateGoal.status !== "complete") return { kind: "allow" };
+
+  const floor = evaluateCompletionFloor(input.currentGoal);
+  if (!floor.anyFloorConfigured || floor.allFloorsMet) return { kind: "allow" };
+
+  if (isBudgetExhausted(input.currentGoal)) {
+    return { kind: "allow_with_reason", reason: "max_budget_requires_wrap_up", floor };
+  }
+
+  if (input.telemetry?.floorQualityState === "exhausted") {
+    return { kind: "allow_with_reason", reason: "no_safe_autonomous_work", floor };
+  }
+
+  const card = selectFloorWorkCard({
+    goal: input.currentGoal,
+    telemetry: input.telemetry,
+    floor,
+    recentMonitorPatterns: input.recentMonitorPatterns,
+  });
+
+  if (!card) {
+    return { kind: "allow_with_reason", reason: "no_safe_autonomous_work", floor };
+  }
+
+  return {
+    kind: "defer_and_steer",
+    floor,
+    card,
+    message: buildFloorCompletionRefusal({ goal: input.currentGoal, floor, card }),
+  };
+}
+```
+
+Key: use `currentGoal`, not `candidateGoal`, for floor evaluation. The candidate may already have `status: "complete"` and that status should not affect floor math.
+
+## 3. Completion gate + steering refinement
+
+The correct gate hierarchy is:
+
+```ts
+if candidate status is not complete:
+  allow
+
+if no floors configured:
+  allow
+
+if all floors met:
+  allow
+
+if max budget exhausted:
+  allow_with_reason("max_budget_requires_wrap_up")
+
+if telemetry.floorQualityState === "exhausted":
+  allow_with_reason("no_safe_autonomous_work")
+
+if selector finds eligible useful card:
+  defer_and_steer(card)
+
+else:
+  allow_with_reason("no_safe_autonomous_work")
+```
+
+The subtle bit: “no valuable autonomous work remains” should require prior evidence that the system tried. I’d encode:
+
+```ts
+function canAllowNoValuableWorkEscape(
+  telemetry: GoalTelemetrySnapshot | null,
+  catalogSize: number,
+): boolean {
+  const completedCount = telemetry?.completedFloorCardIds?.length ?? 0;
+  const steerCount = telemetry?.floorSteerCount ?? 0;
+  const churnCount = telemetry?.floorChurnSteerCount ?? 0;
+
+  return telemetry?.floorQualityState === "exhausted"
+    || completedCount >= Math.min(3, catalogSize)
+    || (steerCount >= 2 && churnCount >= 2);
+}
+```
+
+That prevents first-attempt floor bypass while avoiding infinite loops.
+
+The deferral tool response should include:
+
+```ts
+details: {
+  goal,
+  telemetry,
+  completion_blocked_by_floor: true,
+  floor,
+  next_floor_pass: {
+    id: card.id,
+    label: card.label,
+    concrete_first_action: card.concreteFirstAction,
+    required_evidence: card.requiredEvidence,
+    avoid: card.avoid,
+  },
+}
+```
+
+And the text should be direct:
+
+```text
+Completion deferred by goal floor. The goal remains active.
+
+Unmet floor:
+- tokens before wrap-up: 2,100 / 5,000
+- time before wrap-up: met
+
+Next value pass: validation_expansion
+Concrete next action: Run or add one targeted probe that would fail if the main invariant is wrong.
+
+Before trying update_goal(status:"complete") again, produce new objective-linked evidence:
+- command/probe output
+- why the probe covers the invariant
+
+Do not ask the user what else to do unless the original objective explicitly required a user decision or a separate safety/destructive-action boundary blocks autonomous work.
+```
+
+## 4. Floor-aware churn monitor design
+
+### Extend `GoalMonitorReport`
+
+Add the floor object exactly as the issue says, plus history. The floor math belongs in `monitor-report.ts` via `evaluateCompletionFloor(goal)`.
+
+```ts
+export type GoalMonitorFloorReport = {
+  minTokensBeforeWrapUp?: number;
+  minTimeSecondsBeforeWrapUp?: number;
+  tokensRemainingBeforeWrapUp?: number;
+  timeSecondsRemainingBeforeWrapUp?: number;
+  tokenFloorMet: boolean;
+  timeFloorMet: boolean;
+  allFloorsMet: boolean;
+  completionBlockedByFloor: boolean;
+  lastFloorCardId?: FloorValuePassId;
+  completedFloorCardIds: FloorValuePassId[];
+  floorSteerCount: number;
+  floorChurnSteerCount: number;
+  floorQualityState: FloorQualityState;
+};
+
+export type GoalMonitorReport = {
+  // existing fields...
+  floor: GoalMonitorFloorReport;
+};
+```
+
+### Stable pattern names
+
+Define, but don’t over-type the parser yet:
+
+```ts
+export const FLOOR_MONITOR_PATTERNS = [
+  "floor_ignored_early_wrapup",
+  "quota_filling_churn",
+  "repeated_floor_pass_no_new_evidence",
+  "productive_floor_deepening",
+  "floor_blocked_autonomous_fallback_needed",
+  "floor_quality_exhausted",
+] as const;
+
+export type FloorMonitorPattern = typeof FLOOR_MONITOR_PATTERNS[number];
+```
+
+### Prompt decision rules
+
+Add this to `monitor-prompts.ts` after existing churn rules:
+
+```text
+Floor-aware rules:
+- If completionBlockedByFloor is false, apply normal churn rules.
+- If completionBlockedByFloor is true, do not judge floor-unmet state itself as churn.
+- Return watch with pattern productive_floor_deepening when the worker is doing a concrete catalog-backed value pass and recent context shows new objective-linked evidence.
+- Return steer with pattern floor_ignored_early_wrapup when the worker tries to finish, summarize, or stop while floors are unmet.
+- Return steer with pattern quota_filling_churn when the worker appears to burn time/tokens through summaries, cosmetic edits, unrelated refactors, or repeated low-value commands.
+- Return steer with pattern repeated_floor_pass_no_new_evidence when the worker repeats the same pass/action without new file, command, proof, or finding.
+- Return steer with pattern floor_blocked_autonomous_fallback_needed when the worker asks the user what to do next even though the objective did not explicitly require a user decision.
+- Return steer with pattern floor_quality_exhausted only after repeated floor steering produced no new objective-linked evidence and another continuation would likely be churn.
+- Do not return escalate merely because floors are unmet.
+- Escalate only for independent safety, authorization, credentials, destructive action, or an explicit user-decision requirement in the objective.
+```
+
+### XML examples
+
+Productive work:
+
+```xml
+<churn_monitor_decision>
+  <action>watch</action>
+  <confidence>high</confidence>
+  <pattern>productive_floor_deepening</pattern>
+  <evidence>Worker selected validation_expansion and ran a targeted probe tied to the main invariant.</evidence>
+  <evidence>Recent context includes new command output rather than summary-only continuation.</evidence>
+  <log_note>Floor is still unmet, but recent work is producing objective-linked evidence.</log_note>
+</churn_monitor_decision>
+```
+
+Quota filler:
+
+```xml
+<churn_monitor_decision>
+  <action>steer</action>
+  <confidence>high</confidence>
+  <pattern>quota_filling_churn</pattern>
+  <evidence>Recent turns repeat broad summaries without new files, commands, tests, or findings.</evidence>
+  <steer>Switch to validation_expansion: run or add one probe that would fail if the main completion invariant is wrong. Produce command output before attempting completion again.</steer>
+  <log_note>Floor-unmet work is not producing new objective-linked evidence.</log_note>
+</churn_monitor_decision>
+```
+
+Unauthorized user fallback:
+
+```xml
+<churn_monitor_decision>
+  <action>steer</action>
+  <confidence>medium</confidence>
+  <pattern>floor_blocked_autonomous_fallback_needed</pattern>
+  <evidence>Worker asked the user what else to do solely because the completion floor is unmet.</evidence>
+  <steer>Do not ask the user for floor filler. Choose requirement_gap_audit: map the objective to concrete evidence and close one missing or weak row.</steer>
+  <log_note>Floor policy requires autonomous useful-work fallback unless the objective explicitly requires a user decision.</log_note>
+</churn_monitor_decision>
+```
+
+Floor exhaustion:
+
+```xml
+<churn_monitor_decision>
+  <action>steer</action>
+  <confidence>high</confidence>
+  <pattern>floor_quality_exhausted</pattern>
+  <evidence>Multiple floor continuations repeated the same pass with no new evidence or artifact movement.</evidence>
+  <steer>Stop manufacturing floor work. Attempt completion with a concise proof summary; the floor should be recorded as exhausted if the gate still finds no safe autonomous work.</steer>
+  <log_note>Further floor enforcement is more likely to create churn than improve the deliverable.</log_note>
+</churn_monitor_decision>
+```
+
+### Telemetry interaction
+
+In `monitor.ts`, after parsing and persisting the monitor log, apply floor telemetry:
+
+```ts
+const floorTelemetry = applyMonitorDecisionToFloorTelemetry(
+  getTelemetry(),
+  parsed.decision,
+);
+
+if (floorTelemetry) persistTelemetry(pi, floorTelemetry, "floor");
+```
+
+Add in `telemetry.ts`:
+
+```ts
+export function noteFloorCompletionDeferred(
+  telemetry: GoalTelemetrySnapshot | null,
+  cardId: FloorValuePassId,
+  now = Date.now(),
+): GoalTelemetrySnapshot | null {
+  if (!telemetry) return null;
+  return {
+    ...telemetry,
+    lastFloorCardId: cardId,
+    floorSteerCount: (telemetry.floorSteerCount ?? 0) + 1,
+    floorQualityState: "steering",
+    updatedAt: now,
+  };
+}
+
+export function noteProductiveFloorWork(
+  telemetry: GoalTelemetrySnapshot | null,
+  now = Date.now(),
+): GoalTelemetrySnapshot | null {
+  if (!telemetry?.lastFloorCardId) return telemetry;
+  const completed = new Set(telemetry.completedFloorCardIds ?? []);
+  completed.add(telemetry.lastFloorCardId);
+  return {
+    ...telemetry,
+    completedFloorCardIds: [...completed],
+    floorQualityState: "eligible",
+    updatedAt: now,
+  };
+}
+
+export function noteFloorChurnSteer(
+  telemetry: GoalTelemetrySnapshot | null,
+  now = Date.now(),
+): GoalTelemetrySnapshot | null {
+  if (!telemetry) return null;
+  return {
+    ...telemetry,
+    floorChurnSteerCount: (telemetry.floorChurnSteerCount ?? 0) + 1,
+    floorQualityState: "qualityWarning",
+    updatedAt: now,
+  };
+}
+
+export function noteFloorQualityExhausted(
+  telemetry: GoalTelemetrySnapshot | null,
+  now = Date.now(),
+): GoalTelemetrySnapshot | null {
+  if (!telemetry) return null;
+  return {
+    ...telemetry,
+    floorQualityState: "exhausted",
+    noMoreValuableWorkReason: "no_safe_autonomous_work",
+    updatedAt: now,
+  };
+}
+```
+
+Then:
+
+```ts
+export function applyMonitorDecisionToFloorTelemetry(
+  telemetry: GoalTelemetrySnapshot | null,
+  decision: GoalMonitorDecision,
+): GoalTelemetrySnapshot | null {
+  switch (decision.pattern) {
+    case "productive_floor_deepening":
+      return noteProductiveFloorWork(telemetry);
+    case "quota_filling_churn":
+    case "repeated_floor_pass_no_new_evidence":
+    case "floor_ignored_early_wrapup":
+    case "floor_blocked_autonomous_fallback_needed":
+      return noteFloorChurnSteer(telemetry);
+    case "floor_quality_exhausted":
+      return noteFloorQualityExhausted(telemetry);
+    default:
+      return telemetry;
+  }
+}
+```
+
+## 5. Adversarial validation probes
+
+These should fail prompt-only or schema-only implementations.
+
+### Probe 1 — schema-only floor acceptance
+
+Create goal with:
+
+```json
+{
+  "objective": "Make a tiny README edit and verify it.",
+  "min_tokens_before_wrap_up": 100000,
+  "min_time_seconds_before_wrap_up": 1800
+}
+```
+
+Immediately call:
+
+```json
+{ "status": "complete" }
+```
+
+Expected:
+
+* goal remains `active`
+* no state mutation to `complete`
+* details include `completion_blocked_by_floor: true`
+* details include `next_floor_pass`
+* telemetry increments `floorSteerCount`
+* no queue-complete steering
+
+### Probe 2 — fake no-more-work bypass
+
+Call:
+
+```json
+{
+  "status": "complete",
+  "no_more_valuable_work_reason": "no_safe_autonomous_work"
+}
+```
+
+on first early completion attempt.
+
+Expected:
+
+* still deferred
+* reason recorded nowhere as authoritative
+* selected card returned
+
+### Probe 3 — max budget beats min floor
+
+Create impossible runtime state:
+
+```ts
+tokenBudget: 1000,
+tokensUsed: 1000,
+minTokensBeforeWrapUp: 5000 // should be rejected at config time
+```
+
+Also test valid config:
+
+```ts
+tokenBudget: 1000,
+minTokensBeforeWrapUp: 900,
+tokensUsed: 1000
+```
+
+Expected:
+
+* first config rejected
+* second enters/keeps budget-limited behavior
+* no floor continuation beyond cap
+
+### Probe 4 — soft final answer without `update_goal`
+
+Agent final says:
+
+```text
+Done — this is complete.
+```
+
+while floor unmet.
+
+Expected:
+
+* agent-end path emits floor-aware continuation
+* suppression does not swallow it
+* continuation requires tool-backed value pass
+* repeated no-tool floor turns eventually hit safety/floor exhaustion
+
+### Probe 5 — unauthorized “what else should I do?”
+
+Recent worker context includes:
+
+```text
+The floor is unmet. What else would you like me to do?
+```
+
+Objective does not explicitly say ask/confirm.
+
+Expected monitor XML:
+
+```xml
+<pattern>floor_blocked_autonomous_fallback_needed</pattern>
+<action>steer</action>
+```
+
+Expected steer names a catalog pass and one concrete action.
+
+### Probe 6 — quota filler
+
+Recent entries contain two long summaries, no tools, no file paths, no commands.
+
+Expected:
+
+* monitor pattern `quota_filling_churn`
+* telemetry `floorChurnSteerCount + 1`
+* no `completedFloorCardIds` update
+
+### Probe 7 — productive floor deepening
+
+After deferral with `validation_expansion`, worker runs a targeted test/probe and reports output.
+
+Expected:
+
+* monitor pattern `productive_floor_deepening`
+* telemetry moves `lastFloorCardId` into `completedFloorCardIds`
+* selector does not choose same card next time unless catalog exhausted
+
+### Probe 8 — repeated same pass
+
+Three floor continuations choose or perform the same card with no new evidence.
+
+Expected:
+
+* first: steer
+* second: churn warning
+* third: `floor_quality_exhausted`
+* completion gate can allow with `no_safe_autonomous_work`
+
+### Probe 9 — create/update/template/queue propagation
+
+Verify floors survive:
+
+* `create_goal`
+* `create_goal_from_template`
+* `update_goal`
+* queued goal creation/start
+* replay from branch state
+* `/goal` display
+* widget/footer display
+
+Expected:
+
+* no path silently drops min floor fields
+* update with `null` removes configured floor
+
+### Probe 10 — live probe
+
+`pi-goals-live-probe` should include one real run where the model tries to complete early, gets deferred, performs a concrete validation pass, then either completes after floor satisfaction or records exhaustion after monitor-backed churn detection.
+
+## 6. Overbuilt / defer from first release
+
+Defer these:
+
+1. **Force-complete override.** The issue is right to defer it. It needs explicit user-intent semantics, not model self-assertion.
+2. **LLM-based floor card selector.** Use deterministic catalog ranking first. The worker/monitor can reason; the selector should be predictable.
+3. **Complex evidence-delta scoring engine.** Add simple telemetry counters and monitor prompt rules first. Do not build semantic diff scoring yet.
+4. **Per-card plugin architecture.** A static `FLOOR_VALUE_PASS_CATALOG` is enough.
+5. **Fancy UI bars.** Show min floors clearly in `format.ts`, `widget.ts`, and `ui.ts`, but avoid elaborate progress UI until behavior is proven.
+6. **New `GoalStatus`.** Correctly deferred. `active + floor evaluation` is enough.
+7. **External research automation.** `research_expansion` can exist as a card, but do not add automatic web/GitHub fetch machinery in first release.
+8. **Strict typed monitor pattern parser.** Start by normalizing known floor patterns and leaving unknown strings compatible with existing logs.
+
+The highest-leverage correction: make `noMoreValuableWorkReason` a **recorded outcome**, not a **model-granted permission**. The floor gate should be skeptical, but not stupid: first it demands one bounded proof-producing value pass; after repeated no-evidence attempts, the churn monitor is allowed to say “stop, this floor is now creating slop.”
+
+[1]: https://github.com/transcendr/pi-goals "GitHub - transcendr/pi-goals: Pi goals experiment · GitHub"
+[2]: https://github.com/transcendr/pi-goals/tree/main/.pi/extensions/goal "pi-goals/.pi/extensions/goal at main · transcendr/pi-goals · GitHub"
