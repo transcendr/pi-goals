@@ -5,5 +5,6 @@ node_modules
 
 .ai/docs/*
 !.ai/docs/pi-goals-live-probe-testing.md
+!.ai/docs/prompt-template-authoring.md
 !.ai/docs/issue-workflow/
 !.ai/docs/issue-workflow/**
