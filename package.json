@@ -1,6 +1,6 @@
 {
   "name": "pi-goals",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Persistent goal tracking for Pi with /tree-compatible state, budgets, reusable prompts, and churn monitoring.",
   "main": ".pi/extensions/goal/index.ts",
   "files": [
