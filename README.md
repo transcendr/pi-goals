@@ -1,20 +1,24 @@
 # pi-goals
 
-Persistent goal tracking for [Pi](https://www.npmjs.com/package/@earendil-works/pi-coding-agent). Inspired by Codex CLI's `/goal`, `pi-goals` adds Pi-native UX, rewindable `/tree`-compatible goal state, time and token budgets, reusable token-aware prompts, automated churn monitoring, and more.
+Persistent goal tracking for [Pi](https://www.npmjs.com/package/@earendil-works/pi-coding-agent). Inspired by Codex CLI's `/goal`, `pi-goals` adds Pi-native UX, goals that survive reloads and `/tree` navigation, time and token budgets, reusable token-aware prompts, automated churn monitoring, and more.
 
 > Early preview: `pi-goals` is usable, but install ergonomics and APIs may change before `1.0.0`.
+
+## What's new
+
+Completion floors, stronger queue orchestration, larger planning goals, and reusable workflow prompts make `pi-goals` safer for long-running agent work. See the [changelog](CHANGELOG.md) for details.
 
 ## Features
 
 - `/goal` command for creating, pausing, resuming, replacing, and clearing a persistent objective.
-- Rewindable `/tree`-compatible state persisted into the Pi session branch.
+- Goal state that survives reloads and stays aligned with `/tree` navigation.
 - Time and token budgets with goal-aware continuation and wrap-up behavior.
 - Optional completion floors that prevent premature wrap-up until minimum goal-directed work has happened.
 - Reusable token-aware prompt templates from `.pi-goals/` directories.
 - Durable FIFO goal queue for sequential goal work.
-- Queue-aware model tools for listing, enqueuing, starting, dequeuing, and removing queued goals.
-- Natural-language reusable prompt discovery via `list_goal_templates` and `create_goal_from_template`.
-- Model tools for inspecting and updating the active goal.
+- Agent-friendly queue controls for listing, enqueuing, starting, dequeuing, and removing queued goals.
+- Natural-language reusable prompt discovery, so agents can turn project workflows into concrete goals.
+- Natural-language goal inspection and updates.
 - Automated churn monitoring and steering for long-running goals.
 - Compact Pi status/widget integration.
 
@@ -34,7 +38,7 @@ pi install -l npm:pi-goals
 
 ## `/goal` command
 
-Use `/goal` to create and manage a persistent objective that survives across turns and is persisted into the Pi branch so `/tree` rewind/replay semantics stay coherent.
+Use `/goal` to create and manage a persistent objective that survives across turns, reloads, and `/tree` navigation.
 
 ```text
 /goal
@@ -56,11 +60,11 @@ Subcommands:
 - `/goal resume` — resume a paused goal and schedule continuation/monitoring again.
 - `/goal clear` — remove the current goal from active state.
 
-The extension also exposes model tools so agents can inspect, create, update, pause, resume, complete, clear, or queue goals without string-parsing the slash command.
+Agents can also inspect, create, update, pause, resume, complete, clear, or queue goals from natural-language instructions without requiring users to type slash commands for every operation.
 
 ## Goal queue
 
-`pi-goals` supports a durable FIFO queue for sequential work. Queued goals are persisted into the Pi branch alongside goal state, so replay and `/tree` semantics remain coherent.
+`pi-goals` supports a durable FIFO queue for sequential work. Queued goals survive reloads and stay aligned with the rest of the session history.
 
 ```text
 /goal queue
@@ -68,19 +72,15 @@ The extension also exposes model tools so agents can inspect, create, update, pa
 /goal queue fix-issue --issue ISSUE-123 -- verify the fix
 ```
 
-Agents can also manage the queue through model tools:
+For larger batches, `/goal queue` also accepts multi-item queue blocks, so agents can enqueue an ordered stack before executing it head-to-tail.
 
-- `list_goal_queue`
-- `enqueue_goal`
-- `start_queued_goal`
-- `dequeue_goal`
-- `remove_queued_goal`
+Agents can also manage the queue from natural language: list queued work, add items, start the next direct goal, or remove a queue item after it is satisfied.
 
-For queued prose that looks like a reusable workflow, agents can list templates with `list_goal_templates`, create a concrete goal with `create_goal_from_template`, then dequeue the original queue item after the concrete goal is satisfied.
+For queued prose that looks like a reusable workflow, agents can resolve it through your reusable prompt templates, work the resulting concrete goal, then dequeue the original queue item after it is satisfied. Manual dequeues require a rationale and authority so queue history remains auditable.
 
 ## Natural language goal management
 
-You do not have to use explicit `/goal` commands for every operation. Because `pi-goals` exposes goal management as Pi model tools, the Pi agent can manage goals from ordinary natural language instructions.
+You do not have to use explicit `/goal` commands for every operation. The Pi agent can manage goals from ordinary natural language instructions.
 
 Examples:
 
@@ -102,14 +102,11 @@ When a goal reaches its time or token budget, `pi-goals` steers the agent into w
 
 ## Completion floors
 
-Model tools can set optional minimum work floors when creating or updating a goal:
+Completion floors let you ask an agent to do at least a certain amount of goal-directed work before normal wrap-up. For example, you can ask it to keep working for at least 10 minutes, or to spend a meaningful token budget, before deciding the goal is complete.
 
-- `min_tokens_before_wrap_up`
-- `min_time_seconds_before_wrap_up`
+These are floors, not quota targets. If an agent tries to mark a goal complete too early, completion is deferred, the goal stays active, and `pi-goals` nudges the agent toward a useful next pass such as checking requirement gaps, adding validation evidence, reviewing edge cases, simplifying the work, or improving handoff notes.
 
-These are completion floors, not quota targets. If an agent calls `update_goal({ status: "complete" })` before configured floors are met, completion is deferred, the goal remains active, and the tool returns structured `completion_blocked_by_floor`, floor deltas, and a concrete `next_floor_pass` from the value-pass catalog. Steering asks for one objective-linked improvement pass such as requirement-gap audit, validation expansion, adversarial review, simplification/deslop, compatibility review, or docs/handoff evidence.
-
-Maximum budgets still win: budget-limited goals wrap up rather than working past a cap to satisfy a floor. Users can remove or lower a floor with `update_goal`, but floor edits and `status: "complete"` must be separate calls.
+Budgets remain a safety stop. If the agent runs out of the time or tokens you allowed, `pi-goals` prioritizes a clear wrap-up over forcing more work just to satisfy a floor. That gives you both controls: floors reduce premature "done" claims, while budgets keep runaway sessions bounded.
 
 ## Reusable `.pi-goals` prompts
 
@@ -149,21 +146,36 @@ Template features:
 - `aliases` provide alternate invocation names.
 - Inline shell snippets with ``!`command` `` are supported only when `allow_commands: true`; commands are bounded by timeout and output limits.
 
-Reusable templates are available to both slash commands and model tools. Agents can call `list_goal_templates` to discover templates and `create_goal_from_template` to create a concrete goal from one. Template invocations also work through `/goal queue`.
+Reusable templates are available to both slash commands and natural-language agent workflows. Agents can discover available templates, fill in required values from your request, and create a concrete goal from the resolved prompt. Template invocations also work through `/goal queue`.
+
+## This repository as a reference
+
+This repository is both the source for the `pi-goals` Pi extension and a working reference for how the maintainer uses `pi-goals` in real project work. The source repo intentionally includes:
+
+- reusable goal templates in [`.ai/.pi-goals/`](.ai/.pi-goals/), including release review, issue workflow, queue-stack, and deslop examples;
+- issue docs in [`.ai/issues/`](.ai/issues/) that show how larger goal-driven changes are planned;
+- issue workflow artifacts in [`.ai/docs/issue-workflow/`](.ai/docs/issue-workflow/) that show the evidence, design choices, and handoffs produced while working those goals;
+- a [prompt template authoring guide](.ai/docs/prompt-template-authoring.md) for creating strong project-local goal templates.
+
+If you want to build your own reusable goal workflows, point your agent at the authoring guide and nearby templates, then ask it to adapt the patterns to your project rather than copying them blindly.
 
 ## Automated churn monitor
 
-Long-running goals can drift, loop, or stall. `pi-goals` runs a lightweight goal-scoped churn monitor that periodically reviews sparse session context, recent goal telemetry, recent completion-floor state, and recent monitor decisions.
+Long-running goals can drift, loop, or stall. `pi-goals` runs a lightweight goal-scoped churn monitor that periodically checks whether the agent is still making useful progress toward the active objective.
 
 The monitor can:
 
 - detect no-progress loops and repeated automatic turns,
 - steer the worker back toward the objective,
 - escalate when a safety pause is needed,
-- keep its own bounded churn log in the Pi branch,
-- identify floor-specific patterns such as `quota_filling_churn`, `floor_ignored_early_wrapup`, and `productive_floor_deepening`.
+- keep a compact history of recent monitor decisions,
+- distinguish useful follow-up work from busywork done only to satisfy a floor.
 
-Monitor state is goal-scoped and replayable, so branching and `/tree` operations stay aligned with the active goal history.
+Monitor history stays tied to the active goal, so reloads and `/tree` navigation keep the right context.
+
+## Roadmap
+
+Current execution-ready roadmap items include durable completion proofs, `/goal audit`, agent-managed subgoals, idle-tolerant waiting, dependency watchers, worktree starts, multi-goal collections, history/checkpoints, progress estimates, widget hardening, safer natural-language `/goal update` edits, and stronger queue continuation/dequeue reminders.
 
 ## Development
 
