@@ -8,6 +8,7 @@ const files = {
   floor: '.pi/extensions/goal/floor.ts',
   state: '.pi/extensions/goal/state.ts',
   queueState: '.pi/extensions/goal/queue-state.ts',
+  continuation: '.pi/extensions/goal/continuation.ts',
 };
 
 function read(path) { return readFileSync(path, 'utf8'); }
@@ -31,6 +32,7 @@ const gate = read(files.gate);
 const floor = read(files.floor);
 const state = read(files.state);
 const queueState = read(files.queueState);
+const continuation = read(files.continuation);
 
 assert('GoalState has token floor', /minTokensBeforeWrapUp\?: number/.test(types));
 assert('GoalState has time floor', /minTimeSecondsBeforeWrapUp\?: number/.test(types));
@@ -47,6 +49,8 @@ assert('update schema allows null floor removal', /min_tokens_before_wrap_up: Ty
 assert('same-call floor edit plus complete blocked', /Floor edits and status complete must be separate update_goal calls/.test(tools));
 assert('deferred completion details include completion_blocked_by_floor', /completion_blocked_by_floor: true/.test(tools));
 assert('state createGoalState uses options object', /export function createGoalState\(input: CreateGoalStateInput\)/.test(state));
+assert('agentEnd no-progress suppression checks active floors', /evaluateCompletionFloor\(goal\)/.test(continuation) && /floor\.anyFloorConfigured && !floor\.allFloorsMet/.test(continuation));
+assert('agentEnd floor steering respects max budget and exhaustion escapes', /!isBudgetExhausted\(goal\)/.test(continuation) && /telemetry\.floorQualityState !== "exhausted"/.test(continuation));
 
 const decision = indexOfOrFail('completion decision call', tools, 'const completionDecision = decideGoalCompletion');
 const cancel = indexOfOrFail('status cancellation', tools, 'runtime.cancelContinuation?.(goal.goalId, "tool-status")');

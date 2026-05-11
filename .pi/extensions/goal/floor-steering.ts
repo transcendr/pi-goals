@@ -105,7 +105,9 @@ ${context.card.requiredEvidence.map((item) => `- ${item}`).join("\n")}
 Avoid:
 ${context.card.avoid.map((item) => `- ${item}`).join("\n")}
 
-Use at least one concrete tool-backed inspection, edit, or proof when tools are available. Do not ask the user what else to do merely because the floor is unmet. If no safe autonomous card can produce objective-linked evidence, record noMoreValuableWorkReason: "no_safe_autonomous_work" instead of manufacturing busywork.`;
+Autonomous fallback ladder when no obvious high-value pass is available: requirement/gap audit → validation/proof expansion → alternate-perspective or adversarial review → deeper local/external research → simplification/deslop/maintainability pass → documentation, handoff, and evidence hardening.
+
+Use at least one concrete tool-backed inspection, edit, or proof when tools are available, and produce a tangible new evidence/artifact delta before another completion attempt. Do not ask the user what else to do merely because the floor is unmet. If no safe autonomous card can produce objective-linked evidence, record noMoreValuableWorkReason: "no_safe_autonomous_work" instead of manufacturing busywork.`;
 }
 
 export function buildFloorCompletionRefusal(context: { goal: GoalState; floor: CompletionFloorEvaluation; card: FloorWorkCard }): string {
@@ -116,8 +118,10 @@ ${formatFloorBlock(context.floor)}
 Next value pass: ${context.card.id} (${context.card.label})
 Concrete next action: ${context.card.concreteFirstAction}
 
-Before trying update_goal(status:"complete") again, produce new objective-linked evidence:
+Before trying update_goal(status:"complete") again, produce a tangible new evidence/artifact delta with objective-linked evidence:
 ${context.card.requiredEvidence.map((item) => `- ${item}`).join("\n")}
+
+Autonomous fallback ladder if this pass is not viable: requirement/gap audit → validation/proof expansion → alternate-perspective or adversarial review → deeper local/external research → simplification/deslop/maintainability pass → documentation, handoff, and evidence hardening.
 
 Do not ask the user what else to do unless the original objective explicitly required a user decision or a separate safety/destructive-action boundary blocks autonomous work. Do not fill quota with repeated summaries or unrelated churn.`;
 }
