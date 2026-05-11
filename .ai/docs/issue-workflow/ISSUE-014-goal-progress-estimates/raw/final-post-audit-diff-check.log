@@ -1,0 +1,3 @@
+## final post-audit diff check
+$ git diff --check
+PASS final_post_audit_diff_check

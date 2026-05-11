@@ -1,0 +1,85 @@
+$ npm run quality:goal
+
+> pi-goals@0.2.0 quality:goal
+> sentrux gate .pi/extensions/goal && sentrux check .pi/extensions/goal && npm run slop:goal && npm run typecheck:goal && pi --offline --no-session --no-tools -e .pi/extensions/goal/index.ts --list-models >/tmp/pi-goal-quality-load.txt
+
+Scanning .pi/extensions/goal...
+[build_project_map] 30 files, 2 unique dirs, 2 cache misses, 0.1ms
+[resolve] 112 resolved, 22 unresolved (of 134 total specs)
+[resolve_imports] project_map 0.1ms, suffix_idx 0.1ms, suffix_resolve 1.4ms, total 1.6ms
+[build_graphs] 30 files | maps 0.0ms, imports 1.6ms, calls+inherit 0.5ms, total 2.1ms | 111 import, 591 call, 0 inherit edges
+sentrux gate — structural regression check
+
+Quality:      6241 -> 6241
+Coupling:     0.16 → 0.16
+Cycles:       0 → 0
+God files:    0 → 0
+
+Distance from Main Sequence: 0.25
+
+✓ No degradation detected
+Scanning .pi/extensions/goal...
+[build_project_map] 30 files, 2 unique dirs, 2 cache misses, 0.1ms
+[resolve] 112 resolved, 22 unresolved (of 134 total specs)
+[resolve_imports] project_map 0.1ms, suffix_idx 0.1ms, suffix_resolve 1.1ms, total 1.3ms
+[build_graphs] 30 files | maps 0.0ms, imports 1.3ms, calls+inherit 0.5ms, total 1.8ms | 111 import, 591 call, 0 inherit edges
+sentrux check — 33 rules checked
+
+Quality: 6241
+
+✓ All rules pass
+
+> pi-goals@0.2.0 slop:goal
+> if rg -n 'as unknown as|as any' .pi/extensions/goal; then exit 1; else exit 0; fi
+
+
+> pi-goals@0.2.0 typecheck:goal
+> tsc --noEmit --target ES2022 --module ESNext --moduleResolution node --ignoreDeprecations 6.0 --types node --strict --skipLibCheck .pi/extensions/goal/*.ts
+
+provider      model                       context  max-out  thinking  images
+anthropic     claude-3-5-haiku-20241022   200K     8.2K     no        yes
+anthropic     claude-3-5-haiku-latest     200K     8.2K     no        yes
+anthropic     claude-3-5-sonnet-20240620  200K     8.2K     no        yes
+anthropic     claude-3-5-sonnet-20241022  200K     8.2K     no        yes
+anthropic     claude-3-7-sonnet-20250219  200K     64K      yes       yes
+anthropic     claude-3-haiku-20240307     200K     4.1K     no        yes
+anthropic     claude-3-opus-20240229      200K     4.1K     no        yes
+anthropic     claude-3-sonnet-20240229    200K     4.1K     no        yes
+anthropic     claude-haiku-4-5            200K     64K      yes       yes
+anthropic     claude-haiku-4-5-20251001   200K     64K      yes       yes
+anthropic     claude-opus-4-0             200K     32K      yes       yes
+anthropic     claude-opus-4-1             200K     32K      yes       yes
+anthropic     claude-opus-4-1-20250805    200K     32K      yes       yes
+anthropic     claude-opus-4-20250514      200K     32K      yes       yes
+anthropic     claude-opus-4-5             200K     64K      yes       yes
+anthropic     claude-opus-4-5-20251101    200K     64K      yes       yes
+anthropic     claude-opus-4-6             1M       128K     yes       yes
+anthropic     claude-opus-4-7             1M       128K     yes       yes
+anthropic     claude-sonnet-4-0           200K     64K      yes       yes
+anthropic     claude-sonnet-4-20250514    200K     64K      yes       yes
+anthropic     claude-sonnet-4-5           200K     64K      yes       yes
+anthropic     claude-sonnet-4-5-20250929  200K     64K      yes       yes
+anthropic     claude-sonnet-4-6           1M       64K      yes       yes
+openai-codex  gpt-5.1                     272K     128K     yes       yes
+openai-codex  gpt-5.1-codex-max           272K     128K     yes       yes
+openai-codex  gpt-5.1-codex-mini          272K     128K     yes       yes
+openai-codex  gpt-5.2                     272K     128K     yes       yes
+openai-codex  gpt-5.2-codex               272K     128K     yes       yes
+openai-codex  gpt-5.3-codex               272K     128K     yes       yes
+openai-codex  gpt-5.3-codex-spark         128K     128K     yes       no
+openai-codex  gpt-5.4                     272K     128K     yes       yes
+openai-codex  gpt-5.4-mini                272K     128K     yes       yes
+openai-codex  gpt-5.5                     272K     128K     yes       yes
+opencode-go   deepseek-v4-flash           1M       384K     yes       no
+opencode-go   deepseek-v4-pro             1M       384K     yes       no
+opencode-go   glm-5                       202.8K   32.8K    yes       no
+opencode-go   glm-5.1                     202.8K   32.8K    yes       no
+opencode-go   kimi-k2.5                   262.1K   65.5K    yes       yes
+opencode-go   kimi-k2.6                   262.1K   65.5K    yes       yes
+opencode-go   mimo-v2.5                   1M       128K     yes       yes
+opencode-go   mimo-v2.5-pro               1.0M     128K     yes       no
+opencode-go   minimax-m2.5                204.8K   65.5K    yes       no
+opencode-go   minimax-m2.7                204.8K   131.1K   yes       no
+opencode-go   qwen3.5-plus                262.1K   65.5K    yes       yes
+opencode-go   qwen3.6-plus                262.1K   65.5K    yes       yes
+quality_goal_exit=0

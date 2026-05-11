@@ -1,0 +1,20 @@
+$ wc -l issue and artifacts
+     276 .ai/issues/open/ISSUE-013-goal-update-natural-language.md
+      40 .ai/docs/issue-workflow/ISSUE-013-goal-update-natural-language/00-request.md
+      40 .ai/docs/issue-workflow/ISSUE-013-goal-update-natural-language/01-protocol-read.md
+      69 .ai/docs/issue-workflow/ISSUE-013-goal-update-natural-language/02-grounded-research.md
+     176 .ai/docs/issue-workflow/ISSUE-013-goal-update-natural-language/03-design-lock.md
+      60 .ai/docs/issue-workflow/ISSUE-013-goal-update-natural-language/04-proof-threat-model.md
+      49 .ai/docs/issue-workflow/ISSUE-013-goal-update-natural-language/05-issue-writeback.md
+      73 .ai/docs/issue-workflow/ISSUE-013-goal-update-natural-language/06-final-audit.md
+      21 .ai/docs/issue-workflow/ISSUE-013-goal-update-natural-language/raw/commands.log
+       1 .ai/docs/issue-workflow/ISSUE-013-goal-update-natural-language/raw/final-artifact-line-counts.log
+      20 .ai/docs/issue-workflow/ISSUE-013-goal-update-natural-language/raw/final-comprehensive-completion-probe.log
+      33 .ai/docs/issue-workflow/ISSUE-013-goal-update-natural-language/raw/final-inventory.log
+     179 .ai/docs/issue-workflow/ISSUE-013-goal-update-natural-language/raw/final-visibility-and-path-checks.log
+       8 .ai/docs/issue-workflow/ISSUE-013-goal-update-natural-language/raw/pre-refinement-nl-update-invariant-probe.log
+      13 .ai/docs/issue-workflow/ISSUE-013-goal-update-natural-language/raw/promotion-invariant-probe.log
+      85 .ai/docs/issue-workflow/ISSUE-013-goal-update-natural-language/raw/quality-goal-open-promotion.log
+    1055 .ai/docs/issue-workflow/ISSUE-013-goal-update-natural-language/raw/research-rg.log
+      11 .ai/docs/issue-workflow/ISSUE-013-goal-update-natural-language/raw/sentrux-gate.log
+    2209 total

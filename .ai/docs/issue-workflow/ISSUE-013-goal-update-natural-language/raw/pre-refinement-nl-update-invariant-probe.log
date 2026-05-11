@@ -1,0 +1,8 @@
+## pre-refinement natural-language update invariant probe
+$ python3 - <<PY
+PASS refine_issue_has_trust_boundary_forks
+PASS issue014_progress_advisory_dependency_available
+PASS slash_goal_update_not_registered_yet
+PASS update_goal_structured_tool_exists
+PASS current_update_goal_no_nl_parser_surface
+COVERS invariant: ISSUE-013 must lock and plan a safe /goal update NL parser/trust boundary because current command code has no such surface while update_goal structured mutation exists and ISSUE-014 adds advisory progress mutation context.

@@ -1,0 +1,4 @@
+## final audit table consistency check
+$ rg final-comprehensive in final audit and git diff --check
+52:| Final comprehensive artifact/link check | `raw/final-comprehensive-completion-probe.log` | PASS |
+PASS final_audit_table_consistency_check

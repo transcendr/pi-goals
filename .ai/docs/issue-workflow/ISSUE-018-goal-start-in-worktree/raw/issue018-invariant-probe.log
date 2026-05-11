@@ -1,0 +1,11 @@
+
+## validation expansion probe for ISSUE-018 planning invariant
+$ node - <<'NODE'
+
+## validation expansion probe rerun after correcting case-sensitive needle
+$ node - <<'NODE'
+
+## validation expansion probe rerun with issue wording
+$ node - <<'NODE'
+PASS issue018_invariant_probe safe_worktree_design_locked links=13
+node_probe_exit=0

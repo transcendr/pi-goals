@@ -1,0 +1,30 @@
+## final artifact visibility after final audit
+$ git status --short --untracked-files=all ISSUE-011 paths
+ D .ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/artifact-visibility-diff-check.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/commands.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/final-artifact-visibility.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/final-inventory.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/final-path-reference-probes.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/framed-width-thresholds.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/issue-structural-probe.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/pre-refinement-widget-gap.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/quality-goal-open-promotion.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/reference-cleanup.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/reference-inventory-pre.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/sentrux-gate-final.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/sentrux-gate-pre.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/tui-component-source-excerpts.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/tui-source-discovery.log
+?? .ai/issues/open/ISSUE-011-goal-widget-real-component-and-narrow-width.md
+$ git check-ignore final audit and issue
+.gitignore:11:!.ai/docs/issue-workflow/**	.ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/06-final-audit.md
+$ test all canonical artifacts exist
+PASS final_artifact_visibility artifacts=7

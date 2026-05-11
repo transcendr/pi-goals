@@ -1,0 +1,67 @@
+## final closeout status snapshot
+$ git status --short --untracked-files=all | rg ISSUE-011|ISSUE-014|ISSUE-015|ISSUE-025|refine-issue-leverage-order
+ M .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/02-grounded-research.md
+ M .ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/01-open-promotion-addendum.md
+ M .ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/final-order.md
+ M .ai/issues/fixed/ISSUE-025-goal-line-breaks-widget-rendering.md
+ M .ai/issues/open/ISSUE-015-goal-subgoals.md
+ D .ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md
+ M .ai/issues/refine/ISSUE-014-goal-progress-estimates.md
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/07-acceptance-traceability.md
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/08-implementation-handoff.md
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/09-stack-continuation-note.md
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/artifact-visibility-diff-check.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/commands.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/comprehensive-completion-probe.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/final-artifact-visibility.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/final-closeout-status-snapshot.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/final-comprehensive-completion-probe.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/final-diff-check.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/final-inventory.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/final-path-reference-probes.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/final-post-closeout-diff-check.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/final-visibility-after-handoff.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/framed-width-thresholds.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/issue-structural-probe.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/pre-refinement-widget-gap.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/quality-goal-open-promotion.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/reference-cleanup.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/reference-inventory-pre.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/sentrux-gate-final.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/sentrux-gate-pre.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/stack-continuation-probe.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/tui-component-source-excerpts.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/tui-source-discovery.log
+?? .ai/issues/open/ISSUE-011-goal-widget-real-component-and-narrow-width.md
+$ find .ai/issues/refine -maxdepth 1 -type f | sort
+.ai/issues/refine/ISSUE-013-goal-update-natural-language.md
+.ai/issues/refine/ISSUE-014-goal-progress-estimates.md
+$ wc -l ISSUE-011 artifacts
+      30 .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/final-artifact-visibility.log
+      46 .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/final-closeout-status-snapshot.log
+       5 .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/final-comprehensive-completion-probe.log
+       3 .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/final-diff-check.log
+      15 .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/final-inventory.log
+      10 .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/final-path-reference-probes.log
+       3 .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/final-post-closeout-diff-check.log
+      35 .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/final-visibility-after-handoff.log
+       6 .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/framed-width-thresholds.log
+       3 .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/issue-structural-probe.log
+       6 .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/pre-refinement-widget-gap.log
+      86 .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/quality-goal-open-promotion.log
+      14 .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/reference-cleanup.log
+      54 .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/reference-inventory-pre.log
+      11 .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/sentrux-gate-final.log
+      11 .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/sentrux-gate-pre.log
+       6 .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/stack-continuation-probe.log
+      86 .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/tui-component-source-excerpts.log
+      95 .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/tui-source-discovery.log
+    1666 total
+PASS final_closeout_status_snapshot

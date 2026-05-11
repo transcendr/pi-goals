@@ -19,12 +19,12 @@ Criteria used:
 3. `.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md` — Idle-tolerant goals with delayed nudges.
 4. `.ai/issues/open/ISSUE-024-goal-audit-command.md` — `/goal audit` pre-completion review command.
 5. `.ai/issues/open/ISSUE-022-goal-history-checkpoints-and-compaction.md` — Goal history, checkpoints, and compaction-aware handoffs.
-6. `.ai/issues/refine/ISSUE-018-goal-start-in-worktree.md` — Option to start a new goal in a worktree.
-7. `.ai/issues/refine/ISSUE-019-parallel-multiple-goals.md` — Multiple sequential or parallel goals.
-8. `.ai/issues/refine/ISSUE-023-goal-dependency-triggers-and-watchers.md` — Goal dependency triggers and external watchers.
-9. `.ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md` — Goal widget component/layout strategy.
-10. `.ai/issues/refine/ISSUE-014-goal-progress-estimates.md` — Agent-estimated goal progress percentage.
-11. `.ai/issues/refine/ISSUE-013-goal-update-natural-language.md` — `/goal update "natural language"`.
+6. `.ai/issues/open/ISSUE-018-goal-start-in-worktree.md` — Option to start a new goal in a worktree.
+7. `.ai/issues/open/ISSUE-019-parallel-multiple-goals.md` — Multiple sequential or parallel goals.
+8. `.ai/issues/open/ISSUE-023-goal-dependency-triggers-and-watchers.md` — Goal dependency triggers and external watchers.
+9. `.ai/issues/open/ISSUE-011-goal-widget-real-component-and-narrow-width.md` — Goal widget component/layout strategy.
+10. `.ai/issues/open/ISSUE-014-goal-progress-estimates.md` — Agent-estimated goal progress percentage.
+11. `.ai/issues/open/ISSUE-013-goal-update-natural-language.md` — `/goal update "natural language"`.
 
 ## Rationale notes
 

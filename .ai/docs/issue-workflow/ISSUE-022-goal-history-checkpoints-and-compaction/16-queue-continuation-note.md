@@ -24,9 +24,9 @@ Remaining after that, per leverage order:
 
 - `.ai/issues/refine/ISSUE-019-parallel-multiple-goals.md`
 - `.ai/issues/refine/ISSUE-023-goal-dependency-triggers-and-watchers.md`
-- `.ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md`
-- `.ai/issues/refine/ISSUE-014-goal-progress-estimates.md`
-- `.ai/issues/refine/ISSUE-013-goal-update-natural-language.md`
+- `.ai/issues/open/ISSUE-011-goal-widget-real-component-and-narrow-width.md`
+- `.ai/issues/open/ISSUE-014-goal-progress-estimates.md`
+- `.ai/issues/open/ISSUE-013-goal-update-natural-language.md`
 
 ## Next action after completion
 

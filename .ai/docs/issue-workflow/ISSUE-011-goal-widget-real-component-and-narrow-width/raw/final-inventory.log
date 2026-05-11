@@ -1,0 +1,15 @@
+## final stack inventory
+$ find .ai/issues/refine -maxdepth 1 -type f | sort
+.ai/issues/refine/ISSUE-013-goal-update-natural-language.md
+.ai/issues/refine/ISSUE-014-goal-progress-estimates.md
+$ find .ai/issues/open -maxdepth 1 -type f | sort | rg "ISSUE-011|ISSUE-013|ISSUE-014|ISSUE-015|ISSUE-016|ISSUE-018|ISSUE-019|ISSUE-021|ISSUE-022|ISSUE-023|ISSUE-024|ISSUE-037"
+.ai/issues/open/ISSUE-011-goal-widget-real-component-and-narrow-width.md
+.ai/issues/open/ISSUE-015-goal-subgoals.md
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md
+.ai/issues/open/ISSUE-018-goal-start-in-worktree.md
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md
+.ai/issues/open/ISSUE-022-goal-history-checkpoints-and-compaction.md
+.ai/issues/open/ISSUE-023-goal-dependency-triggers-and-watchers.md
+.ai/issues/open/ISSUE-024-goal-audit-command.md
+.ai/issues/open/ISSUE-037-goal-queue-auto-continuation-after-complete.md

@@ -1,0 +1,13 @@
+$ python3 - <<PY
+PASS open_issue_exists
+PASS refine_issue_removed
+PASS pre_final_artifacts_exist
+PASS deterministic_parser_locked
+PASS completion_refusal_locked
+PASS confirmation_locked
+PASS objective_identity_locked
+PASS progress_advisory_dependency
+PASS toon_required_proofs
+PASS parser_probe_required
+PASS issue013_promotion_invariants
+python_exit=0

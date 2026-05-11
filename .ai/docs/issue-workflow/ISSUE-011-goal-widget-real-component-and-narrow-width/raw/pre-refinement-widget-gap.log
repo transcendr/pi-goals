@@ -1,0 +1,6 @@
+# commands.log — ISSUE-011 refinement
+
+## validation_expansion: pre-refinement widget invariant gap probe
+$ node - <<'NODE'
+PASS issue011_pre_refinement_widget_gap_probe invariant_signals=4 open_forks=5
+covers_invariant=current refine issue names no-overflow/compact-fallback/render-proof invariants but still has unresolved TUI component, card terminology, framed threshold, and compact layout forks; promoted issue must lock these or later completion audit fails.

@@ -1,0 +1,31 @@
+## final artifact visibility after final audit
+$ git status --short --untracked-files=all ISSUE-014 paths
+ D .ai/issues/refine/ISSUE-014-goal-progress-estimates.md
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/artifact-visibility-diff-check.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/commands.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/comprehensive-completion-probe.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/final-artifact-visibility.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/final-inventory.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/final-path-reference-probes.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/focused-source-excerpts.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/issue-structural-probe.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/pre-refinement-progress-invariant-probe-v2.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/pre-refinement-progress-invariant-probe.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/quality-goal-open-promotion.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/reference-cleanup.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/sentrux-gate-final.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/sentrux-gate-pre.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/source-surface-inventory.log
+?? .ai/issues/open/ISSUE-014-goal-progress-estimates.md
+$ git check-ignore final audit and issue
+.gitignore:11:!.ai/docs/issue-workflow/**	.ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/06-final-audit.md
+$ test all canonical artifacts exist
+$ git diff --check
+PASS final_artifact_visibility artifacts=7

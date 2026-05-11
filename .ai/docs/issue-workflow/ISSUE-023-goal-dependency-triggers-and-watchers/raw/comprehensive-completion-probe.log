@@ -1,0 +1,4 @@
+
+## comprehensive completion probe
+PASS issue023_comprehensive_completion proof_rows=8 log_checks=6
+covers_objective=open issue exists, refine copy absent, watcher design forks locked, proof block shaped, key validation logs green, and artifacts linked/visible

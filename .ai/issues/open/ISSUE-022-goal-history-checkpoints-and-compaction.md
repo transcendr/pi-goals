@@ -17,7 +17,7 @@ Related:
 - `.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md`
 - `.ai/issues/open/ISSUE-021-goal-completion-proofs.md`
 - `.ai/issues/open/ISSUE-024-goal-audit-command.md`
-- `.ai/issues/refine/ISSUE-023-goal-dependency-triggers-and-watchers.md`
+- `.ai/issues/open/ISSUE-023-goal-dependency-triggers-and-watchers.md`
 - `.ai/docs/pi-goals-live-probe-testing.md`
 
 ## Goal

@@ -1,0 +1,49 @@
+## final closeout status snapshot
+$ find .ai/issues/refine -maxdepth 1 -type f | sort
+.ai/issues/refine/ISSUE-013-goal-update-natural-language.md
+$ rg ISSUE-014 in final-order and ISSUE-013 dependency context
+.ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/final-order.md:26:10. `.ai/issues/open/ISSUE-014-goal-progress-estimates.md` — Agent-estimated goal progress percentage.
+.ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/final-order.md:27:11. `.ai/issues/refine/ISSUE-013-goal-update-natural-language.md` — `/goal update "natural language"`.
+.ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/final-order.md:39:- ISSUE-011 comes before ISSUE-014 because progress rendering depends on widget/layout decisions.
+.ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/final-order.md:40:- ISSUE-014 is useful but explicitly advisory and must not weaken completion audits/proofs.
+.ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/final-order.md:41:- ISSUE-013 is lowest in this stack because natural-language update UX is convenience-oriented compared with completion safety, subgoal orchestration, waiting, history, worktree, and UI foundations.
+.ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/09-stack-continuation-note.md:3:Issue: ISSUE-014 — agent-estimated goal progress percentage
+.ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/09-stack-continuation-note.md:8:ISSUE-014 is satisfied for the refine-to-open stack. The parent queue orchestration item should remain queued because one refine issue still needs promotion:
+.ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/09-stack-continuation-note.md:10:1. `.ai/issues/refine/ISSUE-013-goal-update-natural-language.md`
+.ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/09-stack-continuation-note.md:14:ISSUE-013 designs natural-language update UX over the same goal mutation surface. It should treat the promoted ISSUE-014 path as current planning truth if it touches progress fields:
+.ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/09-stack-continuation-note.md:16:- `.ai/issues/open/ISSUE-014-goal-progress-estimates.md`
+.ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/09-stack-continuation-note.md:18:Natural-language updates must not infer progress edits unless the user explicitly asks to update progress, and must preserve the advisory-only/completion-boundary semantics from ISSUE-014.
+.ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/09-stack-continuation-note.md:22:If a stale child queue entry later asks to create/refine ISSUE-014 again, treat it as already satisfied because the canonical open issue now exists and the refine source was removed.
+$ git status --short --untracked-files=all ISSUE-014 paths
+ D .ai/issues/refine/ISSUE-014-goal-progress-estimates.md
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/07-acceptance-traceability.md
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/08-implementation-handoff.md
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/09-stack-continuation-note.md
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/artifact-visibility-diff-check.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/commands.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/comprehensive-completion-probe.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/final-artifact-visibility.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/final-audit-table-consistency-check.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/final-closeout-status-snapshot.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/final-comprehensive-completion-probe.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/final-inventory.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/final-path-reference-probes.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/final-post-audit-diff-check.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/focused-source-excerpts.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/issue-structural-probe.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/pre-refinement-progress-invariant-probe-v2.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/pre-refinement-progress-invariant-probe.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/quality-goal-open-promotion.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/reference-cleanup.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/sentrux-gate-final.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/sentrux-gate-pre.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/source-surface-inventory.log
+?? .ai/issues/open/ISSUE-014-goal-progress-estimates.md
+PASS final_closeout_status_snapshot

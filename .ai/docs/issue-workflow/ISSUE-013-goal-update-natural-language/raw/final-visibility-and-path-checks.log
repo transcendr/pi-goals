@@ -1,0 +1,179 @@
+$ git status --short --untracked-files=all
+ M .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/02-grounded-research.md
+ M .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/33-stack-inventory-after-promotion.md
+ M .ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/14-stack-compatibility-review.md
+ M .ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/16-queue-continuation-note.md
+ M .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/06-final-audit.md
+ M .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/19-current-inventory-after-promotion.md
+ M .ai/docs/issue-workflow/ISSUE-026-nl-reusable-goal-prompts/02-grounded-research.md
+ M .ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/01-open-promotion-addendum.md
+ M .ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/final-order.md
+ M .ai/issues/fixed/ISSUE-025-goal-line-breaks-widget-rendering.md
+ M .ai/issues/fixed/ISSUE-026-nl-reusable-goal-prompts.md
+ M .ai/issues/fixed/ISSUE-027-goal-queue.md
+ M .ai/issues/open/ISSUE-015-goal-subgoals.md
+ M .ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md
+ M .ai/issues/open/ISSUE-021-goal-completion-proofs.md
+ M .ai/issues/open/ISSUE-022-goal-history-checkpoints-and-compaction.md
+ D .ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md
+ D .ai/issues/refine/ISSUE-013-goal-update-natural-language.md
+ D .ai/issues/refine/ISSUE-014-goal-progress-estimates.md
+ D .ai/issues/refine/ISSUE-018-goal-start-in-worktree.md
+ D .ai/issues/refine/ISSUE-019-parallel-multiple-goals.md
+ D .ai/issues/refine/ISSUE-023-goal-dependency-triggers-and-watchers.md
+ M .pi/extensions/goal/.sentrux/baseline.json
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/07-acceptance-traceability.md
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/08-implementation-handoff.md
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/09-stack-continuation-note.md
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/artifact-visibility-diff-check.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/commands.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/comprehensive-completion-probe.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/final-artifact-visibility.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/final-audit-table-consistency-check.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/final-closeout-status-snapshot.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/final-comprehensive-completion-probe.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/final-diff-check.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/final-final-diff-check.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/final-inventory.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/final-path-reference-probes.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/final-post-closeout-diff-check.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/final-visibility-after-handoff.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/framed-width-thresholds.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/issue-structural-probe.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/pre-refinement-widget-gap.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/quality-goal-open-promotion.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/reference-cleanup.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/reference-inventory-pre.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/sentrux-gate-final.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/sentrux-gate-pre.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/stack-continuation-probe.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/tui-component-source-excerpts.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/tui-source-discovery.log
+?? .ai/docs/issue-workflow/ISSUE-013-goal-update-natural-language/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-013-goal-update-natural-language/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-013-goal-update-natural-language/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-013-goal-update-natural-language/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-013-goal-update-natural-language/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-013-goal-update-natural-language/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-013-goal-update-natural-language/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-013-goal-update-natural-language/raw/commands.log
+?? .ai/docs/issue-workflow/ISSUE-013-goal-update-natural-language/raw/final-comprehensive-completion-probe.log
+?? .ai/docs/issue-workflow/ISSUE-013-goal-update-natural-language/raw/final-visibility-and-path-checks.log
+?? .ai/docs/issue-workflow/ISSUE-013-goal-update-natural-language/raw/pre-refinement-nl-update-invariant-probe.log
+?? .ai/docs/issue-workflow/ISSUE-013-goal-update-natural-language/raw/promotion-invariant-probe.log
+?? .ai/docs/issue-workflow/ISSUE-013-goal-update-natural-language/raw/quality-goal-open-promotion.log
+?? .ai/docs/issue-workflow/ISSUE-013-goal-update-natural-language/raw/research-rg.log
+?? .ai/docs/issue-workflow/ISSUE-013-goal-update-natural-language/raw/sentrux-gate.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/07-acceptance-traceability.md
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/08-implementation-handoff.md
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/09-stack-continuation-note.md
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/artifact-visibility-diff-check.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/commands.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/comprehensive-completion-probe.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/final-artifact-visibility.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/final-audit-table-consistency-check.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/final-closeout-status-snapshot.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/final-comprehensive-completion-probe.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/final-inventory.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/final-path-reference-probes.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/final-post-audit-diff-check.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/focused-source-excerpts.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/issue-structural-probe.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/pre-refinement-progress-invariant-probe-v2.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/pre-refinement-progress-invariant-probe.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/quality-goal-open-promotion.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/reference-cleanup.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/sentrux-gate-final.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/sentrux-gate-pre.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/source-surface-inventory.log
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/raw/commands.log
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/raw/final-validation.log
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/raw/issue018-invariant-probe.log
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/raw/quality-goal-open-promotion.log
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/raw/sentrux-gate.log
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/raw/stale-018-references-before.log
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/raw/stale-reference-audit.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/07-acceptance-traceability.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/08-implementation-handoff.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/09-completion-audit.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/commands.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/comprehensive-completion-probe.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/final-validation.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/issue019-invariant-probe.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/protocol-coverage-probe.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/quality-goal-open-promotion.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/sentrux-gate.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/stale-019-references-before.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/stale-reference-audit.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/validation-expansion-final.log
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/07-acceptance-traceability.md
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/08-implementation-handoff.md
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/09-completion-audit.md
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/10-nonimplementation-boundary.md
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/commands.log
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/completion-audit-probe.log
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/comprehensive-completion-probe.log
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/design-proof-invariant-probe.log
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/final-inventory.log
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/final-validation.log
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/grounded-research-commands.log
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/nonimplementation-boundary-probe.log
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/pre-refinement-invariant-gap.log
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/protocol-coverage-probe.log
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/quality-goal-open-promotion.log
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/stale-reference-audit.log
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/stale-references-before.log
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/traceability-handoff-probe.log
+?? .ai/issues/open/ISSUE-011-goal-widget-real-component-and-narrow-width.md
+?? .ai/issues/open/ISSUE-013-goal-update-natural-language.md
+?? .ai/issues/open/ISSUE-014-goal-progress-estimates.md
+?? .ai/issues/open/ISSUE-018-goal-start-in-worktree.md
+?? .ai/issues/open/ISSUE-019-parallel-multiple-goals.md
+?? .ai/issues/open/ISSUE-023-goal-dependency-triggers-and-watchers.md
+\n$ git check-ignore -v .ai/docs/issue-workflow/ISSUE-013-goal-update-natural-language/06-final-audit.md || true
+.gitignore:11:!.ai/docs/issue-workflow/**	.ai/docs/issue-workflow/ISSUE-013-goal-update-natural-language/06-final-audit.md
+\n$ git diff --check
+diff_check_exit=0
+\n$ rg -n "\.ai/issues/refine/ISSUE-013-goal-update-natural-language\.md" .ai/issues .ai/docs --glob "!**/raw/**" --glob "!issue-workflow/ISSUE-013-goal-update-natural-language/**"
+.ai/docs/issue-workflow/ISSUE-013-goal-update-natural-language/00-request.md:8:Refine existing `.ai/issues/refine/ISSUE-013-goal-update-natural-language.md` into an execution-ready canonical issue doc, then promote it to `.ai/issues/open/`, following `$feature-workflow-pipelines` visibly.
+.ai/docs/issue-workflow/ISSUE-013-goal-update-natural-language/00-request.md:34:- Source refine issue: `.ai/issues/refine/ISSUE-013-goal-update-natural-language.md`
+.ai/docs/issue-workflow/ISSUE-013-goal-update-natural-language/05-issue-writeback.md:10:- Source: `.ai/issues/refine/ISSUE-013-goal-update-natural-language.md`
+.ai/docs/issue-workflow/ISSUE-013-goal-update-natural-language/02-grounded-research.md:10:- `.ai/issues/refine/ISSUE-013-goal-update-natural-language.md`
+\n$ python3 external stale reference audit
+PASS external stale ISSUE-013 refine refs=0
+external_stale_audit_exit=0

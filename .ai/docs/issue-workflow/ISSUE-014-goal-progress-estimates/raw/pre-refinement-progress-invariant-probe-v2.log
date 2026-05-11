@@ -1,0 +1,9 @@
+
+## validation_expansion: corrected progress invariant probe
+$ python3 - <<PY
+PASS refine_issue_has_unresolved_progress_design
+PASS issue011_widget_dependency_promoted_and_locked
+PASS goal_state_has_no_progress_estimate_fields
+PASS update_goal_has_no_progress_estimate_inputs
+PASS widget_has_no_progress_estimate_rendering
+COVERS invariant: ISSUE-014 cannot be promoted by wording alone; it must lock progress estimate storage, update API, safety semantics, and ISSUE-011-compatible rendering because current code has none of those fields.

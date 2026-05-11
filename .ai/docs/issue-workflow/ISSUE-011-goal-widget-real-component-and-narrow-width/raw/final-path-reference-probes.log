@@ -1,0 +1,10 @@
+## final path and reference probes
+$ test open issue exists and refine issue absent
+PASS open_exists_refine_absent
+$ rg stale refine path outside ISSUE-011 workflow artifacts and raw logs
+PASS stale_canonical_refine_issue011_refs=0
+$ rg open path in downstream issue docs
+.ai/issues/fixed/ISSUE-025-goal-line-breaks-widget-rendering.md:14:- `.ai/issues/open/ISSUE-011-goal-widget-real-component-and-narrow-width.md`
+.ai/issues/refine/ISSUE-014-goal-progress-estimates.md:11:Depends on: `.ai/issues/open/ISSUE-011-goal-widget-real-component-and-narrow-width.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:16:- `.ai/issues/open/ISSUE-011-goal-widget-real-component-and-narrow-width.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:159:- `.ai/issues/open/ISSUE-011-goal-widget-real-component-and-narrow-width.md`

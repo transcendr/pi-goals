@@ -1,0 +1,6 @@
+## framed header minimum width calculation using pi-tui visibleWidth
+$ node - <<NODE
+active: left=14 right=10 min=25 label=active
+paused: left=13 right=10 min=24 label=paused
+budgetLimited: left=13 right=18 min=32 label=budget-limited
+complete: left=13 right=12 min=26 label=complete

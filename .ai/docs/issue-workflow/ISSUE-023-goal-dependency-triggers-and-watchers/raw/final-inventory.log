@@ -1,0 +1,10 @@
+
+## final inventory and stale-path audit
+$ find .ai/issues/refine -maxdepth 1 -type f -name ISSUE-*.md | sort
+.ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md
+.ai/issues/refine/ISSUE-013-goal-update-natural-language.md
+.ai/issues/refine/ISSUE-014-goal-progress-estimates.md
+$ find .ai/issues/open -maxdepth 1 -type f -name ISSUE-*.md | sort | rg ISSUE-023
+.ai/issues/open/ISSUE-023-goal-dependency-triggers-and-watchers.md
+$ rg stale ISSUE-023 refine path
+PASS no stale ISSUE-023 refine path
