@@ -6,9 +6,9 @@ export const GOAL_MONITOR_MESSAGE_TYPE = "pi-goal-monitor-steer";
 export const QUEUE_MESSAGE_TYPE = "pi-goal-queue-steer";
 export const GOAL_MONITOR_LOG_ENTRY_TYPE = "pi-goal-monitor-log";
 
-export const MAX_OBJECTIVE_CHARS = 15000;
+export const MAX_OBJECTIVE_CHARS = 100000;
 export const LONG_OBJECTIVE_HINT =
-	"Put longer instructions in a file and refer to that file in the goal, for example: /goal follow the instructions in docs/goal.md.";
+  "Put longer instructions in a file and refer to that file in the goal, for example: /goal follow the instructions in docs/goal.md.";
 
 export const STATUS_UI_KEY = "pi-goal";
 export const WIDGET_UI_KEY = "pi-goal";
