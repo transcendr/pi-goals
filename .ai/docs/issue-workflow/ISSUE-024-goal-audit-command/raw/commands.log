@@ -1,0 +1,658 @@
+# commands log — ISSUE-024
+- 2026-05-10T23:26:54Z read AGENTS.md, feature-workflow-pipelines skill/references, AXI, create-issue-doc template.
+sentrux_exit=0
+## command outputs
+$ rg -n "audit|proof|completion audit|churn|monitor|pause|resume|queue" .pi/extensions/goal .ai/issues/open/ISSUE-021-goal-completion-proofs.md .ai/issues/fixed/ISSUE-020-goal-churn-monitor.md README.md
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:1:# ISSUE-020 — Active persistent third-party churn monitor for pi-goal
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:8:Next best session rationale: Implementation completed with active interval scheduling, persistent monitor invocation, XML parsing, bounded churn log feedback, steering injection, and validation probes.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:12:- `.ai/docs/pi-goal-future-churn-overseer.md`
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:15:- `.ai/issues/refine/ISSUE-024-goal-audit-command.md`
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:17:Goal: Implement a fully integrated, Pi-native, active, persistent per-goal intelligent churn monitor: a third-party monitor agent receives sparse reports from goal start, keeps per-goal context and a timestamped bounded churn log, judges whether the working agent is in real churn, and injects mid-turn steering into the working agent based on the monitor agent's judgment.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:23:1. It exposed a manual `/goal churn-check` command, which only helps if the user is already watching and has already noticed churn.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:24:2. It used deterministic counters such as `consecutiveNoProgressTurns` and `consecutiveAutoTurns` as gates for whether the monitor agent should run.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:26:Those are not the requested feature. The requested feature is an active monitor that starts with the goal and receives sparse reports while the goal is active. The monitor agent, not deterministic runtime heuristics, decides whether there is real churn and whether steering is warranted.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:30:- No manual-first `/goal churn-check` UX.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:31:- No deterministic churn parser.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:32:- No deterministic "likely churn" gate before the monitor sees reports.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:33:- No threshold such as no-progress-turn count or auto-turn count may decide whether monitoring happens.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:34:- No runtime cooldown may suppress reports because the runtime thinks the monitor should wait.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:37:- No inline magic numbers for monitor cadence or churn-log feedback length.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:38:- The extension runtime is transport/plumbing. The monitor agent is the judge.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:39:- The monitor must receive sparse reports from goal start/resume while the goal is active.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:40:- The monitor must keep persistent per-goal context across invocations.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:41:- The monitor must keep a timestamped churn log so it can reason about time between reports and avoid impatience.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:42:- The monitor must receive only bounded recent churn-log context; default feedback bound is the last 10 entries.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:43:- The monitor must be instructed to avoid over-aggression and require real identifiable churn before steering.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:44:- If the monitor decides to steer, steering must use Pi-native mid-turn steering delivery, reusing the same class of mechanism as budget warnings/wrap-up: `pi.sendMessage(..., { deliverAs: "steer" })`.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:48:Define named constants in `constants.ts` or a dedicated monitor constants module. Do not inline these values inside runtime logic.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:51:- Default recent churn-log feedback limit: `10` entries.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:59:When a goal is created or resumed:
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:61:1. `pi-goal` starts or resumes an associated monitor session for that `goalId`.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:62:2. The monitor receives an initial report containing:
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:68:   - a short explanation of the monitor's role and judgment standard.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:69:3. While the goal remains active, `pi-goal` sends sparse interval reports to the monitor every configured interval, default `90s`.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:76:   - recent churn-log entries for this goal, defaulting to the last `10` entries.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:77:5. The monitor appends or updates its own timestamped churn log.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:78:6. The monitor returns a structured XML decision after each report.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:79:7. If the monitor judges real churn and recommends steering, `pi-goal` injects a steering message into the working agent.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:80:8. If the monitor judges `watch`, no steering is injected.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:81:9. If the monitor judges `escalate`, the user is notified that external input or a decision is needed.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:82:10. If the goal is paused, complete, cleared, replaced, or budget-limited, monitor reports/steering for that goal stop or are stale-ignored.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:86:The monitor prompt must make these instructions explicit:
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:88:- You are a third-party monitor, not the worker.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:90:- Your job is to identify real churn that a human reviewer would recognize, not to solve the task.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:91:- Do not be impatient. Long-running hard work is not churn by itself.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:92:- Use timestamps and churn log history to understand time between reports.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:93:- You receive only bounded recent churn-log entries; reason from that bounded history and do not assume omitted log entries are evidence.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:117:- starting/resuming the per-goal monitor session;
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:118:- sending sparse reports at the configured active-monitor interval from goal start/resume, default `90s`;
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:119:- including timestamps and bounded recent churn-log context in every report, default last `10` entries;
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:120:- preserving monitor context per goal, e.g. via a goal-scoped headless `pi --session <session id>` session or equivalent Pi-native session API;
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:121:- receiving structured XML monitor decisions;
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:123:- injecting monitor steering through `pi.sendMessage(..., { deliverAs: "steer" })` when the monitor requests steering;
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:124:- stale-guarding monitor reports and steering by goal id and status;
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:125:- stopping reports/steering for paused, cleared, complete, replaced, or budget-limited goals;
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:126:- bounding report size and monitor process output so the monitor does not consume unbounded context.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:128:The extension runtime is **not** responsible for judging churn.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:132:The monitor decision parser must not assume pristine model output. Add a properly scoped reusable helper module, for example:
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:138:The helper should be usable by this feature and future features such as `/goal audit`, completion proof review, or reusable-prompt checks.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:153:Prefer XML over JSON for monitor decisions because models can place natural language inside tags without JSON string escaping, XML can be extracted from prose/code fences more easily, repeated tags such as `<evidence>` are natural, and partially wrapped/malformed output is more salvageable than JSON.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:157:The monitor decision must be XML, not JSON.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:162:<churn_monitor_decision>
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:170:</churn_monitor_decision>
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:186:- `watch`: no actionable churn yet, or only weak/ambiguous signals. Append log and continue observing.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:187:- `steer`: monitor sees real churn and provides a concise steering message.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:188:- `escalate`: monitor thinks user input, a user decision, missing credentials, or another external dependency is needed; notify the user instead of letting the worker churn silently.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:192:The churn log must be goal-scoped and timestamped. It must record at least:
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:195:- monitor decision/action;
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:200:- monitor note about why it waited or acted.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:202:The log exists because LLM monitor invocations have weak inherent time awareness. The monitor must receive recent log entries on every invocation so it can judge patience, repetition, and escalation over time.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:204:The monitor must not receive an unbounded churn log. The default feedback limit is the last `10` entries and must be represented as a named constant/config value.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:209:- Keep command parsing, lifecycle scheduling, monitor prompt construction, monitor state/logging, structured XML parsing, and steering injection separated.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:210:- Reuse existing hidden steering-message patterns and context stale filtering used for continuation/budget/pause messages.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:211:- Add a dedicated monitor steering custom type only if needed for context filtering and auditability.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:212:- Do not expose monitor internals as the primary user workflow.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:213:- Keep monitor report storage out of provider context unless explicitly included in sparse reports.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:217:- All previous churn monitor code from the bad implementation is absent before reimplementation begins.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:218:- There is no `/goal churn-check` command or autocomplete entry.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:219:- Creating or resuming an active goal initializes an associated monitor session/context.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:220:- Active goals send sparse reports to the monitor from goal start/resume every configured interval, default `90s`, without waiting for deterministic churn thresholds.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:221:- The report interval and recent churn-log feedback limit are named constants/config values, not inline hard-coded numbers.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:222:- The monitor receives timestamps and bounded recent churn-log entries on every report, default last `10` entries.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:223:- The monitor keeps a goal-scoped churn log across invocations.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:224:- The runtime does not decide whether churn exists using no-progress/auto-turn thresholds or other heuristic gates.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:225:- The monitor decision is requested as XML and parsed through a reusable tolerant XML extraction/parsing helper.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:229:- Monitor `watch` decisions do not inject steering but do update the churn log.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:231:- Reports and steering stop or stale-ignore when the goal is paused, budget-limited, complete, cleared, or replaced.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:238:Primary invariant: the feature is an active intelligent monitor from goal start, not a deterministic local churn detector and not a manual user-triggered check.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:242:- A monitor module exists but is only invoked after deterministic no-progress/auto-turn thresholds.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:243:- A manual `/goal churn-check` remains and is treated as sufficient.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:244:- The runtime locally decides churn and only asks the monitor to wordsmith a steer.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:245:- The monitor receives telemetry without timestamps/log history and becomes impatient.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:246:- The monitor receives an unbounded churn log and bloats or fixates on old history.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:249:- Stale steering can leak into paused/budget-limited/replaced goals.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:251:Required proof shape:
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:253:- Static grep proves no `/goal churn-check` command surface and no deterministic monitor gate names such as `consecutiveNoProgressTurns >=` in monitor scheduling logic.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:254:- Static grep or code inspection proves monitor interval and churn-log feedback length are named constants/config values, with defaults `90s` and `10`.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:255:- A lifecycle/scheduler probe proves reports are scheduled from goal create/resume while active, independent of churn-like telemetry values.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:256:- A monitor prompt/report probe proves timestamps, elapsed/report timing, goal state, telemetry, and bounded recent churn log are included.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:258:- A decision parser/injection probe proves `<action>steer</action>` from the monitor produces a `deliverAs: "steer"` message with goal-id details.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:259:- A stale-filter probe proves monitor steering is dropped for paused, budget-limited, complete, cleared, or mismatched goals.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:264:- [x] Confirm the bad implementation is removed from code: no `churn.ts`, no churn constants/types, no lifecycle churn hook, no `/goal churn-check`.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:265:- [x] Design monitor module boundaries and add them to Sentrux rules intentionally.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:266:- [x] Add named monitor constants/config defaults: report interval `90s`, recent churn-log feedback limit `10`, report excerpt limits, process timeout, output cap.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:268:- [x] Add per-goal monitor state/session/log storage.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:269:- [x] Add active-goal report scheduling from goal creation/resume/session replay while active.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:270:- [x] Add sparse report builder with timestamp, elapsed since previous report, goal state, telemetry, recent bounded context, and bounded recent churn log.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:271:- [x] Add monitor prompt builder with the role/instruction requirements above and XML decision schema.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:272:- [x] Add persistent monitor invocation using Pi-native session mechanics.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:273:- [x] Add XML decision parsing and churn-log append/update.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:275:- [x] Add context filtering/stale guards for monitor steering.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:283:- `.pi/extensions/goal/monitor.ts`: active interval scheduler, persistent headless Pi monitor invocation, XML decision handling, stale-guarded steering/escalation.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:285:- `.pi/extensions/goal/monitor-state.ts`: goal-scoped timestamped churn-log replay/persistence and bounded recent-log access.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:286:- `.pi/extensions/goal/monitor-report.ts`: sparse report builder with goal state, telemetry, session identity, bounded recent entries, and bounded recent churn log.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:287:- `.pi/extensions/goal/monitor-prompts.ts`: monitor role prompt, XML decision schema, and worker steering prompt.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:291:- `! rg 'churn-check|consecutiveNoProgressTurns >= 2|consecutiveAutoTurns >= 8|shouldRequestAutomaticReview|runChurnMonitor|recommended_action|```json' .pi/extensions/goal` — passed.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:293:- `NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-monitor-schedule-probe.cjs` — passed.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:294:- `NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-monitor-report-probe.cjs` — passed.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:295:- `NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-monitor-xml-parser-probe.cjs` — passed.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:296:- `NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-monitor-steer-probe.cjs` — passed.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:302:## Required proofs
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:304:required_proofs[10]{name,command,condition}:
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:305:  no_bad_churn_code,"! rg 'churn-check|consecutiveNoProgressTurns >= 2|consecutiveAutoTurns >= 8|shouldRequestAutomaticReview|runChurnMonitor' .pi/extensions/goal",exit 0 before reimplementation
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:306:  no_manual_command,"! rg 'churn-check' .pi/extensions/goal/command.ts",exit 0
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:307:  named_monitor_defaults,"rg 'MONITOR_.*90|CHURN_.*10|REPORT_.*INTERVAL|LOG_.*LIMIT' .pi/extensions/goal",exit 0 after implementation
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:308:  monitor_schedule_probe,"NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-monitor-schedule-probe.cjs",exit 0
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:309:  monitor_report_probe,"NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-monitor-report-probe.cjs",exit 0
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:310:  monitor_xml_parser_probe,"NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-monitor-xml-parser-probe.cjs",exit 0
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:311:  monitor_steer_probe,"NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-monitor-steer-probe.cjs",exit 0
+README.md:3:Persistent goal tracking for [Pi](https://www.npmjs.com/package/@earendil-works/pi-coding-agent). Inspired by Codex CLI's `/goal`, `pi-goals` adds Pi-native UX, rewindable `/tree`-compatible goal state, time and token budgets, reusable token-aware prompts, automated churn monitoring, and more.
+README.md:14:- Durable FIFO goal queue for sequential goal work.
+README.md:15:- Queue-aware model tools for listing, enqueuing, starting, dequeuing, and removing queued goals.
+README.md:18:- Automated churn monitoring and steering for long-running goals.
+README.md:42:/goal queue
+README.md:43:/goal queue <objective-or-template>
+README.md:44:/goal pause
+README.md:45:/goal resume
+README.md:53:- `/goal queue` — list queued goals.
+README.md:54:- `/goal queue <objective-or-template>` — enqueue a direct objective or reusable template invocation for later.
+README.md:55:- `/goal pause` — pause continuation and churn monitoring. If a goal-driven turn is active, Pi interrupts it.
+README.md:56:- `/goal resume` — resume a paused goal and schedule continuation/monitoring again.
+README.md:59:The extension also exposes model tools so agents can inspect, create, update, pause, resume, complete, clear, or queue goals without string-parsing the slash command.
+README.md:61:## Goal queue
+README.md:63:`pi-goals` supports a durable FIFO queue for sequential work. Queued goals are persisted into the Pi branch alongside goal state, so replay and `/tree` semantics remain coherent.
+README.md:66:/goal queue
+README.md:67:/goal queue write the release notes
+README.md:68:/goal queue fix-issue --issue ISSUE-123 -- verify the fix
+README.md:71:Agents can also manage the queue through model tools:
+README.md:73:- `list_goal_queue`
+README.md:74:- `enqueue_goal`
+README.md:75:- `start_queued_goal`
+README.md:76:- `dequeue_goal`
+README.md:77:- `remove_queued_goal`
+README.md:79:For queued prose that looks like a reusable workflow, agents can list templates with `list_goal_templates`, create a concrete goal with `create_goal_from_template`, then dequeue the original queue item after the concrete goal is satisfied.
+README.md:88:Keep working toward shipping this release, but pause the persistent goal while I answer email.
+README.md:101:When a goal reaches its time or token budget, `pi-goals` steers the agent into wrap-up instead of silently continuing. Exhausted goals cannot be resumed until the budget is raised or the goal is cleared.
+README.md:110:These are completion floors, not quota targets. If an agent calls `update_goal({ status: "complete" })` before configured floors are met, completion is deferred, the goal remains active, and the tool returns structured `completion_blocked_by_floor`, floor deltas, and a concrete `next_floor_pass` from the value-pass catalog. Steering asks for one objective-linked improvement pass such as requirement-gap audit, validation expansion, adversarial review, simplification/deslop, compatibility review, or docs/handoff evidence.
+README.md:152:Reusable templates are available to both slash commands and model tools. Agents can call `list_goal_templates` to discover templates and `create_goal_from_template` to create a concrete goal from one. Template invocations also work through `/goal queue`.
+README.md:154:## Automated churn monitor
+README.md:156:Long-running goals can drift, loop, or stall. `pi-goals` runs a lightweight goal-scoped churn monitor that periodically reviews sparse session context, recent goal telemetry, recent completion-floor state, and recent monitor decisions.
+README.md:158:The monitor can:
+README.md:162:- escalate when a safety pause is needed,
+README.md:163:- keep its own bounded churn log in the Pi branch,
+README.md:164:- identify floor-specific patterns such as `quota_filling_churn`, `floor_ignored_early_wrapup`, and `productive_floor_deepening`.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:1:# ISSUE-021 — Durable/auditable goal completion proofs
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:3:Status: open — execution-ready for first proof-gate implementation pass
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:8:Next best session: focused implementation/validation pass for durable completion proof gates
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:9:Next best session rationale: The design choices are now locked for a first release: proof gates live on `GoalState`, the extension runtime executes bounded required proof commands, and completion is blocked when required proofs are missing, stale, or failed. Recent floor-gate and queue-continuation bugs show this is high leverage for preventing false-green goal completion.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:20:- `.ai/issues/refine/ISSUE-024-goal-audit-command.md`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:21:- `.ai/issues/open/ISSUE-037-goal-queue-auto-continuation-after-complete.md`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:26:Add durable/auditable proof gates for `pi-goals`: explicit proof commands and pass conditions that must have fresh passing results before a goal can be marked complete.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:28:Proof gates complement, but do not replace, the qualitative completion audit. The agent still needs to verify that the objective is actually satisfied; proof gates provide runtime-enforced evidence for requirements that can be checked by bounded commands.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:32:Current completion is still ultimately a model action through `update_goal(status:"complete")`. The continuation prompt asks for a completion audit, and ISSUE-036 added hard completion floors, but there is no way to attach durable command-based proofs such as:
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:42:- ISSUE-037 documented a live queue-continuation false-green/stop failure after a goal was marked complete while queued work remained.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:44:Some goals need explicit proof gates that make false-green completion difficult even when the model is overconfident, distracted, or missing context.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:48:- Request intake: `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/00-request.md`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:49:- Protocol read: `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/01-protocol-read.md`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:50:- Grounded research: `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/02-grounded-research.md`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:51:- Design lock: `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/03-design-lock.md`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:52:- Proof threat model: `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/04-proof-threat-model.md`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:53:- Issue writeback: `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/05-issue-writeback.md`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:54:- Final audit: `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/06-final-audit.md`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:55:- Dataflow and seams: `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/07-dataflow-and-seams.md`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:56:- Proof schema sketch: `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/08-proof-schema-sketch.md`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:57:- Execution plan: `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/09-execution-plan.md`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:58:- Executor review checklist: `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/10-executor-review-checklist.md`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:59:- Proof condition matrix: `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/11-proof-condition-matrix.md`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:60:- Validation expansion: `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/12-validation-expansion.md`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:61:- Runner safety research: `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/13-runner-safety-research.md`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:62:- BCU/ChatGPT external research attempt: `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/14-bcu-external-research-attempt.md`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:63:- Adversarial review: `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/15-adversarial-review.md`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:64:- Acceptance traceability matrix: `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/16-acceptance-traceability-matrix.md`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:65:- Closeout snapshot: `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/17-closeout-snapshot.md`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:66:- Tool API design: `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/18-tool-api-design.md`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:67:- Validation probe design: `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/19-validation-probe-design.md`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:68:- Proof UI/rendering plan: `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/20-proof-ui-rendering-plan.md`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:69:- Pure proof evaluator API: `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/21-proof-evaluator-api.md`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:70:- README update plan: `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/22-readme-update-plan.md`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:71:- Worktree freshness design: `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/23-worktree-freshness-design.md`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:72:- Raw command log: `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/commands.log`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:73:- Validation probe log: `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/validation-expansion-probe.log`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:74:- Path existence audit log: `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/path-existence-audit.log`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:75:- Diff check log: `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/diff-check.log`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:76:- Final status log: `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/status-final.log`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:77:- Final check-ignore log: `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/check-ignore-final.log`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:78:- Artifact inventory: `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/artifact-line-counts.log`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:79:- Final open/refine inventories: `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/open-inventory-final.log`, `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/refine-inventory-final.log`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:80:- Quality gate log: `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/quality-goal-open-promotion.log`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:81:- Promotion invariant probe: `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/promotion-invariant-probe.log`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:82:- Open-bucket promotion: `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/24-open-bucket-promotion.md`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:83:- Migration consistency audit: `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/25-migration-consistency-audit.md`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:84:- Current code readiness audit: `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/26-current-code-readiness-audit.md`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:85:- Downstream reference update: `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/27-downstream-reference-update.md`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:86:- Promotion dependency map: `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/28-promotion-dependency-map.md`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:87:- Required proof command sanity: `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/29-required-proof-command-sanity.md`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:88:- Executor handoff: `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/30-executor-handoff.md`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:89:- Package script proof check: `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/31-package-script-proof-check.md`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:90:- Non-implementation boundary: `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/32-non-implementation-boundary.md`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:91:- Queue continuation note: `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/33-queue-continuation-note.md`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:92:- Closeout summary: `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/34-closeout-summary.md`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:93:- Floor gate source recheck: `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/35-floor-gate-source-recheck.md`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:97:Users/agents can configure required proof gates on a goal. A proof gate includes at minimum:
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:99:- stable proof id;
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:111:- every required gate must have a fresh passing proof result;
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:112:- missing, stale, timed-out, or failed required proofs block completion;
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:113:- the tool response explains which proof blocked completion and how to rerun/fix it;
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:114:- proof execution/result state is durable in the Pi branch and visible through tools/UI summaries;
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:115:- maximum budgets still win over proof execution: budget-limited wrap-up must not force new proof runs past a max budget cap.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:126:- `.pi/extensions/goal/monitor-prompts.ts`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:130:- `.pi/extensions/goal/monitor-report.ts`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:131:- `.pi/extensions/goal/monitor.ts`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:136:- `.pi/extensions/goal/queue-tools.ts`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:142:- `.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:144:- `.ai/issues/open/ISSUE-037-goal-queue-auto-continuation-after-complete.md`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:148:- `.ai/issues/refine/ISSUE-024-goal-audit-command.md`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:152:- `GoalState` has no proof gate or proof result fields today.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:153:- `state.ts` persists branch-replayable `pi-goal-state` custom entries. Optional proof fields can be added backward-compatibly if parsing remains defensive.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:155:- `completion-gate.ts` is the right first integration point for proof-gate decisions because ISSUE-036 already established it as the shared completion decision module.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:156:- `prompts.ts` asks the model to run a completion audit, but this is not durable or runtime-enforced.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:157:- `templates.ts` supports inline commands during template resolution when `allow_commands: true`; that is not a safe substitute for completion proof execution because proof gates must be explicit, bounded, auditable, and tied to goal state.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:159:- `monitor-report.ts` includes floor state in sparse monitor reports. Compact proof state can be included later for monitor awareness, but deterministic proof pass/fail must not depend on monitor judgment.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:160:- `monitor.ts` demonstrates bounded `pi.exec` use with named timeout/output constants and stale-guarded decisions. Proof execution should copy the bounded/stale-guard posture without copying monitor-as-judge semantics.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:161:- `templates.ts` demonstrates bounded `/bin/bash -lc` inline command execution behind explicit `allow_commands`; this is precedent for bounded command execution, but template inline commands are not durable completion proofs.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:162:- `monitor-prompts.ts` can detect false-green/churn behavior but does not own proof execution.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:163:- ISSUE-024 confirms `/goal audit` should remain a qualitative review surface that can consume proof state later; it should not be bundled with the first proof-gate implementation.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:164:- ISSUE-015/022/023 show future coordination points for subgoal-level proof gates, checkpoint summaries of proof results, and bounded command-runner reuse with watchers; none should block first-release top-level completion proof gates.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:165:- ISSUE-010 confirms completion telemetry must be based on actual successful tool results, not attempted status updates; proof-gate telemetry should follow the same principle.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:166:- `lifecycle.ts` marks completion from returned `details.goal.status === "complete"`; proof-blocked completion must return the current active goal in details, never a candidate complete goal.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:167:- `state.ts:persistAccountGoal` updates `goal.updatedAt` on accounting-only turns, so proof freshness must use content/config fingerprints instead of raw `updatedAt`.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:168:- Pi `exec` supports timeout/cwd and returns `killed`, but has no typed output-cap option; proof runner must cap output before persistence.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:169:- `command.ts` has no `/goal proof` surface; first release should use model tools and defer slash-command proof UX.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:170:- `queue-tools.ts` queue metadata does not carry arbitrary proof payloads; first release should configure proof gates after a concrete queued/template goal starts.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:171:- `format.ts`, `widget.ts`, and `ui.ts` show proof rendering must be compact to avoid crowding the existing card/status surfaces.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:173:- After open-bucket promotion, `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/26-current-code-readiness-audit.md` rechecked `completion-gate.ts`, `tools.ts`, `tool-results.ts`, `state.ts`, `lifecycle.ts`, and `continuation.ts`; the live code still matches the planned proof-gate insertion seams.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:179:Chosen: store effective proof gates and proof results on `GoalState` or adjacent replayed goal state, not only in prompt docs.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:181:Rationale: `GoalState` is the completion gate source of truth and is replayed through `/tree`. Prompt templates may populate proof gates later, but completion must evaluate the persisted effective gates.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:185:- Prompt-doc-only proofs: not reliable after goal creation/replay and not the runtime source of truth.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:186:- External issue-doc-only proofs: useful as planning, but not enforceable by the extension.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:190:Chosen first release: extension runtime executes explicitly configured proof commands through bounded `pi.exec`/tool-owned runner semantics.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:192:Rationale: model-manual command execution is not durable enough. The completion gate needs structured proof result records with exit code, timeout, output cap, and condition evaluation.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:196:- Arbitrary model-attested proof claims.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:218:- Proof result records gate config hash, a goal content/proof-config fingerprint, cwd, started/completed timestamps, exit code, timeout flag, and bounded output excerpt.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:219:- A proof is stale if the gate definition changes or if the goal objective/proof configuration changes after the proof result.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:220:- Do **not** use raw `goal.updatedAt` as the freshness key: `state.ts:persistAccountGoal` updates `updatedAt` on every turn for token/time accounting, and accounting alone must not stale proof results.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:221:- Add a `freshness` mode with at least `goal_state` and `worktree_status`. For `worktree_status`, follow `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/23-worktree-freshness-design.md`: capture the post-proof `git status --short --untracked-files=all` fingerprint for the resolved cwd and require it to match before completion.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:225:Chosen first release: no model force-complete override for failed required proofs. Users can remove or edit proof gates explicitly, and those edits are auditable state changes.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:229:- Add proof domain types to `types.ts`, such as `GoalProofGate`, `GoalProofResult`, `ProofCondition`, and `ProofFreshnessPolicy`.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:230:- Use `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/08-proof-schema-sketch.md` as the starting schema sketch, adjusting only when implementation evidence requires it.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:231:- Follow the completion dataflow/seam notes in `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/07-dataflow-and-seams.md` for insertion order and side-effect boundaries.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:232:- Add optional proof fields to goal state and defensive replay parsing in `state.ts`; trim proof results before persistence so full goal snapshots do not duplicate unbounded proof history.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:233:- Add pure proof evaluation module, e.g. `.pi/extensions/goal/proofs.ts`, for condition and freshness decisions; use `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/21-proof-evaluator-api.md` as the target API sketch.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:234:- Add bounded proof runner module, e.g. `.pi/extensions/goal/proof-runner.ts`, wrapping `pi.exec` with timeout/output caps.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:235:- Add model tools for proof management in a dedicated `proof-tools.ts` module wired from `tools.ts`, mirroring `queue-tools.ts` instead of growing `tools.ts` directly:
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:236:  - add/update/remove proof gates;
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:237:  - run proof gate(s);
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:238:  - inspect proof results.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:239:- Extend `tool-results.ts` with proof-blocked completion details and compact latest proof summaries.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:240:- Integrate proof gate decisions into `completion-gate.ts` so required missing/stale/failed proofs defer completion before persistence/cancellation.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:241:- Update model tool guidelines for `update_goal` and proof tools so agents know required proofs must be fresh before completion and must not remove/replace gates merely to complete faster.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:242:- Render proof state in `format.ts`, `widget.ts`, and/or `ui.ts` according to `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/20-proof-ui-rendering-plan.md`, favoring detailed `get_goal`/summary output and compact widget/footer hints.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:243:- Add template/frontmatter support only after runtime proof gates are stable, or explicitly defer it.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:244:- Add deterministic probes and live probe, following `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/19-validation-probe-design.md` for probe shape.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:245:- Follow the phased execution plan in `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/09-execution-plan.md` when running through Solo/TLO.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:246:- Use `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/10-executor-review-checklist.md` as the pre-close implementation checklist.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:247:- Update README using `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/22-readme-update-plan.md`, including a new proof-gates section after completion floors.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:251:- A goal can store required proof gates durably and replay them through session tree replay.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:252:- A proof runner can execute bounded non-interactive commands and persist structured results.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:253:- `update_goal(status:"complete")` is deferred when any required proof is missing, stale, timed out, or failed.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:254:- Completion succeeds when all required proofs are fresh and passing and other gates also allow completion.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:255:- Proof results include enough evidence for audit without unbounded output growth.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:256:- Proof gate edits are explicit and auditable.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:257:- No arbitrary proof command from an untrusted prompt doc is executed without being part of explicit goal proof configuration.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:258:- Existing floor/budget/queue behavior remains green.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:259:- Acceptance-to-proof traceability is recorded in `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/16-acceptance-traceability-matrix.md`.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:263:Primary invariant: a goal with required proof gates cannot be marked complete unless every required proof has a fresh passing result matching the current gate definition and freshness policy.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:268:- Old passing result is reused after files or goal/proof config changed.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:271:- Proof command runs arbitrary shell text imported from an untrusted prompt instead of explicit trusted proof configuration.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:273:- Prompt template inline command execution is mistaken for proof execution.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:274:- Completion gate order allows monitor/continuation cancellation before proof deferral.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:275:- Contains/regex proof conditions accidentally ignore non-zero exits and pass on misleading output.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:277:- The model configures a weak proof gate to satisfy itself; proof gates are only authoritative when obligations come from trusted user/objective/issue-doc requirements and proof edits/removals are auditable.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:279:## Required proofs
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:283:required_proofs[6]{name,source,command,pass_condition,scope,notes}:
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:284:  proof_gate_decision_probe,"issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-proof-gate-decision-probe.mjs","exit 0; missing, failed, stale, and passing proof cases are asserted",run,"must fail if completion can bypass required proof gates"
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:285:  proof_runner_probe,"issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-proof-runner-probe.mjs","exit 0; exit_zero, contains, timeout, and output-cap behavior asserted",run,"validates bounded runner semantics"
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:286:  replay_probe,"issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-proof-replay-probe.mjs","exit 0; proof gates/results survive replay; goal/proof config changes stale results; token/time accounting alone does not stale",run,"guards branch replay compatibility and freshness precision"
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:287:  floor_budget_regression,"issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-min-spend-floors-probe.mjs && npm run quality:goal","exit 0",run,"ensures proof gates do not break existing completion floors or required quality gate"
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:288:  live_probe,"issue doc","Use .ai/docs/pi-goals-live-probe-testing.md to create a disposable proof-gated goal, fail completion before proof pass, run/pass proof, complete goal, and cleanup","transcript shows failed proof blocks completion and fresh passing proof allows completion",live,"needed because completion-gate behavior is live runtime behavior"
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:297:  "ISSUE-021","open — execution-ready","feature","durable required proof gates before goal completion"
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:300:  "lr1","proof gates persist on effective goal state"
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:301:  "lr2","extension runtime executes bounded required proof commands"
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:302:  "lr3","completion gate blocks missing stale failed or timed-out required proofs"
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:303:  "lr4","proof results are replayable and auditable with bounded output"
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:307:  "s1",".pi/extensions/goal/types.ts","proof gate/result domain types"
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:308:  "s2",".pi/extensions/goal/state.ts","replay-compatible persisted proof fields"
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:310:  "s4",".pi/extensions/goal/proof-tools.ts wired from .pi/extensions/goal/tools.ts","proof management and proof-run tools without growing tools.ts directly"
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:311:  "s5",".pi/extensions/goal/proofs.ts","pure proof condition/freshness evaluation"
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:312:  "s6",".pi/extensions/goal/proof-runner.ts","bounded pi.exec proof execution"
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:321:  "goal_state","goal objective or proof config fingerprint changed after proof result; token/time accounting alone does not stale"
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:322:  "worktree_status","goal_state stale or current git status fingerprint differs from post-proof fingerprint captured for resolved cwd"
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:325:  "v1","missing required proof blocks completion","deterministic probe"
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:326:  "v2","fresh passing proof allows completion","deterministic and live probes"
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:327:  "v3","stale proof result blocks completion after goal/proof/worktree change","replay/freshness probe"
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:328:  "v4","proof command timeout/output cap is enforced","proof runner probe"
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:336:- Prompt-template proof frontmatter auto-execution without explicit confirmation.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:337:- Subgoal-level proof gates before ISSUE-015's first nested-child implementation lands.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:338:- Automatic checkpoint generation for proof results before ISSUE-022 is refined.
+.pi/extensions/goal/command.ts:17:import { parseQueueBlockItems, type QueueBlockItem } from "./queue-block-parser";
+.pi/extensions/goal/command.ts:18:import { getQueue, enqueueGoal, persistEnqueue } from "./queue-state";
+.pi/extensions/goal/command.ts:23:	name: "pause" | "resume" | "clear" | "queue";
+.pi/extensions/goal/command.ts:28:	{ name: "pause", description: "Pause the current goal" },
+.pi/extensions/goal/command.ts:29:	{ name: "resume", description: "Resume a paused goal" },
+.pi/extensions/goal/command.ts:31:	{ name: "queue", description: "List queued goals or enqueue a new goal" },
+.pi/extensions/goal/command.ts:52:	if (/^queue\s/.test(query)) return templateCompletions(query.slice("queue".length).trimStart(), "queue ");
+.pi/extensions/goal/command.ts:126:	if (firstToken === "queue") {
+.pi/extensions/goal/command.ts:130:	if (trimmed === "pause") pauseGoal(pi, ctx, cancelContinuation, interruptActiveTurn, cancelMonitor);
+.pi/extensions/goal/command.ts:131:	else if (trimmed === "resume") resumeGoal(pi, ctx, scheduleContinuation, scheduleMonitor, sendQueueSteering);
+.pi/extensions/goal/command.ts:185:				const queued = enqueueGoal(validation.objective, "command");
+.pi/extensions/goal/command.ts:186:				persistEnqueue(pi, queued);
+.pi/extensions/goal/command.ts:187:				notifyInfo(ctx, `Queued goal: ${queued.queueId}`);
+.pi/extensions/goal/command.ts:212:function pauseGoal(
+.pi/extensions/goal/command.ts:224:	cancelContinuation(goal.goalId, "pause");
+.pi/extensions/goal/command.ts:225:	cancelMonitor(goal.goalId, "pause");
+.pi/extensions/goal/command.ts:226:	const paused: GoalState = { ...goal, status: "paused", updatedAt: Date.now() };
+.pi/extensions/goal/command.ts:227:	persistUpdateGoal(pi, paused, getTelemetry(), "command");
+.pi/extensions/goal/command.ts:228:	syncGoalUi(ctx, paused);
+.pi/extensions/goal/command.ts:229:	notifyGoal(ctx, paused);
+.pi/extensions/goal/command.ts:231:		interruptActiveTurn(ctx, paused);
+.pi/extensions/goal/command.ts:232:		notifyWarning(ctx, "Goal paused. The active turn was interrupted; run /goal resume to continue.");
+.pi/extensions/goal/command.ts:236:function resumeGoal(pi: ExtensionAPI, ctx: ExtensionCommandContext, scheduleContinuation: GoalCommandScheduler, scheduleMonitor: GoalMonitorScheduler, sendQueueSteering: GoalQueueSteeringSender): void {
+.pi/extensions/goal/command.ts:238:	const queue = getQueue();
+.pi/extensions/goal/command.ts:240:		if (queue.length > 0) {
+.pi/extensions/goal/command.ts:241:			sendQueueSteering("goal-resume", { triggerTurn: true });
+.pi/extensions/goal/command.ts:242:			notifyInfo(ctx, `No active goal. Resuming queued goal processing for ${queue.length} queued goal${queue.length > 1 ? "s" : ""}.`);
+.pi/extensions/goal/command.ts:249:		if (queue.length > 0) {
+.pi/extensions/goal/command.ts:250:			sendQueueSteering("goal-resume", { triggerTurn: true });
+.pi/extensions/goal/command.ts:251:			notifyInfo(ctx, `Goal is complete. Resuming queued goal processing for ${queue.length} queued goal${queue.length > 1 ? "s" : ""}.`);
+.pi/extensions/goal/command.ts:260:		notifyWarning(ctx, `Cannot resume: ${resource} budget is still exhausted. Raise the budget or use /goal clear before resuming.`);
+.pi/extensions/goal/command.ts:265:	persistUpdateGoal(pi, active, telemetry, "resume");
+.pi/extensions/goal/command.ts:266:	if (telemetry) persistTelemetry(pi, telemetry, "resume");
+.pi/extensions/goal/command.ts:270:	scheduleContinuation(ctx, "resumed");
+.pi/extensions/goal/command.ts:280:	const queue = getQueue();
+.pi/extensions/goal/command.ts:281:	if (queue.length > 0) sendQueueSteering("goal-clear");
+.pi/extensions/goal/command.ts:282:	const queueHint = queue.length > 0 ? `\n${queue.length} queued goal${queue.length > 1 ? "s" : ""} available. Queue steering was sent to the agent context.` : "";
+.pi/extensions/goal/command.ts:283:	notifyInfo(ctx, hadGoal ? `Goal cleared${queueHint}` : `No goal to clear\nThis session does not currently have a goal.${queueHint}`);
+.pi/extensions/goal/command.ts:287:	const rest = input.slice("queue".length).trim();
+.pi/extensions/goal/command.ts:289:		const queue = getQueue();
+.pi/extensions/goal/command.ts:290:		if (queue.length === 0) {
+.pi/extensions/goal/command.ts:291:			notifyInfo(ctx, "No queued goals.");
+.pi/extensions/goal/command.ts:294:		const lines = queue.map((g, i) => `${i + 1}. [${g.queueId}] ${truncateObjective(g.objective)}`);
+.pi/extensions/goal/command.ts:295:		notifyInfo(ctx, `Queued goals (${queue.length}):\n${lines.join("\n")}`);
+.pi/extensions/goal/command.ts:303:		const queued = validatedItems.map((item) => {
+.pi/extensions/goal/command.ts:304:			const goal = enqueueGoal(item.objective, "command", { template: item.template, templateFlags: item.templateFlags, templateArgs: item.templateArgs });
+.pi/extensions/goal/command.ts:305:			persistEnqueue(pi, goal);
+.pi/extensions/goal/command.ts:308:		const lines = queued.map((g, i) => `${i + 1}. [${g.queueId}] ${truncateObjective(g.objective)}`);
+.pi/extensions/goal/command.ts:309:		notifyInfo(ctx, `Queued ${queued.length} goals:\n${lines.join("\n")}`);
+.pi/extensions/goal/command.ts:320:	const queued = enqueueGoal(validation.objective, "command", { template: resolved.template, templateFlags: resolved.templateFlags, templateArgs: resolved.templateArgs });
+.pi/extensions/goal/command.ts:321:	persistEnqueue(pi, queued);
+.pi/extensions/goal/command.ts:322:	notifyInfo(ctx, `Queued goal: ${queued.queueId} \u2014 ${truncateObjective(validation.objective)}`);
+.pi/extensions/goal/command.ts:335:			notifyWarning(ctx, `Queue item ${i + 1} (${item.marker} on line ${item.lineIndex + 1}) could not be resolved. No goals were queued.`);
+.pi/extensions/goal/command.ts:341:			notifyWarning(ctx, `Queue item ${i + 1} (${item.marker} on line ${item.lineIndex + 1}) is invalid. No goals were queued.\n${message}`);
+.pi/extensions/goal/widget.ts:172:		case "paused":
+.pi/extensions/goal/widget.ts:173:			return { icon: "⏸", label: "paused", color: "warning" };
+.pi/extensions/goal/monitor.ts:11:import { buildGoalMonitorPrompt, buildGoalMonitorSteerPrompt } from "./monitor-prompts";
+.pi/extensions/goal/monitor.ts:12:import { buildGoalMonitorReport } from "./monitor-report";
+.pi/extensions/goal/monitor.ts:13:import { persistMonitorDecisionLog, replayGoalMonitorLogs, resetGoalMonitorLogRuntime } from "./monitor-state";
+.pi/extensions/goal/monitor.ts:19:const DECISION_ROOT = "churn_monitor_decision";
+.pi/extensions/goal/monitor.ts:62:		return { ok: false, error: `Invalid monitor action: ${normalizedAction}.`, warnings: extraction.warnings };
+.pi/extensions/goal/monitor.ts:96:	const sessionPath = monitorSessionPath(ctx.cwd, report.goalId);
+.pi/extensions/goal/monitor.ts:97:	mkdirSync(join(ctx.cwd, ".pi", "goal-monitor", "sessions"), { recursive: true });
+.pi/extensions/goal/monitor.ts:110:	if (result.code !== 0) throw new Error(`monitor exited ${result.code}: ${combined}`);
+.pi/extensions/goal/monitor.ts:118:		console.warn(`[pi-goal] monitor parse failed: ${parsed.error}`);
+.pi/extensions/goal/monitor.ts:126:	if (parsed.decision.action === "escalate") notifyWarning(ctx, monitorEscalationText(parsed.decision));
+.pi/extensions/goal/monitor.ts:143:			details: { goalId: report.goalId, kind: "monitorSteer", promptId: report.reportId, createdAt: Date.now(), reportId: report.reportId },
+.pi/extensions/goal/monitor.ts:168:		pattern: "monitor_parse_error",
+.pi/extensions/goal/monitor.ts:185:function monitorEscalationText(decision: GoalMonitorDecision): string {
+.pi/extensions/goal/monitor.ts:187:	return `Goal monitor recommends user input or an external decision.${evidence}\n${decision.logNote}`.trim();
+.pi/extensions/goal/monitor.ts:190:function monitorSessionPath(cwd: string, goalId: string): string {
+.pi/extensions/goal/monitor.ts:191:	return join(cwd, ".pi", "goal-monitor", "sessions", `pi-goal-monitor-${goalId}.jsonl`);
+.pi/extensions/goal/monitor.ts:199:		console.warn(`[pi-goal] monitor failed: ${message}`);
+.pi/extensions/goal/monitor-report.ts:8:import { getLastMonitorReportAt, getRecentMonitorLogs, noteMonitorReportSent } from "./monitor-state";
+.pi/extensions/goal/index.ts:5:import { cancelGoalMonitor, scheduleGoalMonitor } from "./monitor";
+.pi/extensions/goal/index.ts:7:import { getQueue } from "./queue-state";
+.pi/extensions/goal/index.ts:8:import { sendQueueSteering } from "./queue-steering";
+.pi/extensions/goal/types.ts:3:export type GoalStatus = "active" | "paused" | "budgetLimited" | "complete";
+.pi/extensions/goal/types.ts:20:export type ContinuationReason = "created" | "resumed" | "agentEnd";
+.pi/extensions/goal/types.ts:30:	| "requirement_gap_audit"
+.pi/extensions/goal/types.ts:97:	| "resume"
+.pi/extensions/goal/types.ts:129:export type GoalSteeringKind = "continuation" | "budgetLimit" | "pause" | "monitorSteer";
+.pi/extensions/goal/types.ts:136:	reason?: ContinuationReason | "budget" | "pause";
+.pi/extensions/goal/types.ts:146:export type GoalQueueSteeringReason = "goal-complete" | "goal-clear" | "goal-resume";
+.pi/extensions/goal/queue-state.ts:5:	queueId: string;
+.pi/extensions/goal/queue-state.ts:18:export type DequeueAudit = {
+.pi/extensions/goal/queue-state.ts:23:type DequeuePersistMetadata = {
+.pi/extensions/goal/queue-state.ts:24:	queueId?: string;
+.pi/extensions/goal/queue-state.ts:25:	audit?: DequeueAudit;
+.pi/extensions/goal/queue-state.ts:30:	kind: "enqueue" | "dequeue" | "remove";
+.pi/extensions/goal/queue-state.ts:31:	queueId?: string;
+.pi/extensions/goal/queue-state.ts:41:	queueId?: unknown;
+.pi/extensions/goal/queue-state.ts:52:	queue: QueuedGoal[];
+.pi/extensions/goal/queue-state.ts:55:let queueCounter = 0;
+.pi/extensions/goal/queue-state.ts:59:	return `q-${Date.now()}-${++queueCounter}`;
+.pi/extensions/goal/queue-state.ts:66:export function enqueueGoal(objective: string, source: "command" | "tool", opts?: { tokenBudget?: number; timeBudgetSeconds?: number; minTokensBeforeWrapUp?: number; minTimeSecondsBeforeWrapUp?: number; template?: string; templateFlags?: Record<string, string>; templateArgs?: string }): QueuedGoal {
+.pi/extensions/goal/queue-state.ts:68:		queueId: generateQueueId(),
+.pi/extensions/goal/queue-state.ts:84:export function dequeueGoal(): QueuedGoal | undefined {
+.pi/extensions/goal/queue-state.ts:88:export function removeGoal(queueId: string): QueuedGoal | undefined {
+.pi/extensions/goal/queue-state.ts:89:	const index = runtimeQueue.findIndex((g) => g.queueId === queueId);
+.pi/extensions/goal/queue-state.ts:95:	let queue: QueuedGoal[] = [];
+.pi/extensions/goal/queue-state.ts:99:		queue = applyQueueEvent(queue, event);
+.pi/extensions/goal/queue-state.ts:101:	runtimeQueue = queue;
+.pi/extensions/goal/queue-state.ts:102:	return { queue };
+.pi/extensions/goal/queue-state.ts:106:	runtimeQueue = state.queue;
+.pi/extensions/goal/queue-state.ts:109:export function persistEnqueue(pi: ExtensionAPI, goal: QueuedGoal): void {
+.pi/extensions/goal/queue-state.ts:110:	pi.appendEntry(STATE_ENTRY_TYPE, { version: 1, kind: "enqueue", queueId: goal.queueId, goal, reason: "enqueue", at: Date.now() } as GoalQueueEvent);
+.pi/extensions/goal/queue-state.ts:113:export function persistDequeue(pi: ExtensionAPI, reason: string, metadata: DequeuePersistMetadata = {}): void {
+.pi/extensions/goal/queue-state.ts:114:	pi.appendEntry(STATE_ENTRY_TYPE, { version: 1, kind: "dequeue", queueId: metadata.queueId, reason, rationale: metadata.audit?.rationale, authority: metadata.audit?.authority, at: Date.now() } as GoalQueueEvent);
+.pi/extensions/goal/queue-state.ts:117:export function persistRemove(pi: ExtensionAPI, queueId: string, reason: string): void {
+.pi/extensions/goal/queue-state.ts:118:	pi.appendEntry(STATE_ENTRY_TYPE, { version: 1, kind: "remove", queueId, reason, at: Date.now() } as GoalQueueEvent);
+.pi/extensions/goal/queue-state.ts:124:	if (raw.kind === "enqueue") return parseEnqueueEvent(raw);
+.pi/extensions/goal/queue-state.ts:125:	if (raw.kind === "dequeue" || raw.kind === "remove") return parseQueueOpEvent(raw);
+.pi/extensions/goal/queue-state.ts:142:		queueId: raw.queueId,
+.pi/extensions/goal/queue-state.ts:151:function parseEnqueueEvent(raw: QueueEventRecord): GoalQueueEvent | null {
+.pi/extensions/goal/queue-state.ts:154:	const queueId = toOptionalString(raw.queueId) ?? goal.queueId;
+.pi/extensions/goal/queue-state.ts:157:		kind: "enqueue",
+.pi/extensions/goal/queue-state.ts:158:		queueId,
+.pi/extensions/goal/queue-state.ts:168:	if (raw.kind !== "dequeue" && raw.kind !== "remove") return null;
+.pi/extensions/goal/queue-state.ts:172:		queueId: toOptionalString(raw.queueId),
+.pi/extensions/goal/queue-state.ts:183:	const queueId = toRequiredString(raw.queueId);
+.pi/extensions/goal/queue-state.ts:187:	if (!queueId || !objective || !source || createdAt === undefined) return null;
+.pi/extensions/goal/queue-state.ts:205:		queueId,
+.pi/extensions/goal/queue-state.ts:260:function applyQueueEvent(queue: QueuedGoal[], event: GoalQueueEvent): QueuedGoal[] {
+.pi/extensions/goal/queue-state.ts:261:	const next = [...queue];
+.pi/extensions/goal/queue-state.ts:262:	if (event.kind === "enqueue") {
+.pi/extensions/goal/queue-state.ts:266:	if (event.kind === "dequeue") {
+.pi/extensions/goal/queue-state.ts:267:		dequeueByEvent(next, event.queueId);
+.pi/extensions/goal/queue-state.ts:270:	if (event.kind === "remove") removeByQueueId(next, event.queueId);
+.pi/extensions/goal/queue-state.ts:274:function dequeueByEvent(queue: QueuedGoal[], queueId: string | undefined): void {
+.pi/extensions/goal/queue-state.ts:275:	if (!queueId || queue[0]?.queueId === queueId) {
+.pi/extensions/goal/queue-state.ts:276:		queue.shift();
+.pi/extensions/goal/queue-state.ts:279:	removeByQueueId(queue, queueId);
+.pi/extensions/goal/queue-state.ts:282:function removeByQueueId(queue: QueuedGoal[], queueId: string | undefined): void {
+.pi/extensions/goal/queue-state.ts:283:	if (!queueId) return;
+.pi/extensions/goal/queue-state.ts:284:	const index = queue.findIndex((goal) => goal.queueId === queueId);
+.pi/extensions/goal/queue-state.ts:285:	if (index !== -1) queue.splice(index, 1);
+.pi/extensions/goal/queue-tools.ts:8:import { enqueueGoal, dequeueGoal, removeGoal, persistEnqueue, persistDequeue, persistRemove, getQueue, type DequeueAudit, type QueuedGoal } from "./queue-state";
+.pi/extensions/goal/queue-tools.ts:20:const DequeueGoalParams = Type.Object({
+.pi/extensions/goal/queue-tools.ts:21:	rationale: Type.String({ description: "Why this queue head is being dequeued now" }),
+.pi/extensions/goal/queue-tools.ts:28:	queue?: QueuedGoal[];
+.pi/extensions/goal/queue-tools.ts:29:	queued?: QueuedGoal;
+.pi/extensions/goal/queue-tools.ts:30:	dequeued?: QueuedGoal;
+.pi/extensions/goal/queue-tools.ts:32:	dequeue_audit?: DequeueAudit;
+.pi/extensions/goal/queue-tools.ts:42:	registerEnqueueGoalTool(pi);
+.pi/extensions/goal/queue-tools.ts:44:	registerDequeueGoalTool(pi);
+.pi/extensions/goal/queue-tools.ts:50:		name: "list_goal_queue",
+.pi/extensions/goal/queue-tools.ts:52:		description: "List queued goal objectives that will be started after the current goal completes or clears.",
+.pi/extensions/goal/queue-tools.ts:53:		promptSnippet: "Discover queued goals waiting to start after the current goal.",
+.pi/extensions/goal/queue-tools.ts:54:		promptGuidelines: ["Use only when the user explicitly asks to see or review the goal queue.", "Do not infer queue listing from ordinary task requests."],
+.pi/extensions/goal/queue-tools.ts:62:function registerEnqueueGoalTool(pi: ExtensionAPI): void {
+.pi/extensions/goal/queue-tools.ts:64:		name: "enqueue_goal",
+.pi/extensions/goal/queue-tools.ts:65:		label: "Enqueue Goal",
+.pi/extensions/goal/queue-tools.ts:66:		description: "Add a goal to the queue to be started after the current goal completes or clears. Use only when the user explicitly asks to queue a goal for later.",
+.pi/extensions/goal/queue-tools.ts:68:		promptGuidelines: ["Use only when the user explicitly asks to queue a goal for later, not for ordinary task requests.", "Fill flags and args from the user's prose, but ask for missing required values instead of guessing."],
+.pi/extensions/goal/queue-tools.ts:75:			const queued = enqueueGoal(validation.objective, "tool", { tokenBudget: params.token_budget, timeBudgetSeconds: params.time_budget_seconds, minTokensBeforeWrapUp: params.min_tokens_before_wrap_up, minTimeSecondsBeforeWrapUp: params.min_time_seconds_before_wrap_up });
+.pi/extensions/goal/queue-tools.ts:76:			persistEnqueue(pi, queued);
+.pi/extensions/goal/queue-tools.ts:78:			return resultForQueuedGoal(queued);
+.pi/extensions/goal/queue-tools.ts:85:		name: "start_queued_goal",
+.pi/extensions/goal/queue-tools.ts:87:		description: "Start the next queued item only after deciding the queue head is a direct concrete goal. The queue item is removed only after goal creation succeeds.",
+.pi/extensions/goal/queue-tools.ts:88:		promptSnippet: "Start the queue head only when semantic classification says it is a direct goal.",
+.pi/extensions/goal/queue-tools.ts:90:			"Use this only after reading the queue head and deciding the queued text itself is the concrete goal to perform.",
+.pi/extensions/goal/queue-tools.ts:91:			"Before using this, verify the queue head is not better handled by an existing reusable goal template; if uncertain, call list_goal_templates first.",
+.pi/extensions/goal/queue-tools.ts:92:			"Do not use this when the queued text asks you to run/create/start another goal or goal template, names a prompt-like workflow, or semantically matches a reusable template; use create_goal, create_goal_from_template, or enqueue_goal for that orchestration, then dequeue_goal after it is satisfied.",
+.pi/extensions/goal/queue-tools.ts:93:			"This tool handles completed-goal replacement and safe dequeue for direct queue items only.",
+.pi/extensions/goal/queue-tools.ts:94:			"If this reports an active non-complete goal, leave the queued goal in place and continue the active goal.",
+.pi/extensions/goal/queue-tools.ts:103:function registerDequeueGoalTool(pi: ExtensionAPI): void {
+.pi/extensions/goal/queue-tools.ts:105:		name: "dequeue_goal",
+.pi/extensions/goal/queue-tools.ts:106:		label: "Dequeue Goal",
+.pi/extensions/goal/queue-tools.ts:107:		description: "Remove the first goal from the queue and return it. Prefer start_queued_goal for direct queued goals; use this after a prose/JIT orchestration item is fully satisfied.",
+.pi/extensions/goal/queue-tools.ts:108:		promptSnippet: "Remove the queue head after manual handling or completed prose/JIT orchestration.",
+.pi/extensions/goal/queue-tools.ts:110:			"Use start_queued_goal for direct queued goals.",
+.pi/extensions/goal/queue-tools.ts:111:			"Use dequeue_goal after you have separately satisfied a prose/JIT orchestration queue item, including any one-or-more consecutive active goals it required.",
+.pi/extensions/goal/queue-tools.ts:112:			"Never discard unfinished queued work. Do not call this unless the queue head is actually satisfied or the user explicitly authorized removing that specific queued item.",
+.pi/extensions/goal/queue-tools.ts:113:			"The rationale and authority arguments are saved to session history for auditability; be truthful and specific.",
+.pi/extensions/goal/queue-tools.ts:115:		parameters: DequeueGoalParams,
+.pi/extensions/goal/queue-tools.ts:117:			const audit = validateDequeueAudit(params.rationale, params.authority);
+.pi/extensions/goal/queue-tools.ts:118:			if (!audit.ok) return errorResult(audit.error);
+.pi/extensions/goal/queue-tools.ts:119:			const dequeued = dequeueGoal();
+.pi/extensions/goal/queue-tools.ts:120:			if (!dequeued) return { content: [{ type: "text" as const, text: "No queued goals." }], details: { goal: getGoal(), telemetry: getTelemetry() } as QueueToolDetails };
+.pi/extensions/goal/queue-tools.ts:121:			persistDequeue(pi, "dequeued", { queueId: dequeued.queueId, audit: audit.value });
+.pi/extensions/goal/queue-tools.ts:122:			return { content: [{ type: "text" as const, text: `Dequeued goal: ${dequeued.queueId}\nObjective: ${dequeued.objective}\nRationale: ${audit.value.rationale}\nAuthority: ${audit.value.authority}` }], details: { goal: getGoal(), telemetry: getTelemetry(), dequeued, dequeue_audit: audit.value } as QueueToolDetails };
+.pi/extensions/goal/queue-tools.ts:129:		name: "remove_queued_goal",
+.pi/extensions/goal/queue-tools.ts:131:		description: "Remove a specific goal from the queue by its queue ID.",
+.pi/extensions/goal/queue-tools.ts:132:		promptSnippet: "Remove a specific queued goal by ID.",
+.pi/extensions/goal/queue-tools.ts:133:		promptGuidelines: ["Use only when the user explicitly asks to remove a specific queued goal."],
+.pi/extensions/goal/queue-tools.ts:134:		parameters: Type.Object({ queueId: Type.String({ description: "Queue ID of the goal to remove" }) }),
+.pi/extensions/goal/queue-tools.ts:136:			const removed = removeGoal(params.queueId);
+.pi/extensions/goal/queue-tools.ts:137:			if (!removed) return errorResult(`No queued goal found with id ${params.queueId}.`);
+.pi/extensions/goal/queue-tools.ts:138:			persistRemove(pi, params.queueId, "tool_remove");
+.pi/extensions/goal/queue-tools.ts:139:			return { content: [{ type: "text" as const, text: `Removed queued goal: ${removed.queueId}` }], details: { goal: getGoal(), telemetry: getTelemetry() } as QueueToolDetails };
+.pi/extensions/goal/queue-tools.ts:146:	if (current && current.status !== "complete") return errorResult("A non-complete goal is already active. The queued goal was left in the queue.");
+.pi/extensions/goal/queue-tools.ts:148:	if (!next) return { content: [{ type: "text" as const, text: "No queued goals." }], details: { goal: current, telemetry: getTelemetry(), queue: getQueue() } as QueueToolDetails };
+.pi/extensions/goal/queue-tools.ts:153:	return createAndDequeueQueuedGoal(pi, runtime, ctx, next, validation.objective);
+.pi/extensions/goal/queue-tools.ts:156:function createAndDequeueQueuedGoal(pi: ExtensionAPI, runtime: GoalQueueToolRuntime, ctx: ExtensionContext, next: QueuedGoal, objective: string) {
+.pi/extensions/goal/queue-tools.ts:162:	const dequeued = dequeueGoal();
+.pi/extensions/goal/queue-tools.ts:163:	const started = dequeued ?? next;
+.pi/extensions/goal/queue-tools.ts:164:	persistDequeue(pi, "start_queued_goal", { queueId: started.queueId, audit: { rationale: "Started queued goal as a direct concrete goal after successful goal creation.", authority: "start_queued_goal atomic create-then-dequeue path" } });
+.pi/extensions/goal/queue-tools.ts:167:	return { content: [{ type: "text" as const, text: `Started queued goal: ${started.queueId}\nObjective: ${goal.objective}` }], details: { goal, telemetry, started, queue: getQueue() } as QueueToolDetails };
+.pi/extensions/goal/queue-tools.ts:179:type DequeueAuditResult = { ok: true; value: DequeueAudit } | { ok: false; error: string };
+.pi/extensions/goal/queue-tools.ts:181:function validateDequeueAudit(rationale: string | undefined, authority: string | undefined): DequeueAuditResult {
+.pi/extensions/goal/queue-tools.ts:184:	if (!trimmedRationale) return { ok: false, error: "rationale is required to dequeue a queued goal." };
+.pi/extensions/goal/queue-tools.ts:185:	if (!trimmedAuthority) return { ok: false, error: "authority is required to dequeue a queued goal." };
+.pi/extensions/goal/queue-tools.ts:190:	const queue = getQueue();
+.pi/extensions/goal/queue-tools.ts:191:	if (queue.length === 0) return { content: [{ type: "text" as const, text: "No queued goals." }], details: { goal: getGoal(), telemetry: getTelemetry(), queue } as QueueToolDetails };
+.pi/extensions/goal/queue-tools.ts:192:	const lines = queue.map((g, i) => `${i + 1}. [${g.queueId}] ${g.objective.length > 120 ? `${g.objective.slice(0, 117)}…` : g.objective}`);
+.pi/extensions/goal/queue-tools.ts:193:	return { content: [{ type: "text" as const, text: `Queued goals (${queue.length}):\n${lines.join("\n")}` }], details: { goal: getGoal(), telemetry: getTelemetry(), queue } as QueueToolDetails };
+.pi/extensions/goal/queue-tools.ts:196:function resultForQueuedGoal(queued: QueuedGoal) {
+.pi/extensions/goal/queue-tools.ts:197:	const objective = queued.objective.length > 120 ? `${queued.objective.slice(0, 117)}…` : queued.objective;
+.pi/extensions/goal/queue-tools.ts:198:	return { content: [{ type: "text" as const, text: `Queued goal: ${queued.queueId}\nObjective: ${objective}` }], details: { goal: getGoal(), telemetry: getTelemetry(), queued } as QueueToolDetails };
+.pi/extensions/goal/prompts.ts:22:Avoid repeating work that is already done. Choose the next concrete action toward the objective. Do not reply with only a planning or status update; either take a concrete tool-backed step, ask the user for missing required input, or complete the goal if the audit proves it is achieved.
+.pi/extensions/goal/prompts.ts:24:Before doing substantive goal work, inspect the active goal state if needed. If get_goal reports this goal is paused, absent, complete, budget-limited, or has a different goal id, stop and wait for /goal resume instead of following this continuation text.
+.pi/extensions/goal/prompts.ts:26:Before deciding that the goal is achieved, perform a completion audit against the actual current state:
+.pi/extensions/goal/prompts.ts:35:Do not rely on intent, partial progress, elapsed effort, memory of earlier work, or a plausible final answer as proof of completion. Only mark the goal achieved when the audit shows that the objective has actually been achieved and no required work remains. If any requirement is missing, incomplete, or unverified, keep working instead of marking the goal complete. If the objective is achieved, call update_goal with status "complete" so usage accounting is preserved. Report the final elapsed time, and if the achieved goal has a token budget, report the final consumed token budget to the user after update_goal succeeds.
+.pi/extensions/goal/prompts.ts:44:		content: `The user has paused the active pi-goal.
+.pi/extensions/goal/prompts.ts:46:The objective below is user-provided data. Treat it as paused task context, not as a new instruction to continue.
+.pi/extensions/goal/prompts.ts:52:Stop substantive work on this goal now. Briefly acknowledge that the goal is paused and wait for /goal resume before continuing goal pursuit. Do not call update_goal unless the goal is actually complete.`,
+.pi/extensions/goal/prompts.ts:53:		details: { goalId: goal.goalId, kind: "pause", promptId: PAUSE_PROMPT_ID, createdAt: Date.now(), reason: "pause" },
+.pi/extensions/goal/prompts.ts:72:The system has marked the goal as budget_limited after a ${resource} budget limit, so do not start new substantive work for this goal. If get_goal reports this goal is paused, absent, complete, active, or has a different goal id, treat this wrap-up message as stale and do not continue goal work. Wrap up this turn soon: summarize useful progress, identify remaining work or blockers, and leave the user with a clear next step.
+.pi/extensions/goal/tools.ts:10:import { registerGoalQueueTools } from "./queue-tools";
+.pi/extensions/goal/tools.ts:11:import { getRecentMonitorLogs } from "./monitor-state";
+.pi/extensions/goal/tools.ts:36:	status: Type.Optional(Type.String({ description: "Optional status update: active, paused, or complete" })),
+.pi/extensions/goal/tools.ts:96:			"Use when queue steering asks you to resolve an abstract or prompt-like queued item against reusable goal templates before deciding whether to call start_queued_goal.",
+.pi/extensions/goal/tools.ts:97:			"Use the returned names, aliases, descriptions, and placeholders to decide whether a queued request semantically matches exactly one template and whether enough structured values are available before creating a goal from a template.",
+.pi/extensions/goal/tools.ts:132:			"Use when queue steering and list_goal_templates identify exactly one reusable template that fits a queued orchestration item.",
+.pi/extensions/goal/tools.ts:147:		description: "Update the current pi-goal when the user explicitly asks to edit, pause, resume, or complete it.",
+.pi/extensions/goal/tools.ts:174:			const queueSize = runtime.getQueueSize?.() ?? 0;
+.pi/extensions/goal/tools.ts:175:			if (queueSize > 0) runtime.sendQueueSteering?.("goal-clear");
+.pi/extensions/goal/tools.ts:176:			const queueHint = queueSize > 0 ? ` ${queueSize} queued goal${queueSize > 1 ? "s" : ""} available. Queue steering was sent to the agent context.` : "";
+.pi/extensions/goal/tools.ts:177:			return resultForGoal(null, getTelemetry(), goal ? `Goal cleared.${queueHint}` : `No goal was set.${queueHint}`);
+.pi/extensions/goal/tools.ts:186:		"Use status paused or active only when the user explicitly asks to pause or resume the goal.",
+.pi/extensions/goal/tools.ts:267:		return errorResult(`Cannot resume: ${resource} budget is still exhausted. Raise the budget or use clear_goal before resuming.`);
+.pi/extensions/goal/tools.ts:286:		runtime.scheduleContinuation?.(ctx, "resumed");
+.pi/extensions/goal/tools.ts:345:		if (!status) return { ok: false, error: "status must be active, paused, or complete when provided." };
+.pi/extensions/goal/tools.ts:420:	if (status === "active" || status === "paused" || status === "complete") return status;
+.pi/extensions/goal/ui.ts:38:	const choice = await ctx.ui.select("Resume paused goal?", ["Resume goal", "Leave paused"]);
+.pi/extensions/goal/floor-steering.ts:25:		id: "requirement_gap_audit",
+.pi/extensions/goal/floor-steering.ts:26:		label: "Requirement gap audit",
+.pi/extensions/goal/floor-steering.ts:28:		concreteFirstAction: "Re-read the objective and map each explicit requirement to a concrete artifact, command, file, or proof.",
+.pi/extensions/goal/floor-steering.ts:36:		concreteFirstAction: "Attack assumptions, enumerate failure modes, and add or tighten a mitigation, test, or proof row.",
+.pi/extensions/goal/floor-steering.ts:52:		concreteFirstAction: "Inspect one relevant source and write back the finding only if it changes the design, proof, or artifact.",
+.pi/extensions/goal/floor-steering.ts:70:		avoid: ["style-only churn"],
+.pi/extensions/goal/floor-steering.ts:75:		chooseWhen: "Change may affect replay, queue, budgets, UI, safety, security, performance, or accessibility.",
+.pi/extensions/goal/floor-steering.ts:84:		concreteFirstAction: "Improve README, issue, comments, closeout, proof links, or handoff evidence with one concrete missing detail.",
+.pi/extensions/goal/floor-steering.ts:94:	return preferByObjective(candidates, context.goal.objective) ?? candidates.find((card) => card.id === "requirement_gap_audit") ?? candidates[0];
+.pi/extensions/goal/floor-steering.ts:108:Use at least one concrete tool-backed inspection, edit, or proof when tools are available. Do not ask the user what else to do merely because the floor is unmet. If no safe autonomous card can produce objective-linked evidence, record noMoreValuableWorkReason: "no_safe_autonomous_work" instead of manufacturing busywork.`;
+.pi/extensions/goal/floor-steering.ts:122:Do not ask the user what else to do unless the original objective explicitly required a user decision or a separate safety/destructive-action boundary blocks autonomous work. Do not fill quota with repeated summaries or unrelated churn.`;
+.pi/extensions/goal/floor-steering.ts:143:	if (/test|probe|validate|proof|live/.test(lower)) ordered.push("validation_expansion");
+.pi/extensions/goal/floor-steering.ts:146:	if (/compat|replay|queue|budget|ui|security|performance|accessibility/.test(lower)) ordered.push("compatibility_review");
+.pi/extensions/goal/format.ts:60:		case "paused":
+.pi/extensions/goal/format.ts:61:			return "paused";
+.pi/extensions/goal/format.ts:80:			return "Commands: /goal pause, /goal clear";
+.pi/extensions/goal/format.ts:81:		case "paused":
+.pi/extensions/goal/format.ts:82:			return "Commands: /goal resume, /goal clear";
+.pi/extensions/goal/format.ts:84:			return "Commands: /goal clear (budget still exhausted; raise budget to resume)";
+.pi/extensions/goal/format.ts:130:		case "paused":
+.pi/extensions/goal/format.ts:131:			return "Goal paused (/goal resume)";
+.pi/extensions/goal/format.ts:140:	if (goal.status === "paused") return undefined;
+.pi/extensions/goal/constants.ts:4:export const PAUSE_MESSAGE_TYPE = "pi-goal-pause";
+.pi/extensions/goal/constants.ts:5:export const GOAL_MONITOR_MESSAGE_TYPE = "pi-goal-monitor-steer";
+.pi/extensions/goal/constants.ts:6:export const QUEUE_MESSAGE_TYPE = "pi-goal-queue-steer";
+.pi/extensions/goal/constants.ts:7:export const GOAL_MONITOR_LOG_ENTRY_TYPE = "pi-goal-monitor-log";
+.pi/extensions/goal/constants.ts:36:export const PAUSE_PROMPT_ID = "pi-goal-pause-v1";
+.pi/extensions/goal/constants.ts:37:export const GOAL_MONITOR_PROMPT_ID = "pi-goal-monitor-v1";
+.pi/extensions/goal/constants.ts:38:export const QUEUE_PROMPT_ID = "pi-goal-queue-v1";
+.pi/extensions/goal/monitor-prompts.ts:6:	return `You are the persistent third-party churn monitor for one active pi-goal.
+.pi/extensions/goal/monitor-prompts.ts:9:Your job is to judge whether the worker is visibly stuck in unproductive churn and, only when justified, provide one narrow steering instruction.
+.pi/extensions/goal/monitor-prompts.ts:13:Do not be impatient. A hard task, long runtime, one failed attempt, repeated validation, or sparse report cadence is not automatically churn.
+.pi/extensions/goal/monitor-prompts.ts:14:Use timestamps, elapsed time, prior churn-log entries, and recent worker behavior to decide whether there is real identifiable churn.
+.pi/extensions/goal/monitor-prompts.ts:15:You receive only bounded recent churn-log entries. Reason from that bounded history and do not assume omitted entries are evidence.
+.pi/extensions/goal/monitor-prompts.ts:17:Check the goal objective for any user-provided custom or special churn-monitor instructions. Treat those objective-embedded monitor instructions as goal-specific guidance for your judgment standard and steering posture, while still requiring real identifiable churn before correction. For example, if the objective says to react aggressively when the worker gets stuck on old irrelevant repo helpers, incorporate that instruction when evaluating helper-fixation evidence.
+.pi/extensions/goal/monitor-prompts.ts:32:- quota_filling_churn
+.pi/extensions/goal/monitor-prompts.ts:39:- return watch when the worker is doing a concrete catalog value pass and recent context shows new evidence, changed artifacts, proof output, compatibility findings, or a precise inspected no-gap finding;
+.pi/extensions/goal/monitor-prompts.ts:41:- monitor steering must name one next value pass and one concrete next action, for example: "Switch to validation_expansion: add or run one probe that would fail if the current artifact missed the main invariant.";
+.pi/extensions/goal/monitor-prompts.ts:44:- after repeated bad/no-evidence floor work, use floor_quality_exhausted so the completion gate can allow completion with a recorded no_more_valuable_work_reason rather than trapping the worker in churn.
+.pi/extensions/goal/monitor-prompts.ts:62:<churn_monitor_decision>
+.pi/extensions/goal/monitor-prompts.ts:69:</churn_monitor_decision>
+.pi/extensions/goal/monitor-prompts.ts:77:	return `Third-party pi-goal churn monitor steering for the active goal.
+.pi/extensions/goal/monitor-prompts.ts:79:Before following this steering, verify with get_goal if needed. If get_goal reports this goal is paused, absent, complete, budget-limited, or has a different goal id, treat this monitor steering as stale and ignore it.
+.pi/extensions/goal/monitor-prompts.ts:83:<monitor_steer>
+.pi/extensions/goal/monitor-prompts.ts:85:</monitor_steer>`;
+.pi/extensions/goal/monitor-prompts.ts:107:  <recent_churn_log limit="${report.recentLogEntries.length}">
+.pi/extensions/goal/monitor-prompts.ts:109:  </recent_churn_log>
+.pi/extensions/goal/monitor-prompts.ts:141:    <floor_churn_steer_count>${floor.floorChurnSteerCount}</floor_churn_steer_count>
+.pi/extensions/goal/monitor-prompts.ts:163:    <last_safety_pause_reason>${escapeXml(telemetry.lastSafetyPauseReason ?? "none")}</last_safety_pause_reason>
+.pi/extensions/goal/monitor-prompts.ts:172:    <floor_churn_steer_count>${telemetry.floorChurnSteerCount ?? 0}</floor_churn_steer_count>
+.pi/extensions/goal/telemetry.ts:215:		case "quota_filling_churn":
+.pi/extensions/goal/queue-steering.ts:3:import { getQueue, type QueuedGoal } from "./queue-state";
+.pi/extensions/goal/queue-steering.ts:14:			content: queueSteeringContent(next),
+.pi/extensions/goal/queue-steering.ts:16:			details: { kind: "queueNext", promptId: QUEUE_PROMPT_ID, queueId: next.queueId, reason, createdAt: Date.now() },
+.pi/extensions/goal/queue-steering.ts:23:export function queueSteeringStillValid(message: Record<string, unknown>): boolean {
+.pi/extensions/goal/queue-steering.ts:25:	const queueId = details?.queueId;
+.pi/extensions/goal/queue-steering.ts:26:	return typeof queueId === "string" && getQueue()[0]?.queueId === queueId;
+.pi/extensions/goal/queue-steering.ts:29:function queueSteeringContent(goal: QueuedGoal): string {
+.pi/extensions/goal/queue-steering.ts:31:		"A queued item is ready to resolve. Do not start it blindly; first decide whether it should be handled by an existing reusable goal prompt or as a direct one-off goal.",
+.pi/extensions/goal/queue-steering.ts:33:		`Queue ID: ${goal.queueId}`,
+.pi/extensions/goal/queue-steering.ts:36:		"Next queued item/objective:",
+.pi/extensions/goal/queue-steering.ts:40:		"1. Classify the queue head semantically using current context before calling any queue-start tool.",
+.pi/extensions/goal/queue-steering.ts:41:		"2. Reusable-prompt check: if the text names a prompt/template, uses a prompt-like slug, or describes a reusable workflow/task type, call list_goal_templates and compare the queue text with template names, aliases, descriptions, and required placeholders.",
+.pi/extensions/goal/queue-steering.ts:42:		"3. If exactly one reusable template fits and required values can be derived from the queue text or current context, use create_goal_from_template. Do NOT call start_queued_goal and do NOT make the prose itself the active goal.",
+.pi/extensions/goal/queue-steering.ts:43:		"4. If a likely template fits but required values are missing, ask for or gather the missing context. Leave this queue item in place until resolved.",
+.pi/extensions/goal/queue-steering.ts:44:		"5. Direct goal fallback: call start_queued_goal only when no reusable template fits, or when the text itself is clearly the concrete one-off goal to perform.",
+.pi/extensions/goal/queue-steering.ts:45:		"6. For orchestration/JIT work, use existing goal tools as appropriate: create_goal, create_goal_from_template, or enqueue_goal. Do not rely on extension-side prose parsing; you, the agent, resolve the intent from context.",
+.pi/extensions/goal/queue-steering.ts:46:		"7. One orchestration queue item may require one or more consecutive active goals before it is satisfied. Keep this queue item at the head while you execute those concrete goal(s).",
+.pi/extensions/goal/queue-steering.ts:47:		"8. After the concrete goal(s) requested by this orchestration item are complete/satisfied, call dequeue_goal exactly once to consume this queue item. If you see this same queue item again after satisfying it, dequeue it instead of recreating the same goal.",
+.pi/extensions/goal/queue-steering.ts:48:		"9. If needed context is missing or a non-complete active goal blocks the next action, leave this queue item in place and continue/resolve the blocker instead of dequeuing it.",
+.pi/extensions/goal/queue-steering.ts:52:			"Structured template metadata: this queue item already stores a reusable template reference.",
+.pi/extensions/goal/queue-steering.ts:53:			`If classified as a direct goal, start_queued_goal will re-resolve template '${goal.template}' with flags=${JSON.stringify(goal.templateFlags ?? {})}, args=${JSON.stringify(goal.templateArgs ?? "")}.`,
+.pi/extensions/goal/queue-steering.ts:54:			"If you cannot use the direct path, use create_goal_from_template rather than create_goal, and dequeue only after successful direct creation or completed orchestration satisfaction.",
+.pi/extensions/goal/queue-steering.ts:58:			"Plain queue entry: use start_queued_goal only if you classified this item as a direct goal.",
+.pi/extensions/goal/queue-steering.ts:59:			"Example orchestration wording such as 'run/create/start the deslop-commit-range goal template' means use create_goal_from_template (or another existing goal tool), not start_queued_goal.",
+.pi/extensions/goal/lifecycle.ts:27:import { cancelGoalMonitor, replayGoalMonitorState, scheduleGoalMonitor } from "./monitor";
+.pi/extensions/goal/lifecycle.ts:28:import { replayQueueState } from "./queue-state";
+.pi/extensions/goal/lifecycle.ts:29:import { queueSteeringStillValid, sendQueueSteering } from "./queue-steering";
+.pi/extensions/goal/lifecycle.ts:63:	if (event.reason !== "reload" && state.goal?.status === "paused" && ctx.hasUI) {
+.pi/extensions/goal/lifecycle.ts:64:		const resume = await promptResumePausedGoal(ctx, state.goal);
+.pi/extensions/goal/lifecycle.ts:65:		if (resume) {
+.pi/extensions/goal/lifecycle.ts:67:			persistUpdateGoal(pi, active, state.telemetry, "resume");
+.pi/extensions/goal/lifecycle.ts:70:			scheduleMaybeContinueGoal(pi, ctx, "resumed");
+.pi/extensions/goal/lifecycle.ts:220:		await pauseForSafety(pi, ctx, updated, "abort", "Goal paused because the assistant response was aborted. Run /goal resume to continue.");
+.pi/extensions/goal/lifecycle.ts:228:		await pauseForSafety(pi, ctx, updated, reason, "Goal paused by pi-goal safety limits. Run /goal resume to continue.");
+.pi/extensions/goal/lifecycle.ts:242:async function pauseForSafety(
+.pi/extensions/goal/lifecycle.ts:251:	const paused: GoalState = { ...goal, status: "paused", updatedAt: Date.now() };
+.pi/extensions/goal/lifecycle.ts:253:	persistUpdateGoal(pi, paused, telemetry, reason === "abort" ? "abort" : "safety");
+.pi/extensions/goal/lifecycle.ts:255:	syncGoalUi(ctx, paused);
+.pi/extensions/goal/lifecycle.ts:365:	return queueSteeringStillValid(message) ? "valid" : "invalid";
+.pi/extensions/goal/lifecycle.ts:382:	if (customType === GOAL_MONITOR_MESSAGE_TYPE) return status === "active" && kind === "monitorSteer";
+.pi/extensions/goal/lifecycle.ts:383:	return status === "paused" && kind === "pause";
+- promoted ISSUE-024 to open and removed refine copy; updated downstream references.
+slop_exit=0
+typecheck_exit=0
+quality_exit=0

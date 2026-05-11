@@ -1,0 +1,7 @@
+PASS proof_gate_decision_probe
+PASS proof_runner_probe
+PASS replay_probe
+PASS floor_budget_regression
+PASS live_probe
+PASS slop_guard
+PASS required_proof_names_retained

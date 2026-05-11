@@ -1,0 +1,4 @@
+
+> pi-goals@0.2.0 typecheck:goal
+> tsc --noEmit --target ES2022 --module ESNext --moduleResolution node --ignoreDeprecations 6.0 --types node --strict --skipLibCheck .pi/extensions/goal/*.ts
+

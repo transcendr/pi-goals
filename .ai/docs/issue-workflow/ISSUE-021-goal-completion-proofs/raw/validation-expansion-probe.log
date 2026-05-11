@@ -1,0 +1,48 @@
+PASS section # ISSUE-021
+PASS section Status: refine
+PASS section Target bucket: refine
+PASS section Issue kind: feature
+PASS section ## Goal
+PASS section ## Desired behavior
+PASS section ## Grounded research findings
+PASS section ## Locked design choices
+PASS section ## Acceptance criteria
+PASS section ## Required proofs
+PASS section ## TOON synthesis
+PASS numbered artifacts through 23 exist :: 00-request.md,01-protocol-read.md,02-grounded-research.md,03-design-lock.md,04-proof-threat-model.md,05-issue-writeback.md,06-final-audit.md,07-dataflow-and-seams.md,08-proof-schema-sketch.md,09-execution-plan.md,10-executor-review-checklist.md,11-proof-condition-matrix.md,12-validation-expansion.md,13-runner-safety-research.md,14-bcu-external-research-attempt.md,15-adversarial-review.md,16-acceptance-traceability-matrix.md,17-closeout-snapshot.md,18-tool-api-design.md,19-validation-probe-design.md,20-proof-ui-rendering-plan.md,21-proof-evaluator-api.md,22-readme-update-plan.md,23-worktree-freshness-design.md
+PASS linked 00-request.md
+PASS linked 01-protocol-read.md
+PASS linked 02-grounded-research.md
+PASS linked 03-design-lock.md
+PASS linked 04-proof-threat-model.md
+PASS linked 05-issue-writeback.md
+PASS linked 06-final-audit.md
+PASS linked 07-dataflow-and-seams.md
+PASS linked 08-proof-schema-sketch.md
+PASS linked 09-execution-plan.md
+PASS linked 10-executor-review-checklist.md
+PASS linked 11-proof-condition-matrix.md
+PASS linked 12-validation-expansion.md
+PASS linked 13-runner-safety-research.md
+PASS linked 14-bcu-external-research-attempt.md
+PASS linked 15-adversarial-review.md
+PASS linked 16-acceptance-traceability-matrix.md
+PASS linked 17-closeout-snapshot.md
+PASS linked 18-tool-api-design.md
+PASS linked 19-validation-probe-design.md
+PASS linked 20-proof-ui-rendering-plan.md
+PASS linked 21-proof-evaluator-api.md
+PASS linked 22-readme-update-plan.md
+PASS linked 23-worktree-freshness-design.md
+PASS linked raw/check-ignore-final.log
+PASS linked raw/commands.log
+PASS linked raw/diff-check.log
+PASS linked raw/path-existence-audit.log
+PASS linked raw/status-final.log
+PASS linked raw/validation-expansion-probe.log
+PASS design needle trusted requirement source/reference
+PASS design needle goal.updatedAt
+PASS design needle proof-tools.ts
+PASS design needle 23-worktree-freshness-design.md
+PASS design needle goal-proof-replay-probe.mjs
+PASS workflow artifacts are not ignored :: git check-ignore status=1

@@ -1,0 +1,75 @@
+# Commands / tool actions log
+
+- Classified queue item q-1778443864560-6 as reusable-template orchestration.
+- Called list_goal_templates; matched `create-issue-doc` exactly.
+- Inspected refine bucket issue headers and selected ISSUE-015.
+- Called create_goal_from_template for create-issue-doc with min_time_seconds_before_wrap_up=900.
+- Read AGENTS.md, create-issue-doc template, feature-workflow-pipelines skill and references, and AXI skill.
+- Read .ai/issues/refine/ISSUE-015-goal-subgoals.md.
+
+- Ran rg surface scan for GoalState/tools/queue/templates/completion/UI and saved raw/research-rg.log.
+- Ran sentrux gate --save .pi/extensions/goal as planning sensor and saved raw/sentrux-gate.log.
+
+- Wrote 02-grounded-research.md, 03-design-lock.md, and 04-proof-threat-model.md after owner chose nested child runtime.
+
+- Wrote 05-issue-writeback.md and 06-final-audit.md.
+- Ran dynamic validation probe for issue sections, links, design needles, and artifact visibility; saved raw/validation-probe.log.
+- Ran path existence audit with future .ai/validation/goal-subgoal-* proof files explicitly treated as implementation deliverables; saved raw/path-existence-audit.log.
+- Ran final git diff --check, git status --short --untracked-files=all, and representative git check-ignore; saved raw logs.
+- Fixed validation issues: exact owner-decision casing and wildcard template path reference. Reran validation, path audit, diff check, status, and check-ignore successfully.
+- Added 07-acceptance-traceability.md and linked it from the canonical issue to make acceptance-to-proof coverage explicit.
+- Refreshed path audit, diff check, status, and check-ignore after adding acceptance traceability artifact.
+- Corrected closeout needle check command and reran final diff-check after the earlier shell heredoc syntax error.
+- Recorded artifact line counts as a final sanity check of durable artifact presence.
+- Final refreshed status/check-ignore after closeout line-count and needle-check artifacts.
+- Promoted ISSUE-015 canonical issue from .ai/issues/refine/ISSUE-015-goal-subgoals.md to .ai/issues/open/ISSUE-015-goal-subgoals.md and updated status/bucket/link text.
+- Corrected ISSUE-015 open issue status/bucket/path text with node after python was unavailable in the shell.
+- Updated downstream references to ISSUE-015 from refine path to open path where current planning docs referenced the canonical issue.
+- Ran ISSUE-015 open promotion validation plus diff/status/check-ignore refresh.
+- Ran slop/typecheck package-script checks for ISSUE-015 promotion and wrote 12-package-script-proof-check.md.
+- Ran promotion-invariant-probe.log for ISSUE-015 canonical open location, stale refine removal, locked design, proof rows, and artifact links.
+- Linked promotion-invariant-probe.log from canonical ISSUE-015.
+- Ran npm run quality:goal after ISSUE-015 open promotion/downstream reference updates.
+- Added executor handoff, refreshed artifact line counts, full validation, diff/status/check-ignore logs.
+- Added artifacts 14-15, linked them from canonical issue, and ran open-path-audit.log.
+- Updated 06-final-audit.md with open-bucket promotion addendum for artifacts 08-15.
+- Ran stale refine path audit for ISSUE-015 current docs and wrote 16-stale-reference-audit.md.
+- Updated additional current downstream references in ISSUE-019, ISSUE-022, and leverage-order addendum from ISSUE-015 refine path to open path.
+- Linked 16-stale-reference-audit.md and updated final audit.
+- Read .ai/.pi-goals/dirty-worktree-cleanup.md and added 17-template-containment-readback.md to reinforce nested-template containment requirement.
+- Read .ai/.pi-goals/deslop-pipeline.md and added 18-parent-pipeline-readback.md to confirm returnToParent step context requirement.
+- Added 19-subgoal-state-matrix.md and 20-replay-bounds-handoff.md to sharpen implementation handoff.
+- Updated 06-final-audit.md with artifacts 17-20.
+- Captured final open/refine issue inventories and wrote 21-closeout-summary.md.
+- Linked 21-closeout-summary.md and final inventories from canonical issue.
+- Captured list_goal_queue state in 22-queue-state-checkpoint.md.
+- Re-read .pi/extensions/goal/types.ts and added 23-types-source-recheck.md.
+- Re-read .pi/extensions/goal/state.ts and added 24-state-source-recheck.md with replay normalization impact.
+- Updated 06-final-audit.md with artifacts 21-24.
+- Re-read .pi/extensions/goal/tools.ts and added 25-tools-registration-recheck.md.
+- Re-read .pi/extensions/goal/tool-results.ts and added 26-tool-output-recheck.md.
+- Re-read .pi/extensions/goal/widget.ts and added 27-widget-source-recheck.md.
+- Re-read .pi/extensions/goal/prompts.ts and added 28-prompt-source-recheck.md.
+- Updated 06-final-audit.md with artifacts 25-28.
+- Read README.md and added 29-readme-update-plan.md.
+- Updated 06-final-audit.md with artifact 29.
+- Ran stack-order-after-promotion-probe.log and wrote 30-stack-order-after-promotion.md.
+- Linked 30-stack-order-after-promotion.md and updated final audit.
+- Added 31-acceptance-traceability-addendum.md and linked it from canonical issue/final audit.
+- Captured issue015-promotion-fingerprint.log and wrote 32-fingerprint.md.
+- Linked 32-fingerprint.md and updated final audit.
+- Refreshed open-path-audit.log and check-ignore-final.log after artifact 32.
+- Refreshed final status and diff-check after path audit.
+- Re-read .pi/extensions/goal/monitor-report.ts and added 33-monitor-report-recheck.md.
+- Re-read .pi/extensions/goal/ui.ts and added 34-ui-source-recheck.md.
+- Re-read .pi/extensions/goal/format.ts and added 35-format-source-recheck.md.
+- Refreshed artifact inventory, full validation, diff/status/check-ignore after artifact 35.
+- Ran final-promotion-invariant-probe.log and wrote 36-final-promotion-invariant.md.
+- Linked 36-final-promotion-invariant.md and updated final audit.
+- Re-read .pi/extensions/goal/budget.ts and added 37-budget-source-recheck.md.
+- Refreshed final-promotion-invariant-probe.log after artifact 37 and refreshed diff/check-ignore.
+- Re-read .pi/extensions/goal/queue-state.ts and added 38-queue-source-recheck.md.
+- Added 39-final-closeout-readback.md and linked it from canonical issue/final audit.
+- Ran final-closeout-probe.log covering closeout summary, validation links, and next ISSUE-016 pointer.
+- Linked final-closeout-probe.log and refreshed diff/status logs.
+- Ran last-mile-audit.log immediately before completion attempt.

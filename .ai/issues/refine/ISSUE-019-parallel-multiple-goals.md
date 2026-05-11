@@ -10,7 +10,7 @@ Target repo roots: `/Users/bryan/dev/personal/experiments/pi-goals`
 Parent issue: `.ai/issues/fixed/ISSUE-001-pi-goal-extension.md`
 Depends on:
 - `.ai/issues/refine/ISSUE-018-goal-start-in-worktree.md`
-- `.ai/issues/refine/ISSUE-015-goal-subgoals.md`
+- `.ai/issues/open/ISSUE-015-goal-subgoals.md`
 
 Goal: Design support for multiple goals that can run sequentially or in parallel as multiple Pi agents, optionally with one worktree per goal.
 

@@ -1,0 +1,1688 @@
+## queue classification
+parent q-1778452744568-2 classified as orchestration; template create-issue-doc matched; active concrete ISSUE-022 goal created with 12m floor.
+
+$ git status --short
+ M .ai/issues/fixed/ISSUE-020-goal-churn-monitor.md
+ D .ai/issues/refine/ISSUE-015-goal-subgoals.md
+ D .ai/issues/refine/ISSUE-016-goal-idle-tolerant-mode.md
+ M .ai/issues/refine/ISSUE-019-parallel-multiple-goals.md
+ D .ai/issues/refine/ISSUE-021-goal-completion-proofs.md
+ M .ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md
+ M .ai/issues/refine/ISSUE-023-goal-dependency-triggers-and-watchers.md
+ D .ai/issues/refine/ISSUE-024-goal-audit-command.md
+ M .pi/extensions/goal/.sentrux/baseline.json
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/
+?? .ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/
+?? .ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/
+?? .ai/issues/open/ISSUE-015-goal-subgoals.md
+?? .ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md
+?? .ai/issues/open/ISSUE-021-goal-completion-proofs.md
+?? .ai/issues/open/ISSUE-024-goal-audit-command.md
+
+$ find .ai/issues -maxdepth 2 -type d | sort
+.ai/issues
+.ai/issues/closed
+.ai/issues/defer
+.ai/issues/fixed
+.ai/issues/open
+.ai/issues/refine
+
+$ find .ai/issues/open .ai/issues/refine .ai/issues/fixed .ai/issues/defer .ai/issues/closed -maxdepth 1 -type f -name ISSUE-*.md | sort | tail -80
+.ai/issues/fixed/ISSUE-001-pi-goal-extension.md
+.ai/issues/fixed/ISSUE-002-goal-pause-active-turn-interrupt.md
+.ai/issues/fixed/ISSUE-003-paused-goal-continuation-guard.md
+.ai/issues/fixed/ISSUE-004-goal-subcommand-fuzzy-autocomplete.md
+.ai/issues/fixed/ISSUE-005-goal-widget-labels-and-time-budget.md
+.ai/issues/fixed/ISSUE-006-goal-widget-card-ui.md
+.ai/issues/fixed/ISSUE-007-goal-budget-warning-and-hard-stop.md
+.ai/issues/fixed/ISSUE-008-goal-objective-limit-15k.md
+.ai/issues/fixed/ISSUE-009-goal-budget-edit-status-recompute.md
+.ai/issues/fixed/ISSUE-010-goal-update-telemetry-completion-semantics.md
+.ai/issues/fixed/ISSUE-012-goal-budget-limited-resume-and-wrapup-gaps.md
+.ai/issues/fixed/ISSUE-017-reusable-goal-prompt-docs.md
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md
+.ai/issues/fixed/ISSUE-025-goal-line-breaks-widget-rendering.md
+.ai/issues/fixed/ISSUE-026-nl-reusable-goal-prompts.md
+.ai/issues/fixed/ISSUE-027-goal-queue.md
+.ai/issues/fixed/ISSUE-028-goal-replacement-preview.md
+.ai/issues/fixed/ISSUE-029-goal-queue-direct-enqueue.md
+.ai/issues/fixed/ISSUE-030-queued-goal-steering.md
+.ai/issues/fixed/ISSUE-031-goal-queue-template-autocomplete.md
+.ai/issues/fixed/ISSUE-032-prose-queue-orchestration-guidance.md
+.ai/issues/fixed/ISSUE-033-resume-processes-queued-goals.md
+.ai/issues/fixed/ISSUE-034-prevent-unsatisfied-queued-goal-discard.md
+.ai/issues/fixed/ISSUE-035-multi-item-goal-queue-block.md
+.ai/issues/fixed/ISSUE-036-minimum-goal-spend-floors.md
+.ai/issues/open/ISSUE-015-goal-subgoals.md
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md
+.ai/issues/open/ISSUE-024-goal-audit-command.md
+.ai/issues/open/ISSUE-037-goal-queue-auto-continuation-after-complete.md
+.ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md
+.ai/issues/refine/ISSUE-013-goal-update-natural-language.md
+.ai/issues/refine/ISSUE-014-goal-progress-estimates.md
+.ai/issues/refine/ISSUE-018-goal-start-in-worktree.md
+.ai/issues/refine/ISSUE-019-parallel-multiple-goals.md
+.ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md
+.ai/issues/refine/ISSUE-023-goal-dependency-triggers-and-watchers.md
+
+$ rg -n "checkpoint|history|compact|compaction|custom entr|telemetry|state" .pi/extensions/goal README.md .ai/issues/open .ai/issues/refine
+README.md:3:Persistent goal tracking for [Pi](https://www.npmjs.com/package/@earendil-works/pi-coding-agent). Inspired by Codex CLI's `/goal`, `pi-goals` adds Pi-native UX, rewindable `/tree`-compatible goal state, time and token budgets, reusable token-aware prompts, automated churn monitoring, and more.
+README.md:10:- Rewindable `/tree`-compatible state persisted into the Pi session branch.
+README.md:57:- `/goal clear` — remove the current goal from active state.
+README.md:63:`pi-goals` supports a durable FIFO queue for sequential work. Queued goals are persisted into the Pi branch alongside goal state, so replay and `/tree` semantics remain coherent.
+README.md:156:Long-running goals can drift, loop, or stall. `pi-goals` runs a lightweight goal-scoped churn monitor that periodically reviews sparse session context, recent goal telemetry, recent completion-floor state, and recent monitor decisions.
+README.md:166:Monitor state is goal-scoped and replayable, so branching and `/tree` operations stay aligned with the active goal history.
+.pi/extensions/goal/state.ts:3:import { isTelemetry } from "./telemetry";
+.pi/extensions/goal/state.ts:15:let runtimeState: GoalRuntimeState = { goal: null, telemetry: null };
+.pi/extensions/goal/state.ts:22:	return runtimeState.telemetry;
+.pi/extensions/goal/state.ts:26:	return { goal: runtimeState.goal, telemetry: runtimeState.telemetry };
+.pi/extensions/goal/state.ts:30:	let next: GoalRuntimeState = { goal: null, telemetry: null };
+.pi/extensions/goal/state.ts:40:export function setRuntimeStateForTests(state: GoalRuntimeState): void {
+.pi/extensions/goal/state.ts:41:	runtimeState = state;
+.pi/extensions/goal/state.ts:64:	telemetry: GoalTelemetrySnapshot,
+.pi/extensions/goal/state.ts:67:	return persistEvent(pi, { kind: "set", goalId: goal.goalId, goal, telemetry, reason });
+.pi/extensions/goal/state.ts:73:	telemetry: GoalTelemetrySnapshot | null,
+.pi/extensions/goal/state.ts:77:		return { ok: false, goal: runtimeState.goal, telemetry: runtimeState.telemetry, message: "Stale goal update ignored." };
+.pi/extensions/goal/state.ts:79:	return persistEvent(pi, { kind: "update", goalId: goal.goalId, goal, telemetry, reason });
+.pi/extensions/goal/state.ts:84:	telemetry: GoalTelemetrySnapshot | null,
+.pi/extensions/goal/state.ts:88:	if (!goal || !telemetry || telemetry.goalId !== goal.goalId) {
+.pi/extensions/goal/state.ts:89:		return { ok: false, goal, telemetry: runtimeState.telemetry, message: "Stale telemetry update ignored." };
+.pi/extensions/goal/state.ts:91:	return persistEvent(pi, { kind: "telemetry", goalId: goal.goalId, goal, telemetry, reason });
+.pi/extensions/goal/state.ts:98:	telemetry: GoalTelemetrySnapshot | null,
+.pi/extensions/goal/state.ts:103:		return { ok: false, goal: current, telemetry: runtimeState.telemetry, message: "Stale accounting ignored." };
+.pi/extensions/goal/state.ts:111:	return persistEvent(pi, { kind: "account", goalId, goal, telemetry, delta, reason });
+.pi/extensions/goal/state.ts:115:	return persistEvent(pi, { kind: "clear", goalId: runtimeState.goal?.goalId, goal: null, telemetry: null, reason });
+.pi/extensions/goal/state.ts:125:	return { ok: true, goal: runtimeState.goal, telemetry: runtimeState.telemetry };
+.pi/extensions/goal/state.ts:128:function applyEvent(state: GoalRuntimeState, event: PiGoalStateEvent): GoalRuntimeState {
+.pi/extensions/goal/state.ts:129:	if (event.kind === "clear") return { goal: null, telemetry: null };
+.pi/extensions/goal/state.ts:130:	if (event.goalId && state.goal && event.goalId !== state.goal.goalId && event.kind !== "set") return state;
+.pi/extensions/goal/state.ts:132:	const goal = parsedGoal ?? state.goal;
+.pi/extensions/goal/state.ts:133:	const telemetry = event.telemetry === null ? null : isTelemetry(event.telemetry) ? event.telemetry : state.telemetry;
+.pi/extensions/goal/state.ts:134:	return { goal, telemetry };
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:18:- `.ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:114:- proof execution/result state is durable in the Pi branch and visible through tools/UI summaries;
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:122:- `.pi/extensions/goal/state.ts`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:135:- `.pi/extensions/goal/telemetry.ts`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:141:- `.ai/issues/fixed/ISSUE-010-goal-update-telemetry-completion-semantics.md`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:146:- `.ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:153:- `state.ts` persists branch-replayable `pi-goal-state` custom entries. Optional proof fields can be added backward-compatibly if parsing remains defensive.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:157:- `templates.ts` supports inline commands during template resolution when `allow_commands: true`; that is not a safe substitute for completion proof execution because proof gates must be explicit, bounded, auditable, and tied to goal state.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:159:- `monitor-report.ts` includes floor state in sparse monitor reports. Compact proof state can be included later for monitor awareness, but deterministic proof pass/fail must not depend on monitor judgment.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:163:- ISSUE-024 confirms `/goal audit` should remain a qualitative review surface that can consume proof state later; it should not be bundled with the first proof-gate implementation.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:164:- ISSUE-015/022/023 show future coordination points for subgoal-level proof gates, checkpoint summaries of proof results, and bounded command-runner reuse with watchers; none should block first-release top-level completion proof gates.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:165:- ISSUE-010 confirms completion telemetry must be based on actual successful tool results, not attempted status updates; proof-gate telemetry should follow the same principle.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:167:- `state.ts:persistAccountGoal` updates `goal.updatedAt` on accounting-only turns, so proof freshness must use content/config fingerprints instead of raw `updatedAt`.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:171:- `format.ts`, `widget.ts`, and `ui.ts` show proof rendering must be compact to avoid crowding the existing card/status surfaces.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:173:- After open-bucket promotion, `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/26-current-code-readiness-audit.md` rechecked `completion-gate.ts`, `tools.ts`, `tool-results.ts`, `state.ts`, `lifecycle.ts`, and `continuation.ts`; the live code still matches the planned proof-gate insertion seams.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:179:Chosen: store effective proof gates and proof results on `GoalState` or adjacent replayed goal state, not only in prompt docs.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:220:- Do **not** use raw `goal.updatedAt` as the freshness key: `state.ts:persistAccountGoal` updates `updatedAt` on every turn for token/time accounting, and accounting alone must not stale proof results.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:221:- Add a `freshness` mode with at least `goal_state` and `worktree_status`. For `worktree_status`, follow `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/23-worktree-freshness-design.md`: capture the post-proof `git status --short --untracked-files=all` fingerprint for the resolved cwd and require it to match before completion.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:225:Chosen first release: no model force-complete override for failed required proofs. Users can remove or edit proof gates explicitly, and those edits are auditable state changes.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:232:- Add optional proof fields to goal state and defensive replay parsing in `state.ts`; trim proof results before persistence so full goal snapshots do not duplicate unbounded proof history.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:239:- Extend `tool-results.ts` with proof-blocked completion details and compact latest proof summaries.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:242:- Render proof state in `format.ts`, `widget.ts`, and/or `ui.ts` according to `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/20-proof-ui-rendering-plan.md`, favoring detailed `get_goal`/summary output and compact widget/footer hints.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:300:  "lr1","proof gates persist on effective goal state"
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:308:  "s2",".pi/extensions/goal/state.ts","replay-compatible persisted proof fields"
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:321:  "goal_state","goal objective or proof config fingerprint changed after proof result; token/time accounting alone does not stale"
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:322:  "worktree_status","goal_state stale or current git status fingerprint differs from post-proof fingerprint captured for resolved cwd"
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:338:- Automatic checkpoint generation for proof results before ISSUE-022 is refined.
+.pi/extensions/goal/command.ts:7:import { createTelemetry, resetSafetyCounters } from "./telemetry";
+.pi/extensions/goal/command.ts:16:} from "./state";
+.pi/extensions/goal/command.ts:18:import { getQueue, enqueueGoal, persistEnqueue } from "./queue-state";
+.pi/extensions/goal/command.ts:198:	const telemetry = createTelemetry(goal.goalId, goal.createdAt);
+.pi/extensions/goal/command.ts:199:	persistSetGoal(pi, goal, telemetry, "command");
+.pi/extensions/goal/command.ts:264:	const telemetry = resetSafetyCounters(getTelemetry());
+.pi/extensions/goal/command.ts:265:	persistUpdateGoal(pi, active, telemetry, "resume");
+.pi/extensions/goal/command.ts:266:	if (telemetry) persistTelemetry(pi, telemetry, "resume");
+.pi/extensions/goal/queue-steering.ts:3:import { getQueue, type QueuedGoal } from "./queue-state";
+.ai/issues/open/ISSUE-015-goal-subgoals.md:20:- `.ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:36:- doing it only in chat loses durable progress, auditability, reload behavior, and parent return state.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:71:- Subgoal state matrix: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/19-subgoal-state-matrix.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:75:- Queue state checkpoint: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/22-queue-state-checkpoint.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:77:- State source recheck: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/24-state-source-recheck.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:123:- Accepted terminal states for a blocking subgoal are:
+.ai/issues/open/ISSUE-015-goal-subgoals.md:127:- Future `/goal audit` should incorporate subgoal state, but parent completion must be deterministically blocked even without `/goal audit`.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:132:- The footer/widget should show a compact child row such as `subgoal 1/3 active: clean dirty worktree` when subgoals exist.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:143:- `.pi/extensions/goal/state.ts`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:153:- `.pi/extensions/goal/queue-state.ts`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:162:- `.ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:171:- Queue state is for future top-level goals and should not become the blocking child execution mechanism.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:173:- UI/widget space is already dense; subgoal rendering must be compact.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:189:- Include subgoal state in completion gating, tool details, prompt context, format summaries, and compact UI.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:239:- Bounded title/objective/evidence lengths are mandatory to avoid oversized state snapshots.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:264:- [ ] Add deterministic helper functions for active child lookup, terminal-state checks, blocker summaries, and template-backed child objective rendering.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:268:- [ ] Update `ui.ts` / `widget.ts` for compact current-child rendering.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:282:- Widget/footer rendering remains compact and does not regress no-subgoal display.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:296:- Replay drops active child state.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:311:  "lr5","render current child and done/total compactly without regressing no-subgoal UI"
+.ai/issues/open/ISSUE-015-goal-subgoals.md:317:  "inv4","blocked or abandoned child states require explicit reason/evidence before parent can proceed"
+.ai/issues/open/ISSUE-015-goal-subgoals.md:318:  "inv5","state replay remains defensive and branch-local"
+.ai/issues/open/ISSUE-015-goal-subgoals.md:321:  "s2",".pi/extensions/goal/state.ts","parse/replay optional bounded subgoal fields"
+.ai/issues/open/ISSUE-015-goal-subgoals.md:326:  "s7",".pi/extensions/goal/widget.ts","compact current-child rendering"
+.ai/issues/open/ISSUE-015-goal-subgoals.md:330:  "v3","reload/replay preserves active child and evidence","state replay probe"
+.ai/issues/open/ISSUE-015-goal-subgoals.md:353:- Automatic progress-percent aggregation beyond compact counts.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:355:- Durable human-readable checkpoints beyond compact state/evidence fields; see ISSUE-022.
+.pi/extensions/goal/widget.ts:42:	if (width < MIN_CARD_WIDTH) return compactLines(goal, theme, width);
+.pi/extensions/goal/widget.ts:68:function compactLines(goal: GoalState, theme: GoalWidgetTheme, width: number): string[] {
+.pi/extensions/goal/widget.ts:74:		truncateToWidth(compactFloorValue(goal), width),
+.pi/extensions/goal/widget.ts:132:	const state = floor.allFloorsMet ? theme.fg("success", "met") : theme.fg("warning", "before wrap-up");
+.pi/extensions/goal/widget.ts:133:	return `⌊ ${theme.fg("muted", "floor")}  ${parts.join("; ")}  ${state}`;
+.pi/extensions/goal/widget.ts:144:function compactFloorValue(goal: GoalState): string {
+.ai/issues/refine/ISSUE-018-goal-start-in-worktree.md:22:- Goal state records worktree path, branch name, and origin repo.
+.ai/issues/open/ISSUE-024-goal-audit-command.md:20:- `.ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md`
+.ai/issues/open/ISSUE-024-goal-audit-command.md:28:The continuation prompt already asks the agent to perform a completion audit before calling `update_goal(status: "complete")`, but users have no explicit command for "audit where we are right now." Users need a bounded review of objective requirements, completed work, missing evidence, proof/subgoal/floor state, blockers, and next recommendations without triggering normal continuation or completion.
+.ai/issues/open/ISSUE-024-goal-audit-command.md:33:- subgoals (ISSUE-015) are durable child workflow state;
+.ai/issues/open/ISSUE-024-goal-audit-command.md:79:- Audit output restates objective requirements as a checklist and maps each item to concrete evidence.
+.ai/issues/open/ISSUE-024-goal-audit-command.md:80:- Checklist states include: `verified`, `missing`, `weak`, `blocked`, and `not_applicable`.
+.ai/issues/open/ISSUE-024-goal-audit-command.md:81:- Audit includes available proof gate status, subgoal status, floors, budgets, and relevant telemetry/monitor context when present.
+.ai/issues/open/ISSUE-024-goal-audit-command.md:98:- `types.ts` / `state.ts` have no audit event or audit record types today.
+.ai/issues/open/ISSUE-024-goal-audit-command.md:100:- ISSUE-021 and ISSUE-015 create future state that audit should consume: proof gate status and subgoal completion/blocker state.
+.ai/issues/open/ISSUE-024-goal-audit-command.md:110:- First pass persists only bounded audit metadata in a separate custom entry or goal-adjacent audit stream, not long audit prose on every `GoalState` snapshot.
+.ai/issues/open/ISSUE-024-goal-audit-command.md:119:- Audit-owned proof execution; use ISSUE-021 proof tools/state instead.
+.ai/issues/open/ISSUE-024-goal-audit-command.md:120:- Widget-heavy audit history rendering.
+.ai/issues/open/ISSUE-024-goal-audit-command.md:129:- [ ] Add bounded audit metadata event type/state replay support without storing full audit prose on `GoalState`.
+.ai/issues/open/ISSUE-024-goal-audit-command.md:145:- Audit incorporates latest proof/subgoal/floor/budget state when present.
+.ai/issues/open/ISSUE-024-goal-audit-command.md:160:- Audit ignores proof/subgoal/floor/budget state.
+.ai/issues/open/ISSUE-024-goal-audit-command.md:173:  "lr2","audit output maps objective requirements to evidence states: verified, missing, weak, blocked, not_applicable"
+.ai/issues/open/ISSUE-024-goal-audit-command.md:176:  "lr5","audit consumes proof, subgoal, floor, budget, and telemetry summaries when available"
+.ai/issues/open/ISSUE-024-goal-audit-command.md:183:  "s5",".pi/extensions/goal/state.ts","replay bounded audit metadata without bloating GoalState snapshots"
+.ai/issues/open/ISSUE-024-goal-audit-command.md:187:  "v2","audit prompt forbids completion and requires evidence checklist states","prompt static probe"
+.ai/issues/open/ISSUE-024-goal-audit-command.md:200:  "audit_prompt_guard_probe","ISSUE-024","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-audit-prompt-guard-probe.mjs","exit 0 and output includes PASS audit_prompt_forbids_completion","run","must fail if audit prompt permits completion or lacks checklist states"
+.ai/issues/open/ISSUE-024-goal-audit-command.md:202:  "audit_replay_probe","ISSUE-024","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-audit-replay-probe.mjs","exit 0 and output includes PASS audit_replay_bounded_metadata","run","must fail if audit records mutate goal status/objective or bloat replay state"
+.ai/issues/open/ISSUE-024-goal-audit-command.md:212:- Full audit history widget.
+.pi/extensions/goal/monitor.ts:13:import { persistMonitorDecisionLog, replayGoalMonitorLogs, resetGoalMonitorLogRuntime } from "./monitor-state";
+.pi/extensions/goal/monitor.ts:14:import { getGoal, getTelemetry, persistTelemetry } from "./state";
+.pi/extensions/goal/monitor.ts:15:import { applyMonitorDecisionToFloorTelemetry } from "./telemetry";
+.pi/extensions/goal/monitor-report.ts:8:import { getLastMonitorReportAt, getRecentMonitorLogs, noteMonitorReportSent } from "./monitor-state";
+.pi/extensions/goal/monitor-report.ts:11:export function buildGoalMonitorReport(ctx: ExtensionContext, goal: GoalState, telemetry: GoalTelemetrySnapshot | null, now = Date.now()): GoalMonitorReport {
+.pi/extensions/goal/monitor-report.ts:23:		telemetry,
+.pi/extensions/goal/monitor-report.ts:31:		floor: buildFloorReport(goal, telemetry),
+.pi/extensions/goal/monitor-report.ts:35:function buildFloorReport(goal: GoalState, telemetry: GoalTelemetrySnapshot | null): GoalMonitorFloorReport {
+.pi/extensions/goal/monitor-report.ts:40:		lastFloorCardId: telemetry?.lastFloorCardId,
+.pi/extensions/goal/monitor-report.ts:41:		completedFloorCardIds: telemetry?.completedFloorCardIds ?? [],
+.pi/extensions/goal/monitor-report.ts:42:		floorSteerCount: telemetry?.floorSteerCount ?? 0,
+.pi/extensions/goal/monitor-report.ts:43:		floorChurnSteerCount: telemetry?.floorChurnSteerCount ?? 0,
+.pi/extensions/goal/monitor-report.ts:44:		floorQualityState: telemetry?.floorQualityState ?? (floor.anyFloorConfigured && !floor.allFloorsMet ? "eligible" : "inactive"),
+.pi/extensions/goal/index.ts:7:import { getQueue } from "./queue-state";
+.ai/issues/refine/ISSUE-014-goal-progress-estimates.md:17:The current runtime tracks objective, status, usage, budgets, and telemetry, but does not expose a human-readable progress estimate. For long-running goals, the user may want the working agent to periodically update an estimate such as `35%` with a short rationale. This is explicitly subjective and should not be confused with proof of completion.
+.ai/issues/refine/ISSUE-014-goal-progress-estimates.md:29:1. Should progress live on `GoalState`, telemetry, or a separate progress event stream?
+.ai/issues/refine/ISSUE-014-goal-progress-estimates.md:53:- [ ] Decide state vs telemetry location.
+.pi/extensions/goal/types.ts:90:export type PiGoalEventKind = "set" | "update" | "account" | "telemetry" | "clear";
+.pi/extensions/goal/types.ts:108:	telemetry?: GoalTelemetrySnapshot | null;
+.pi/extensions/goal/types.ts:116:	telemetry: GoalTelemetrySnapshot | null;
+.pi/extensions/goal/types.ts:194:	telemetry: GoalTelemetrySnapshot | null;
+.pi/extensions/goal/types.ts:208:	telemetry: GoalTelemetrySnapshot | null;
+.ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md:14:- At narrow widths, the framed header can degrade or truncate instead of switching to a clean compact layout.
+.ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md:28:5. What exact compact layout should be shown below that minimum?
+.ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md:33:- Widths below the viable framed minimum switch to compact unframed rows.
+.ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md:42:- [ ] 011.2 Decide whether to use `Box`/`Text`/`Container`, custom border rendering, or compact-only rendering.
+.ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md:43:- [ ] 011.3 Specify exact width thresholds and compact layout for each status.
+.ai/issues/open/ISSUE-037-goal-queue-auto-continuation-after-complete.md:70:- `.pi/extensions/goal/queue-state.ts`
+.ai/issues/open/ISSUE-037-goal-queue-auto-continuation-after-complete.md:80:`tools.ts` handles `update_goal(status:"complete")` by canceling active continuation/monitor, persisting complete state, syncing UI, and returning a result. It does not directly schedule queue steering or a follow-up turn after successful completion.
+.ai/issues/open/ISSUE-037-goal-queue-auto-continuation-after-complete.md:86:The completion path relies on turn-end telemetry (`completedThisTurn`) plus non-triggering queue steering. This can produce a passive steering message that does not force a next turn, or can miss completion paths where turn telemetry is stale/absent. In either case, queued work can remain while the agent stops.
+.ai/issues/open/ISSUE-037-goal-queue-auto-continuation-after-complete.md:131:- Tests pass with mocked queue state but live Pi runtime still final-answers and stops.
+.pi/extensions/goal/tools.ts:7:import { createTelemetry, noteBudgetLimit, noteFloorCompletionDeferred } from "./telemetry";
+.pi/extensions/goal/tools.ts:9:import { createGoalState, getGoal, getTelemetry, persistClearGoal, persistSetGoal, persistTelemetry, persistUpdateGoal } from "./state";
+.pi/extensions/goal/tools.ts:11:import { getRecentMonitorLogs } from "./monitor-state";
+.pi/extensions/goal/tools.ts:78:		description: "Get the current pi-goal state, including status, budget, token usage, and time usage.",
+.pi/extensions/goal/tools.ts:79:		promptSnippet: "Inspect the active pi-goal objective and progress state.",
+.pi/extensions/goal/tools.ts:251:	const telemetry = createTelemetry(goal.goalId, goal.createdAt);
+.pi/extensions/goal/tools.ts:252:	persistSetGoal(pi, goal, telemetry, "tool");
+.pi/extensions/goal/tools.ts:255:	return resultForGoal(goal, telemetry, current?.status === "complete" ? "Goal created; replaced completed goal." : "Goal created.");
+.pi/extensions/goal/tools.ts:272:		telemetry: getTelemetry(),
+.pi/extensions/goal/tools.ts:282:	persistUpdateGoal(pi, update.goal, telemetryForUpdate(update.goal, completionDecision), "tool");
+.pi/extensions/goal/tools.ts:297:	const telemetry = noteFloorCompletionDeferred(getTelemetry(), decision.card.id);
+.pi/extensions/goal/tools.ts:298:	if (telemetry) persistTelemetry(pi, telemetry, "floor");
+.pi/extensions/goal/tools.ts:305:			telemetry: telemetry ?? getTelemetry(),
+.pi/extensions/goal/tools.ts:409:function telemetryForUpdate(goal: GoalState, completionDecision: CompletionDecision): GoalTelemetrySnapshot | null {
+.pi/extensions/goal/tools.ts:413:		const telemetry = getTelemetry();
+.pi/extensions/goal/tools.ts:414:		return telemetry ? { ...telemetry, noMoreValuableWorkReason: completionDecision.reason === "max_budget_requires_wrap_up" ? "max_budget_requires_wrap_up" : completionDecision.reason, floorQualityState: completionDecision.reason === "max_budget_requires_wrap_up" ? "overriddenByMaxBudget" : telemetry.floorQualityState, updatedAt: Date.now() } : telemetry;
+.ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md:1:# ISSUE-022 — Refine goal history, checkpoints, and compaction-aware handoffs
+.ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md:7:Next best session: design refinement pass for checkpoints/history
+.ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md:8:Next best session rationale: Storage location, checkpoint authorship, triggers, and context bounds need to be decided.
+.ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md:13:Goal: Design durable goal history/checkpoint artifacts that improve reload, compaction, handoff, and auditability without bloating provider context.
+.ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md:17:`pi-goal` persists compact state and telemetry, but it does not produce durable human-readable checkpoints. Long goals can span compaction, reload, handoffs, and branch navigation. A future maintainer may need a concise timeline: objective changes, subgoals completed, proofs run, blockers, and next action.
+.ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md:21:- `/goal checkpoint` creates a compact durable checkpoint custom entry or markdown artifact.
+.ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md:22:- Automatic checkpoints may occur on pause, budget limit, completion, or compaction-adjacent events.
+.ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md:23:- Checkpoints summarize current goal state, current subgoal, recent proof results, remaining work, and next action.
+.ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md:24:- Goal history can be viewed/exported without injecting the whole history into every model turn.
+.ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md:28:1. Should checkpoints live as `pi-goal-state` events, separate custom entries, or files under `.ai/docs` / `.pi-goals`?
+.ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md:29:2. What triggers automatic checkpoints?
+.ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md:30:3. Should the model write checkpoint summaries, or should the extension build deterministic summaries only?
+.ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md:31:4. How are checkpoints kept compact and non-sensitive?
+.ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md:32:5. How should branch-local history differ from exported durable history?
+.ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md:37:- Provider context remains bounded; old checkpoints are not blindly injected.
+.ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md:40:- Completion and handoff flows can reference the latest checkpoint.
+.ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md:45:- Replacing Pi's native compaction behavior.
+.ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md:51:- [ ] Define checkpoint schema and size caps.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:46:- State and telemetry plan: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/09-state-and-telemetry-plan.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:56:- Telemetry source recheck: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/17-telemetry-source-recheck.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:67:- State replay source recheck: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/28-state-replay-source-recheck.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:86:- UI/tool output shows active-but-waiting state compactly.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:96:- `maybeContinueGoal()` already stale-guards by goal id/status, idle state, pending messages, and safety counters.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:116:- [ ] Add idle policy types and bounded parsing helpers in `.pi/extensions/goal/types.ts` / state helpers.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:118:- [ ] Normalize policy fields during replay in `.pi/extensions/goal/state.ts`; do not rely on broad spread for idle policy fields.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:123:- [ ] Extend tool output/footer/widget summaries with active waiting state.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:124:- [ ] Ensure safety/no-progress telemetry does not punish intentionally idle waits.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:137:- Tool output and compact UI indicate active waiting mode and reason when configured.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:151:- Delayed nudge fires repeatedly or after state changed.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:153:- UI/tool output hides active waiting state.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:167:  "lr5","tool/UI/prompt surfaces show wait mode and reason compactly"
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:171:  "s2",".pi/extensions/goal/state.ts","normalize policy fields during replay"
+.pi/extensions/goal/prompts.ts:7:export function buildContinuationPrompt(goal: GoalState, telemetry: GoalTelemetrySnapshot | null = null): { content: string; details: GoalSteeringDetails } {
+.pi/extensions/goal/prompts.ts:9:	const floorGuidance = floorContinuationSection(goal, telemetry);
+.pi/extensions/goal/prompts.ts:24:Before doing substantive goal work, inspect the active goal state if needed. If get_goal reports this goal is paused, absent, complete, budget-limited, or has a different goal id, stop and wait for /goal resume instead of following this continuation text.
+.pi/extensions/goal/prompts.ts:26:Before deciding that the goal is achieved, perform a completion audit against the actual current state:
+.pi/extensions/goal/prompts.ts:27:- Restate the objective as concrete deliverables or success criteria.
+.pi/extensions/goal/prompts.ts:29:- Inspect the relevant files, command output, test results, PR state, or other real evidence for each checklist item.
+.pi/extensions/goal/prompts.ts:79:function floorContinuationSection(goal: GoalState, telemetry: GoalTelemetrySnapshot | null): string {
+.pi/extensions/goal/prompts.ts:82:	const card = selectFloorWorkCard({ goal, telemetry, floor });
+.pi/extensions/goal/prompts.ts:84:	return `\n\nCompletion floor:\n${buildFloorContinuationGuidance({ goal, telemetry, floor, card })}`;
+.pi/extensions/goal/tool-results.ts:4:import { getGoal, getTelemetry } from "./state";
+.pi/extensions/goal/tool-results.ts:9:	telemetry?: GoalTelemetrySnapshot | null;
+.pi/extensions/goal/tool-results.ts:28:export function resultForGoal(goal: GoalState | null, telemetry: GoalTelemetrySnapshot | null, prefix?: string) {
+.pi/extensions/goal/tool-results.ts:29:	const details: ToolDetails = { goal, telemetry, remaining_tokens: remainingTokens(goal), remaining_time_seconds: remainingTime(goal), floor: goal ? evaluateCompletionFloor(goal) : undefined };
+.pi/extensions/goal/tool-results.ts:42:	return { content: [{ type: "text" as const, text: lines.length ? lines.join("\n") : "No reusable goal templates found." }], details: { goal: getGoal(), telemetry: getTelemetry(), templates } as ToolDetails };
+.pi/extensions/goal/tool-results.ts:46:	return { content: [{ type: "text" as const, text: `Error: ${error}` }], details: { goal: getGoal(), telemetry: getTelemetry(), error } as ToolDetails };
+.pi/extensions/goal/queue-tools.ts:5:import { createTelemetry } from "./telemetry";
+.pi/extensions/goal/queue-tools.ts:7:import { createGoalState, getGoal, getTelemetry, persistSetGoal } from "./state";
+.pi/extensions/goal/queue-tools.ts:8:import { enqueueGoal, dequeueGoal, removeGoal, persistEnqueue, persistDequeue, persistRemove, getQueue, type DequeueAudit, type QueuedGoal } from "./queue-state";
+.pi/extensions/goal/queue-tools.ts:27:	telemetry: GoalTelemetrySnapshot | null;
+.pi/extensions/goal/queue-tools.ts:113:			"The rationale and authority arguments are saved to session history for auditability; be truthful and specific.",
+.pi/extensions/goal/queue-tools.ts:120:			if (!dequeued) return { content: [{ type: "text" as const, text: "No queued goals." }], details: { goal: getGoal(), telemetry: getTelemetry() } as QueueToolDetails };
+.pi/extensions/goal/queue-tools.ts:122:			return { content: [{ type: "text" as const, text: `Dequeued goal: ${dequeued.queueId}\nObjective: ${dequeued.objective}\nRationale: ${audit.value.rationale}\nAuthority: ${audit.value.authority}` }], details: { goal: getGoal(), telemetry: getTelemetry(), dequeued, dequeue_audit: audit.value } as QueueToolDetails };
+.pi/extensions/goal/queue-tools.ts:139:			return { content: [{ type: "text" as const, text: `Removed queued goal: ${removed.queueId}` }], details: { goal: getGoal(), telemetry: getTelemetry() } as QueueToolDetails };
+.pi/extensions/goal/queue-tools.ts:148:	if (!next) return { content: [{ type: "text" as const, text: "No queued goals." }], details: { goal: current, telemetry: getTelemetry(), queue: getQueue() } as QueueToolDetails };
+.pi/extensions/goal/queue-tools.ts:160:	const telemetry = createTelemetry(goal.goalId, goal.createdAt);
+.pi/extensions/goal/queue-tools.ts:161:	persistSetGoal(pi, goal, telemetry, "tool");
+.pi/extensions/goal/queue-tools.ts:167:	return { content: [{ type: "text" as const, text: `Started queued goal: ${started.queueId}\nObjective: ${goal.objective}` }], details: { goal, telemetry, started, queue: getQueue() } as QueueToolDetails };
+.pi/extensions/goal/queue-tools.ts:191:	if (queue.length === 0) return { content: [{ type: "text" as const, text: "No queued goals." }], details: { goal: getGoal(), telemetry: getTelemetry(), queue } as QueueToolDetails };
+.pi/extensions/goal/queue-tools.ts:193:	return { content: [{ type: "text" as const, text: `Queued goals (${queue.length}):\n${lines.join("\n")}` }], details: { goal: getGoal(), telemetry: getTelemetry(), queue } as QueueToolDetails };
+.pi/extensions/goal/queue-tools.ts:198:	return { content: [{ type: "text" as const, text: `Queued goal: ${queued.queueId}\nObjective: ${objective}` }], details: { goal: getGoal(), telemetry: getTelemetry(), queued } as QueueToolDetails };
+.pi/extensions/goal/queue-tools.ts:202:	return { content: [{ type: "text" as const, text: `Error: ${message}` }], details: { goal: getGoal(), telemetry: getTelemetry(), error: message } as QueueToolDetails };
+.pi/extensions/goal/continuation.ts:10:import { getGoal, getTelemetry, persistTelemetry } from "./state";
+.pi/extensions/goal/continuation.ts:11:import { noteBudgetWrapUpSent, noteContinuationScheduled, noteContinuationSkipped, setNextTurnOrigin } from "./telemetry";
+.pi/extensions/goal/continuation.ts:33:	const telemetry = noteContinuationScheduled(getTelemetry(), reason);
+.pi/extensions/goal/continuation.ts:34:	if (telemetry) persistTelemetry(pi, telemetry, "continuation");
+.pi/extensions/goal/continuation.ts:84:	const telemetry = getTelemetry();
+.pi/extensions/goal/continuation.ts:85:	if (telemetry && telemetry.consecutiveAutoTurns >= MAX_CONSECUTIVE_AUTO_TURNS) return skip(pi, "safetyCap");
+.pi/extensions/goal/continuation.ts:86:	if (telemetry && telemetry.consecutiveNoProgressTurns >= MAX_NO_PROGRESS_AUTO_TURNS) return skip(pi, "safetyCap");
+.pi/extensions/goal/continuation.ts:88:	const prompt = buildContinuationPrompt(goal, telemetry);
+.pi/extensions/goal/continuation.ts:107:	const telemetry = noteBudgetWrapUpSent(getTelemetry());
+.pi/extensions/goal/continuation.ts:108:	if (telemetry) persistTelemetry(pi, telemetry, "budget");
+.pi/extensions/goal/continuation.ts:113:	const telemetry = getTelemetry();
+.pi/extensions/goal/continuation.ts:114:	return telemetry?.lastTurnOrigin === "auto" && telemetry.lastTurnToolCallCount === 0 && telemetry.lastTurnToolResultCount === 0 && !telemetry.lastTurnCompletedGoal;
+.pi/extensions/goal/continuation.ts:118:	const telemetry = noteContinuationSkipped(getTelemetry(), reason);
+.pi/extensions/goal/continuation.ts:119:	if (telemetry) persistTelemetry(pi, telemetry, "continuation");
+.ai/issues/refine/ISSUE-013-goal-update-natural-language.md:11:Depends on: `.ai/issues/fixed/ISSUE-010-goal-update-telemetry-completion-semantics.md`
+.pi/extensions/goal/completion-gate.ts:14:	telemetry: GoalTelemetrySnapshot | null;
+.pi/extensions/goal/completion-gate.ts:23:	if (canAllowNoValuableWorkEscape(input.telemetry)) return { kind: "allow_with_reason", reason: "no_safe_autonomous_work", floor };
+.pi/extensions/goal/completion-gate.ts:24:	const card = selectFloorWorkCard({ goal: input.currentGoal, telemetry: input.telemetry, floor, recentMonitorPatterns: input.recentMonitorPatterns });
+.pi/extensions/goal/completion-gate.ts:25:	if (!card && hasPriorFloorWork(input.telemetry)) return { kind: "allow_with_reason", reason: "no_safe_autonomous_work", floor };
+.pi/extensions/goal/completion-gate.ts:26:	const selected = card ?? selectFloorWorkCard({ goal: input.currentGoal, telemetry: null, floor, recentMonitorPatterns: input.recentMonitorPatterns });
+.pi/extensions/goal/completion-gate.ts:36:function canAllowNoValuableWorkEscape(telemetry: GoalTelemetrySnapshot | null): boolean {
+.pi/extensions/goal/completion-gate.ts:37:	return telemetry?.floorQualityState === "exhausted";
+.pi/extensions/goal/completion-gate.ts:40:function hasPriorFloorWork(telemetry: GoalTelemetrySnapshot | null): boolean {
+.pi/extensions/goal/completion-gate.ts:41:	return (telemetry?.floorSteerCount ?? 0) > 0 || (telemetry?.completedFloorCardIds?.length ?? 0) > 0 || (telemetry?.floorChurnSteerCount ?? 0) > 0;
+.pi/extensions/goal/floor-steering.ts:18:	telemetry: GoalTelemetrySnapshot | null;
+.pi/extensions/goal/floor-steering.ts:91:	const completed = new Set(context.telemetry?.completedFloorCardIds ?? []);
+.pi/extensions/goal/floor-steering.ts:92:	const last = context.telemetry?.lastFloorCardId;
+.pi/extensions/goal/floor-steering.ts:97:export function buildFloorContinuationGuidance(context: { goal: GoalState; telemetry: GoalTelemetrySnapshot | null; floor: CompletionFloorEvaluation; card: FloorWorkCard }): string {
+.ai/issues/refine/ISSUE-019-parallel-multiple-goals.md:8:Next best session rationale: Parallel goals affect state model, sessions, worktrees, budgets, and UI; this needs architecture design first.
+.ai/issues/refine/ISSUE-019-parallel-multiple-goals.md:19:The first version intentionally supports one branch-local goal. Larger workflows may require several independent goals: parallel investigation paths, sequential release checklist goals, or multiple implementation shards. This cannot be bolted on casually because state, UI, continuation, budgets, and worktree ownership all become multi-tenant.
+.ai/issues/refine/ISSUE-019-parallel-multiple-goals.md:31:1. Is multi-goal state a new top-level runtime or an extension of current `GoalState`?
+.ai/issues/refine/ISSUE-019-parallel-multiple-goals.md:35:5. How are shared budgets, worktrees, branch state, and completion proofs partitioned?
+.ai/issues/refine/ISSUE-019-parallel-multiple-goals.md:41:- Parallel goals cannot share mutable state or steering messages accidentally.
+.pi/extensions/goal/constants.ts:1:export const STATE_ENTRY_TYPE = "pi-goal-state";
+.pi/extensions/goal/queue-state.ts:105:export function setQueueForTests(state: GoalQueueRuntimeState): void {
+.pi/extensions/goal/queue-state.ts:106:	runtimeQueue = state.queue;
+.pi/extensions/goal/lifecycle.ts:26:import { getGoal, getTelemetry, persistAccountGoal, persistTelemetry, persistUpdateGoal, replayGoalState } from "./state";
+.pi/extensions/goal/lifecycle.ts:28:import { replayQueueState } from "./queue-state";
+.pi/extensions/goal/lifecycle.ts:30:import { applyTurnTelemetry, consumeNextTurnOrigin, makeTurnSnapshot, noteBudgetHardStop, noteBudgetLimit, noteBudgetWarning, noteSafetyPause } from "./telemetry";
+.pi/extensions/goal/lifecycle.ts:40:		const state = replayGoalState(ctx);
+.pi/extensions/goal/lifecycle.ts:43:		syncGoalUi(ctx, state.goal);
+.pi/extensions/goal/lifecycle.ts:44:		if (state.goal?.status === "active") scheduleGoalMonitor(pi, ctx);
+.pi/extensions/goal/lifecycle.ts:45:		else cancelGoalMonitor(state.goal?.goalId, "session-tree");
+.pi/extensions/goal/lifecycle.ts:57:	const state = replayGoalState(ctx);
+.pi/extensions/goal/lifecycle.ts:60:	syncGoalUi(ctx, state.goal);
+.pi/extensions/goal/lifecycle.ts:61:	if (state.goal?.status === "active") scheduleGoalMonitor(pi, ctx);
+.pi/extensions/goal/lifecycle.ts:62:	else cancelGoalMonitor(state.goal?.goalId, "session-start");
+.pi/extensions/goal/lifecycle.ts:63:	if (event.reason !== "reload" && state.goal?.status === "paused" && ctx.hasUI) {
+.pi/extensions/goal/lifecycle.ts:64:		const resume = await promptResumePausedGoal(ctx, state.goal);
+.pi/extensions/goal/lifecycle.ts:66:			const active: GoalState = { ...state.goal, status: "active", updatedAt: Date.now() };
+.pi/extensions/goal/lifecycle.ts:67:			persistUpdateGoal(pi, active, state.telemetry, "resume");
+.pi/extensions/goal/lifecycle.ts:143:	// mid-turn, (2) telemetry flags prevent re-sending if turn_end already warned.
+.pi/extensions/goal/lifecycle.ts:146:		const telemetry = getTelemetry();
+.pi/extensions/goal/lifecycle.ts:147:		if (pressure.kind === "tokenWarning" && telemetry?.tokenBudgetWarningSent) return;
+.pi/extensions/goal/lifecycle.ts:148:		if (pressure.kind === "timeWarning" && telemetry?.timeBudgetWarningSent) return;
+.pi/extensions/goal/lifecycle.ts:200:	let telemetry = applyTurnTelemetry(getTelemetry(), turn, madeProgress);
+.pi/extensions/goal/lifecycle.ts:201:	let result = persistAccountGoal(pi, turn.goalId, { timeUsedSeconds: elapsed, tokensUsed: tokens }, telemetry, "turn");
+.pi/extensions/goal/lifecycle.ts:205:		result = handleBudgetPressure(pi, ctx, updated, result.telemetry);
+.pi/extensions/goal/lifecycle.ts:214:			enforceBudgetHardStop(pi, ctx, updated, pressure, result.telemetry);
+.pi/extensions/goal/lifecycle.ts:224:	telemetry = result.telemetry;
+.pi/extensions/goal/lifecycle.ts:226:	if (updated?.status === "active" && shouldPauseForSafety(telemetry) && telemetry) {
+.pi/extensions/goal/lifecycle.ts:227:		const reason = telemetry.consecutiveAutoTurns >= MAX_CONSECUTIVE_AUTO_TURNS ? "maxAutoTurns" : "noProgress";
+.pi/extensions/goal/lifecycle.ts:252:	const telemetry = noteSafetyPause(getTelemetry(), reason);
+.pi/extensions/goal/lifecycle.ts:253:	persistUpdateGoal(pi, paused, telemetry, reason === "abort" ? "abort" : "safety");
+.pi/extensions/goal/lifecycle.ts:254:	if (telemetry) persistTelemetry(pi, telemetry, reason === "abort" ? "abort" : "safety");
+.pi/extensions/goal/lifecycle.ts:259:function shouldPauseForSafety(telemetry: GoalTelemetrySnapshot | null): boolean {
+.pi/extensions/goal/lifecycle.ts:260:	if (!telemetry) return false;
+.pi/extensions/goal/lifecycle.ts:261:	return telemetry.consecutiveAutoTurns >= MAX_CONSECUTIVE_AUTO_TURNS || telemetry.consecutiveNoProgressTurns >= MAX_NO_PROGRESS_AUTO_TURNS;
+.pi/extensions/goal/lifecycle.ts:264:function handleBudgetPressure(pi: ExtensionAPI, ctx: ExtensionContext, goal: GoalState, telemetry: GoalTelemetrySnapshot | null) {
+.pi/extensions/goal/lifecycle.ts:266:	if (isBudgetHardStop(pressure.kind)) return enforceBudgetHardStop(pi, ctx, goal, pressure, telemetry);
+.pi/extensions/goal/lifecycle.ts:267:	if (isBudgetReached(pressure.kind)) return markBudgetReached(pi, ctx, goal, pressure, telemetry);
+.pi/extensions/goal/lifecycle.ts:268:	if (isBudgetWarning(pressure.kind)) warnBudgetPressure(pi, ctx, pressure, telemetry);
+.pi/extensions/goal/lifecycle.ts:269:	return { ok: true, goal, telemetry };
+.pi/extensions/goal/lifecycle.ts:272:function enforceBudgetHardStop(pi: ExtensionAPI, ctx: ExtensionContext, goal: GoalState, pressure: BudgetPressure, telemetry: GoalTelemetrySnapshot | null) {
+.pi/extensions/goal/lifecycle.ts:275:	// the goal to budgetLimited, persisted telemetry, and aborted.
+.pi/extensions/goal/lifecycle.ts:276:	if (telemetry?.lastBudgetHardStopReason) {
+.pi/extensions/goal/lifecycle.ts:278:		return { ok: true, goal, telemetry };
+.pi/extensions/goal/lifecycle.ts:283:	const nextTelemetry = noteBudgetHardStop(noteBudgetLimit(telemetry, pressureBudgetLimitReason(pressure)), budgetHardStopReason(pressure));
+.pi/extensions/goal/lifecycle.ts:291:function markBudgetReached(pi: ExtensionAPI, ctx: ExtensionContext, goal: GoalState, pressure: BudgetPressure, telemetry: GoalTelemetrySnapshot | null) {
+.pi/extensions/goal/lifecycle.ts:295:	const result = persistUpdateGoal(pi, limited, noteBudgetLimit(telemetry, pressureBudgetLimitReason(pressure)), "budget");
+.pi/extensions/goal/lifecycle.ts:300:function warnBudgetPressure(pi: ExtensionAPI, ctx: ExtensionContext, pressure: BudgetPressure, telemetry: GoalTelemetrySnapshot | null): void {
+.pi/extensions/goal/lifecycle.ts:301:	if (warningAlreadySent(pressure, telemetry)) return;
+.pi/extensions/goal/lifecycle.ts:302:	const nextTelemetry = noteBudgetWarning(telemetry, pressure.kind === "tokenWarning" ? "tokenWarning" : "timeWarning");
+.pi/extensions/goal/lifecycle.ts:307:function warningAlreadySent(pressure: BudgetPressure, telemetry: GoalTelemetrySnapshot | null): boolean {
+.pi/extensions/goal/lifecycle.ts:308:	if (pressure.kind === "tokenWarning") return Boolean(telemetry?.tokenBudgetWarningSent);
+.pi/extensions/goal/lifecycle.ts:309:	if (pressure.kind === "timeWarning") return Boolean(telemetry?.timeBudgetWarningSent);
+.pi/extensions/goal/monitor-prompts.ts:15:You receive only bounded recent churn-log entries. Reason from that bounded history and do not assume omitted entries are evidence.
+.pi/extensions/goal/monitor-prompts.ts:50:- state what to stop doing
+.pi/extensions/goal/monitor-prompts.ts:142:    <floor_quality_state>${floor.floorQualityState}</floor_quality_state>
+.pi/extensions/goal/monitor-prompts.ts:147:	const telemetry = report.telemetry;
+.pi/extensions/goal/monitor-prompts.ts:148:	if (!telemetry) return "<telemetry>none</telemetry>";
+.pi/extensions/goal/monitor-prompts.ts:149:	return `<telemetry>
+.pi/extensions/goal/monitor-prompts.ts:150:    <total_turns>${telemetry.totalTurns}</total_turns>
+.pi/extensions/goal/monitor-prompts.ts:151:    <user_turns>${telemetry.userTurns}</user_turns>
+.pi/extensions/goal/monitor-prompts.ts:152:    <auto_turns>${telemetry.autoTurns}</auto_turns>
+.pi/extensions/goal/monitor-prompts.ts:153:    <consecutive_auto_turns>${telemetry.consecutiveAutoTurns}</consecutive_auto_turns>
+.pi/extensions/goal/monitor-prompts.ts:154:    <consecutive_no_progress_turns>${telemetry.consecutiveNoProgressTurns}</consecutive_no_progress_turns>
+.pi/extensions/goal/monitor-prompts.ts:155:    <last_turn_origin>${escapeXml(telemetry.lastTurnOrigin ?? "unknown")}</last_turn_origin>
+.pi/extensions/goal/monitor-prompts.ts:156:    <last_continuation_reason>${escapeXml(telemetry.lastContinuationReason ?? "unknown")}</last_continuation_reason>
+.pi/extensions/goal/monitor-prompts.ts:157:    <last_skip_reason>${escapeXml(telemetry.lastSkipReason ?? "none")}</last_skip_reason>
+.pi/extensions/goal/monitor-prompts.ts:158:    <last_turn_tool_call_count>${telemetry.lastTurnToolCallCount ?? 0}</last_turn_tool_call_count>
+.pi/extensions/goal/monitor-prompts.ts:159:    <last_turn_tool_result_count>${telemetry.lastTurnToolResultCount ?? 0}</last_turn_tool_result_count>
+.pi/extensions/goal/monitor-prompts.ts:160:    <last_turn_completed_goal>${telemetry.lastTurnCompletedGoal ?? false}</last_turn_completed_goal>
+.pi/extensions/goal/monitor-prompts.ts:161:    <budget_wrap_up_sent>${telemetry.budgetWrapUpSent ?? false}</budget_wrap_up_sent>
+.pi/extensions/goal/monitor-prompts.ts:162:    <last_progress_at>${telemetry.lastProgressAt ?? "unknown"}</last_progress_at>
+.pi/extensions/goal/monitor-prompts.ts:163:    <last_safety_pause_reason>${escapeXml(telemetry.lastSafetyPauseReason ?? "none")}</last_safety_pause_reason>
+.pi/extensions/goal/monitor-prompts.ts:164:    <last_budget_limit_reason>${escapeXml(telemetry.lastBudgetLimitReason ?? "none")}</last_budget_limit_reason>
+.pi/extensions/goal/monitor-prompts.ts:165:    <last_budget_warning_reason>${escapeXml(telemetry.lastBudgetWarningReason ?? "none")}</last_budget_warning_reason>
+.pi/extensions/goal/monitor-prompts.ts:166:    <last_budget_hard_stop_reason>${escapeXml(telemetry.lastBudgetHardStopReason ?? "none")}</last_budget_hard_stop_reason>
+.pi/extensions/goal/monitor-prompts.ts:167:    <token_budget_warning_sent>${telemetry.tokenBudgetWarningSent ?? false}</token_budget_warning_sent>
+.pi/extensions/goal/monitor-prompts.ts:168:    <time_budget_warning_sent>${telemetry.timeBudgetWarningSent ?? false}</time_budget_warning_sent>
+.pi/extensions/goal/monitor-prompts.ts:169:    <last_floor_card_id>${escapeXml(telemetry.lastFloorCardId ?? "none")}</last_floor_card_id>
+.pi/extensions/goal/monitor-prompts.ts:170:    <completed_floor_card_ids>${escapeXml((telemetry.completedFloorCardIds ?? []).join(",") || "none")}</completed_floor_card_ids>
+.pi/extensions/goal/monitor-prompts.ts:171:    <floor_steer_count>${telemetry.floorSteerCount ?? 0}</floor_steer_count>
+.pi/extensions/goal/monitor-prompts.ts:172:    <floor_churn_steer_count>${telemetry.floorChurnSteerCount ?? 0}</floor_churn_steer_count>
+.pi/extensions/goal/monitor-prompts.ts:173:    <floor_quality_state>${escapeXml(telemetry.floorQualityState ?? "inactive")}</floor_quality_state>
+.pi/extensions/goal/monitor-prompts.ts:174:    <no_more_valuable_work_reason>${escapeXml(telemetry.noMoreValuableWorkReason ?? "none")}</no_more_valuable_work_reason>
+.pi/extensions/goal/monitor-prompts.ts:175:    <updated_at>${telemetry.updatedAt}</updated_at>
+.pi/extensions/goal/monitor-prompts.ts:176:  </telemetry>`;
+.pi/extensions/goal/telemetry.ts:48:	telemetry: GoalTelemetrySnapshot | null,
+.pi/extensions/goal/telemetry.ts:52:	if (!telemetry) return null;
+.pi/extensions/goal/telemetry.ts:53:	return { ...telemetry, lastContinuationReason: reason, lastSkipReason: undefined, updatedAt: now };
+.pi/extensions/goal/telemetry.ts:57:	telemetry: GoalTelemetrySnapshot | null,
+.pi/extensions/goal/telemetry.ts:61:	if (!telemetry) return null;
+.pi/extensions/goal/telemetry.ts:62:	return { ...telemetry, lastSkipReason: reason, updatedAt: now };
+.pi/extensions/goal/telemetry.ts:66:	telemetry: GoalTelemetrySnapshot | null,
+.pi/extensions/goal/telemetry.ts:69:	if (!telemetry) return null;
+.pi/extensions/goal/telemetry.ts:70:	return { ...telemetry, budgetWrapUpSent: true, updatedAt: now };
+.pi/extensions/goal/telemetry.ts:74:	telemetry: GoalTelemetrySnapshot | null,
+.pi/extensions/goal/telemetry.ts:78:	if (!telemetry) return null;
+.pi/extensions/goal/telemetry.ts:79:	return { ...telemetry, lastBudgetLimitReason: reason, updatedAt: now };
+.pi/extensions/goal/telemetry.ts:83:	telemetry: GoalTelemetrySnapshot | null,
+.pi/extensions/goal/telemetry.ts:87:	if (!telemetry) return null;
+.pi/extensions/goal/telemetry.ts:89:		...telemetry,
+.pi/extensions/goal/telemetry.ts:91:		tokenBudgetWarningSent: telemetry.tokenBudgetWarningSent || reason === "tokenWarning",
+.pi/extensions/goal/telemetry.ts:92:		timeBudgetWarningSent: telemetry.timeBudgetWarningSent || reason === "timeWarning",
+.pi/extensions/goal/telemetry.ts:98:	telemetry: GoalTelemetrySnapshot | null,
+.pi/extensions/goal/telemetry.ts:102:	if (!telemetry) return null;
+.pi/extensions/goal/telemetry.ts:103:	return { ...telemetry, lastBudgetHardStopReason: reason, updatedAt: now };
+.pi/extensions/goal/telemetry.ts:107:	telemetry: GoalTelemetrySnapshot | null,
+.pi/extensions/goal/telemetry.ts:111:	if (!telemetry) return null;
+.pi/extensions/goal/telemetry.ts:112:	return { ...telemetry, lastSafetyPauseReason: reason, updatedAt: now };
+.pi/extensions/goal/telemetry.ts:116:	telemetry: GoalTelemetrySnapshot | null,
+.pi/extensions/goal/telemetry.ts:119:	if (!telemetry) return null;
+.pi/extensions/goal/telemetry.ts:121:		...telemetry,
+.pi/extensions/goal/telemetry.ts:130:	telemetry: GoalTelemetrySnapshot | null,
+.pi/extensions/goal/telemetry.ts:135:	if (!telemetry || telemetry.goalId !== turn.goalId) return telemetry;
+.pi/extensions/goal/telemetry.ts:138:		...telemetry,
+.pi/extensions/goal/telemetry.ts:139:		totalTurns: telemetry.totalTurns + 1,
+.pi/extensions/goal/telemetry.ts:140:		userTurns: telemetry.userTurns + (turn.origin === "user" ? 1 : 0),
+.pi/extensions/goal/telemetry.ts:141:		autoTurns: telemetry.autoTurns + (auto ? 1 : 0),
+.pi/extensions/goal/telemetry.ts:142:		consecutiveAutoTurns: auto ? telemetry.consecutiveAutoTurns + 1 : 0,
+.pi/extensions/goal/telemetry.ts:143:		consecutiveNoProgressTurns: auto && !madeProgress ? telemetry.consecutiveNoProgressTurns + 1 : 0,
+.pi/extensions/goal/telemetry.ts:148:		lastProgressAt: madeProgress ? now : telemetry.lastProgressAt,
+.pi/extensions/goal/telemetry.ts:154:	telemetry: GoalTelemetrySnapshot | null,
+.pi/extensions/goal/telemetry.ts:158:	if (!telemetry) return null;
+.pi/extensions/goal/telemetry.ts:160:		...telemetry,
+.pi/extensions/goal/telemetry.ts:162:		floorSteerCount: (telemetry.floorSteerCount ?? 0) + 1,
+.pi/extensions/goal/telemetry.ts:169:	telemetry: GoalTelemetrySnapshot | null,
+.pi/extensions/goal/telemetry.ts:172:	if (!telemetry?.lastFloorCardId) return telemetry;
+.pi/extensions/goal/telemetry.ts:173:	const completed = uniqueFloorCards([...(telemetry.completedFloorCardIds ?? []), telemetry.lastFloorCardId]);
+.pi/extensions/goal/telemetry.ts:175:		...telemetry,
+.pi/extensions/goal/telemetry.ts:183:	telemetry: GoalTelemetrySnapshot | null,
+.pi/extensions/goal/telemetry.ts:186:	if (!telemetry) return null;
+.pi/extensions/goal/telemetry.ts:188:		...telemetry,
+.pi/extensions/goal/telemetry.ts:189:		floorChurnSteerCount: (telemetry.floorChurnSteerCount ?? 0) + 1,
+.pi/extensions/goal/telemetry.ts:196:	telemetry: GoalTelemetrySnapshot | null,
+.pi/extensions/goal/telemetry.ts:199:	if (!telemetry) return null;
+.pi/extensions/goal/telemetry.ts:201:		...telemetry,
+.pi/extensions/goal/telemetry.ts:209:	telemetry: GoalTelemetrySnapshot | null,
+.pi/extensions/goal/telemetry.ts:214:			return noteProductiveFloorWork(telemetry);
+.pi/extensions/goal/telemetry.ts:219:			return noteFloorChurnSteer(telemetry);
+.pi/extensions/goal/telemetry.ts:221:			return noteFloorQualityExhausted(telemetry);
+.pi/extensions/goal/telemetry.ts:223:			return telemetry;
+
+$ rg -n "Compaction|compaction|compact\(" /Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts .pi/extensions/goal
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:16:import type { CompactionPreparation, CompactionResult } from "../compaction/index.js";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:23:import type { BranchSummaryEntry, CompactionEntry, ReadonlySessionManager, SessionEntry, SessionManager } from "../session-manager.js";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:193:    /** Estimated context tokens, or null if unknown (e.g. right after compaction, before next LLM response). */
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:201:    onComplete?: (result: CompactionResult) => void;
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:232:    /** Trigger compaction without awaiting completion. */
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:233:    compact(options?: CompactOptions): void;
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:401:/** Fired before context compaction (can be cancelled or customized) */
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:404:    preparation: CompactionPreparation;
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:409:/** Fired after context compaction */
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:412:    compactionEntry: CompactionEntry;
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:749:    compaction?: CompactionResult;
+
+$ sentrux gate --save .pi/extensions/goal
+Baseline saved to .pi/extensions/goal/.sentrux/baseline.json
+Quality: 6241
+
+Run `sentrux gate` after making changes to compare.
+
+$ python3 - <<PY (fetch TOON spec title)
+FETCH_FAILED HTTPError HTTP Error 403: Forbidden
+
+$ rg -n ".ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md" .ai/issues .ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10 .ai/docs/refine-issue-leverage-order-2026-05-10.md
+.ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/01-open-promotion-addendum.md:15:5. `.ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:18:- `.ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:146:- `.ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:20:- `.ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:162:- `.ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md`
+.ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/final-order.md:21:5. `.ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md` — Goal history, checkpoints, and compaction-aware handoffs.
+.ai/issues/open/ISSUE-024-goal-audit-command.md:20:- `.ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md`
+
+$ rg -n ".ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md" .ai/issues .ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10 .ai/docs/refine-issue-leverage-order-2026-05-10.md
+
+$ test ! -e .ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md && test -e .ai/issues/open/ISSUE-022-goal-history-checkpoints-and-compaction.md && echo PASS issue022_promoted
+PASS issue022_promoted
+
+$ git diff --check
+diff_check_exit=0
+
+$ node - <<NODE (issue022 promotion invariant)
+PASS open issue exists
+PASS refine issue absent
+PASS status execution-ready
+PASS TOON synthesis present
+PASS required proofs present
+PASS 00-request.md exists
+PASS 00-request.md linked
+PASS 01-protocol-read.md exists
+PASS 01-protocol-read.md linked
+PASS 02-grounded-research.md exists
+PASS 02-grounded-research.md linked
+PASS 03-design-lock.md exists
+PASS 03-design-lock.md linked
+PASS 04-proof-threat-model.md exists
+PASS 04-proof-threat-model.md linked
+PASS 05-issue-writeback.md exists
+PASS 05-issue-writeback.md linked
+FAIL 06-final-audit.md exists
+PASS 06-final-audit.md linked
+PASS raw/commands.log exists
+PASS raw/commands.log linked
+PASS canonical docs do not point to stale refine path
+promotion_probe_exit=1
+
+$ npm run quality:goal
+
+> pi-goals@0.2.0 quality:goal
+> sentrux gate .pi/extensions/goal && sentrux check .pi/extensions/goal && npm run slop:goal && npm run typecheck:goal && pi --offline --no-session --no-tools -e .pi/extensions/goal/index.ts --list-models >/tmp/pi-goal-quality-load.txt
+
+Scanning .pi/extensions/goal...
+[build_project_map] 30 files, 2 unique dirs, 2 cache misses, 0.1ms
+[resolve] 112 resolved, 22 unresolved (of 134 total specs)
+[resolve_imports] project_map 0.1ms, suffix_idx 0.1ms, suffix_resolve 1.0ms, total 1.2ms
+[build_graphs] 30 files | maps 0.0ms, imports 1.2ms, calls+inherit 0.4ms, total 1.7ms | 111 import, 591 call, 0 inherit edges
+sentrux gate — structural regression check
+
+Quality:      6241 -> 6241
+Coupling:     0.16 → 0.16
+Cycles:       0 → 0
+God files:    0 → 0
+
+Distance from Main Sequence: 0.25
+
+✓ No degradation detected
+Scanning .pi/extensions/goal...
+[build_project_map] 30 files, 2 unique dirs, 2 cache misses, 0.1ms
+[resolve] 112 resolved, 22 unresolved (of 134 total specs)
+[resolve_imports] project_map 0.1ms, suffix_idx 1.0ms, suffix_resolve 1.3ms, total 2.4ms
+[build_graphs] 30 files | maps 0.0ms, imports 2.5ms, calls+inherit 0.5ms, total 3.1ms | 111 import, 591 call, 0 inherit edges
+sentrux check — 33 rules checked
+
+Quality: 6241
+
+✓ All rules pass
+
+> pi-goals@0.2.0 slop:goal
+> if rg -n 'as unknown as|as any' .pi/extensions/goal; then exit 1; else exit 0; fi
+
+
+> pi-goals@0.2.0 typecheck:goal
+> tsc --noEmit --target ES2022 --module ESNext --moduleResolution node --ignoreDeprecations 6.0 --types node --strict --skipLibCheck .pi/extensions/goal/*.ts
+
+provider      model                       context  max-out  thinking  images
+anthropic     claude-3-5-haiku-20241022   200K     8.2K     no        yes   
+anthropic     claude-3-5-haiku-latest     200K     8.2K     no        yes   
+anthropic     claude-3-5-sonnet-20240620  200K     8.2K     no        yes   
+anthropic     claude-3-5-sonnet-20241022  200K     8.2K     no        yes   
+anthropic     claude-3-7-sonnet-20250219  200K     64K      yes       yes   
+anthropic     claude-3-haiku-20240307     200K     4.1K     no        yes   
+anthropic     claude-3-opus-20240229      200K     4.1K     no        yes   
+anthropic     claude-3-sonnet-20240229    200K     4.1K     no        yes   
+anthropic     claude-haiku-4-5            200K     64K      yes       yes   
+anthropic     claude-haiku-4-5-20251001   200K     64K      yes       yes   
+anthropic     claude-opus-4-0             200K     32K      yes       yes   
+anthropic     claude-opus-4-1             200K     32K      yes       yes   
+anthropic     claude-opus-4-1-20250805    200K     32K      yes       yes   
+anthropic     claude-opus-4-20250514      200K     32K      yes       yes   
+anthropic     claude-opus-4-5             200K     64K      yes       yes   
+anthropic     claude-opus-4-5-20251101    200K     64K      yes       yes   
+anthropic     claude-opus-4-6             1M       128K     yes       yes   
+anthropic     claude-opus-4-7             1M       128K     yes       yes   
+anthropic     claude-sonnet-4-0           200K     64K      yes       yes   
+anthropic     claude-sonnet-4-20250514    200K     64K      yes       yes   
+anthropic     claude-sonnet-4-5           200K     64K      yes       yes   
+anthropic     claude-sonnet-4-5-20250929  200K     64K      yes       yes   
+anthropic     claude-sonnet-4-6           1M       64K      yes       yes   
+openai-codex  gpt-5.1                     272K     128K     yes       yes   
+openai-codex  gpt-5.1-codex-max           272K     128K     yes       yes   
+openai-codex  gpt-5.1-codex-mini          272K     128K     yes       yes   
+openai-codex  gpt-5.2                     272K     128K     yes       yes   
+openai-codex  gpt-5.2-codex               272K     128K     yes       yes   
+openai-codex  gpt-5.3-codex               272K     128K     yes       yes   
+openai-codex  gpt-5.3-codex-spark         128K     128K     yes       no    
+openai-codex  gpt-5.4                     272K     128K     yes       yes   
+openai-codex  gpt-5.4-mini                272K     128K     yes       yes   
+openai-codex  gpt-5.5                     272K     128K     yes       yes   
+opencode-go   deepseek-v4-flash           1M       384K     yes       no    
+opencode-go   deepseek-v4-pro             1M       384K     yes       no    
+opencode-go   glm-5                       202.8K   32.8K    yes       no    
+opencode-go   glm-5.1                     202.8K   32.8K    yes       no    
+opencode-go   kimi-k2.5                   262.1K   65.5K    yes       yes   
+opencode-go   kimi-k2.6                   262.1K   65.5K    yes       yes   
+opencode-go   mimo-v2.5                   1M       128K     yes       yes   
+opencode-go   mimo-v2.5-pro               1.0M     128K     yes       no    
+opencode-go   minimax-m2.5                204.8K   65.5K    yes       no    
+opencode-go   minimax-m2.7                204.8K   131.1K   yes       no    
+opencode-go   qwen3.5-plus                262.1K   65.5K    yes       yes   
+opencode-go   qwen3.6-plus                262.1K   65.5K    yes       yes   
+quality_goal_exit=0
+
+$ git status --short --untracked-files=all
+ M .ai/issues/fixed/ISSUE-020-goal-churn-monitor.md
+ D .ai/issues/refine/ISSUE-015-goal-subgoals.md
+ D .ai/issues/refine/ISSUE-016-goal-idle-tolerant-mode.md
+ M .ai/issues/refine/ISSUE-019-parallel-multiple-goals.md
+ D .ai/issues/refine/ISSUE-021-goal-completion-proofs.md
+ D .ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md
+ M .ai/issues/refine/ISSUE-023-goal-dependency-triggers-and-watchers.md
+ D .ai/issues/refine/ISSUE-024-goal-audit-command.md
+ M .pi/extensions/goal/.sentrux/baseline.json
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/07-acceptance-traceability.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/08-open-bucket-promotion.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/09-migration-consistency-audit.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/10-current-code-readiness-audit.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/11-downstream-reference-update.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/12-package-script-proof-check.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/13-executor-handoff.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/14-non-implementation-boundary.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/15-queue-continuation-note.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/16-stale-reference-audit.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/17-template-containment-readback.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/18-parent-pipeline-readback.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/19-subgoal-state-matrix.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/20-replay-bounds-handoff.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/21-closeout-summary.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/22-queue-state-checkpoint.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/23-types-source-recheck.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/24-state-source-recheck.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/25-tools-registration-recheck.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/26-tool-output-recheck.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/27-widget-source-recheck.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/28-prompt-source-recheck.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/29-readme-update-plan.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/30-stack-order-after-promotion.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/31-acceptance-traceability-addendum.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/32-fingerprint.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/33-monitor-report-recheck.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/34-ui-source-recheck.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/35-format-source-recheck.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/36-final-promotion-invariant.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/37-budget-source-recheck.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/38-queue-source-recheck.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/39-final-closeout-readback.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/artifact-line-counts.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/check-ignore-final.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/closeout-needle-check.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/commands.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/diff-check.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/diff-stat-final.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/final-closeout-probe.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/final-promotion-invariant-probe.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/issue015-promotion-fingerprint.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/last-mile-audit.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/old-path-references-after-update.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/old-path-references.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/open-inventory-final.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/open-issue-full-validation.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/open-path-audit.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/open-promotion-validation.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/path-existence-audit.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/promotion-invariant-probe.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/quality-goal-open-promotion.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/refine-inventory-final.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/research-rg.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/sentrux-gate.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/slop-goal-open-promotion.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/stack-order-after-promotion-probe.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/stale-refine-path-after-fix.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/stale-refine-path-current-docs.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/status-final.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/typecheck-goal-open-promotion.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/validation-probe.log
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/07-downstream-reference-update.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/08-implementation-handoff.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/09-state-and-telemetry-plan.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/10-validation-probe-plan.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/11-ui-wording-plan.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/12-non-implementation-boundary.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/13-queue-continuation-note.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/14-package-script-proof-check.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/15-final-promotion-invariant.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/16-closeout-summary.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/17-telemetry-source-recheck.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/18-command-source-recheck.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/19-tool-output-source-recheck.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/20-template-source-recheck.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/21-monitor-prompt-recheck.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/22-queue-steering-recheck.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/23-floor-source-recheck.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/24-readme-update-plan.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/25-validation-script-plan.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/26-proof-command-normalization.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/27-entrypoint-and-schema-recheck.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/28-state-replay-source-recheck.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/29-ui-widget-format-recheck.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/30-final-readback.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/31-monitor-report-source-recheck.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/32-downstream-stale-reference-fix.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/33-stack-inventory-after-promotion.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/34-goal-completion-readiness.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/35-final-diff-snapshot.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/36-nonimplementation-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/37-artifact-link-check.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/artifact-line-counts.log
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/check-ignore-final.log
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/commands.log
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/current-refine-open-inventory-summary.log
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/diff-check.log
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/final-artifact-link-check.log
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/final-invariant-summary.log
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/final-promotion-invariant-probe.log
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/final-relevant-diff.patch
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/issue016-reference-audit.log
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/old-path-references-after-update.log
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/old-path-references.log
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/open-inventory-final.log
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/open-issue-full-validation.log
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/open-path-audit.log
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/open-promotion-validation.log
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/quality-goal-open-promotion.log
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/refine-inventory-final.log
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/sentrux-gate.log
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/slop-goal-open-promotion.log
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/stale-refine-path-final.log
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/status-final.log
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/typecheck-goal-open-promotion.log
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/07-dataflow-and-seams.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/08-proof-schema-sketch.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/09-execution-plan.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/10-executor-review-checklist.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/11-proof-condition-matrix.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/12-validation-expansion.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/13-runner-safety-research.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/14-bcu-external-research-attempt.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/15-adversarial-review.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/16-acceptance-traceability-matrix.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/17-closeout-snapshot.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/18-tool-api-design.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/19-validation-probe-design.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/20-proof-ui-rendering-plan.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/21-proof-evaluator-api.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/22-readme-update-plan.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/23-worktree-freshness-design.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/24-open-bucket-promotion.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/25-migration-consistency-audit.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/26-current-code-readiness-audit.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/27-downstream-reference-update.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/28-promotion-dependency-map.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/29-required-proof-command-sanity.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/30-executor-handoff.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/31-package-script-proof-check.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/32-non-implementation-boundary.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/33-queue-continuation-note.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/34-closeout-summary.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/35-floor-gate-source-recheck.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/artifact-line-counts.log
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/check-ignore-final.log
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/closeout-name-status.log
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/commands.log
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/diff-check.log
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/old-path-references-after-update.log
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/old-path-references.log
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/open-inventory-final.log
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/open-issue-fingerprint.log
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/open-issue-full-validation.log
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/open-location-check.log
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/open-path-audit.log
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/open-promotion-diff-stat.log
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/open-promotion-head-diff-preview.log
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/open-promotion-name-status.log
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/open-promotion-required-proofs-check.log
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/open-promotion-validation.log
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/open-refine-inventory-after-promotion.log
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/path-existence-audit.log
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/promotion-invariant-probe.log
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/quality-goal-open-promotion.log
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/refine-inventory-final.log
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/slop-goal-proof-check.log
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/stale-refine-path-nonraw.log
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/status-final.log
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/typecheck-goal-proof-check.log
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/validation-expansion-probe.log
+?? .ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/raw/commands.log
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/07-downstream-reference-update.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/08-closeout-summary.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/09-lifecycle-filter-source-recheck.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/10-tool-output-source-recheck.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/11-model-output-parser-reuse-note.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/12-validation-probe-plan.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/13-readme-and-docs-plan.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/14-queue-continuation-note.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/15-implementation-handoff.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/16-acceptance-traceability.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/17-nonimplementation-boundary.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/18-proof-command-sanity.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/19-current-inventory-after-promotion.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/20-ui-widget-source-recheck.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/21-queue-tools-source-recheck.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/22-audit-record-schema-sketch.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/23-prompt-contract-sketch.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/24-reference-audit.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/25-dependency-path-probe.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/26-live-probe-scope-note.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/27-sentrux-planning-summary.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/28-quality-gate-summary.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/29-final-linkage-probe.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/raw/artifact-line-counts.log
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/raw/check-ignore-final.log
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/raw/commands.log
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/raw/dependency-path-probe.log
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/raw/diff-check.log
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/raw/open-inventory-final.log
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/raw/open-path-reference-audit.log
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/raw/open-promotion-validation.log
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/raw/path-references-before-promotion.log
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/raw/quality-goal-open-promotion.log
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/raw/refine-inventory-final.log
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/raw/research-rg.log
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/raw/sentrux-gate.log
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/raw/slop-goal-open-promotion.log
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/raw/stale-refine-path-after-promotion.log
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/raw/stale-refine-path-current-docs.log
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/raw/status-final.log
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/raw/typecheck-goal-open-promotion.log
+?? .ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/01-open-promotion-addendum.md
+?? .ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/check-ignore.log
+?? .ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/coverage-check.log
+?? .ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/final-order.md
+?? .ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/status.log
+?? .ai/issues/open/ISSUE-015-goal-subgoals.md
+?? .ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md
+?? .ai/issues/open/ISSUE-021-goal-completion-proofs.md
+?? .ai/issues/open/ISSUE-022-goal-history-checkpoints-and-compaction.md
+?? .ai/issues/open/ISSUE-024-goal-audit-command.md
+
+$ git check-ignore -v .ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/00-request.md || true
+.gitignore:11:!.ai/docs/issue-workflow/**	.ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/00-request.md
+
+$ node - <<NODE (issue022 final promotion invariant rerun)
+PASS open issue exists
+PASS refine issue absent
+PASS status execution-ready
+PASS TOON synthesis present
+PASS required proofs present
+PASS 00-request.md exists
+PASS 00-request.md linked
+PASS 01-protocol-read.md exists
+PASS 01-protocol-read.md linked
+PASS 02-grounded-research.md exists
+PASS 02-grounded-research.md linked
+PASS 03-design-lock.md exists
+PASS 03-design-lock.md linked
+PASS 04-proof-threat-model.md exists
+PASS 04-proof-threat-model.md linked
+PASS 05-issue-writeback.md exists
+PASS 05-issue-writeback.md linked
+PASS 06-final-audit.md exists
+PASS 06-final-audit.md linked
+PASS raw/commands.log exists
+PASS raw/commands.log linked
+PASS open docs avoid stale refine path
+final_promotion_probe_exit=0
+
+$ rg -n ".ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md" .ai/issues/open .ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/final-order.md || true
+
+$ git status --short --untracked-files=all | rg "ISSUE-022|ISSUE-018|ISSUE-019|ISSUE-023|ISSUE-011|ISSUE-014|ISSUE-013|sentrux|refine-issue-leverage-order|ISSUE-015|ISSUE-016|ISSUE-021|ISSUE-024"
+ D .ai/issues/refine/ISSUE-015-goal-subgoals.md
+ D .ai/issues/refine/ISSUE-016-goal-idle-tolerant-mode.md
+ M .ai/issues/refine/ISSUE-019-parallel-multiple-goals.md
+ D .ai/issues/refine/ISSUE-021-goal-completion-proofs.md
+ D .ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md
+ M .ai/issues/refine/ISSUE-023-goal-dependency-triggers-and-watchers.md
+ D .ai/issues/refine/ISSUE-024-goal-audit-command.md
+ M .pi/extensions/goal/.sentrux/baseline.json
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/07-acceptance-traceability.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/08-open-bucket-promotion.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/09-migration-consistency-audit.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/10-current-code-readiness-audit.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/11-downstream-reference-update.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/12-package-script-proof-check.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/13-executor-handoff.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/14-non-implementation-boundary.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/15-queue-continuation-note.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/16-stale-reference-audit.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/17-template-containment-readback.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/18-parent-pipeline-readback.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/19-subgoal-state-matrix.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/20-replay-bounds-handoff.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/21-closeout-summary.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/22-queue-state-checkpoint.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/23-types-source-recheck.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/24-state-source-recheck.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/25-tools-registration-recheck.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/26-tool-output-recheck.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/27-widget-source-recheck.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/28-prompt-source-recheck.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/29-readme-update-plan.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/30-stack-order-after-promotion.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/31-acceptance-traceability-addendum.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/32-fingerprint.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/33-monitor-report-recheck.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/34-ui-source-recheck.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/35-format-source-recheck.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/36-final-promotion-invariant.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/37-budget-source-recheck.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/38-queue-source-recheck.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/39-final-closeout-readback.md
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/artifact-line-counts.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/check-ignore-final.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/closeout-needle-check.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/commands.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/diff-check.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/diff-stat-final.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/final-closeout-probe.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/final-promotion-invariant-probe.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/issue015-promotion-fingerprint.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/last-mile-audit.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/old-path-references-after-update.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/old-path-references.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/open-inventory-final.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/open-issue-full-validation.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/open-path-audit.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/open-promotion-validation.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/path-existence-audit.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/promotion-invariant-probe.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/quality-goal-open-promotion.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/refine-inventory-final.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/research-rg.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/sentrux-gate.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/slop-goal-open-promotion.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/stack-order-after-promotion-probe.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/stale-refine-path-after-fix.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/stale-refine-path-current-docs.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/status-final.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/typecheck-goal-open-promotion.log
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/validation-probe.log
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/07-downstream-reference-update.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/08-implementation-handoff.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/09-state-and-telemetry-plan.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/10-validation-probe-plan.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/11-ui-wording-plan.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/12-non-implementation-boundary.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/13-queue-continuation-note.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/14-package-script-proof-check.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/15-final-promotion-invariant.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/16-closeout-summary.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/17-telemetry-source-recheck.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/18-command-source-recheck.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/19-tool-output-source-recheck.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/20-template-source-recheck.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/21-monitor-prompt-recheck.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/22-queue-steering-recheck.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/23-floor-source-recheck.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/24-readme-update-plan.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/25-validation-script-plan.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/26-proof-command-normalization.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/27-entrypoint-and-schema-recheck.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/28-state-replay-source-recheck.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/29-ui-widget-format-recheck.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/30-final-readback.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/31-monitor-report-source-recheck.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/32-downstream-stale-reference-fix.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/33-stack-inventory-after-promotion.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/34-goal-completion-readiness.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/35-final-diff-snapshot.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/36-nonimplementation-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/37-artifact-link-check.md
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/artifact-line-counts.log
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/check-ignore-final.log
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/commands.log
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/current-refine-open-inventory-summary.log
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/diff-check.log
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/final-artifact-link-check.log
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/final-invariant-summary.log
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/final-promotion-invariant-probe.log
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/final-relevant-diff.patch
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/issue016-reference-audit.log
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/old-path-references-after-update.log
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/old-path-references.log
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/open-inventory-final.log
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/open-issue-full-validation.log
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/open-path-audit.log
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/open-promotion-validation.log
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/quality-goal-open-promotion.log
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/refine-inventory-final.log
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/sentrux-gate.log
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/slop-goal-open-promotion.log
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/stale-refine-path-final.log
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/status-final.log
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/typecheck-goal-open-promotion.log
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/07-dataflow-and-seams.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/08-proof-schema-sketch.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/09-execution-plan.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/10-executor-review-checklist.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/11-proof-condition-matrix.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/12-validation-expansion.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/13-runner-safety-research.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/14-bcu-external-research-attempt.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/15-adversarial-review.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/16-acceptance-traceability-matrix.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/17-closeout-snapshot.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/18-tool-api-design.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/19-validation-probe-design.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/20-proof-ui-rendering-plan.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/21-proof-evaluator-api.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/22-readme-update-plan.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/23-worktree-freshness-design.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/24-open-bucket-promotion.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/25-migration-consistency-audit.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/26-current-code-readiness-audit.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/27-downstream-reference-update.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/28-promotion-dependency-map.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/29-required-proof-command-sanity.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/30-executor-handoff.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/31-package-script-proof-check.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/32-non-implementation-boundary.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/33-queue-continuation-note.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/34-closeout-summary.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/35-floor-gate-source-recheck.md
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/artifact-line-counts.log
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/check-ignore-final.log
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/closeout-name-status.log
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/commands.log
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/diff-check.log
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/old-path-references-after-update.log
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/old-path-references.log
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/open-inventory-final.log
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/open-issue-fingerprint.log
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/open-issue-full-validation.log
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/open-location-check.log
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/open-path-audit.log
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/open-promotion-diff-stat.log
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/open-promotion-head-diff-preview.log
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/open-promotion-name-status.log
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/open-promotion-required-proofs-check.log
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/open-promotion-validation.log
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/open-refine-inventory-after-promotion.log
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/path-existence-audit.log
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/promotion-invariant-probe.log
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/quality-goal-open-promotion.log
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/refine-inventory-final.log
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/slop-goal-proof-check.log
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/stale-refine-path-nonraw.log
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/status-final.log
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/typecheck-goal-proof-check.log
+?? .ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/validation-expansion-probe.log
+?? .ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/raw/commands.log
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/07-downstream-reference-update.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/08-closeout-summary.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/09-lifecycle-filter-source-recheck.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/10-tool-output-source-recheck.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/11-model-output-parser-reuse-note.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/12-validation-probe-plan.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/13-readme-and-docs-plan.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/14-queue-continuation-note.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/15-implementation-handoff.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/16-acceptance-traceability.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/17-nonimplementation-boundary.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/18-proof-command-sanity.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/19-current-inventory-after-promotion.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/20-ui-widget-source-recheck.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/21-queue-tools-source-recheck.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/22-audit-record-schema-sketch.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/23-prompt-contract-sketch.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/24-reference-audit.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/25-dependency-path-probe.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/26-live-probe-scope-note.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/27-sentrux-planning-summary.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/28-quality-gate-summary.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/29-final-linkage-probe.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/raw/artifact-line-counts.log
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/raw/check-ignore-final.log
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/raw/commands.log
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/raw/dependency-path-probe.log
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/raw/diff-check.log
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/raw/open-inventory-final.log
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/raw/open-path-reference-audit.log
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/raw/open-promotion-validation.log
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/raw/path-references-before-promotion.log
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/raw/quality-goal-open-promotion.log
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/raw/refine-inventory-final.log
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/raw/research-rg.log
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/raw/sentrux-gate.log
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/raw/slop-goal-open-promotion.log
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/raw/stale-refine-path-after-promotion.log
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/raw/stale-refine-path-current-docs.log
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/raw/status-final.log
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/raw/typecheck-goal-open-promotion.log
+?? .ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/01-open-promotion-addendum.md
+?? .ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/check-ignore.log
+?? .ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/coverage-check.log
+?? .ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/final-order.md
+?? .ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/status.log
+?? .ai/issues/open/ISSUE-015-goal-subgoals.md
+?? .ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md
+?? .ai/issues/open/ISSUE-021-goal-completion-proofs.md
+?? .ai/issues/open/ISSUE-022-goal-history-checkpoints-and-compaction.md
+?? .ai/issues/open/ISSUE-024-goal-audit-command.md
+
+$ git check-ignore -v .ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/00-request.md || true
+.gitignore:11:!.ai/docs/issue-workflow/**	.ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/00-request.md
+
+$ git diff --check (post-final-audit)
+post_final_diff_check_exit=0
+
+$ node - <<NODE (issue022 artifact/link invariant after source-check addendum)
+PASS 00-request.md exists
+PASS 00-request.md linked
+PASS 01-protocol-read.md exists
+PASS 01-protocol-read.md linked
+PASS 02-grounded-research.md exists
+PASS 02-grounded-research.md linked
+PASS 03-design-lock.md exists
+PASS 03-design-lock.md linked
+PASS 04-proof-threat-model.md exists
+PASS 04-proof-threat-model.md linked
+PASS 05-issue-writeback.md exists
+PASS 05-issue-writeback.md linked
+PASS 06-final-audit.md exists
+PASS 06-final-audit.md linked
+PASS 07-replay-and-compaction-source-check.md exists
+PASS 07-replay-and-compaction-source-check.md linked
+PASS raw/commands.log exists
+PASS raw/commands.log linked
+PASS compaction wording is safe/conditional
+PASS monitor-state source finding written back
+PASS quality gate log already passed
+artifact_link_probe_exit=0
+
+$ git diff --check (after source-check addendum)
+post_addendum_diff_check_exit=0
+
+$ node - <<NODE (issue022 validation-plan link/proof probe)
+PASS issue links validation plan
+PASS goal-checkpoint-schema-probe.mjs in issue and plan
+PASS goal-checkpoint-replay-probe.mjs in issue and plan
+PASS goal-checkpoint-trigger-dedupe-probe.mjs in issue and plan
+PASS goal-checkpoint-context-bound-probe.mjs in issue and plan
+PASS goal-checkpoint-compaction-probe.mjs in issue and plan
+PASS goal-checkpoint-not-completion-proof-probe.mjs in issue and plan
+PASS goal-checkpoint-export-probe.mjs in issue and plan
+PASS plan has TOON coverage matrix
+validation_plan_probe_exit=0
+
+$ git diff --check (after validation-plan addendum)
+post_validation_plan_diff_check_exit=0
+
+$ node - <<NODE (issue022 readme-plan link probe)
+PASS readme plan linked from issue
+PASS readme plan documents checkpoint command
+PASS readme plan documents history command
+PASS readme plan documents no full history context
+readme_plan_probe_exit=0
+
+$ git diff --check (after readme-plan addendum)
+post_readme_plan_diff_check_exit=0
+
+$ node - <<NODE (issue022 package-proof link probe)
+PASS package proof check linked from issue
+PASS quality_goal row remains in required proofs
+PASS package proof cites quality script
+package_proof_probe_exit=0
+
+$ git diff --check (after package-proof addendum)
+post_package_proof_diff_check_exit=0
+
+$ node - <<NODE (issue022 TOON structural probe)
+PASS two TOON blocks present
+PASS block 1 has toon.version
+PASS block 1 has row table syntax
+PASS block 1 has no markdown bullets
+PASS block 1 has no markdown headings
+PASS block 2 has toon.version
+PASS block 2 has row table syntax
+PASS block 2 has no markdown bullets
+PASS block 2 has no markdown headings
+PASS required proof rows match declared count
+PASS locked requirement rows match declared count
+toon_structural_probe_exit=0
+
+$ node - <<NODE (issue022 final all-artifacts invariant)
+PASS canonical open issue exists
+PASS old refine issue absent
+PASS 00-request.md exists
+PASS 00-request.md linked in issue
+PASS 01-protocol-read.md exists
+PASS 01-protocol-read.md linked in issue
+PASS 02-grounded-research.md exists
+PASS 02-grounded-research.md linked in issue
+PASS 03-design-lock.md exists
+PASS 03-design-lock.md linked in issue
+PASS 04-proof-threat-model.md exists
+PASS 04-proof-threat-model.md linked in issue
+PASS 05-issue-writeback.md exists
+PASS 05-issue-writeback.md linked in issue
+PASS 06-final-audit.md exists
+PASS 06-final-audit.md linked in issue
+PASS 07-replay-and-compaction-source-check.md exists
+PASS 07-replay-and-compaction-source-check.md linked in issue
+PASS 08-validation-probe-plan.md exists
+PASS 08-validation-probe-plan.md linked in issue
+PASS 09-readme-update-plan.md exists
+PASS 09-readme-update-plan.md linked in issue
+PASS 10-package-script-proof-check.md exists
+PASS 10-package-script-proof-check.md linked in issue
+PASS raw/commands.log exists
+PASS raw/commands.log linked in issue
+PASS status execution-ready
+PASS required_proofs count 9
+final_all_artifacts_probe_exit=0
+
+$ git diff --check (final issue022)
+final_issue022_diff_check_exit=0
+
+$ node - <<NODE (issue022 acceptance traceability probe)
+PASS traceability linked from issue
+PASS traceability TOON row count
+PASS checkpoint_schema_probe traced
+PASS checkpoint_replay_probe traced
+PASS checkpoint_trigger_dedupe_probe traced
+PASS checkpoint_context_bound_probe traced
+PASS checkpoint_compaction_probe traced
+PASS checkpoint_not_completion_proof_probe traced
+PASS checkpoint_export_probe traced
+PASS quality_goal traced
+acceptance_traceability_probe_exit=0
+
+$ git diff --check (after acceptance-traceability addendum)
+post_acceptance_traceability_diff_check_exit=0
+
+$ node - <<NODE (issue022 implementation handoff probe)
+PASS handoff linked from issue
+PASS constants.ts in handoff
+PASS types.ts in handoff
+PASS checkpoints.ts in handoff
+PASS lifecycle.ts in handoff
+PASS command.ts in handoff
+PASS tools.ts in handoff
+PASS README.md in handoff
+PASS handoff preserves no GoalState array boundary
+PASS handoff preserves no prompt history boundary
+implementation_handoff_probe_exit=0
+
+$ git diff --check (after implementation-handoff addendum)
+post_implementation_handoff_diff_check_exit=0
+
+$ rg -n ".ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md" .ai/issues/open .ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/final-order.md .ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction || true
+.ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/00-request.md:7:Action taken: created the next concrete active goal from `create-issue-doc` for `.ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md` with `min_time_seconds_before_wrap_up=720`. The parent queue item remains queued and must not be dequeued until all refine-stack issues are promoted/open/execution-ready.
+.ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/00-request.md:14:- Existing source issue: `.ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md`
+.ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/06-final-audit.md:5:Requested objective: refine `.ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md` into an execution-ready issue doc using `$feature-workflow-pipelines`, move the canonical issue to `.ai/issues/open/ISSUE-022-goal-history-checkpoints-and-compaction.md`, preserve/link visible workflow artifacts, include proof threat model plus required proofs, resolve stale dependencies, and verify artifact visibility/status.
+.ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/06-final-audit.md:13:| Existing refine issue inspected | `.ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md`; `02-grounded-research.md` | PASS |
+.ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/06-final-audit.md:22:| Old refine issue removed | `.ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md` absent | PASS |
+.ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/02-grounded-research.md:5:- `.ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md`
+
+$ node - <<NODE (issue022 stale-reference audit probe)
+PASS stale reference audit linked from issue
+PASS open issue avoids old refine path
+PASS audit distinguishes historical mentions
+stale_reference_audit_probe_exit=0
+
+$ git diff --check (after stale-reference audit)
+post_stale_reference_audit_diff_check_exit=0
+
+$ npm run quality:goal (final rerun after ISSUE-022 docs/link updates)
+
+> pi-goals@0.2.0 quality:goal
+> sentrux gate .pi/extensions/goal && sentrux check .pi/extensions/goal && npm run slop:goal && npm run typecheck:goal && pi --offline --no-session --no-tools -e .pi/extensions/goal/index.ts --list-models >/tmp/pi-goal-quality-load.txt
+
+Scanning .pi/extensions/goal...
+[build_project_map] 30 files, 2 unique dirs, 2 cache misses, 0.1ms
+[resolve] 112 resolved, 22 unresolved (of 134 total specs)
+[resolve_imports] project_map 0.1ms, suffix_idx 0.1ms, suffix_resolve 1.1ms, total 1.3ms
+[build_graphs] 30 files | maps 0.0ms, imports 1.4ms, calls+inherit 0.4ms, total 1.8ms | 111 import, 591 call, 0 inherit edges
+sentrux gate — structural regression check
+
+Quality:      6241 -> 6241
+Coupling:     0.16 → 0.16
+Cycles:       0 → 0
+God files:    0 → 0
+
+Distance from Main Sequence: 0.25
+
+✓ No degradation detected
+Scanning .pi/extensions/goal...
+[build_project_map] 30 files, 2 unique dirs, 2 cache misses, 0.1ms
+[resolve] 112 resolved, 22 unresolved (of 134 total specs)
+[resolve_imports] project_map 0.1ms, suffix_idx 0.1ms, suffix_resolve 0.9ms, total 1.1ms
+[build_graphs] 30 files | maps 0.0ms, imports 1.2ms, calls+inherit 0.5ms, total 1.7ms | 111 import, 591 call, 0 inherit edges
+sentrux check — 33 rules checked
+
+Quality: 6241
+
+✓ All rules pass
+
+> pi-goals@0.2.0 slop:goal
+> if rg -n 'as unknown as|as any' .pi/extensions/goal; then exit 1; else exit 0; fi
+
+
+> pi-goals@0.2.0 typecheck:goal
+> tsc --noEmit --target ES2022 --module ESNext --moduleResolution node --ignoreDeprecations 6.0 --types node --strict --skipLibCheck .pi/extensions/goal/*.ts
+
+provider      model                       context  max-out  thinking  images
+anthropic     claude-3-5-haiku-20241022   200K     8.2K     no        yes   
+anthropic     claude-3-5-haiku-latest     200K     8.2K     no        yes   
+anthropic     claude-3-5-sonnet-20240620  200K     8.2K     no        yes   
+anthropic     claude-3-5-sonnet-20241022  200K     8.2K     no        yes   
+anthropic     claude-3-7-sonnet-20250219  200K     64K      yes       yes   
+anthropic     claude-3-haiku-20240307     200K     4.1K     no        yes   
+anthropic     claude-3-opus-20240229      200K     4.1K     no        yes   
+anthropic     claude-3-sonnet-20240229    200K     4.1K     no        yes   
+anthropic     claude-haiku-4-5            200K     64K      yes       yes   
+anthropic     claude-haiku-4-5-20251001   200K     64K      yes       yes   
+anthropic     claude-opus-4-0             200K     32K      yes       yes   
+anthropic     claude-opus-4-1             200K     32K      yes       yes   
+anthropic     claude-opus-4-1-20250805    200K     32K      yes       yes   
+anthropic     claude-opus-4-20250514      200K     32K      yes       yes   
+anthropic     claude-opus-4-5             200K     64K      yes       yes   
+anthropic     claude-opus-4-5-20251101    200K     64K      yes       yes   
+anthropic     claude-opus-4-6             1M       128K     yes       yes   
+anthropic     claude-opus-4-7             1M       128K     yes       yes   
+anthropic     claude-sonnet-4-0           200K     64K      yes       yes   
+anthropic     claude-sonnet-4-20250514    200K     64K      yes       yes   
+anthropic     claude-sonnet-4-5           200K     64K      yes       yes   
+anthropic     claude-sonnet-4-5-20250929  200K     64K      yes       yes   
+anthropic     claude-sonnet-4-6           1M       64K      yes       yes   
+openai-codex  gpt-5.1                     272K     128K     yes       yes   
+openai-codex  gpt-5.1-codex-max           272K     128K     yes       yes   
+openai-codex  gpt-5.1-codex-mini          272K     128K     yes       yes   
+openai-codex  gpt-5.2                     272K     128K     yes       yes   
+openai-codex  gpt-5.2-codex               272K     128K     yes       yes   
+openai-codex  gpt-5.3-codex               272K     128K     yes       yes   
+openai-codex  gpt-5.3-codex-spark         128K     128K     yes       no    
+openai-codex  gpt-5.4                     272K     128K     yes       yes   
+openai-codex  gpt-5.4-mini                272K     128K     yes       yes   
+openai-codex  gpt-5.5                     272K     128K     yes       yes   
+opencode-go   deepseek-v4-flash           1M       384K     yes       no    
+opencode-go   deepseek-v4-pro             1M       384K     yes       no    
+opencode-go   glm-5                       202.8K   32.8K    yes       no    
+opencode-go   glm-5.1                     202.8K   32.8K    yes       no    
+opencode-go   kimi-k2.5                   262.1K   65.5K    yes       yes   
+opencode-go   kimi-k2.6                   262.1K   65.5K    yes       yes   
+opencode-go   mimo-v2.5                   1M       128K     yes       yes   
+opencode-go   mimo-v2.5-pro               1.0M     128K     yes       no    
+opencode-go   minimax-m2.5                204.8K   65.5K    yes       no    
+opencode-go   minimax-m2.7                204.8K   131.1K   yes       no    
+opencode-go   qwen3.5-plus                262.1K   65.5K    yes       yes   
+opencode-go   qwen3.6-plus                262.1K   65.5K    yes       yes   
+final_quality_goal_exit=0
+
+$ node - <<NODE (issue022 stack compatibility probe)
+PASS compatibility review linked from issue
+PASS ISSUE-018 covered
+PASS ISSUE-019 covered
+PASS ISSUE-023 covered
+PASS ISSUE-011 covered
+PASS ISSUE-014 covered
+PASS ISSUE-013 covered
+PASS compatibility matrix TOON present
+stack_compatibility_probe_exit=0
+
+$ git diff --check (after stack compatibility review)
+post_stack_compatibility_diff_check_exit=0
+
+$ node - <<NODE (issue022 nonimplementation boundary probe)
+PASS nonimplementation boundary linked from issue
+PASS boundary says no TS implementation edits
+PASS boundary explains sentrux baseline
+nonimplementation_boundary_probe_exit=0
+
+$ git diff --check (after nonimplementation boundary)
+post_nonimplementation_boundary_diff_check_exit=0
+
+$ git status --short --untracked-files=all | rg "ISSUE-022|refine-issue-leverage-order|sentrux"
+ D .ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md
+ M .pi/extensions/goal/.sentrux/baseline.json
+?? .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/sentrux-gate.log
+?? .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/sentrux-gate.log
+?? .ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/07-replay-and-compaction-source-check.md
+?? .ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/08-validation-probe-plan.md
+?? .ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/09-readme-update-plan.md
+?? .ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/10-package-script-proof-check.md
+?? .ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/11-acceptance-traceability.md
+?? .ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/12-implementation-handoff.md
+?? .ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/13-stale-reference-audit.md
+?? .ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/14-stack-compatibility-review.md
+?? .ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/15-nonimplementation-boundary.md
+?? .ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/raw/commands.log
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/27-sentrux-planning-summary.md
+?? .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/raw/sentrux-gate.log
+?? .ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/01-open-promotion-addendum.md
+?? .ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/check-ignore.log
+?? .ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/coverage-check.log
+?? .ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/final-order.md
+?? .ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/status.log
+?? .ai/issues/open/ISSUE-022-goal-history-checkpoints-and-compaction.md
+
+$ git check-ignore -v .ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/15-nonimplementation-boundary.md || true
+.gitignore:11:!.ai/docs/issue-workflow/**	.ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/15-nonimplementation-boundary.md
+
+$ test -e .ai/issues/open/ISSUE-022-goal-history-checkpoints-and-compaction.md && test ! -e .ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md && echo PASS final_path_state
+PASS final_path_state
+
+$ node - <<NODE (issue022 queue continuation probe)
+PASS queue continuation note linked from issue
+PASS note names parent queue item
+PASS note names next ISSUE-018
+PASS note forbids start_queued_goal for parent
+queue_continuation_probe_exit=0
+
+$ git diff --check (after queue continuation note)
+post_queue_continuation_diff_check_exit=0
+
+$ node - <<NODE (issue022 final complete artifact/link/status probe)
+PASS canonical open issue exists
+PASS old refine issue absent
+PASS execution-ready status
+PASS required_proofs[9]
+PASS 00-request.md exists
+PASS 00-request.md linked
+PASS 01-protocol-read.md exists
+PASS 01-protocol-read.md linked
+PASS 02-grounded-research.md exists
+PASS 02-grounded-research.md linked
+PASS 03-design-lock.md exists
+PASS 03-design-lock.md linked
+PASS 04-proof-threat-model.md exists
+PASS 04-proof-threat-model.md linked
+PASS 05-issue-writeback.md exists
+PASS 05-issue-writeback.md linked
+PASS 06-final-audit.md exists
+PASS 06-final-audit.md linked
+PASS 07-replay-and-compaction-source-check.md exists
+PASS 07-replay-and-compaction-source-check.md linked
+PASS 08-validation-probe-plan.md exists
+PASS 08-validation-probe-plan.md linked
+PASS 09-readme-update-plan.md exists
+PASS 09-readme-update-plan.md linked
+PASS 10-package-script-proof-check.md exists
+PASS 10-package-script-proof-check.md linked
+PASS 11-acceptance-traceability.md exists
+PASS 11-acceptance-traceability.md linked
+PASS 12-implementation-handoff.md exists
+PASS 12-implementation-handoff.md linked
+PASS 13-stale-reference-audit.md exists
+PASS 13-stale-reference-audit.md linked
+PASS 14-stack-compatibility-review.md exists
+PASS 14-stack-compatibility-review.md linked
+PASS 15-nonimplementation-boundary.md exists
+PASS 15-nonimplementation-boundary.md linked
+PASS 16-queue-continuation-note.md exists
+PASS 16-queue-continuation-note.md linked
+PASS raw/commands.log exists
+PASS raw/commands.log linked
+final_complete_artifact_probe_exit=0
+
+$ git diff --check (final complete)
+final_complete_diff_check_exit=0
+
+$ git diff --stat -- .ai/issues/open/ISSUE-022-goal-history-checkpoints-and-compaction.md .ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md .ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction .ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/final-order.md
+ .ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md | 54 ------------------------------------------------------
+ 1 file changed, 54 deletions(-)
+
+$ git diff --name-status -- .ai/issues/open/ISSUE-022-goal-history-checkpoints-and-compaction.md .ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md .ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction .ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/final-order.md
+D	.ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md
+
+$ node - <<NODE (issue022 diff-snapshot link probe)
+PASS final diff snapshot exists
+PASS final diff snapshot linked from issue
+PASS raw log contains diff stat scoped command
+diff_snapshot_probe_exit=0
+
+$ git diff --check (after diff snapshot)
+post_diff_snapshot_diff_check_exit=0
+
+$ node - <<NODE (issue022 terminal validation after all addenda)
+PASS canonical open issue exists
+PASS refine issue absent
+PASS 00-request.md linked
+PASS 01-protocol-read.md linked
+PASS 02-grounded-research.md linked
+PASS 03-design-lock.md linked
+PASS 04-proof-threat-model.md linked
+PASS 05-issue-writeback.md linked
+PASS 06-final-audit.md linked
+PASS 07-replay-and-compaction-source-check.md linked
+PASS 08-validation-probe-plan.md linked
+PASS 09-readme-update-plan.md linked
+PASS 10-package-script-proof-check.md linked
+PASS 11-acceptance-traceability.md linked
+PASS 12-implementation-handoff.md linked
+PASS 13-stale-reference-audit.md linked
+PASS 14-stack-compatibility-review.md linked
+PASS 15-nonimplementation-boundary.md linked
+PASS 16-queue-continuation-note.md linked
+PASS 17-final-diff-snapshot.md linked
+PASS raw commands linked
+PASS final quality gate passed in log
+PASS final path state passed in log
+PASS required proof rows still 9
+PASS next stack note preserved
+terminal_validation_exit=0
+
+$ git diff --check (terminal)
+terminal_diff_check_exit=0
+
+$ node - <<NODE (issue022 closeout link probe)
+PASS closeout linked from issue
+PASS closeout names open issue
+PASS closeout names next ISSUE-018
+closeout_link_probe_exit=0
+
+$ git diff --check (after closeout summary)
+post_closeout_diff_check_exit=0
+
+$ node - <<NODE (issue022 closeout all-linked after closeout summary)
+PASS 00 artifact exists
+PASS 00-request.md linked
+PASS 01 artifact exists
+PASS 01-protocol-read.md linked
+PASS 02 artifact exists
+PASS 02-grounded-research.md linked
+PASS 03 artifact exists
+PASS 03-design-lock.md linked
+PASS 04 artifact exists
+PASS 04-proof-threat-model.md linked
+PASS 05 artifact exists
+PASS 05-issue-writeback.md linked
+PASS 06 artifact exists
+PASS 06-final-audit.md linked
+PASS 07 artifact exists
+PASS 07-replay-and-compaction-source-check.md linked
+PASS 08 artifact exists
+PASS 08-validation-probe-plan.md linked
+PASS 09 artifact exists
+PASS 09-readme-update-plan.md linked
+PASS 10 artifact exists
+PASS 10-package-script-proof-check.md linked
+PASS 11 artifact exists
+PASS 11-acceptance-traceability.md linked
+PASS 12 artifact exists
+PASS 12-implementation-handoff.md linked
+PASS 13 artifact exists
+PASS 13-stale-reference-audit.md linked
+PASS 14 artifact exists
+PASS 14-stack-compatibility-review.md linked
+PASS 15 artifact exists
+PASS 15-nonimplementation-boundary.md linked
+PASS 16 artifact exists
+PASS 16-queue-continuation-note.md linked
+PASS 17 artifact exists
+PASS 17-final-diff-snapshot.md linked
+PASS 18 artifact exists
+PASS 18-closeout-summary.md linked
+PASS raw log linked
+PASS quality final pass recorded
+PASS terminal validation pass recorded
+closeout_all_linked_probe_exit=0
+
+$ git diff --check (closeout all-linked)
+closeout_all_linked_diff_check_exit=0
+
+$ git diff --check (pre-completion final)
+pre_completion_final_diff_check_exit=0
+
+$ node - <<NODE (pre-completion issue022 objective audit)
+PASS promoted_path_state
+PASS final_order_updated
+PASS execution_ready_status
+PASS required_proofs_present
+pre_completion_objective_audit_exit=0
+
+$ date && test -e .ai/issues/open/ISSUE-022-goal-history-checkpoints-and-compaction.md && test ! -e .ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md && echo PASS issue022_ready_for_goal_completion
+Mon May 11 01:52:57 CEST 2026
+PASS issue022_ready_for_goal_completion
+
+$ node -e final timestamp/readiness
+PASS issue022_final_timestamp 2026-05-10T23:53:07.209Z
+
+$ pwd && echo PASS no_more_valuable_autonomous_work_issue022
+/Users/bryan/dev/personal/experiments/pi-goals
+PASS no_more_valuable_autonomous_work_issue022

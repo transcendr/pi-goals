@@ -1,0 +1,6 @@
+PASS canonical-open-location :: execution-ready issue must live in issues/open
+PASS refine-source-removed :: promotion must not leave competing refine canonical doc
+PASS open-status-and-bucket :: status and bucket must match requested target
+PASS nested-child-design-locked :: owner-selected architecture must remain explicit
+PASS required-proofs-present :: execution-ready issue must retain required proof rows
+PASS promotion-artifacts-linked :: promotion artifacts must be linked from canonical issue

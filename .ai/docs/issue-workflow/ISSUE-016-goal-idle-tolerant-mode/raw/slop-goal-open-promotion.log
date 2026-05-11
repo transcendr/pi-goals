@@ -1,0 +1,5 @@
+
+> pi-goals@0.2.0 slop:goal
+> if rg -n 'as unknown as|as any' .pi/extensions/goal; then exit 1; else exit 0; fi
+
+slop_exit=0
