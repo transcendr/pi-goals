@@ -1,0 +1,26 @@
+PASS canonical open
+PASS old refine removed
+PASS Status: open — execution-ready
+PASS Target bucket: open
+PASS autoContinueMode
+PASS idle_nudge
+PASS manual
+PASS idle_nudge_suppresses_immediate
+PASS idle_nudge_stale_guard
+PASS manual_mode_probe
+PASS idle_policy_replay_probe
+PASS artifact 00
+PASS artifact 01
+PASS artifact 02
+PASS artifact 03
+PASS artifact 04
+PASS artifact 05
+PASS artifact 06
+PASS artifact 07
+PASS artifact 08
+PASS artifact 09
+PASS artifact 10
+PASS artifact 11
+PASS artifact 12
+PASS artifact 13
+PASS artifact 14

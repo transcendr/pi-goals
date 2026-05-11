@@ -1,0 +1,28 @@
+- Read .ai/issues/refine/ISSUE-016-goal-idle-tolerant-mode.md.
+- Read .pi/extensions/goal/continuation.ts, lifecycle.ts, monitor.ts, floor-steering.ts, constants.ts.
+- Created request/protocol artifacts for ISSUE-016 open-bucket promotion.
+- Ran sentrux gate --save .pi/extensions/goal for ISSUE-016 planning sensor.
+- Removed old refine canonical path for ISSUE-016 after writing open issue.
+- Updated downstream leverage-order references from ISSUE-016 refine path to open path and wrote 07-downstream-reference-update.md.
+- Added 08 implementation handoff, 09 state/telemetry plan, and 10 validation probe plan.
+- Added 11 UI wording plan, 12 non-implementation boundary, and 13 queue continuation note.
+- Ran slop/typecheck checks and wrote 14-package-script-proof-check.md.
+- Ran final-promotion-invariant-probe.log and wrote 15-final-promotion-invariant.md.
+- Captured final inventories and wrote 16-closeout-summary.md.
+- Linked 16-closeout-summary.md and inventories, updated final audit.
+- Ran npm run quality:goal after ISSUE-016 open promotion.
+- Updated package proof artifact and canonical issue with quality:goal exit 0 log.
+- Added source recheck artifacts 17-20 from telemetry, command, tool-results, and templates.
+- Added source/doc recheck artifacts 21-24 from monitor-prompts, queue-steering, floor, and README.
+- Inspected current .ai/validation inventory and recorded idle-nudge validation-script gap in artifact 25.
+- Inspected package.json quality scripts and recorded proof-command expectations in artifact 26.
+- Rechecked index.ts, types.ts, and tools.ts schemas; recorded entrypoint/schema integration notes in artifact 27.
+- Rechecked state.ts replay normalization and recorded explicit idle policy normalization requirement in artifact 28.
+- Rechecked ui.ts, widget.ts, and format.ts; recorded active-waiting display requirements in artifact 29.
+- Added final invariant summary and final readback artifact 30.
+- Rechecked monitor-report.ts and recorded explicit monitor idle/wait context requirement in artifact 31.
+- Fixed downstream ISSUE-023 dependency reference from ISSUE-016 refine path to open path; recorded artifact 32.
+- Captured current open/refine inventory and recorded remaining stack state in artifact 33.
+- Recorded final concrete-goal completion readiness checklist in artifact 34.
+- Captured relevant tracked diff and recorded final diff snapshot in artifact 35.
+- Recorded non-implementation final audit in artifact 36.

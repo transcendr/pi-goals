@@ -1,0 +1,17 @@
+.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/17-closeout-snapshot.md:5:- Refined canonical issue originally at `.ai/issues/refine/ISSUE-021-goal-completion-proofs.md`; later promoted canonical issue to `.ai/issues/open/ISSUE-021-goal-completion-proofs.md`.
+.ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/status.log:2: M .ai/issues/refine/ISSUE-021-goal-completion-proofs.md
+.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/open-promotion-name-status.log:2:D	.ai/issues/refine/ISSUE-021-goal-completion-proofs.md
+.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/closeout-name-status.log:1:D	.ai/issues/refine/ISSUE-021-goal-completion-proofs.md
+.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/status-final.log:2: D .ai/issues/refine/ISSUE-021-goal-completion-proofs.md
+.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/commands.log:8:- Updated canonical issue doc in .ai/issues/refine/ISSUE-021-goal-completion-proofs.md.
+.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/open-promotion-diff-stat.log:1: .ai/issues/refine/ISSUE-021-goal-completion-proofs.md | 64 ----------------------------------------------------------------
+.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/25-migration-consistency-audit.md:18:Older artifacts still mention `.ai/issues/refine/ISSUE-021-goal-completion-proofs.md` as the path that was refined at the time. Those are kept as historical transcript evidence rather than rewritten retroactively. The promotion artifact `24-open-bucket-promotion.md` records the path transition.
+.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/old-path-references.log:1:.ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/final-order.md:17:1. `.ai/issues/refine/ISSUE-021-goal-completion-proofs.md` — Durable/auditable goal completion proofs.
+.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/old-path-references.log:2:.ai/issues/refine/ISSUE-015-goal-subgoals.md:19:- `.ai/issues/refine/ISSUE-021-goal-completion-proofs.md`
+.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/old-path-references.log:3:.ai/issues/refine/ISSUE-015-goal-subgoals.md:125:- `.ai/issues/refine/ISSUE-021-goal-completion-proofs.md`
+.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/old-path-references.log:4:.ai/issues/refine/ISSUE-024-goal-audit-command.md:12:- `.ai/issues/refine/ISSUE-021-goal-completion-proofs.md`
+.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/05-issue-writeback.md:3:Updated `.ai/issues/refine/ISSUE-021-goal-completion-proofs.md` from a sketch into a canonical execution-ready refine issue.
+.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/24-open-bucket-promotion.md:11:- Moved canonical issue doc from `.ai/issues/refine/ISSUE-021-goal-completion-proofs.md` to `.ai/issues/open/ISSUE-021-goal-completion-proofs.md`.
+.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/02-grounded-research.md:5:- `.ai/issues/refine/ISSUE-021-goal-completion-proofs.md`
+.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/00-request.md:5:Selected issue: `.ai/issues/refine/ISSUE-021-goal-completion-proofs.md`.
+.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/00-request.md:13:- `.ai/issues/refine/ISSUE-021-goal-completion-proofs.md`

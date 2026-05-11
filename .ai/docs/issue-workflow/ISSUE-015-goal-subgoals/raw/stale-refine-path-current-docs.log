@@ -1,0 +1,4 @@
+.ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/01-open-promotion-addendum.md:12:2. `.ai/issues/refine/ISSUE-015-goal-subgoals.md`
+.ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/status.log:1: M .ai/issues/refine/ISSUE-015-goal-subgoals.md
+.ai/issues/refine/ISSUE-019-parallel-multiple-goals.md:13:- `.ai/issues/refine/ISSUE-015-goal-subgoals.md`
+.ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md:11:Depends on: `.ai/issues/refine/ISSUE-015-goal-subgoals.md`

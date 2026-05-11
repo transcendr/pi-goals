@@ -1,0 +1,46 @@
+PASS canonical-open-status :: status must be open execution-ready
+PASS target-bucket-open :: target bucket must match requested bucket
+PASS old-refine-absent :: no competing canonical refine issue
+PASS nested-design :: Nested child goal runtime inside parent
+PASS quality-proof :: quality_goal
+PASS completion-proof :: completion_block_probe
+PASS template-proof :: template_child_probe
+PASS budget-invariant :: Parent hard budgets still win over child budgets/floors
+PASS artifact-00
+PASS artifact-01
+PASS artifact-02
+PASS artifact-03
+PASS artifact-04
+PASS artifact-05
+PASS artifact-06
+PASS artifact-07
+PASS artifact-08
+PASS artifact-09
+PASS artifact-10
+PASS artifact-11
+PASS artifact-12
+PASS artifact-13
+PASS artifact-14
+PASS artifact-15
+PASS artifact-16
+PASS artifact-17
+PASS artifact-18
+PASS artifact-19
+PASS artifact-20
+PASS artifact-21
+PASS artifact-22
+PASS artifact-23
+PASS artifact-24
+PASS artifact-25
+PASS artifact-26
+PASS artifact-27
+PASS artifact-28
+PASS artifact-29
+PASS artifact-30
+PASS artifact-31
+PASS artifact-32
+PASS artifact-33
+PASS artifact-34
+PASS artifact-35
+PASS artifact-36
+PASS artifact-37

@@ -1,0 +1,8 @@
+PASS 39-final-closeout-readback.md
+PASS raw/quality-goal-open-promotion.log
+PASS raw/diff-check.log
+PASS raw/status-final.log
+PASS raw/check-ignore-final.log
+PASS ISSUE-016-goal-idle-tolerant-mode.md
+PASS issue-path-exists
+PASS old-refine-removed

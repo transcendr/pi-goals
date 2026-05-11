@@ -1,0 +1,6 @@
+PASS canonical-open-location :: the execution-ready document must live in issues/open
+PASS refine-source-removed :: promotion must not leave a competing refine canonical doc
+PASS open-status-and-bucket :: issue status/bucket must match requested target bucket
+PASS required-proofs-present :: execution-ready proof-driven issue must include required proof rows
+PASS workflow-artifacts-linked :: canonical issue must link the durable transcript artifacts 00-34
+PASS quality-log-present :: promotion includes command evidence for quality gate health

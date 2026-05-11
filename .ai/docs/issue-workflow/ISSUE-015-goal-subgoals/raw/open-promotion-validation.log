@@ -1,0 +1,14 @@
+PASS open file exists
+PASS old refine removed
+PASS Status: open — execution-ready
+PASS Target bucket: open
+PASS 08-open-bucket-promotion.md
+PASS 09-migration-consistency-audit.md
+PASS 10-current-code-readiness-audit.md
+PASS 11-downstream-reference-update.md
+PASS required_proofs[5]
+PASS quality_goal
+PASS subgoal_replay_probe
+PASS completion_block_probe
+PASS template_child_probe
+PASS live_probe_or_skip

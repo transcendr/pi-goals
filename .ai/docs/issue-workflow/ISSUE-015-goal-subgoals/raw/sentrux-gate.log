@@ -1,0 +1,9 @@
+Scanning .pi/extensions/goal...
+[build_project_map] 30 files, 2 unique dirs, 2 cache misses, 0.1ms
+[resolve] 112 resolved, 22 unresolved (of 134 total specs)
+[resolve_imports] project_map 0.2ms, suffix_idx 0.1ms, suffix_resolve 1.3ms, total 1.5ms
+[build_graphs] 30 files | maps 0.0ms, imports 1.6ms, calls+inherit 0.5ms, total 2.1ms | 111 import, 591 call, 0 inherit edges
+Baseline saved to .pi/extensions/goal/.sentrux/baseline.json
+Quality: 6241
+
+Run `sentrux gate` after making changes to compare.

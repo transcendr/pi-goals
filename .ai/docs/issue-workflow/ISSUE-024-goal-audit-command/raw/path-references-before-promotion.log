@@ -1,0 +1,20 @@
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:20:- `.ai/issues/refine/ISSUE-024-goal-audit-command.md`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:148:- `.ai/issues/refine/ISSUE-024-goal-audit-command.md`
+.ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/01-open-promotion-addendum.md:14:4. `.ai/issues/refine/ISSUE-024-goal-audit-command.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:21:- `.ai/issues/refine/ISSUE-024-goal-audit-command.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:163:- `.ai/issues/refine/ISSUE-024-goal-audit-command.md`
+.ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/final-order.md:20:4. `.ai/issues/refine/ISSUE-024-goal-audit-command.md` — `/goal audit` pre-completion review command.
+.ai/issues/open/ISSUE-024-goal-audit-command.md:39:- Request intake: `.ai/docs/issue-workflow/ISSUE-024-goal-audit-command/00-request.md`
+.ai/issues/open/ISSUE-024-goal-audit-command.md:40:- Protocol read: `.ai/docs/issue-workflow/ISSUE-024-goal-audit-command/01-protocol-read.md`
+.ai/issues/open/ISSUE-024-goal-audit-command.md:41:- Grounded research: `.ai/docs/issue-workflow/ISSUE-024-goal-audit-command/02-grounded-research.md`
+.ai/issues/open/ISSUE-024-goal-audit-command.md:42:- Design lock: `.ai/docs/issue-workflow/ISSUE-024-goal-audit-command/03-design-lock.md`
+.ai/issues/open/ISSUE-024-goal-audit-command.md:43:- Proof threat model: `.ai/docs/issue-workflow/ISSUE-024-goal-audit-command/04-proof-threat-model.md`
+.ai/issues/open/ISSUE-024-goal-audit-command.md:44:- Issue writeback: `.ai/docs/issue-workflow/ISSUE-024-goal-audit-command/05-issue-writeback.md`
+.ai/issues/open/ISSUE-024-goal-audit-command.md:45:- Final audit: `.ai/docs/issue-workflow/ISSUE-024-goal-audit-command/06-final-audit.md`
+.ai/issues/open/ISSUE-024-goal-audit-command.md:46:- Raw command log: `.ai/docs/issue-workflow/ISSUE-024-goal-audit-command/raw/commands.log`
+.ai/issues/open/ISSUE-024-goal-audit-command.md:47:- Sentrux planning sensor: `.ai/docs/issue-workflow/ISSUE-024-goal-audit-command/raw/sentrux-gate.log`
+.ai/issues/open/ISSUE-024-goal-audit-command.md:48:- Research grep log: `.ai/docs/issue-workflow/ISSUE-024-goal-audit-command/raw/research-rg.log`
+.ai/issues/open/ISSUE-024-goal-audit-command.md:66:Source artifact: `.ai/docs/issue-workflow/ISSUE-024-goal-audit-command/02-grounded-research.md`.
+.ai/issues/open/ISSUE-024-goal-audit-command.md:81:Source artifact: `.ai/docs/issue-workflow/ISSUE-024-goal-audit-command/03-design-lock.md`.
+.ai/issues/open/ISSUE-024-goal-audit-command.md:128:Source artifact: `.ai/docs/issue-workflow/ISSUE-024-goal-audit-command/04-proof-threat-model.md`.
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md:15:- `.ai/issues/refine/ISSUE-024-goal-audit-command.md`

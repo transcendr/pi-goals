@@ -12,7 +12,7 @@ Depends on:
 - `.ai/docs/pi-goal-future-churn-overseer.md`
 - existing Pi steering path used by budget warnings/wrap-up (`pi.sendMessage(..., { deliverAs: "steer" })`)
 Related:
-- `.ai/issues/refine/ISSUE-024-goal-audit-command.md`
+- `.ai/issues/open/ISSUE-024-goal-audit-command.md`
 
 Goal: Implement a fully integrated, Pi-native, active, persistent per-goal intelligent churn monitor: a third-party monitor agent receives sparse reports from goal start, keeps per-goal context and a timestamped bounded churn log, judges whether the working agent is in real churn, and injects mid-turn steering into the working agent based on the monitor agent's judgment.
 

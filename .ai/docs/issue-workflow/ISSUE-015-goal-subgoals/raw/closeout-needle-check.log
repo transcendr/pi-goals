@@ -1,0 +1,4 @@
+PASS Nested child goal runtime inside parent
+PASS required_proofs[5]
+PASS 07-acceptance-traceability.md
+PASS completion_blocked_by_subgoal

@@ -1,0 +1,6 @@
+Checking ISSUE-016 promotion invariants at 2026-05-10T23:21:08Z
+PASS open issue exists
+PASS refine issue removed
+PASS quality log exists
+PASS issue validation log exists
+PASS status log exists

@@ -1,0 +1,41 @@
+.ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/01-open-promotion-addendum.md:13:3. `.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:35:- Request intake: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/00-request.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:36:- Protocol read: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/01-protocol-read.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:37:- Grounded research: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/02-grounded-research.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:38:- Design lock: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/03-design-lock.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:39:- Proof threat model: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/04-proof-threat-model.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:40:- Issue writeback: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/05-issue-writeback.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:41:- Final audit: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/06-final-audit.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:42:- Raw command log: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/commands.log`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:43:- Sentrux planning sensor: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/sentrux-gate.log`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:44:- Downstream reference update: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/07-downstream-reference-update.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:45:- Implementation handoff: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/08-implementation-handoff.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:46:- State and telemetry plan: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/09-state-and-telemetry-plan.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:47:- Validation probe plan: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/10-validation-probe-plan.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:48:- UI wording plan: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/11-ui-wording-plan.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:49:- Non-implementation boundary: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/12-non-implementation-boundary.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:50:- Queue continuation note: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/13-queue-continuation-note.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:51:- Package script proof check: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/14-package-script-proof-check.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:52:- Final promotion invariant: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/15-final-promotion-invariant.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:53:- Closeout summary: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/16-closeout-summary.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:54:- Final inventories: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/open-inventory-final.log`, `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/refine-inventory-final.log`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:55:- Quality gate log: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/quality-goal-open-promotion.log`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:56:- Telemetry source recheck: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/17-telemetry-source-recheck.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:57:- Command source recheck: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/18-command-source-recheck.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:58:- Tool output source recheck: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/19-tool-output-source-recheck.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:59:- Template source recheck: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/20-template-source-recheck.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:60:- Monitor prompt recheck: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/21-monitor-prompt-recheck.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:61:- Queue steering recheck: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/22-queue-steering-recheck.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:62:- Floor source recheck: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/23-floor-source-recheck.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:63:- README update plan: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/24-readme-update-plan.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:64:- Validation script plan: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/25-validation-script-plan.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:65:- Proof command normalization: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/26-proof-command-normalization.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:66:- Entrypoint and schema recheck: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/27-entrypoint-and-schema-recheck.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:67:- State replay source recheck: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/28-state-replay-source-recheck.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:68:- UI/widget/format source recheck: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/29-ui-widget-format-recheck.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:69:- Final readback: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/30-final-readback.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:70:- Monitor report source recheck: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/31-monitor-report-source-recheck.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:84:Source artifact: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/02-grounded-research.md`.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:138:Source artifact: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/04-proof-threat-model.md`.
+.ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/final-order.md:19:3. `.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md` — Idle-tolerant goals with delayed nudges.
+.ai/issues/refine/ISSUE-023-goal-dependency-triggers-and-watchers.md:11:Depends on: `.ai/issues/refine/ISSUE-016-goal-idle-tolerant-mode.md`

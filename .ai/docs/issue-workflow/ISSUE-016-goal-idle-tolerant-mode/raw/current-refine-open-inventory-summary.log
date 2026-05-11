@@ -1,0 +1,14 @@
+open_count 4
+open .ai/issues/open/ISSUE-015-goal-subgoals.md
+open .ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md
+open .ai/issues/open/ISSUE-021-goal-completion-proofs.md
+open .ai/issues/open/ISSUE-037-goal-queue-auto-continuation-after-complete.md
+refine_count 8
+refine .ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md
+refine .ai/issues/refine/ISSUE-013-goal-update-natural-language.md
+refine .ai/issues/refine/ISSUE-014-goal-progress-estimates.md
+refine .ai/issues/refine/ISSUE-018-goal-start-in-worktree.md
+refine .ai/issues/refine/ISSUE-019-parallel-multiple-goals.md
+refine .ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md
+refine .ai/issues/refine/ISSUE-023-goal-dependency-triggers-and-watchers.md
+refine .ai/issues/refine/ISSUE-024-goal-audit-command.md

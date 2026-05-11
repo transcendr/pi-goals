@@ -1,0 +1,12 @@
+PASS open file exists
+PASS old refine removed
+PASS Status: open — execution-ready
+PASS Target bucket: open
+PASS autoContinueMode
+PASS idle_nudge
+PASS manual
+PASS required_proofs[6]
+PASS idle_nudge_suppresses_immediate
+PASS idle_nudge_stale_guard
+PASS manual_mode_probe
+PASS idle_policy_replay_probe

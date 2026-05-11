@@ -8,7 +8,7 @@ Next best session: design refinement pass for wait-condition watchers
 Next best session rationale: Watcher types, execution safety, persistence, and stale-guard behavior need design locking.
 Target repo roots: `/Users/bryan/dev/personal/experiments/pi-goals`
 Parent issue: `.ai/issues/fixed/ISSUE-001-pi-goal-extension.md`
-Depends on: `.ai/issues/refine/ISSUE-016-goal-idle-tolerant-mode.md`
+Depends on: `.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md`
 
 Goal: Design optional external dependency triggers so an idle-tolerant goal can resume when a watched command, file, process, or agent signal changes.
 

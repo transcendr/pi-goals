@@ -1,0 +1,40 @@
+PASS section # ISSUE-015
+PASS section Status: refine
+PASS section Priority: P1
+PASS section Next best session
+PASS section Target bucket: refine
+PASS section Issue kind: feature
+PASS section ## Goal
+PASS section ## Problem/context
+PASS section ## Desired behavior
+PASS section ## Grounded research findings
+PASS section ## Locked design choices
+PASS section ## Acceptance criteria
+PASS section ## Proof threat model
+PASS section ## TOON synthesis
+PASS section ## Required proofs
+PASS needle Nested child goal runtime inside parent
+PASS needle create_goal_subgoal
+PASS needle completion-gate.ts
+PASS needle dirty-worktree-cleanup
+PASS needle completion_blocked_by_subgoal
+PASS needle no_top_level_replacement
+PASS artifact prefix 00-
+PASS artifact prefix 01-
+PASS artifact prefix 02-
+PASS artifact prefix 03-
+PASS artifact prefix 04-
+PASS artifact prefix 05-
+PASS artifact prefix 06-
+PASS linked 00-request.md
+PASS linked 01-protocol-read.md
+PASS linked 02-grounded-research.md
+PASS linked 03-design-lock.md
+PASS linked 04-proof-threat-model.md
+PASS linked 05-issue-writeback.md
+PASS linked 06-final-audit.md
+PASS linked raw/commands.log
+PASS linked raw/research-rg.log
+PASS linked raw/sentrux-gate.log
+PASS linked raw/validation-probe.log
+PASS workflow artifacts not ignored :: git check-ignore status=1
