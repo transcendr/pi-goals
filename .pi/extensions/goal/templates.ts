@@ -1,11 +1,10 @@
 import { execFileSync } from "node:child_process";
 import { readdirSync, readFileSync, statSync } from "node:fs";
-import { basename, extname, join, relative, sep } from "node:path";
+import { extname, join, relative, sep } from "node:path";
 
 const TEMPLATE_DIR = ".pi-goals";
 const DEFAULT_COMMAND_TIMEOUT_MS = 10_000;
 const DEFAULT_COMMAND_OUTPUT_LIMIT = 20_000;
-const SKIP_DIRS = new Set([".git", "node_modules", "references", "dist", "build", ".next", ".cache"]);
 
 export type GoalTemplate = {
 	name: string;
@@ -102,32 +101,14 @@ function findTemplates(nameOrAlias: string, root: string): GoalTemplate[] {
 }
 
 function findTemplateDirs(root: string): string[] {
-	const dirs: string[] = [];
-	walk(root, (path) => {
-		if (basename(path) === TEMPLATE_DIR) dirs.push(path);
-	});
-	return dirs;
+	return [join(root, TEMPLATE_DIR), join(root, ".ai", TEMPLATE_DIR)].filter(isDirectory);
 }
 
-function walk(dir: string, visit: (path: string) => void): void {
-	let entries: string[];
+function isDirectory(path: string): boolean {
 	try {
-		entries = readdirSync(dir);
+		return statSync(path).isDirectory();
 	} catch {
-		return;
-	}
-	for (const entry of entries) {
-		if (SKIP_DIRS.has(entry)) continue;
-		const path = join(dir, entry);
-		let stats;
-		try {
-			stats = statSync(path);
-		} catch {
-			continue;
-		}
-		if (!stats.isDirectory()) continue;
-		visit(path);
-		if (entry !== TEMPLATE_DIR) walk(path, visit);
+		return false;
 	}
 }
 

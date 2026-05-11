@@ -1,0 +1,105 @@
+$ git status --short
+?? .ai/docs/issue-workflow/ISSUE-038-bound-goal-template-autocomplete-discovery/
+
+$ find .ai/issues -maxdepth 2 -type d | sort
+.ai/issues
+.ai/issues/closed
+.ai/issues/defer
+.ai/issues/fixed
+.ai/issues/open
+
+$ find .ai/issues/open .ai/issues/refine .ai/issues/fixed .ai/issues/defer .ai/issues/closed -maxdepth 1 -type f -name "ISSUE-*.md" 2>/dev/null | sort | tail -80
+.ai/issues/fixed/ISSUE-001-pi-goal-extension.md
+.ai/issues/fixed/ISSUE-002-goal-pause-active-turn-interrupt.md
+.ai/issues/fixed/ISSUE-003-paused-goal-continuation-guard.md
+.ai/issues/fixed/ISSUE-004-goal-subcommand-fuzzy-autocomplete.md
+.ai/issues/fixed/ISSUE-005-goal-widget-labels-and-time-budget.md
+.ai/issues/fixed/ISSUE-006-goal-widget-card-ui.md
+.ai/issues/fixed/ISSUE-007-goal-budget-warning-and-hard-stop.md
+.ai/issues/fixed/ISSUE-008-goal-objective-limit-15k.md
+.ai/issues/fixed/ISSUE-009-goal-budget-edit-status-recompute.md
+.ai/issues/fixed/ISSUE-010-goal-update-telemetry-completion-semantics.md
+.ai/issues/fixed/ISSUE-012-goal-budget-limited-resume-and-wrapup-gaps.md
+.ai/issues/fixed/ISSUE-017-reusable-goal-prompt-docs.md
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md
+.ai/issues/fixed/ISSUE-025-goal-line-breaks-widget-rendering.md
+.ai/issues/fixed/ISSUE-026-nl-reusable-goal-prompts.md
+.ai/issues/fixed/ISSUE-027-goal-queue.md
+.ai/issues/fixed/ISSUE-028-goal-replacement-preview.md
+.ai/issues/fixed/ISSUE-029-goal-queue-direct-enqueue.md
+.ai/issues/fixed/ISSUE-030-queued-goal-steering.md
+.ai/issues/fixed/ISSUE-031-goal-queue-template-autocomplete.md
+.ai/issues/fixed/ISSUE-032-prose-queue-orchestration-guidance.md
+.ai/issues/fixed/ISSUE-033-resume-processes-queued-goals.md
+.ai/issues/fixed/ISSUE-034-prevent-unsatisfied-queued-goal-discard.md
+.ai/issues/fixed/ISSUE-035-multi-item-goal-queue-block.md
+.ai/issues/fixed/ISSUE-036-minimum-goal-spend-floors.md
+.ai/issues/open/ISSUE-011-goal-widget-real-component-and-narrow-width.md
+.ai/issues/open/ISSUE-013-goal-update-natural-language.md
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md
+.ai/issues/open/ISSUE-015-goal-subgoals.md
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md
+.ai/issues/open/ISSUE-018-goal-start-in-worktree.md
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md
+.ai/issues/open/ISSUE-022-goal-history-checkpoints-and-compaction.md
+.ai/issues/open/ISSUE-023-goal-dependency-triggers-and-watchers.md
+.ai/issues/open/ISSUE-024-goal-audit-command.md
+.ai/issues/open/ISSUE-037-goal-queue-auto-continuation-after-complete.md
+
+$ find .ai/issues -type f -name "ISSUE-*.md" 2>/dev/null | sed -E ...
+ISSUE-038
+
+$ rg -n "discoverGoalTemplates|findTemplateDirs|function walk|templateCompletions|goalArgumentCompletions" .pi/extensions/goal -S
+.pi/extensions/goal/command.ts:6:import { discoverGoalTemplates, resolveGoalTemplateInvocation } from "./templates";
+.pi/extensions/goal/command.ts:45:		getArgumentCompletions: goalArgumentCompletions,
+.pi/extensions/goal/command.ts:50:export function goalArgumentCompletions(argumentPrefix: string): AutocompleteItem[] | null {
+.pi/extensions/goal/command.ts:52:	if (/^queue\s/.test(query)) return templateCompletions(query.slice("queue".length).trimStart(), "queue ");
+.pi/extensions/goal/command.ts:60:	return [...subcommands, ...templateCompletions(query)];
+.pi/extensions/goal/command.ts:63:function templateCompletions(query: string, valuePrefix = ""): AutocompleteItem[] {
+.pi/extensions/goal/command.ts:65:	return discoverGoalTemplates()
+.pi/extensions/goal/templates.ts:50:export function discoverGoalTemplates(root = process.cwd()): GoalTemplate[] {
+.pi/extensions/goal/templates.ts:52:	for (const dir of findTemplateDirs(root)) collectTemplates(root, dir, templates);
+.pi/extensions/goal/templates.ts:58:	return discoverGoalTemplates(root).map((template) => {
+.pi/extensions/goal/templates.ts:101:	return discoverGoalTemplates(root).filter((template) => template.name === nameOrAlias || template.aliases.includes(nameOrAlias));
+.pi/extensions/goal/templates.ts:104:function findTemplateDirs(root: string): string[] {
+.pi/extensions/goal/templates.ts:112:function walk(dir: string, visit: (path: string) => void): void {
+
+$ find . -path "*/.pi-goals" -type d -print | sort
+./.ai/.pi-goals
+
+$ node temp scan simulation
+scan: 4.817ms
+{
+  root: [32m'/var/folders/8j/f35z086s553cjd2cbqzj94hw0000gn/T/goal-template-scan-LJgo0P'[39m,
+  reads: [33m201[39m,
+  stats: [33m200[39m
+}
+$ git status --short --untracked-files=all
+?? .ai/docs/issue-workflow/ISSUE-038-bound-goal-template-autocomplete-discovery/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-038-bound-goal-template-autocomplete-discovery/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-038-bound-goal-template-autocomplete-discovery/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-038-bound-goal-template-autocomplete-discovery/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-038-bound-goal-template-autocomplete-discovery/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-038-bound-goal-template-autocomplete-discovery/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-038-bound-goal-template-autocomplete-discovery/raw/commands.log
+?? .ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md
+
+$ git check-ignore -v .ai/docs/issue-workflow/ISSUE-038-bound-goal-template-autocomplete-discovery/00-request.md || true
+.gitignore:11:!.ai/docs/issue-workflow/**	.ai/docs/issue-workflow/ISSUE-038-bound-goal-template-autocomplete-discovery/00-request.md
+
+$ git check-ignore -v .ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md || true
+
+$ git status --short --untracked-files=all
+?? .ai/docs/issue-workflow/ISSUE-038-bound-goal-template-autocomplete-discovery/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-038-bound-goal-template-autocomplete-discovery/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-038-bound-goal-template-autocomplete-discovery/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-038-bound-goal-template-autocomplete-discovery/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-038-bound-goal-template-autocomplete-discovery/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-038-bound-goal-template-autocomplete-discovery/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-038-bound-goal-template-autocomplete-discovery/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-038-bound-goal-template-autocomplete-discovery/raw/commands.log
+?? .ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md
+
+$ git check-ignore -v .ai/docs/issue-workflow/ISSUE-038-bound-goal-template-autocomplete-discovery/06-final-audit.md || true
+.gitignore:11:!.ai/docs/issue-workflow/**	.ai/docs/issue-workflow/ISSUE-038-bound-goal-template-autocomplete-discovery/06-final-audit.md

@@ -110,13 +110,17 @@ Budgets remain a safety stop. If the agent runs out of the time or tokens you al
 
 ## Reusable `.pi-goals` prompts
 
-`pi-goals` can turn project prompt templates into reusable goal objectives. Put Markdown, `.markdown`, or `.txt` templates under any `.pi-goals/` directory in your workspace:
+`pi-goals` can turn project prompt templates into reusable goal objectives. Put Markdown, `.markdown`, or `.txt` templates under one of the bounded template directories at your workspace root:
 
 ```text
 .pi-goals/
   fix-issue.md
   release/checklist.md
+.ai/.pi-goals/
+  create-issue-doc.md
 ```
+
+`pi-goals` intentionally checks only these root-level template directories instead of recursively searching the whole workspace. This keeps `/goal` autocomplete responsive when Pi is started from large folders such as a home directory.
 
 Then invoke a template by name through `/goal`:
 

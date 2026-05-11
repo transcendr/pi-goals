@@ -1,0 +1,3 @@
+# Live probe closeout — ISSUE-038
+
+SKIPPED: deterministic probe coverage is direct and bounded for this change. The bug was recursive discovery during autocomplete; `.ai/validation/goal-template-discovery-bounds-probe.cjs` constructs a temp workspace with root `.pi-goals`, root `.ai/.pi-goals`, and nested decoy `.pi-goals`, then calls both `discoverGoalTemplates(root)` and `goalArgumentCompletions()` after `process.chdir(root)`. This proves the runtime completion path ignores arbitrary nested descendants while preserving root and queue completions. Running a live probe from a real home-like directory would add risk and little extra signal for this small deterministic change.
