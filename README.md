@@ -6,15 +6,15 @@ Persistent goal tracking for [Pi](https://www.npmjs.com/package/@earendil-works/
 
 ## What's new
 
-Completion floors, stronger queue orchestration, larger planning goals, and reusable workflow prompts make `pi-goals` safer for long-running agent work. See the [changelog](CHANGELOG.md) for details.
+Bounded reusable prompt discovery keeps `/goal` autocomplete responsive in large workspaces, and active goals now resume safely after Pi compaction. See the [changelog](CHANGELOG.md) for details.
 
 ## Features
 
 - `/goal` command for creating, pausing, resuming, replacing, and clearing a persistent objective.
-- Goal state that survives reloads and stays aligned with `/tree` navigation.
+- Goal state that survives reloads, compaction, and `/tree` navigation.
 - Time and token budgets with goal-aware continuation and wrap-up behavior.
 - Optional completion floors that prevent premature wrap-up until minimum goal-directed work has happened.
-- Reusable token-aware prompt templates from `.pi-goals/` directories.
+- Reusable token-aware prompt templates from bounded `.pi-goals/` and `.ai/.pi-goals/` directories.
 - Durable FIFO goal queue for sequential goal work.
 - Agent-friendly queue controls for listing, enqueuing, starting, dequeuing, and removing queued goals.
 - Natural-language reusable prompt discovery, so agents can turn project workflows into concrete goals.
@@ -38,7 +38,7 @@ pi install -l npm:pi-goals
 
 ## `/goal` command
 
-Use `/goal` to create and manage a persistent objective that survives across turns, reloads, and `/tree` navigation.
+Use `/goal` to create and manage a persistent objective that survives across turns, reloads, compaction, and `/tree` navigation.
 
 ```text
 /goal
