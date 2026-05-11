@@ -24,6 +24,30 @@ type PendingBudgetWrapUp = {
 
 let pendingContinuation: PendingContinuation | undefined;
 let budgetWrapUps = new Map<string, PendingBudgetWrapUp>();
+let compactionActive = false;
+let deferredCompactionGoalId: string | undefined;
+
+export function beginGoalCompaction(pi: ExtensionAPI): void {
+	compactionActive = true;
+	const goal = getGoal();
+	if (goal?.status !== "active") return;
+	deferredCompactionGoalId = goal.goalId;
+	if (pendingContinuation?.goalId === goal.goalId) {
+		clearTimeout(pendingContinuation.timer);
+		pendingContinuation = undefined;
+	}
+	skip(pi, "compacting");
+}
+
+export function finishGoalCompaction(pi: ExtensionAPI, ctx: ExtensionContext): void {
+	compactionActive = false;
+	const deferredGoalId = deferredCompactionGoalId;
+	deferredCompactionGoalId = undefined;
+	const goal = getGoal();
+	if (!goal || goal.status !== "active") return;
+	if (deferredGoalId && deferredGoalId !== goal.goalId) return;
+	scheduleMaybeContinueGoal(pi, ctx, "compacted");
+}
 
 export function scheduleMaybeContinueGoal(pi: ExtensionAPI, ctx: ExtensionContext, reason: ContinuationReason): void {
 	const goal = getGoal();
@@ -74,11 +98,17 @@ export function interruptActiveGoalTurn(pi: ExtensionAPI, ctx: ExtensionContext,
 
 export function resetContinuationRuntime(): void {
 	cancelGoalContinuation();
+	compactionActive = false;
+	deferredCompactionGoalId = undefined;
 }
 
 async function maybeContinueGoal(pi: ExtensionAPI, ctx: ExtensionContext, reason: ContinuationReason, goalId: string): Promise<void> {
 	const goal = getGoal();
 	if (!goal || goal.goalId !== goalId || goal.status !== "active") return skip(pi, "notActive");
+	if (compactionActive) {
+		deferredCompactionGoalId = goalId;
+		return skip(pi, "compacting");
+	}
 	if (!ctx.isIdle()) return skip(pi, "notIdle");
 	if (ctx.hasPendingMessages()) return skip(pi, "pendingMessages");
 	const telemetry = getTelemetry();

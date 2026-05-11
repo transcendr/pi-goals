@@ -21,7 +21,7 @@ import {
 	QUEUE_MESSAGE_TYPE,
 } from "./constants";
 import { evaluateBudgetPressure, isBudgetHardStop, isBudgetReached, isBudgetWarning } from "./budget";
-import { cancelGoalContinuation, interruptActiveGoalTurn, scheduleBudgetLimitWrapUp, scheduleMaybeContinueGoal } from "./continuation";
+import { beginGoalCompaction, cancelGoalContinuation, finishGoalCompaction, interruptActiveGoalTurn, scheduleBudgetLimitWrapUp, scheduleMaybeContinueGoal } from "./continuation";
 import { buildBudgetLimitPrompt } from "./prompts";
 import { getGoal, getTelemetry, persistAccountGoal, persistTelemetry, persistUpdateGoal, replayGoalState } from "./state";
 import { cancelGoalMonitor, replayGoalMonitorState, scheduleGoalMonitor } from "./monitor";
@@ -44,6 +44,8 @@ export function registerGoalLifecycle(pi: ExtensionAPI): void {
 		if (state.goal?.status === "active") scheduleGoalMonitor(pi, ctx);
 		else cancelGoalMonitor(state.goal?.goalId, "session-tree");
 	});
+	pi.on("session_before_compact", () => { beginGoalCompaction(pi); });
+	pi.on("session_compact", async (_event, ctx) => handleSessionCompact(pi, ctx));
 	pi.on("turn_start", (event) => { handleTurnStart(event); streamBudgetSignalsSent.clear(); });
 	pi.on("tool_call", (event) => handleToolCall(event));
 	pi.on("tool_result", (event) => handleToolResult(event));
@@ -70,6 +72,16 @@ async function handleSessionStart(pi: ExtensionAPI, event: SessionStartEvent, ct
 			scheduleMaybeContinueGoal(pi, ctx, "resumed");
 		}
 	}
+}
+
+function handleSessionCompact(pi: ExtensionAPI, ctx: ExtensionContext): void {
+	const state = replayGoalState(ctx);
+	replayGoalMonitorState(ctx);
+	replayQueueState(ctx);
+	syncGoalUi(ctx, state.goal);
+	if (state.goal?.status === "active") scheduleGoalMonitor(pi, ctx);
+	else cancelGoalMonitor(state.goal?.goalId, "session-compact");
+	finishGoalCompaction(pi, ctx);
 }
 
 function handleTurnStart(event: TurnStartEvent): void {

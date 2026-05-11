@@ -17,8 +17,8 @@ export type GoalState = {
 };
 
 export type TurnOrigin = "user" | "auto" | "budgetWrapUp";
-export type ContinuationReason = "created" | "resumed" | "agentEnd";
-export type ContinuationSkipReason = "notIdle" | "pendingMessages" | "notActive" | "budgetLimited" | "safetyCap" | "noProgress" | "floorExhausted" | "budgetExhausted";
+export type ContinuationReason = "created" | "resumed" | "agentEnd" | "compacted";
+export type ContinuationSkipReason = "notIdle" | "pendingMessages" | "notActive" | "budgetLimited" | "safetyCap" | "noProgress" | "floorExhausted" | "budgetExhausted" | "compacting";
 export type SafetyPauseReason = "maxAutoTurns" | "noProgress" | "abort";
 export type BudgetLimitReason = "tokenBudget" | "timeBudget";
 export type BudgetWarningReason = "tokenWarning" | "timeWarning";
