@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.3.1 - 2026-05-11
+
+### Highlights
+
+- Bounded reusable goal template discovery so `/goal` and `/goal queue` autocomplete stay responsive in large workspaces.
+- Active goals now recover continuation after Pi compaction instead of silently stopping with the widget still active.
+
+### Changed
+
+- Reusable goal templates are discovered only from the workspace-root `.pi-goals/` and `.ai/.pi-goals/` directories, while still collecting template files recursively inside those explicit roots.
+- README release guidance now documents bounded template roots and compaction-safe goal continuation.
+
+### Fixed
+
+- Prevented template autocomplete from recursively scanning broad directories such as `$HOME`, reducing freeze risk and avoiding unrelated filesystem/privacy prompts.
+- Added compaction lifecycle handling so active goals defer continuation during compaction and resume once compaction completes.
+
 ## 0.3.0 - 2026-05-11
 
 ### Highlights
