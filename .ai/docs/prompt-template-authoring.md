@@ -12,7 +12,8 @@ These templates are consumed by the `pi-goal` extension, not Pi's built-in `.pi/
 4. Before writing the template, review the source resources that define the exact semantics you plan to encode. Do not invent command flags, placeholder behavior, queue behavior, or Solo/TLO orchestration rules from memory.
 5. Create or update the template in `.ai/.pi-goals/`.
 6. Validate discovery with `list_goal_templates` or an equivalent dry check.
-7. If the template uses inline commands, verify those commands are read-only and deterministic.
+7. Run a resolver smoke test for any new or changed template that has placeholders or inline commands, using representative safe arguments.
+8. If the template uses inline commands, verify those commands are read-only and deterministic.
 
 ## Source resources to review before authoring
 
@@ -133,6 +134,7 @@ Rules:
 - Print `*_status: unresolved` plus a concrete blocker when context cannot be derived.
 - Prefer ready-to-run commands over instructions to rediscover values manually.
 - Keep output bounded and relevant to the workflow.
+- When embedding a fenced code block inside a larger fenced prompt example, use a longer outer fence such as four backticks (````) so Markdown structure remains valid.
 
 ## Avoid whole-prompt renderers by default
 
@@ -158,6 +160,39 @@ PI_GOAL_COMMIT_RANGE
 
 Do not create a script for trivial command output that can be rendered safely with one inline command.
 
+## Resolver smoke tests
+
+After creating or changing a template, render it through the same resolver path the extension uses. This catches missing placeholders, unsafe inline-command quoting, unresolved deterministic context, and accidental syntax problems that `list_goal_templates` alone cannot see.
+
+Minimal local smoke-test pattern:
+
+```bash
+node - <<'NODE'
+const ts = require('typescript');
+const fs = require('fs');
+const src = fs.readFileSync('.pi/extensions/goal/templates.ts', 'utf8');
+fs.writeFileSync('/tmp/pi-goals-templates-test.cjs', ts.transpileModule(src, {
+  compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 }
+}).outputText);
+const { resolveGoalTemplateInvocation } = require('/tmp/pi-goals-templates-test.cjs');
+for (const input of [
+  'template-name -- representative trailing args',
+  'template-name --flag value -- representative trailing args'
+]) {
+  const result = resolveGoalTemplateInvocation(input, process.cwd());
+  if (!result.ok) throw new Error(`${input}: ${result.error || 'not a template'}`);
+  console.log(`PASS ${result.template.name} chars=${result.template.objective.length}`);
+}
+NODE
+```
+
+Guidelines:
+
+- Use representative but safe arguments that exercise every required placeholder.
+- For templates with read-only inline commands, verify the rendered objective contains expected `*_status: resolved` output or the intended explicit unresolved blocker.
+- Do not use resolver smoke tests to perform side effects; inline commands must still be read-only.
+- Keep the smoke test in closeout/proof logs when the template is part of an issue implementation.
+
 ## Workflow authoring standards
 
 - Encode the actual work, not meta-instructions like “create a goal to...”, unless goal creation is itself the requested workflow.
@@ -167,6 +202,8 @@ Do not create a script for trivial command output that can be rendered safely wi
 - Distinguish hard blockers from soft failures in the template. For example, if a workflow sends a command to a worker process and then checks output for confirmation, an unclear first output check should usually trigger a bounded retry of the same command plus another confirmation check before escalation; do not abandon the workflow at the first unclear output.
 - Include proof/validation requirements when the workflow changes code, reviews worker output, or depends on external orchestration.
 - For queued orchestration, remind the agent not to discard queued work and to dequeue only after satisfaction.
+- For workflows that extract lists and then process each item, require cardinality checks: extracted item count, queued/processed item count, and report row count should match, with a blocked result instead of invented items when extraction finds zero.
+- For structured TOON reports generated from arbitrary issue/user text, tell the agent to keep rows single-line, quote string cells, and escape embedded quotes.
 - Keep reusable prompts deterministic and narrowly scoped; avoid broad “do whatever is best” language.
 
 ## Validation checklist
@@ -174,8 +211,10 @@ Do not create a script for trivial command output that can be rendered safely wi
 Before reporting completion:
 
 - `list_goal_templates` shows the template, aliases, and required placeholders correctly.
+- A resolver smoke test renders each changed template with representative safe arguments.
 - Inline commands are read-only and have bounded timeout/output limits.
 - Any rendered commands use concrete derivable values where possible.
 - Required user inputs remain placeholders and are visible in `usage`/`examples`.
+- Embedded fenced examples have valid Markdown nesting.
 - The template does not generate the entire body from a script unless explicitly justified.
 - The final template is trackable by git and not hidden by ignore rules.
