@@ -1,0 +1,493 @@
+$ git status --short --untracked-files=all
+?? .ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/raw/commands.log
+
+$ find .ai/issues -maxdepth 2 -type d | sort
+.ai/issues
+.ai/issues/closed
+.ai/issues/defer
+.ai/issues/fixed
+.ai/issues/open
+
+$ find .ai/issues -type f -name "ISSUE-*.md" | sed -E ... | sort -n | tail -5
+035
+036
+037
+038
+039
+
+$ find .ai/issues/open .ai/issues/refine .ai/issues/fixed .ai/issues/defer .ai/issues/closed -maxdepth 1 -type f -name "ISSUE-*.md" | sort | tail -80
+.ai/issues/fixed/ISSUE-001-pi-goal-extension.md
+.ai/issues/fixed/ISSUE-002-goal-pause-active-turn-interrupt.md
+.ai/issues/fixed/ISSUE-003-paused-goal-continuation-guard.md
+.ai/issues/fixed/ISSUE-004-goal-subcommand-fuzzy-autocomplete.md
+.ai/issues/fixed/ISSUE-005-goal-widget-labels-and-time-budget.md
+.ai/issues/fixed/ISSUE-006-goal-widget-card-ui.md
+.ai/issues/fixed/ISSUE-007-goal-budget-warning-and-hard-stop.md
+.ai/issues/fixed/ISSUE-008-goal-objective-limit-15k.md
+.ai/issues/fixed/ISSUE-009-goal-budget-edit-status-recompute.md
+.ai/issues/fixed/ISSUE-010-goal-update-telemetry-completion-semantics.md
+.ai/issues/fixed/ISSUE-012-goal-budget-limited-resume-and-wrapup-gaps.md
+.ai/issues/fixed/ISSUE-017-reusable-goal-prompt-docs.md
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md
+.ai/issues/fixed/ISSUE-025-goal-line-breaks-widget-rendering.md
+.ai/issues/fixed/ISSUE-026-nl-reusable-goal-prompts.md
+.ai/issues/fixed/ISSUE-027-goal-queue.md
+.ai/issues/fixed/ISSUE-028-goal-replacement-preview.md
+.ai/issues/fixed/ISSUE-029-goal-queue-direct-enqueue.md
+.ai/issues/fixed/ISSUE-030-queued-goal-steering.md
+.ai/issues/fixed/ISSUE-031-goal-queue-template-autocomplete.md
+.ai/issues/fixed/ISSUE-032-prose-queue-orchestration-guidance.md
+.ai/issues/fixed/ISSUE-033-resume-processes-queued-goals.md
+.ai/issues/fixed/ISSUE-034-prevent-unsatisfied-queued-goal-discard.md
+.ai/issues/fixed/ISSUE-035-multi-item-goal-queue-block.md
+.ai/issues/fixed/ISSUE-036-minimum-goal-spend-floors.md
+.ai/issues/open/ISSUE-011-goal-widget-real-component-and-narrow-width.md
+.ai/issues/open/ISSUE-013-goal-update-natural-language.md
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md
+.ai/issues/open/ISSUE-015-goal-subgoals.md
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md
+.ai/issues/open/ISSUE-018-goal-start-in-worktree.md
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md
+.ai/issues/open/ISSUE-022-goal-history-checkpoints-and-compaction.md
+.ai/issues/open/ISSUE-023-goal-dependency-triggers-and-watchers.md
+.ai/issues/open/ISSUE-024-goal-audit-command.md
+.ai/issues/open/ISSUE-037-goal-queue-auto-continuation-after-complete.md
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md
+.ai/issues/open/ISSUE-039-recover-active-goal-continuation-after-compaction.md
+
+$ find .ai/.pi-goals -maxdepth 2 -type f | sort
+.ai/.pi-goals/create-issue-doc.md
+.ai/.pi-goals/deslop-commit-range.md
+.ai/.pi-goals/deslop-pipeline.md
+.ai/.pi-goals/dirty-worktree-cleanup.md
+.ai/.pi-goals/enqueue-goal-stack.md
+.ai/.pi-goals/execute-issue-stack.md
+.ai/.pi-goals/release-readme-review.md
+.ai/.pi-goals/repo-commit-audit.md
+.ai/.pi-goals/repo-worktree-inventory.md
+.ai/.pi-goals/scripts/render_issue_stack_prompt.py
+
+$ rg -n "Acceptance criteria|Acceptance|acceptance criteria|required_proofs|goal template|template" .ai/issues/open .ai/issues/fixed .ai/.pi-goals .ai/docs/prompt-template-authoring.md | head -160
+.ai/docs/prompt-template-authoring.md:3:This guide is for project-local reusable goal templates in `.ai/.pi-goals/*.md`.
+.ai/docs/prompt-template-authoring.md:5:These templates are consumed by the `pi-goal` extension, not Pi's built-in `.pi/prompts` slash templates. They use frontmatter plus `{{placeholder}}` interpolation, and may optionally run inline read-only shell commands during goal creation.
+.ai/docs/prompt-template-authoring.md:10:2. Read this guide before authoring or revising the template.
+.ai/docs/prompt-template-authoring.md:11:3. Inspect nearby templates in `.ai/.pi-goals/` for style and existing reusable workflows.
+.ai/docs/prompt-template-authoring.md:12:4. Before writing the template, review the source resources that define the exact semantics you plan to encode. Do not invent command flags, placeholder behavior, queue behavior, or Solo/TLO orchestration rules from memory.
+.ai/docs/prompt-template-authoring.md:13:5. Create or update the template in `.ai/.pi-goals/`.
+.ai/docs/prompt-template-authoring.md:14:6. Validate discovery with `list_goal_templates` or an equivalent dry check.
+.ai/docs/prompt-template-authoring.md:15:7. If the template uses inline commands, verify those commands are read-only and deterministic.
+.ai/docs/prompt-template-authoring.md:19:Reusable goal templates should directly encode exact project/tool knowledge when that knowledge reduces execution ambiguity. Before generating a template, review the relevant resources below and integrate the concrete command shapes, flags, constraints, and examples into the template itself. The executing agent should not have to rediscover deterministic details that the template can safely render.
+.ai/docs/prompt-template-authoring.md:21:### Pi-goal template mechanics
+.ai/docs/prompt-template-authoring.md:23:- `.pi/extensions/goal/templates.ts` — Source of truth for project-local template parsing. Use it to verify frontmatter keys, alias parsing, `{{placeholder}}` interpolation, `{{args}}` handling, `--flag value` parsing, inline `!` command syntax, command timeout/output limits, and command execution behavior.
+.ai/docs/prompt-template-authoring.md:24:- `~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/prompt-templates.md` — Pi's built-in prompt-template documentation. Use it for broader prompt-template concepts and to avoid confusing Pi core prompt templates with this repo's `.ai/.pi-goals/` reusable goal templates.
+.ai/docs/prompt-template-authoring.md:26:- `.ai/.pi-goals/deslop-commit-range.md` — Good example of a focused code-quality workflow template with embedded repo snapshots, validation gates, scope constraints, and a behavior-preserving completion standard.
+.ai/docs/prompt-template-authoring.md:36:- `~/.pi/agent/.cache/codex-skills/solo-mcp/SKILL.md` — Primary source for `solo-mcp` semantics. Review this before authoring templates that spawn processes, send input, read status/output, operate timers, use TLO helpers, or manage scratchpads/todos. It documents instance selection, true agent spawning, materialized Pi runtime args, `process send`, `tlo timer-pair`, token-efficient snapshots, closeout/proof patterns, and error/recovery conventions.
+.ai/docs/prompt-template-authoring.md:37:- `~/.pi/agent/.cache/codex-skills/solo-tlo/SKILL.md` — Review for top-level-operator workflows where the template will supervise Solo workers, maintain run ledgers, handle timer wake-ups, or verify worker results instead of trusting reports. Use it to encode safe queue-vs-interrupt and closeout behavior.
+.ai/docs/prompt-template-authoring.md:38:- `solo-mcp --instance <instance> tlo help` and topic help such as `solo-mcp --instance <instance> tlo timer-pair --help`, `solo-mcp --instance <instance> tlo spawn-worker --help`, and `solo-mcp --instance <instance> tlo worker snapshot --help` — Use these command-help outputs to confirm exact current CLI shapes before embedding examples. Inline templates should contain commands the executing agent can run directly, not vague placeholders.
+.ai/docs/prompt-template-authoring.md:39:- `solo-mcp --instance <instance> projects`, `solo-mcp --instance <instance> processes --project <id>`, and `solo-mcp instances` — Use these read-only commands inside inline renderers when deriving concrete Solo context for the current repo. Keep derivation read-only; do not spawn/send/arm timers during template expansion.
+.ai/docs/prompt-template-authoring.md:43:- `AGENTS.md` — Project-local rules for `.ai/.pi-goals/` routing, queue safety, live probes, issue workflow artifacts, and the required `npm run quality:goal` gate for extension implementation. Review it before templates that create goals, queue work, or touch `.pi/extensions/goal/`.
+.ai/docs/prompt-template-authoring.md:44:- `.ai/docs/pi-goals-live-probe-testing.md` — Review before templates that require live Pi runtime validation, slash-command behavior, queue/resume steering, or UI/status rendering. Use it to encode non-hard-coded live probe instructions.
+.ai/docs/prompt-template-authoring.md:45:- `.ai/docs/prompt-template-authoring.md` — This guide. Re-read it when revising templates so improvements made for one workflow carry forward to the next.
+.ai/docs/prompt-template-authoring.md:47:When a resource gives precise command syntax or safety constraints, copy those details into the template in a concrete, execution-ready way. For Solo/TLO templates, examples include: render a ready `solo-mcp process spawn` command with resolved `--instance` and `--project`; state that true Solo agent semantics are required when the workflow depends on agent behavior; specify `tlo timer-pair arm --check-ms 60000`; specify routine `timer-pair pop --tail-if never` and bounded tail only when suspect.
+.ai/docs/prompt-template-authoring.md:55:description: Short description shown by template discovery
+.ai/docs/prompt-template-authoring.md:57:usage: /goal template-name --flag value -- trailing args
+.ai/docs/prompt-template-authoring.md:58:examples: /goal template-name --flag value -- HEAD~5..HEAD
+.ai/docs/prompt-template-authoring.md:68:- `aliases` should be short and stable; avoid aliases that collide semantically with existing templates.
+.ai/docs/prompt-template-authoring.md:75:- Named flags become placeholders: `/goal template-name --mode review -- trailing context` provides `{{mode}}`.
+.ai/docs/prompt-template-authoring.md:77:- Missing placeholders block template resolution, which is preferable to silently guessing.
+.ai/docs/prompt-template-authoring.md:82:Goal templates should avoid pushing deterministic discovery work onto the executing agent with placeholders like `<instance>`, `<project_id>`, or `<repo_path>` when those values can be derived safely.
+.ai/docs/prompt-template-authoring.md:98:- Running expensive validation gates during template expansion unless the user explicitly requested that as part of rendering.
+.ai/docs/prompt-template-authoring.md:131:- Do not include shell backticks inside an inline command; the template parser uses backticks as delimiters.
+.ai/docs/prompt-template-authoring.md:148:- the user has not asked for a simpler inline-only template.
+.ai/docs/prompt-template-authoring.md:167:- Distinguish hard blockers from soft failures in the template. For example, if a workflow sends a command to a worker process and then checks output for confirmation, an unclear first output check should usually trigger a bounded retry of the same command plus another confirmation check before escalation; do not abandon the workflow at the first unclear output.
+.ai/docs/prompt-template-authoring.md:176:- `list_goal_templates` shows the template, aliases, and required placeholders correctly.
+.ai/docs/prompt-template-authoring.md:180:- The template does not generate the entire body from a script unless explicitly justified.
+.ai/docs/prompt-template-authoring.md:181:- The final template is trackable by git and not hidden by ignore rules.
+.ai/issues/fixed/ISSUE-035-multi-item-goal-queue-block.md:16:- `.ai/issues/fixed/ISSUE-031-goal-queue-template-autocomplete.md`
+.ai/issues/fixed/ISSUE-035-multi-item-goal-queue-block.md:40:- `/goal queue <objective-or-template>` enqueues exactly one resolved objective.
+.ai/issues/fixed/ISSUE-035-multi-item-goal-queue-block.md:61:- Existing template resolution and objective validation still apply.
+.ai/issues/fixed/ISSUE-035-multi-item-goal-queue-block.md:83:Only markers at the start of a line are candidates. A candidate marker starts a new item only when it fits the coherent top-level ordering of the block. Non-delimiter lines, including marker-looking lines that do not fit the chosen top-level sequence, are preserved as part of the current item objective until the next accepted top-level marker. Each item is stripped only of its accepted leading marker, resolved as a template/objective, validated, and enqueued separately in input order.
+.ai/issues/fixed/ISSUE-035-multi-item-goal-queue-block.md:173:## Acceptance criteria
+.ai/issues/fixed/ISSUE-035-multi-item-goal-queue-block.md:220:  "lr6","each item uses existing template resolution and objective validation"
+.ai/issues/fixed/ISSUE-035-multi-item-goal-queue-block.md:239:required_proofs[5]{name,source,command,pass_condition,scope,notes}:
+.ai/.pi-goals/deslop-pipeline.md:104:boomerang = f"/boomerang --rethrow {rethrow} create a goal from template deslop-commit-range for the following commit range {commit_range}"
+.ai/.pi-goals/deslop-pipeline.md:180:/boomerang --rethrow {{rethrow}} create a goal from template deslop-commit-range for the following commit range {{args}}
+.ai/.pi-goals/deslop-pipeline.md:183:Do not replace this with a direct prompt, direct `/goal`, direct tool call, or a different template. The spawned agent must receive the boomerang command above.
+.ai/.pi-goals/deslop-pipeline.md:240:2. If the nature of the issue is clear and unambiguously needs attention, queue a goal for it with a concrete `create-issue-doc` template invocation that includes bucket, kind, title, and context. Use this objective shape:
+.ai/.pi-goals/deslop-pipeline.md:243:   create a goal from template `create-issue-doc` with args `--bucket review --kind <fix|feature|docs|research|remediation> --title "<short title>" -- <clear issue context, evidence, affected files, and desired outcome>`
+.ai/.pi-goals/deslop-pipeline.md:246:   Do not queue underspecified prose such as only `create a goal from template create-issue-doc for the issue ...`; the queued item must carry enough structured inputs for `create-issue-doc` without guessing.
+.ai/.pi-goals/deslop-pipeline.md:261:- route `create-issue-doc` orchestration through the reusable template rather than treating it as a direct one-off goal;
+.ai/issues/open/ISSUE-039-recover-active-goal-continuation-after-compaction.md:173:## Acceptance criteria
+.ai/issues/open/ISSUE-039-recover-active-goal-continuation-after-compaction.md:207:required_proofs[5]{name,source,command,pass_condition,scope,notes}:
+.ai/issues/fixed/ISSUE-029-goal-queue-direct-enqueue.md:18:Make `/goal queue <text/template>` directly enqueue the provided resolved objective without showing Replace/Queue/Cancel.
+.ai/issues/fixed/ISSUE-029-goal-queue-direct-enqueue.md:56:- Keep `/goal queue <template invocation>` resolving the template before enqueueing.
+.ai/issues/fixed/ISSUE-029-goal-queue-direct-enqueue.md:71:## Acceptance criteria
+.ai/issues/fixed/ISSUE-029-goal-queue-direct-enqueue.md:75:- `/goal queue <template invocation>` enqueues the resolved template objective directly.
+.ai/issues/fixed/ISSUE-029-goal-queue-direct-enqueue.md:97:- `NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-template-steer-probe.cjs`
+.ai/issues/fixed/ISSUE-029-goal-queue-direct-enqueue.md:98:- `NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-template-autocomplete-probe.cjs`
+.ai/issues/fixed/ISSUE-029-goal-queue-direct-enqueue.md:103:required_proofs[2]{name,command,condition}:
+.ai/.pi-goals/create-issue-doc.md:47:- trailing `-- {{args}}`: context, motivation, constraints, known files, desired behavior, acceptance criteria, or rough notes.
+.ai/.pi-goals/create-issue-doc.md:68:9. Include a TOON-style `required_proofs[]` block when the issue is intended for Solo/TLO or proof-driven execution.
+.ai/.pi-goals/create-issue-doc.md:83:- Acceptance criteria
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:1:# ISSUE-038 — Bound goal template autocomplete discovery
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:16:- `.ai/issues/fixed/ISSUE-031-goal-queue-template-autocomplete.md`
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:20:Make `/goal <string>` and `/goal queue <string>` template autocomplete safe and bounded so starting Pi from a broad directory such as `/Users/bryan` does not synchronously scan the entire home tree, freeze the TUI, spin fans, or trigger macOS folder permission prompts.
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:24:The user reported a severe runtime failure: Pi was started in the home folder, which does not have a root `.pi-goals` directory, and `/goal <string>` autocomplete/search froze. The Mac then requested access to multiple home folders. This strongly suggests autocomplete was walking privacy-protected home-directory trees while looking for reusable goal templates.
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:26:The current implementation confirms the likely root cause: autocomplete calls reusable-template discovery synchronously, and discovery recursively searches all descendants of `process.cwd()` for directories named `.pi-goals`.
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:30:- `/goal` autocomplete stays responsive even when `process.cwd()` is a large directory with no templates.
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:31:- Autocomplete/template discovery does not recursively traverse arbitrary home/workspace descendants.
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:33:- Root `/goal <template-prefix>` completion still works for supported template directories.
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:34:- `/goal queue <template-prefix>` completion still works.
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:35:- This repo's `.ai/.pi-goals` templates remain discoverable.
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:40:- Request intake: `.ai/docs/issue-workflow/ISSUE-038-bound-goal-template-autocomplete-discovery/00-request.md`
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:41:- Protocol read: `.ai/docs/issue-workflow/ISSUE-038-bound-goal-template-autocomplete-discovery/01-protocol-read.md`
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:42:- Grounded research: `.ai/docs/issue-workflow/ISSUE-038-bound-goal-template-autocomplete-discovery/02-grounded-research.md`
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:43:- Design lock: `.ai/docs/issue-workflow/ISSUE-038-bound-goal-template-autocomplete-discovery/03-design-lock.md`
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:44:- Proof threat model: `.ai/docs/issue-workflow/ISSUE-038-bound-goal-template-autocomplete-discovery/04-proof-threat-model.md`
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:45:- Issue writeback: `.ai/docs/issue-workflow/ISSUE-038-bound-goal-template-autocomplete-discovery/05-issue-writeback.md`
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:46:- Final audit: `.ai/docs/issue-workflow/ISSUE-038-bound-goal-template-autocomplete-discovery/06-final-audit.md`
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:47:- Raw command log: `.ai/docs/issue-workflow/ISSUE-038-bound-goal-template-autocomplete-discovery/raw/commands.log`
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:56:- `goalArgumentCompletions()` calls `templateCompletions(query)` for root first-token completions and for `queue ` completions.
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:57:- `templateCompletions()` calls `discoverGoalTemplates()` on each completion request.
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:58:- `.pi/extensions/goal/templates.ts` implements `discoverGoalTemplates(root = process.cwd())` by calling `findTemplateDirs(root)`.
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:60:- This repo stores reusable workflow templates under `.ai/.pi-goals`, so the fix must preserve that bounded location.
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:61:- The current code path affects both `/goal <prefix>` and `/goal queue <prefix>` because ISSUE-031 intentionally reused root template completion for queue autocomplete.
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:65:Chosen design: replace broad recursive template-directory discovery with bounded candidate-directory discovery.
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:72:Template collection may continue to recurse inside an actual template directory so nested template names such as `release/checklist` still work. The forbidden behavior is recursively searching arbitrary descendants to find template directories.
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:88:  "fm1","goalArgumentCompletions calls templateCompletions during slash-command autocomplete"
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:89:  "fm2","templateCompletions calls discoverGoalTemplates for each completion request"
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:91:  "fm4","repo templates live under .ai/.pi-goals and must remain discoverable"
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:93:  "lr1","do not recursively search arbitrary cwd descendants for .pi-goals during autocomplete or template listing"
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:96:  "lr4","preserve root and queue template autocomplete behavior"
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:101:  "inv3","template file recursion remains allowed inside explicit template dirs"
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:102:  "inv4","errors reading non-template directories are avoided rather than swallowed after probing"
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:104:  ".pi/extensions/goal/templates.ts","replace recursive findTemplateDirs walk with explicit candidate-directory discovery","may break nested arbitrary .pi-goals behavior intentionally"
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:106:  "README.md","clarify supported template locations if wording remains too broad","docs must match bounded runtime behavior"
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:108:  "v1","temp workspace with nested decoy .pi-goals does not expose decoy template","bounded discovery probe"
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:109:  "v2","temp workspace .pi-goals template completes from /goal prefix","bounded discovery probe"
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:110:  "v3","temp workspace .ai/.pi-goals template completes from root and queue prefixes","bounded discovery probe"
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:116:- [x] Replace `findTemplateDirs()` recursive walk in `.pi/extensions/goal/templates.ts` with bounded candidate-directory discovery.
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:118:- [x] Keep recursive markdown collection within actual template directories.
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:120:- [x] Preserve root `/goal <template-prefix>` and `/goal queue <template-prefix>` completions.
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:128:Implemented bounded template discovery in `.pi/extensions/goal/templates.ts` by replacing recursive workspace walking with explicit candidate directories: `<root>/.pi-goals` and `<root>/.ai/.pi-goals`. Template file collection still recurses inside those explicit template roots.
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:130:Updated `README.md` to document the bounded template roots and why arbitrary recursive search is intentionally avoided.
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:132:Added deterministic proof probe `.ai/validation/goal-template-discovery-bounds-probe.cjs` and copied it to `/tmp/pi-goal-template-discovery-bounds-probe.cjs` for the issue-required proof command. The probe creates a temp workspace with root `.pi-goals`, root `.ai/.pi-goals`, and nested decoy `.pi-goals`; it verifies root/queue completions still work and nested decoy templates are ignored.
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:134:Live probe was skipped with rationale in `.ai/docs/issue-workflow/ISSUE-038-bound-goal-template-autocomplete-discovery/live-probe-closeout.md` because deterministic coverage directly exercises the autocomplete path without risking a real home-directory scan.
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:136:## Acceptance criteria
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:138:- Starting Pi in a directory with no `.pi-goals` and many unrelated descendants does not cause template autocomplete to traverse those descendants.
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:139:- `/goal x` autocomplete does not discover templates from arbitrary nested `some/subtree/.pi-goals` directories.
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:140:- `/goal <prefix>` discovers templates from `<cwd>/.pi-goals`.
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:141:- `/goal <prefix>` discovers templates from `<cwd>/.ai/.pi-goals`.
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:142:- `/goal queue <prefix>` discovers the same supported templates and returns queue-prefixed completion values.
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:143:- `list_goal_templates` and template invocation use the same bounded discovery semantics.
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:148:Primary invariant: `/goal` autocomplete and template resolution must never recursively traverse arbitrary `process.cwd()` descendants just to discover `.pi-goals` directories.
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:153:- The implementation fixes autocomplete only, but natural-language tools such as `list_goal_templates` still recurse through home.
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:161:- Test both autocomplete surfaces and template-list/resolution surfaces.
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:169:required_proofs[3]{name,source,command,pass_condition,scope,notes}:
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:170:  "bounded_template_discovery_probe","issue doc","NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-template-discovery-bounds-probe.cjs","exit 0 and nested decoy templates are ignored while root .pi-goals and .ai/.pi-goals completions work",run,"probe should fail against current recursive discovery"
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:172:  "live_probe_closeout","issue doc","test -f .ai/docs/issue-workflow/ISSUE-038-bound-goal-template-autocomplete-discovery/live-probe-closeout.md && rg -n \"PASS|SKIPPED:\" .ai/docs/issue-workflow/ISSUE-038-bound-goal-template-autocomplete-discovery/live-probe-closeout.md","exit 0 and closeout records bounded live probe pass or explicit skip reason",run,"do not probe by scanning the real home directory"
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:64:- Acceptance traceability matrix: `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/16-acceptance-traceability-matrix.md`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:127:- `.pi/extensions/goal/templates.ts`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:157:- `templates.ts` supports inline commands during template resolution when `allow_commands: true`; that is not a safe substitute for completion proof execution because proof gates must be explicit, bounded, auditable, and tied to goal state.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:161:- `templates.ts` demonstrates bounded `/bin/bash -lc` inline command execution behind explicit `allow_commands`; this is precedent for bounded command execution, but template inline commands are not durable completion proofs.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:170:- `queue-tools.ts` queue metadata does not carry arbitrary proof payloads; first release should configure proof gates after a concrete queued/template goal starts.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:181:Rationale: `GoalState` is the completion gate source of truth and is replayed through `/tree`. Prompt templates may populate proof gates later, but completion must evaluate the persisted effective gates.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:243:- Add template/frontmatter support only after runtime proof gates are stable, or explicitly defer it.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:249:## Acceptance criteria
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:259:- Acceptance-to-proof traceability is recorded in `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/16-acceptance-traceability-matrix.md`.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:273:- Prompt template inline command execution is mistaken for proof execution.
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:283:required_proofs[6]{name,source,command,pass_condition,scope,notes}:
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:336:- Prompt-template proof frontmatter auto-execution without explicit confirmation.
+.ai/issues/fixed/ISSUE-003-paused-goal-continuation-guard.md:70:## Acceptance criteria
+.ai/issues/fixed/ISSUE-033-resume-processes-queued-goals.md:33:- Queue head resolution must keep the existing agent-side semantics: classify direct vs reusable-template/prose orchestration, call `list_goal_templates` when needed, and use `create_goal_from_template`, `create_goal`, or `start_queued_goal` appropriately.
+.ai/issues/fixed/ISSUE-033-resume-processes-queued-goals.md:82:  "fm3","queue steering is hidden agent guidance that performs semantic direct-vs-template classification"
+.ai/issues/fixed/ISSUE-033-resume-processes-queued-goals.md:122:## required_proofs[]
+.ai/issues/fixed/ISSUE-033-resume-processes-queued-goals.md:126:required_proofs[5]{name,source,command,pass_condition,scope,notes}:
+.ai/issues/fixed/ISSUE-033-resume-processes-queued-goals.md:134:## Acceptance criteria
+.ai/issues/fixed/ISSUE-033-resume-processes-queued-goals.md:140:- [ ] Queue steering still instructs semantic template/direct classification before `start_queued_goal`.
+.ai/issues/open/ISSUE-018-goal-start-in-worktree.md:160:## Acceptance criteria
+.ai/issues/open/ISSUE-018-goal-start-in-worktree.md:231:required_proofs[7]{name,source,command,pass_condition,scope,notes}:
+.ai/issues/fixed/ISSUE-027-goal-queue.md:50:- Any non-control `/goal <text>` resolves template-or-objective and calls `setGoalObjective()`.
+.ai/issues/fixed/ISSUE-027-goal-queue.md:64:- `/goal queue <objective-or-template>` resolves templates the same way `/goal <objective-or-template>` does, validates the resulting objective, and appends it to the queue.
+.ai/issues/fixed/ISSUE-027-goal-queue.md:65:- `/goal <objective-or-template>` while a current goal exists should offer three outcomes: replace, queue, cancel.
+.ai/issues/fixed/ISSUE-027-goal-queue.md:98:- Queue command/template resolution must reuse existing deterministic template resolver and objective validation.
+.ai/issues/fixed/ISSUE-027-goal-queue.md:131:- [ ] Ensure queued objectives use the same template resolution and `validateObjective()` path as normal goals.
+.ai/issues/fixed/ISSUE-027-goal-queue.md:139:## Acceptance criteria
+.ai/issues/fixed/ISSUE-027-goal-queue.md:144:- `/goal queue <text>` appends a queued goal after template resolution and objective validation.
+.ai/issues/fixed/ISSUE-027-goal-queue.md:160:- `/goal queue <template>` bypasses template resolution or validates a different objective than `/goal <template>`.
+.ai/issues/fixed/ISSUE-027-goal-queue.md:178:  "lr7","reuse deterministic template resolution and objective validation for queued objectives"
+.ai/issues/fixed/ISSUE-027-goal-queue.md:199:required_proofs[5]{name,command,condition}:
+.ai/issues/fixed/ISSUE-012-goal-budget-limited-resume-and-wrapup-gaps.md:64:## Acceptance criteria
+.ai/issues/fixed/ISSUE-004-goal-subcommand-fuzzy-autocomplete.md:70:## Acceptance criteria
+.ai/.pi-goals/scripts/render_issue_stack_prompt.py:150:def per_issue_goal_templates_solo(issues: list[IssueDoc], stack: str, ctx: SoloContext) -> str:
+.ai/.pi-goals/scripts/render_issue_stack_prompt.py:183:def per_issue_goal_templates_markdown(issues: list[IssueDoc], stack: str) -> str:
+.ai/.pi-goals/scripts/render_issue_stack_prompt.py:267:   Read every issue doc listed above before creating the final todo graph. For each issue, extract the goal, required behavior, non-goals, affected files, acceptance criteria, required proofs, known dependencies, risk notes, and any issue-workflow artifact links. Record these facts in the Solo issue parent todo body and in the playbook scratchpad. If an issue doc contradicts the default dependency order, use the issue doc as the source of truth and encode the dependency explicitly.
+.ai/.pi-goals/scripts/render_issue_stack_prompt.py:287:{per_issue_goal_templates_solo(issues, stack, ctx)}
+.ai/.pi-goals/scripts/render_issue_stack_prompt.py:299:Every requested issue satisfies its acceptance criteria and required proofs. Every related Solo todo has at least one audit comment before completion. The playbook scratchpad, Solo todo graph, dependency blockers, final repository state, and proof outputs together demonstrate end-to-end completion.
+.ai/.pi-goals/scripts/render_issue_stack_prompt.py:342:   Read every issue doc listed above before creating the final todo graph. Extract goal, required behavior, non-goals, affected files, acceptance criteria, required proofs, dependencies, risks, and issue-workflow artifact links. Write those facts into the relevant markdown issue parent todo and the stack playbook.
+.ai/.pi-goals/scripts/render_issue_stack_prompt.py:359:{per_issue_goal_templates_markdown(issues, stack)}
+.ai/.pi-goals/scripts/render_issue_stack_prompt.py:398:Every requested issue satisfies its acceptance criteria and required proofs. Every related markdown todo has a closeout comment before `status: done`. The playbook file, todo graph, dependency links, final repository state, and proof outputs together demonstrate end-to-end completion.
+.ai/issues/fixed/ISSUE-030-queued-goal-steering.md:27:A special requirement applies to queued template/prompt requests: if a queued item came from a reusable prompt/template, the steering must tell the agent to use `create_goal_from_template` instead of plain `create_goal` so deterministic template behavior, placeholder validation, inline-command policy, and metadata are preserved.
+
+$ solo-mcp --instance solo-pi_goals projects
+count: 1
+shown: 1
+projects[1]{id,name,path}:
+  2,pi-goals,/Users/bryan/dev/personal/experiments/pi-goals
+
+$ solo-mcp --instance solo-pi_goals tlo preflight --project 2
+tlo_preflight:
+  instance: solo-pi_goals
+  project_id: 2
+  env_solo_process_id: "10"
+  bound: true
+  process_kind: agent
+  timer_capable: true
+  recommended_monitoring: direct_timer_pair
+runtime_hint:
+  agent_tool_id: 10
+  agent_tool_name: solo-mcp-materialized-v1--Pi--b64a8f6591
+  runtime: solo-mcp-materialized-v1--Pi--b64a8f6591
+  command: Pi
+  default_args: "--session 019e0ed6-abfb-71ed-8e33-3cf2672d6aee"
+  recommended_worker_runtime: current
+  inherited_from_process: "10"
+timer_capability:
+  can_schedule_timers: true
+  can_receive_timer_wake: true
+  reason: bound process is an agent that can receive timer wake-ups
+monitoring_options[2]{mode,usable,command,tradeoff}:
+  sparse_snapshot_loop,true,solo-mcp --instance solo-pi_goals tlo worker snapshot --project 2 --worker <worker_id> --todo <todo_id> --registry <registry_id> --tail-if active --tail-lines 25,works from terminal subject; manual cadence required
+  direct_timer_pair,true,solo-mcp --instance solo-pi_goals tlo timer-pair arm --project 2 --worker <worker_id> --label <label> --run <run_id>,uses Solo timer wake injection
+whoami:
+  actor:
+    id: mcp-c516944ae72e3eee
+    session_id: c516944ae72e3eee
+  process:
+    id: 10
+    name: Pi agent 019e0ed6
+    kind: agent
+    status: Running
+    pid: 25286
+  project:
+    id: 2
+    name: pi-goals
+    effective_id: 2
+    effective_name: pi-goals
+warnings[0]:
+next[2]: solo-mcp --instance solo-pi_goals tlo run init --project 2 --todo <todo_id> --issue <issue>,"solo-mcp --instance solo-pi_goals tlo spawn-worker --project 2 --todo <todo_id> --name \"<worker>\" --runtime current --prompt-file <path>"
+
+$ solo-mcp --instance solo-pi_goals tlo spawn-worker --help | head -80
+tlo_help:
+  topic: spawn-worker
+  version: 1
+purpose: "Spawn a bounded worker, create its registry, and optionally link it into a TLO run ledger."
+commands[4]{kind,template}:
+  normal,"solo-mcp --instance solo-pi_goals tlo spawn-worker --project <p> --todo <todo_id> --name \"<worker>\" --runtime current --prompt-file <path> --run <run_id>"
+  runtime,"solo-mcp --instance solo-pi_goals tlo spawn-worker --project <p> --todo <todo_id> --name \"<worker>\" --runtime Codex --prompt-file <path> --run <run_id>"
+  materialized,"solo-mcp --instance solo-pi_goals tlo spawn-worker --project <p> --todo <todo_id> --name \"<worker>\" --runtime Pi --runtime-args \"--profile solo-worker-weak\" --custom-agent-tool materialized --materialized-args-mode replace --materialized-agent-cleanup disable --prompt-file <path> --run <run_id>"
+  terminal_fallback,"solo-mcp --instance solo-pi_goals tlo spawn-worker --project <p> --todo <todo_id> --name \"<worker>\" --runtime Pi --runtime-args \"<args>\" --fallback terminal --prompt-file <path> --run <run_id>"
+flags[6]{name,purpose}:
+  "--run",propagates worker/registry/todo into the TLO run ledger
+  "--runtime / --agent-tool / --agent-tool-id",selects the Solo agent runtime
+  "--runtime-args / --runtime-arg",custom runtime args; use materialized agent mode to preserve agent semantics
+  "--custom-agent-tool materialized",creates or reuses a deterministic Solo agent tool for custom args
+  "--materialized-args-mode replace|append",replace avoids incompatible duplicated runtime selectors
+  "--fallback terminal",runs now but loses agent_state and lowers TLO classification confidence
+
+$ solo-mcp --instance solo-pi_goals process spawn --help | head -100
+bin: ~/.local/bin/solo-mcp
+description: AXI/TOON CLI for Solo MCP
+topic: process spawn
+commands[10]{cmd,purpose}:
+  solo-mcp,live dashboard
+  solo-mcp coverage,backend + route coverage
+  solo-mcp scratchpads --project <id>,compact scratchpad list
+  "solo-mcp scratchpad read <id> --project <id> [--full]",read scratchpad
+  solo-mcp todos --project <id> --status open,compact todo list
+  solo-mcp todo comment add <todo_id> --project <id> --body <text> | --file <path>,add todo comment from inline body or UTF-8 file
+  solo-mcp process output <id-or-name> --lines 80,terminal output preview
+  solo-mcp process last-response <id-or-name> --project <id>,latest clean agent response
+  solo-mcp sd fd-watch <fd> --project <id> --ticket <ticket> --action <action>,schedule SD_FD_IDLE_WAKE idle-any timer
+  solo-mcp pi profile set <process> --project <id> --profile solo-fd-prepare,set Pi profile with canonical helper
+help[2]: solo-mcp tools --search <query>,solo-mcp instances
+
+$ solo-mcp --instance solo-pi_goals process send --help | head -80
+bin: ~/.local/bin/solo-mcp
+description: Send direct input to a process
+command: solo-mcp --instance solo process send <id-or-name> --project <id> --input <text>
+options[8]: "--input <text>","--bytes 3,13","--submit true|false","--no-submit","--wait-ms <ms>","--tail-lines <n>","--tail-chars <n>","--allow-recent-spawn"
+semantics:
+  canonical_input_flag: "--input"
+  wait_ms: bounded truncated output preview only
+  not_receipt_evidence: true
+  not_readiness_evidence: true
+  not_absence_evidence: true
+  recent_spawn_warning: advisory recent_spawn_send for newly started processes
+  allow_recent_spawn: suppresses the advisory warning when startup-readiness risk is intentional
+
+$ solo-mcp --instance solo-pi_goals process status --help | head -80
+bin: ~/.local/bin/solo-mcp
+description: AXI/TOON CLI for Solo MCP
+topic: process status
+commands[10]{cmd,purpose}:
+  solo-mcp,live dashboard
+  solo-mcp coverage,backend + route coverage
+  solo-mcp scratchpads --project <id>,compact scratchpad list
+  "solo-mcp scratchpad read <id> --project <id> [--full]",read scratchpad
+  solo-mcp todos --project <id> --status open,compact todo list
+  solo-mcp todo comment add <todo_id> --project <id> --body <text> | --file <path>,add todo comment from inline body or UTF-8 file
+  solo-mcp process output <id-or-name> --lines 80,terminal output preview
+  solo-mcp process last-response <id-or-name> --project <id>,latest clean agent response
+  solo-mcp sd fd-watch <fd> --project <id> --ticket <ticket> --action <action>,schedule SD_FD_IDLE_WAKE idle-any timer
+  solo-mcp pi profile set <process> --project <id> --profile solo-fd-prepare,set Pi profile with canonical helper
+help[2]: solo-mcp tools --search <query>,solo-mcp instances
+
+$ wc -l selected workflow/template/Solo docs
+      68 AGENTS.md
+      93 .ai/.pi-goals/create-issue-doc.md
+     181 .ai/docs/prompt-template-authoring.md
+     273 .ai/.pi-goals/deslop-pipeline.md
+      63 .ai/.pi-goals/deslop-commit-range.md
+      28 .ai/.pi-goals/enqueue-goal-stack.md
+     266 .pi/extensions/goal/templates.ts
+     329 /Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/SKILL.md
+     205 /Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/references/canonical-issue-docs-and-toon-synthesis.md
+     160 /Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/references/research-pass.md
+     149 /Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/references/design-landscape-exploration-and-choice-locking.md
+     276 /Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/references/toon-for-issues-and-execution-planning.md
+     213 /Users/bryan/.agents/skills/axi/SKILL.md
+     225 /Users/bryan/.pi/agent/.cache/codex-skills/solo-mcp/SKILL.md
+     578 /Users/bryan/.pi/agent/.cache/codex-skills/solo-tlo/SKILL.md
+      88 /Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/prompt-templates.md
+    3195 total
+
+$ test -f issue and artifact files
+issue_doc_exists
+00-request.md exists
+01-protocol-read.md exists
+02-grounded-research.md exists
+03-design-lock.md exists
+04-proof-threat-model.md exists
+
+$ rg -n "^## |required_proofs|toon.version|verify-acceptance-pipeline|verify-acceptance-item" .ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md | head -120
+24:## Goal
+28:1. `verify-acceptance-pipeline` — a higher-order main-agent workflow that spawns and supervises an independent Solo/Pi acceptance agent, monitors it with 90-second sparse polling, receives structured acceptance results, remediates gaps, and loops until all acceptance criteria are green.
+29:2. `verify-acceptance-item` — an inner-loop workflow the acceptance agent uses to verify one acceptance criterion rigorously against the issue doc, implementation evidence, proofs, and false-green risks.
+33:## Problem/context
+43:## Transcript artifacts
+45:- Request intake: `.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/00-request.md`
+46:- Protocol read: `.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/01-protocol-read.md`
+47:- Grounded research: `.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/02-grounded-research.md`
+48:- Design lock: `.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md`
+49:- Proof threat model: `.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/04-proof-threat-model.md`
+50:- Issue writeback: `.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/05-issue-writeback.md`
+51:- Final audit: `.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/06-final-audit.md`
+52:- Raw command log: `.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/raw/commands.log`
+54:## Desired behavior
+61:/goal verify-acceptance-pipeline -- ISSUE-040
+96:   create a goal from template `verify-acceptance-item` with args `--issue "<issue-doc-path>" --item-id "AC-N" -- <acceptance criterion text>`
+101:8. Dequeue an orchestration item only after the corresponding concrete `verify-acceptance-item` goal has completed and produced a result.
+106:For each acceptance criterion, `verify-acceptance-item` must instruct the acceptance agent to:
+115:## Locked design choices
+117:Full design lock: `.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md`.
+123:- `.ai/.pi-goals/verify-acceptance-pipeline.md`
+124:- `.ai/.pi-goals/verify-acceptance-item.md`
+128:### `verify-acceptance-pipeline` frontmatter
+134:usage: /goal verify-acceptance-pipeline -- ISSUE-040
+135:examples: /goal verify-acceptance-pipeline -- ISSUE-038; /goal acceptance-pipeline -- .ai/issues/fixed/ISSUE-036-minimum-goal-spend-floors.md
+146:### `verify-acceptance-item` frontmatter
+152:usage: /goal verify-acceptance-item --issue .ai/issues/open/ISSUE-040-example.md --item-id AC-1 -- acceptance criterion text
+168:`verify-acceptance-pipeline` should include a ready prompt body for the main agent to write to `/tmp` and send with `solo-mcp process send --input`. The prompt must be direct and self-contained. Use this as the minimum content contract:
+183:   create a goal from template `verify-acceptance-item` with args `--issue "<resolved_issue_path>" --item-id "AC-N" -- <criterion text>`
+185:6. For every queued orchestration item, call `list_goal_templates`, match `verify-acceptance-item`, create the concrete goal with `create_goal_from_template`, complete that concrete goal, then dequeue the orchestration item only after the item result is captured.
+186:7. Treat `verify-acceptance-item` results as evidence, but still compile a final acceptance report yourself.
+196:toon.version: 1
+217:Re-read the issue doc and relevant changed files. Enqueue the listed corrected acceptance items first using `verify-acceptance-item`, execute the queue head-to-tail, and produce a fresh `acceptance_summary` / `acceptance_results` report for this iteration. Do not modify repository files.
+232:## Implementation checklist
+235:- [ ] Create `.ai/.pi-goals/verify-acceptance-pipeline.md` with the locked metadata, read-only inline context resolution, issue selector resolution, ready Solo commands, direct acceptance-agent prompt, sparse polling loop, remediation loop, and completion audit.
+236:- [ ] Create `.ai/.pi-goals/verify-acceptance-item.md` with the locked metadata, read-only snapshots, rigorous item verification workflow, false-green checklist, status decision rules, and structured result format.
+240:- [ ] Run static contract checks from the `required_proofs[]` block.
+245:## Acceptance criteria
+247:- `.ai/.pi-goals/verify-acceptance-pipeline.md` exists.
+248:- `.ai/.pi-goals/verify-acceptance-item.md` exists.
+250:- `verify-acceptance-pipeline` accepts a simple issue selector through `{{args}}` and resolves it to a concrete issue doc path or stops with a clear blocker.
+251:- `verify-acceptance-pipeline` resolves Solo instance/project with read-only inline commands and emits concrete ready-to-run commands.
+256:- Each queued acceptance item uses an orchestration objective that routes through `verify-acceptance-item` with `--issue`, `--item-id`, and criterion text.
+258:- `verify-acceptance-item` performs read-only, adversarial, evidence-based validation for one criterion.
+259:- `verify-acceptance-item` distinguishes `green`, `red`, and `blocked` with concrete evidence and next actions.
+266:## Proof threat model
+268:Full proof threat model: `.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/04-proof-threat-model.md`.
+270:Primary invariant: an implemented issue can be independently acceptance-verified criterion-by-criterion by a spawned Solo/Pi acceptance agent, where each criterion is routed through the `verify-acceptance-item` reusable goal template, all item results are reported structurally, and the main agent remediates/rechecks gaps until every acceptance row is green.
+276:- Queue items bypass `verify-acceptance-item`.
+284:## TOON synthesis
+287:toon.version: 1
+291:  "lr1","create verify-acceptance-pipeline and verify-acceptance-item under .ai/.pi-goals"
+295:  "lr5","acceptance agent enqueues every acceptance criterion first as verify-acceptance-item orchestration goals"
+300:  "s1",".ai/.pi-goals/verify-acceptance-pipeline.md","higher-order Solo acceptance-worker supervisor template"
+301:  "s2",".ai/.pi-goals/verify-acceptance-item.md","inner acceptance-criterion verification template"
+302:  "s3",".ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/","implementation closeout and live/static proof artifacts if added"
+307:  "inv3","each item routes through verify-acceptance-item via create_goal_from_template semantics"
+321:## Required proofs
+324:toon.version: 1
+325:required_proofs[7]{name,source,command,pass_condition,scope,notes}:
+326:  "template_files_exist","issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && test -f .ai/.pi-goals/verify-acceptance-pipeline.md && test -f .ai/.pi-goals/verify-acceptance-item.md","exit 0",run,"both reusable goal templates exist under the bounded .ai/.pi-goals root"
+327:  "forbidden_patterns_absent","issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && ! rg -n '/boomerang|timer-pair|tlo timer|timer_pair|check-ms|send-seam' .ai/.pi-goals/verify-acceptance-pipeline.md","exit 0 and no forbidden boomerang/timer-assisted patterns are present",run,"the template may say not to use timers in prose only if this grep remains clean for concrete timer commands"
+328:  "pipeline_contract_static","issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && rg -n 'verify-acceptance-item|sleep 90|process status|process output|process send|ACCEPTANCE_WORKER_ID|acceptance_summary|corrected acceptance' .ai/.pi-goals/verify-acceptance-pipeline.md","exit 0 with matches for item-template routing sparse polling direct send worker id final report and retry loop",run,"guards the higher-order workflow contract"
+329:  "item_contract_static","issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && rg -n 'acceptance_item_result|false-green|green|red|blocked|{{issue}}|{{item-id}}|{{args}}|targeted|proof|implementation' .ai/.pi-goals/verify-acceptance-item.md","exit 0 with matches for placeholders adversarial verification and structured item result",run,"guards inner-loop validation rigor"
+330:  "template_discovery","issue doc","Use the pi-goal list_goal_templates tool from /Users/bryan/dev/personal/experiments/pi-goals","output lists verify-acceptance-pipeline and verify-acceptance-item with aliases and required placeholders args for pipeline and args issue item-id for item",live,"tool-level proof because template discovery is exposed through the extension rather than a package script"
+332:  "acceptance_pipeline_live_probe","issue doc","Follow .ai/docs/pi-goals-live-probe-testing.md with a disposable synthetic issue doc containing two trivial acceptance criteria, run verify-acceptance-pipeline against it in a real Pi/Solo session, then clean up","transcript shows an acceptance agent is spawned, item goals are queued through verify-acceptance-item, final report is all green, and no disposable goal/queue residue remains; if skipped, closeout records explicit rationale",live,"validates real queue steering and direct process input behavior"
+335:## Non-goals
+
+$ git status --short --untracked-files=all
+?? .ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/raw/commands.log
+?? .ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md
+
+$ find issue workflow artifact files
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/00-request.md
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/01-protocol-read.md
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/02-grounded-research.md
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/04-proof-threat-model.md
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/05-issue-writeback.md
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/06-final-audit.md
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/raw/commands.log
+
+$ git status --short --untracked-files=all
+?? .ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/raw/commands.log
+?? .ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md
+
+$ git check-ignore -v .ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/00-request.md || true
+.gitignore:11:!.ai/docs/issue-workflow/**	.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/00-request.md
+
+$ git check-ignore -v .ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md || true
+
+$ markdown fence sanity for ISSUE-040 (count code fences)
+triple_fence_count: 22
+quad_fence_count: 2
+````_line_starts: 2
+```_line_starts: 20
+
+$ git status --short --untracked-files=all
+?? .ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/raw/commands.log
+?? .ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md
