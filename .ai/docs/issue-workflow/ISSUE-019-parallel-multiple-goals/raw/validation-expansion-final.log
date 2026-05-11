@@ -1,0 +1,5 @@
+
+## validation expansion: issue-to-artifact and invariant coverage probe
+$ node - <<'NODE'
+PASS issue019_validation_expansion artifacts=16 proof_rows=8 acceptance_rows=13
+covers_invariant=artifact links and handoff/traceability would fail if the promoted issue omitted local-active isolation, external non-driving boundary, queue/subgoal separation, or required deterministic probes

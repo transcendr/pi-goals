@@ -1,0 +1,17 @@
+.ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/01-open-promotion-addendum.md:17:7. `.ai/issues/refine/ISSUE-019-parallel-multiple-goals.md`
+.ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/final-order.md:23:7. `.ai/issues/refine/ISSUE-019-parallel-multiple-goals.md` — Multiple sequential or parallel goals.
+.ai/issues/open/ISSUE-018-goal-start-in-worktree.md:17:- `.ai/issues/refine/ISSUE-019-parallel-multiple-goals.md`
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:44:- Request intake: `.ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/00-request.md`
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:45:- Protocol read: `.ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/01-protocol-read.md`
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:46:- Grounded research: `.ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/02-grounded-research.md`
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:47:- Design lock: `.ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/03-design-lock.md`
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:48:- Proof threat model: `.ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/04-proof-threat-model.md`
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:49:- Issue writeback: `.ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/05-issue-writeback.md`
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:50:- Final audit: `.ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/06-final-audit.md`
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:51:- Raw command log: `.ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/commands.log`
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:52:- Sentrux planning sensor: `.ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/sentrux-gate.log`
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:116:Source artifact: `.ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/02-grounded-research.md`.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:132:Source artifact: `.ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/03-design-lock.md`.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:188:Source artifact: `.ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/04-proof-threat-model.md`.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:18:- `.ai/issues/refine/ISSUE-019-parallel-multiple-goals.md`
+.ai/issues/fixed/ISSUE-027-goal-queue.md:15:- `.ai/issues/refine/ISSUE-019-parallel-multiple-goals.md`

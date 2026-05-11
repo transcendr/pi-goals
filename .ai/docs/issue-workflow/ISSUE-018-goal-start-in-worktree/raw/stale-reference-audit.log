@@ -1,0 +1,9 @@
+
+## stale dependency path audit after promotion
+$ rg -n "\.ai/issues/refine/ISSUE-018-goal-start-in-worktree\.md" .ai/issues .ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10 --glob "!**/raw/**"
+.ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/01-open-promotion-addendum.md:16:6. `.ai/issues/refine/ISSUE-018-goal-start-in-worktree.md`
+stale_refine_issue018_refs=FOUND
+
+## stale dependency path audit rerun after addendum update
+$ rg -n "\.ai/issues/refine/ISSUE-018-goal-start-in-worktree\.md" .ai/issues .ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10 --glob "!**/raw/**"
+PASS stale_refine_issue018_refs=0

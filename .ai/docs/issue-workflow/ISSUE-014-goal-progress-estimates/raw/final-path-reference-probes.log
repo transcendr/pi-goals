@@ -1,0 +1,8 @@
+## final path/reference probes
+$ test open issue exists and refine issue absent
+PASS open_exists_refine_absent
+$ rg stale refine path outside ISSUE-014 workflow artifacts/raw logs
+PASS stale_canonical_refine_issue014_refs=0
+$ rg open path in stack/dependency docs
+.ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/09-stack-continuation-note.md:10:1. `.ai/issues/open/ISSUE-014-goal-progress-estimates.md`
+.ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/final-order.md:26:10. `.ai/issues/open/ISSUE-014-goal-progress-estimates.md` — Agent-estimated goal progress percentage.

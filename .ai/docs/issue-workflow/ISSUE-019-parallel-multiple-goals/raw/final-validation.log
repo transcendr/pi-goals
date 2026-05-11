@@ -1,0 +1,113 @@
+
+## final validation probes
+$ git diff --check
+diff_check_exit=0
+$ node issue links/artifacts/proof probe
+PASS issue019_artifacts_and_required_proofs linked=11 proof_rows=8
+$ test -f .ai/issues/open/ISSUE-019-parallel-multiple-goals.md && test ! -e .ai/issues/refine/ISSUE-019-parallel-multiple-goals.md
+promotion_path_probe_exit=0
+$ git status --short --untracked-files=all .ai/issues/open/ISSUE-019-parallel-multiple-goals.md .ai/issues/refine/ISSUE-019-parallel-multiple-goals.md .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals | head -140
+ D .ai/issues/refine/ISSUE-019-parallel-multiple-goals.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/commands.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/final-validation.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/issue019-invariant-probe.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/quality-goal-open-promotion.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/sentrux-gate.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/stale-019-references-before.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/stale-reference-audit.log
+?? .ai/issues/open/ISSUE-019-parallel-multiple-goals.md
+$ git check-ignore -v .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/06-final-audit.md || true
+.gitignore:11:!.ai/docs/issue-workflow/**	.ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/06-final-audit.md
+
+## final validation probes after audit/link updates
+$ git diff --check
+diff_check_exit=0
+$ node final issue links/artifacts/proof probe
+PASS issue019_final_artifacts_and_required_proofs linked=12 proof_rows=8
+$ rg stale refine reference final
+PASS stale_refine_issue019_refs=0
+
+## post-expansion link and invariant audit
+$ git diff --check
+diff_check_exit=0
+$ node all issue artifact links probe
+PASS issue019_all_artifacts_linked count=17
+
+## all-artifact link rerun after protocol coverage probe
+$ node all issue artifact links probe with protocol coverage
+PASS issue019_all_artifacts_linked_final count=18
+$ git diff --check
+diff_check_exit=0
+
+## completion audit link verification
+$ node completion audit and all artifact link probe
+PASS issue019_completion_audit_linked artifacts=19 audit_checks=5
+$ git status --short --untracked-files=all issue019 paths
+ D .ai/issues/refine/ISSUE-019-parallel-multiple-goals.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/07-acceptance-traceability.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/08-implementation-handoff.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/09-completion-audit.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/commands.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/final-validation.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/issue019-invariant-probe.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/protocol-coverage-probe.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/quality-goal-open-promotion.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/sentrux-gate.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/stale-019-references-before.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/stale-reference-audit.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/validation-expansion-final.log
+?? .ai/issues/open/ISSUE-019-parallel-multiple-goals.md
+$ git check-ignore -v .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/09-completion-audit.md || true
+.gitignore:11:!.ai/docs/issue-workflow/**	.ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/09-completion-audit.md
+
+## final final link check after comprehensive probe link
+PASS issue019_every_artifact_linked count=20
+diff_check_exit=0
+
+## final stale-path and visibility verification before completion
+PASS no non-raw stale refine ISSUE-019 references
+PASS open issue exists and refine issue absent
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/07-acceptance-traceability.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/08-implementation-handoff.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/09-completion-audit.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/commands.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/comprehensive-completion-probe.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/final-validation.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/issue019-invariant-probe.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/protocol-coverage-probe.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/quality-goal-open-promotion.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/sentrux-gate.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/stale-019-references-before.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/stale-reference-audit.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/validation-expansion-final.log
+?? .ai/issues/open/ISSUE-019-parallel-multiple-goals.md
+.gitignore:11:!.ai/docs/issue-workflow/**	.ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/09-completion-audit.md
+
+## final audit consistency after comprehensive probe note
+PASS issue019_final_audit_consistency comprehensive probe recorded and linked
+diff_check_exit=0
+
+## closeout sanity check
+PASS issue019_closeout_sanity
+PASS completion_audit_link_and_conclusion_present

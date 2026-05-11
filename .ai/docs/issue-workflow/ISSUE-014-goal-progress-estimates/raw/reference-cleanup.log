@@ -1,0 +1,12 @@
+## stale reference cleanup for ISSUE-014
+updated .ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/01-open-promotion-addendum.md
+updated .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/33-stack-inventory-after-promotion.md
+updated .ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/final-order.md
+updated .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/19-current-inventory-after-promotion.md
+updated .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/06-final-audit.md
+updated .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/06-final-audit.md
+updated .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/09-stack-continuation-note.md
+updated .ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/16-queue-continuation-note.md
+updated .ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/14-stack-compatibility-review.md
+updated .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/02-grounded-research.md
+$ rm refine issue

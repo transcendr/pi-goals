@@ -1,0 +1,116 @@
+
+## final validation probes
+$ git diff --check
+diff_check_exit=0
+$ node issue artifact/proof/invariant probe
+PASS issue023_artifacts_proofs_invariants linked=15 proof_rows=8
+$ stale refine reference final
+PASS stale_refine_issue023_refs=0
+$ git status --short --untracked-files=all issue023 paths
+ D .ai/issues/refine/ISSUE-023-goal-dependency-triggers-and-watchers.md
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/commands.log
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/design-proof-invariant-probe.log
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/final-validation.log
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/grounded-research-commands.log
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/pre-refinement-invariant-gap.log
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/quality-goal-open-promotion.log
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/stale-reference-audit.log
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/stale-references-before.log
+?? .ai/issues/open/ISSUE-023-goal-dependency-triggers-and-watchers.md
+$ git check-ignore -v .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/06-final-audit.md || true
+.gitignore:11:!.ai/docs/issue-workflow/**	.ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/06-final-audit.md
+
+## final link validation after traceability/handoff
+PASS issue023_all_artifacts_linked count=18
+diff_check_exit=0
+
+## link validation after protocol coverage
+PASS issue023_all_artifacts_linked_after_protocol count=19
+diff_check_exit=0
+
+## all artifact link validation after completion audit
+PASS issue023_every_artifact_linked count=21
+$ git status --short --untracked-files=all issue023 paths
+ D .ai/issues/refine/ISSUE-023-goal-dependency-triggers-and-watchers.md
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/07-acceptance-traceability.md
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/08-implementation-handoff.md
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/09-completion-audit.md
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/commands.log
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/completion-audit-probe.log
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/design-proof-invariant-probe.log
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/final-validation.log
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/grounded-research-commands.log
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/pre-refinement-invariant-gap.log
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/protocol-coverage-probe.log
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/quality-goal-open-promotion.log
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/stale-reference-audit.log
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/stale-references-before.log
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/traceability-handoff-probe.log
+?? .ai/issues/open/ISSUE-023-goal-dependency-triggers-and-watchers.md
+$ git check-ignore -v .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/09-completion-audit.md || true
+.gitignore:11:!.ai/docs/issue-workflow/**	.ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/09-completion-audit.md
+
+## final artifact link validation after comprehensive probe
+PASS issue023_final_all_artifacts_linked count=22
+diff_check_exit=0
+
+## final inventory link validation
+PASS issue023_final_inventory_linked
+
+## final all-artifact link validation after boundary note
+PASS issue023_all_artifacts_linked_final count=25
+diff_check_exit=0
+
+## closeout sanity after readback
+PASS issue023_closeout_sanity
+
+## final audit update validation
+PASS issue023_final_audit_update_consistency
+
+## final selected status after audit readback
+ D .ai/issues/refine/ISSUE-023-goal-dependency-triggers-and-watchers.md
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/07-acceptance-traceability.md
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/08-implementation-handoff.md
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/09-completion-audit.md
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/10-nonimplementation-boundary.md
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/commands.log
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/completion-audit-probe.log
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/comprehensive-completion-probe.log
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/design-proof-invariant-probe.log
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/final-inventory.log
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/final-validation.log
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/grounded-research-commands.log
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/nonimplementation-boundary-probe.log
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/pre-refinement-invariant-gap.log
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/protocol-coverage-probe.log
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/quality-goal-open-promotion.log
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/stale-reference-audit.log
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/stale-references-before.log
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/traceability-handoff-probe.log
+?? .ai/issues/open/ISSUE-023-goal-dependency-triggers-and-watchers.md
+.gitignore:11:!.ai/docs/issue-workflow/**	.ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/10-nonimplementation-boundary.md
+PASS issue023_selected_status_recorded
+
+## final closeout consistency probe
+PASS issue023_closeout_consistency_probe

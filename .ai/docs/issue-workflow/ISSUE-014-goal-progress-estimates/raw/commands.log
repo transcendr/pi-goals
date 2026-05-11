@@ -1,0 +1,807 @@
+# commands.log — ISSUE-014 refinement
+## validation_expansion: pre-refinement invariant probe
+
+## validation_expansion: corrected progress invariant probe
+$ python3 - <<PY
+PASS refine_issue_has_unresolved_progress_design
+PASS issue011_widget_dependency_promoted_and_locked
+PASS goal_state_has_no_progress_estimate_fields
+PASS update_goal_has_no_progress_estimate_inputs
+PASS widget_has_no_progress_estimate_rendering
+COVERS invariant: ISSUE-014 cannot be promoted by wording alone; it must lock progress estimate storage, update API, safety semantics, and ISSUE-011-compatible rendering because current code has none of those fields.
+
+## source surface inventory for progress estimates
+$ rg -n "update_goal|GoalState|telemetry|appendEntry|PiGoalStateEvent|syncGoalUi|renderGoalWidget|completedGoal|progress" .pi/extensions/goal README.md .ai/validation package.json
+.ai/validation/goal-floor-steering-probe.mjs:18:const telemetry = read('.pi/extensions/goal/telemetry.ts');
+.ai/validation/goal-floor-steering-probe.mjs:55:assert('monitor persists accepted floor telemetry', /persistAcceptedMonitorFloorTelemetry/.test(monitor) && /current\.updatedAt !== report\.goal\.updatedAt/.test(monitor));
+.ai/validation/goal-floor-steering-probe.mjs:56:assert('telemetry tracks productive floor deepening', /productive_floor_deepening/.test(telemetry) && /noteProductiveFloorWork/.test(telemetry));
+.ai/validation/goal-floor-steering-probe.mjs:57:assert('telemetry tracks quota-filling churn', /quota_filling_churn/.test(telemetry) && /noteFloorChurnSteer/.test(telemetry));
+.ai/validation/goal-floor-steering-probe.mjs:58:assert('telemetry tracks floor quality exhausted', /floor_quality_exhausted/.test(telemetry) && /noteFloorQualityExhausted/.test(telemetry));
+README.md:51:- `/goal` — show the current goal summary, status, budgets, and progress metadata.
+README.md:110:These are completion floors, not quota targets. If an agent calls `update_goal({ status: "complete" })` before configured floors are met, completion is deferred, the goal remains active, and the tool returns structured `completion_blocked_by_floor`, floor deltas, and a concrete `next_floor_pass` from the value-pass catalog. Steering asks for one objective-linked improvement pass such as requirement-gap audit, validation expansion, adversarial review, simplification/deslop, compatibility review, or docs/handoff evidence.
+README.md:112:Maximum budgets still win: budget-limited goals wrap up rather than working past a cap to satisfy a floor. Users can remove or lower a floor with `update_goal`, but floor edits and `status: "complete"` must be separate calls.
+README.md:156:Long-running goals can drift, loop, or stall. `pi-goals` runs a lightweight goal-scoped churn monitor that periodically reviews sparse session context, recent goal telemetry, recent completion-floor state, and recent monitor decisions.
+README.md:160:- detect no-progress loops and repeated automatic turns,
+.pi/extensions/goal/command.ts:7:import { createTelemetry, resetSafetyCounters } from "./telemetry";
+.pi/extensions/goal/command.ts:9:	createGoalState,
+.pi/extensions/goal/command.ts:19:import { notifyGoal, notifyInfo, notifyWarning, showGoalSummary, showNoGoal, syncGoalUi } from "./ui";
+.pi/extensions/goal/command.ts:20:import type { GoalCommandScheduler, GoalContinuationCanceller, GoalMonitorCanceller, GoalMonitorScheduler, GoalPauseInterrupter, GoalQueueSteeringSender, GoalState } from "./types";
+.pi/extensions/goal/command.ts:197:	const goal = createGoalState({ objective: validation.objective });
+.pi/extensions/goal/command.ts:198:	const telemetry = createTelemetry(goal.goalId, goal.createdAt);
+.pi/extensions/goal/command.ts:199:	persistSetGoal(pi, goal, telemetry, "command");
+.pi/extensions/goal/command.ts:200:	syncGoalUi(ctx, goal);
+.pi/extensions/goal/command.ts:226:	const paused: GoalState = { ...goal, status: "paused", updatedAt: Date.now() };
+.pi/extensions/goal/command.ts:228:	syncGoalUi(ctx, paused);
+.pi/extensions/goal/command.ts:263:	const active: GoalState = { ...goal, status: "active", updatedAt: Date.now() };
+.pi/extensions/goal/command.ts:264:	const telemetry = resetSafetyCounters(getTelemetry());
+.pi/extensions/goal/command.ts:265:	persistUpdateGoal(pi, active, telemetry, "resume");
+.pi/extensions/goal/command.ts:266:	if (telemetry) persistTelemetry(pi, telemetry, "resume");
+.pi/extensions/goal/command.ts:267:	syncGoalUi(ctx, active);
+.pi/extensions/goal/command.ts:279:	syncGoalUi(ctx, result.goal);
+.ai/validation/goal-min-spend-floors-probe.mjs:35:assert('GoalState has token floor', /minTokensBeforeWrapUp\?: number/.test(types));
+.ai/validation/goal-min-spend-floors-probe.mjs:36:assert('GoalState has time floor', /minTimeSecondsBeforeWrapUp\?: number/.test(types));
+.ai/validation/goal-min-spend-floors-probe.mjs:37:assert('telemetry records floor work history', /lastFloorCardId\?: FloorValuePassId/.test(types) && /floorQualityState\?: FloorQualityState/.test(types));
+.ai/validation/goal-min-spend-floors-probe.mjs:47:assert('same-call floor edit plus complete blocked', /Floor edits and status complete must be separate update_goal calls/.test(tools));
+.ai/validation/goal-min-spend-floors-probe.mjs:49:assert('state createGoalState uses options object', /export function createGoalState\(input: CreateGoalStateInput\)/.test(state));
+.pi/extensions/goal/tools.ts:7:import { createTelemetry, noteBudgetLimit, noteFloorCompletionDeferred } from "./telemetry";
+.pi/extensions/goal/tools.ts:9:import { createGoalState, getGoal, getTelemetry, persistClearGoal, persistSetGoal, persistTelemetry, persistUpdateGoal } from "./state";
+.pi/extensions/goal/tools.ts:12:import { syncGoalUi } from "./ui";
+.pi/extensions/goal/tools.ts:14:import type { GoalCommandScheduler, GoalContinuationCanceller, GoalMonitorCanceller, GoalMonitorScheduler, GoalState, GoalStatus, GoalTelemetrySnapshot } from "./types";
+.pi/extensions/goal/tools.ts:49:	scheduleBudgetLimitWrapUp?: (ctx: ExtensionContext, goal: GoalState) => void;
+.pi/extensions/goal/tools.ts:60:	scheduleBudgetLimitWrapUp?: (ctx: ExtensionContext, goal: GoalState) => void,
+.pi/extensions/goal/tools.ts:79:		promptSnippet: "Inspect the active pi-goal objective and progress state.",
+.pi/extensions/goal/tools.ts:145:		name: "update_goal",
+.pi/extensions/goal/tools.ts:173:			syncGoalUi(ctx, null);
+.pi/extensions/goal/tools.ts:184:		"Use update_goal with status complete only after verifying the goal objective is actually achieved.",
+.pi/extensions/goal/tools.ts:185:		"Use update_goal for objective or budget edits only when the user explicitly asks to modify the persistent goal.",
+.pi/extensions/goal/tools.ts:188:		"Use clear_goal, not update_goal, when the user asks to clear/remove the current goal.",
+.pi/extensions/goal/tools.ts:219:type GoalUpdateResult = { ok: true; goal: GoalState; prefix: string; budgetChanged?: boolean } | { ok: false; error: string };
+.pi/extensions/goal/tools.ts:250:	const goal = createGoalState({ objective: validation.objective, tokenBudget: params.token_budget, timeBudgetSeconds: params.time_budget_seconds, minTokensBeforeWrapUp: params.min_tokens_before_wrap_up, minTimeSecondsBeforeWrapUp: params.min_time_seconds_before_wrap_up });
+.pi/extensions/goal/tools.ts:251:	const telemetry = createTelemetry(goal.goalId, goal.createdAt);
+.pi/extensions/goal/tools.ts:252:	persistSetGoal(pi, goal, telemetry, "tool");
+.pi/extensions/goal/tools.ts:253:	syncGoalUi(ctx, goal);
+.pi/extensions/goal/tools.ts:255:	return resultForGoal(goal, telemetry, current?.status === "complete" ? "Goal created; replaced completed goal." : "Goal created.");
+.pi/extensions/goal/tools.ts:272:		telemetry: getTelemetry(),
+.pi/extensions/goal/tools.ts:282:	persistUpdateGoal(pi, update.goal, telemetryForUpdate(update.goal, completionDecision), "tool");
+.pi/extensions/goal/tools.ts:283:	syncGoalUi(ctx, update.goal);
+.pi/extensions/goal/tools.ts:294:	goal: GoalState,
+.pi/extensions/goal/tools.ts:297:	const telemetry = noteFloorCompletionDeferred(getTelemetry(), decision.card.id);
+.pi/extensions/goal/tools.ts:298:	if (telemetry) persistTelemetry(pi, telemetry, "floor");
+.pi/extensions/goal/tools.ts:299:	syncGoalUi(ctx, goal);
+.pi/extensions/goal/tools.ts:305:			telemetry: telemetry ?? getTelemetry(),
+.pi/extensions/goal/tools.ts:327:function buildGoalUpdate(goal: GoalState, params: UpdateGoalInput): GoalUpdateResult {
+.pi/extensions/goal/tools.ts:328:	let next: GoalState = { ...goal };
+.pi/extensions/goal/tools.ts:341:	if (floorResult.floorChanged && params.status === "complete") return { ok: false, error: "Floor edits and status complete must be separate update_goal calls." };
+.pi/extensions/goal/tools.ts:353:function applyObjectiveUpdate(goal: GoalState, objective: string | undefined, changes: string[]): GoalUpdateResult {
+.pi/extensions/goal/tools.ts:361:function applyBudgetUpdates(goal: GoalState, params: UpdateGoalInput, changes: string[]): GoalUpdateResult {
+.pi/extensions/goal/tools.ts:379:function applyFloorUpdates(goal: GoalState, params: UpdateGoalInput, changes: string[]): GoalUpdateResult & { floorChanged?: boolean } {
+.pi/extensions/goal/tools.ts:397:function budgetEditWrapUpIfNeeded(pi: ExtensionAPI, ctx: ExtensionContext, runtime: GoalToolRuntime, previousGoal: GoalState, updatedGoal: GoalState) {
+.pi/extensions/goal/tools.ts:404:function recomputeStatusAfterBudgetEdit(goal: GoalState): GoalState {
+.pi/extensions/goal/tools.ts:409:function telemetryForUpdate(goal: GoalState, completionDecision: CompletionDecision): GoalTelemetrySnapshot | null {
+.pi/extensions/goal/tools.ts:413:		const telemetry = getTelemetry();
+.pi/extensions/goal/tools.ts:414:		return telemetry ? { ...telemetry, noMoreValuableWorkReason: completionDecision.reason === "max_budget_requires_wrap_up" ? "max_budget_requires_wrap_up" : completionDecision.reason, floorQualityState: completionDecision.reason === "max_budget_requires_wrap_up" ? "overriddenByMaxBudget" : telemetry.floorQualityState, updatedAt: Date.now() } : telemetry;
+.pi/extensions/goal/widget.ts:4:import type { GoalState, GoalStatus } from "./types";
+.pi/extensions/goal/widget.ts:37:export function goalWidgetFactory(goal: GoalState): (_tui: unknown, theme: GoalWidgetTheme) => GoalWidgetComponent {
+.pi/extensions/goal/widget.ts:41:export function renderGoalWidget(goal: GoalState, theme: GoalWidgetTheme, width: number): string[] {
+.pi/extensions/goal/widget.ts:59:	constructor(private readonly goal: GoalState, private readonly theme: GoalWidgetTheme) {}
+.pi/extensions/goal/widget.ts:62:		return renderGoalWidget(this.goal, this.theme, width);
+.pi/extensions/goal/widget.ts:68:function compactLines(goal: GoalState, theme: GoalWidgetTheme, width: number): string[] {
+.pi/extensions/goal/widget.ts:107:		progressBar(percent, theme),
+.pi/extensions/goal/widget.ts:113:function progressBar(percent: number, theme: GoalWidgetTheme): string {
+.pi/extensions/goal/widget.ts:118:function timeResource(goal: GoalState): ResourceSpec {
+.pi/extensions/goal/widget.ts:122:function tokenResource(goal: GoalState): ResourceSpec {
+.pi/extensions/goal/widget.ts:126:function floorLine(goal: GoalState, theme: GoalWidgetTheme): string {
+.pi/extensions/goal/widget.ts:136:function timeValue(goal: GoalState): string {
+.pi/extensions/goal/widget.ts:140:function tokenValue(goal: GoalState): string {
+.pi/extensions/goal/widget.ts:144:function compactFloorValue(goal: GoalState): string {
+.pi/extensions/goal/widget.ts:168:function statusStyle(goal: GoalState): StatusStyle {
+.pi/extensions/goal/prompts.ts:5:import type { GoalState, GoalSteeringDetails, GoalTelemetrySnapshot } from "./types";
+.pi/extensions/goal/prompts.ts:7:export function buildContinuationPrompt(goal: GoalState, telemetry: GoalTelemetrySnapshot | null = null): { content: string; details: GoalSteeringDetails } {
+.pi/extensions/goal/prompts.ts:9:	const floorGuidance = floorContinuationSection(goal, telemetry);
+.pi/extensions/goal/prompts.ts:35:Do not rely on intent, partial progress, elapsed effort, memory of earlier work, or a plausible final answer as proof of completion. Only mark the goal achieved when the audit shows that the objective has actually been achieved and no required work remains. If any requirement is missing, incomplete, or unverified, keep working instead of marking the goal complete. If the objective is achieved, call update_goal with status "complete" so usage accounting is preserved. Report the final elapsed time, and if the achieved goal has a token budget, report the final consumed token budget to the user after update_goal succeeds.
+.pi/extensions/goal/prompts.ts:37:Do not call update_goal unless the goal is complete. Do not mark a goal complete merely because the budget is nearly exhausted or because you are stopping work.`,
+.pi/extensions/goal/prompts.ts:42:export function buildPausePrompt(goal: GoalState): { content: string; details: GoalSteeringDetails } {
+.pi/extensions/goal/prompts.ts:52:Stop substantive work on this goal now. Briefly acknowledge that the goal is paused and wait for /goal resume before continuing goal pursuit. Do not call update_goal unless the goal is actually complete.`,
+.pi/extensions/goal/prompts.ts:57:export function buildBudgetLimitPrompt(goal: GoalState): { content: string; details: GoalSteeringDetails } {
+.pi/extensions/goal/prompts.ts:72:The system has marked the goal as budget_limited after a ${resource} budget limit, so do not start new substantive work for this goal. If get_goal reports this goal is paused, absent, complete, active, or has a different goal id, treat this wrap-up message as stale and do not continue goal work. Wrap up this turn soon: summarize useful progress, identify remaining work or blockers, and leave the user with a clear next step.
+.pi/extensions/goal/prompts.ts:74:Do not call update_goal unless the goal is actually complete.`,
+.pi/extensions/goal/prompts.ts:79:function floorContinuationSection(goal: GoalState, telemetry: GoalTelemetrySnapshot | null): string {
+.pi/extensions/goal/prompts.ts:82:	const card = selectFloorWorkCard({ goal, telemetry, floor });
+.pi/extensions/goal/prompts.ts:84:	return `\n\nCompletion floor:\n${buildFloorContinuationGuidance({ goal, telemetry, floor, card })}`;
+.pi/extensions/goal/prompts.ts:87:function budgetLines(goal: GoalState, includeRemaining: boolean): string {
+.pi/extensions/goal/prompts.ts:109:function exhaustedResource(goal: GoalState): "token" | "time" | "resource" {
+.pi/extensions/goal/continuation.ts:11:import { noteBudgetWrapUpSent, noteContinuationScheduled, noteContinuationSkipped, setNextTurnOrigin } from "./telemetry";
+.pi/extensions/goal/continuation.ts:12:import type { ContinuationReason, ContinuationSkipReason, GoalState } from "./types";
+.pi/extensions/goal/continuation.ts:33:	const telemetry = noteContinuationScheduled(getTelemetry(), reason);
+.pi/extensions/goal/continuation.ts:34:	if (telemetry) persistTelemetry(pi, telemetry, "continuation");
+.pi/extensions/goal/continuation.ts:43:export function scheduleBudgetLimitWrapUp(pi: ExtensionAPI, ctx: ExtensionContext, goal: GoalState): void {
+.pi/extensions/goal/continuation.ts:65:export function interruptActiveGoalTurn(pi: ExtensionAPI, ctx: ExtensionContext, goal: GoalState): void {
+.pi/extensions/goal/continuation.ts:84:	const telemetry = getTelemetry();
+.pi/extensions/goal/continuation.ts:85:	if (telemetry && telemetry.consecutiveAutoTurns >= MAX_CONSECUTIVE_AUTO_TURNS) return skip(pi, "safetyCap");
+.pi/extensions/goal/continuation.ts:86:	if (telemetry && telemetry.consecutiveNoProgressTurns >= MAX_NO_PROGRESS_AUTO_TURNS) return skip(pi, "safetyCap");
+.pi/extensions/goal/continuation.ts:88:	const prompt = buildContinuationPrompt(goal, telemetry);
+.pi/extensions/goal/continuation.ts:107:	const telemetry = noteBudgetWrapUpSent(getTelemetry());
+.pi/extensions/goal/continuation.ts:108:	if (telemetry) persistTelemetry(pi, telemetry, "budget");
+.pi/extensions/goal/continuation.ts:113:	const telemetry = getTelemetry();
+.pi/extensions/goal/continuation.ts:114:	return telemetry?.lastTurnOrigin === "auto" && telemetry.lastTurnToolCallCount === 0 && telemetry.lastTurnToolResultCount === 0 && !telemetry.lastTurnCompletedGoal;
+.pi/extensions/goal/continuation.ts:118:	const telemetry = noteContinuationSkipped(getTelemetry(), reason);
+.pi/extensions/goal/continuation.ts:119:	if (telemetry) persistTelemetry(pi, telemetry, "continuation");
+.pi/extensions/goal/completion-gate.ts:4:import type { GoalState, GoalTelemetrySnapshot, NoMoreValuableWorkReason } from "./types";
+.pi/extensions/goal/completion-gate.ts:12:	currentGoal: GoalState;
+.pi/extensions/goal/completion-gate.ts:13:	candidateGoal: GoalState;
+.pi/extensions/goal/completion-gate.ts:14:	telemetry: GoalTelemetrySnapshot | null;
+.pi/extensions/goal/completion-gate.ts:23:	if (canAllowNoValuableWorkEscape(input.telemetry)) return { kind: "allow_with_reason", reason: "no_safe_autonomous_work", floor };
+.pi/extensions/goal/completion-gate.ts:24:	const card = selectFloorWorkCard({ goal: input.currentGoal, telemetry: input.telemetry, floor, recentMonitorPatterns: input.recentMonitorPatterns });
+.pi/extensions/goal/completion-gate.ts:25:	if (!card && hasPriorFloorWork(input.telemetry)) return { kind: "allow_with_reason", reason: "no_safe_autonomous_work", floor };
+.pi/extensions/goal/completion-gate.ts:26:	const selected = card ?? selectFloorWorkCard({ goal: input.currentGoal, telemetry: null, floor, recentMonitorPatterns: input.recentMonitorPatterns });
+.pi/extensions/goal/completion-gate.ts:36:function canAllowNoValuableWorkEscape(telemetry: GoalTelemetrySnapshot | null): boolean {
+.pi/extensions/goal/completion-gate.ts:37:	return telemetry?.floorQualityState === "exhausted";
+.pi/extensions/goal/completion-gate.ts:40:function hasPriorFloorWork(telemetry: GoalTelemetrySnapshot | null): boolean {
+.pi/extensions/goal/completion-gate.ts:41:	return (telemetry?.floorSteerCount ?? 0) > 0 || (telemetry?.completedFloorCardIds?.length ?? 0) > 0 || (telemetry?.floorChurnSteerCount ?? 0) > 0;
+.pi/extensions/goal/queue-tools.ts:5:import { createTelemetry } from "./telemetry";
+.pi/extensions/goal/queue-tools.ts:7:import { createGoalState, getGoal, getTelemetry, persistSetGoal } from "./state";
+.pi/extensions/goal/queue-tools.ts:9:import type { GoalMonitorScheduler, GoalState, GoalTelemetrySnapshot } from "./types";
+.pi/extensions/goal/queue-tools.ts:10:import { syncGoalUi } from "./ui";
+.pi/extensions/goal/queue-tools.ts:26:	goal: GoalState | null;
+.pi/extensions/goal/queue-tools.ts:27:	telemetry: GoalTelemetrySnapshot | null;
+.pi/extensions/goal/queue-tools.ts:77:			syncGoalUi(ctx, getGoal());
+.pi/extensions/goal/queue-tools.ts:120:			if (!dequeued) return { content: [{ type: "text" as const, text: "No queued goals." }], details: { goal: getGoal(), telemetry: getTelemetry() } as QueueToolDetails };
+.pi/extensions/goal/queue-tools.ts:122:			return { content: [{ type: "text" as const, text: `Dequeued goal: ${dequeued.queueId}\nObjective: ${dequeued.objective}\nRationale: ${audit.value.rationale}\nAuthority: ${audit.value.authority}` }], details: { goal: getGoal(), telemetry: getTelemetry(), dequeued, dequeue_audit: audit.value } as QueueToolDetails };
+.pi/extensions/goal/queue-tools.ts:139:			return { content: [{ type: "text" as const, text: `Removed queued goal: ${removed.queueId}` }], details: { goal: getGoal(), telemetry: getTelemetry() } as QueueToolDetails };
+.pi/extensions/goal/queue-tools.ts:148:	if (!next) return { content: [{ type: "text" as const, text: "No queued goals." }], details: { goal: current, telemetry: getTelemetry(), queue: getQueue() } as QueueToolDetails };
+.pi/extensions/goal/queue-tools.ts:159:	const goal = createGoalState({ objective, tokenBudget: next.tokenBudget, timeBudgetSeconds: next.timeBudgetSeconds, minTokensBeforeWrapUp: next.minTokensBeforeWrapUp, minTimeSecondsBeforeWrapUp: next.minTimeSecondsBeforeWrapUp });
+.pi/extensions/goal/queue-tools.ts:160:	const telemetry = createTelemetry(goal.goalId, goal.createdAt);
+.pi/extensions/goal/queue-tools.ts:161:	persistSetGoal(pi, goal, telemetry, "tool");
+.pi/extensions/goal/queue-tools.ts:165:	syncGoalUi(ctx, goal);
+.pi/extensions/goal/queue-tools.ts:167:	return { content: [{ type: "text" as const, text: `Started queued goal: ${started.queueId}\nObjective: ${goal.objective}` }], details: { goal, telemetry, started, queue: getQueue() } as QueueToolDetails };
+.pi/extensions/goal/queue-tools.ts:191:	if (queue.length === 0) return { content: [{ type: "text" as const, text: "No queued goals." }], details: { goal: getGoal(), telemetry: getTelemetry(), queue } as QueueToolDetails };
+.pi/extensions/goal/queue-tools.ts:193:	return { content: [{ type: "text" as const, text: `Queued goals (${queue.length}):\n${lines.join("\n")}` }], details: { goal: getGoal(), telemetry: getTelemetry(), queue } as QueueToolDetails };
+.pi/extensions/goal/queue-tools.ts:198:	return { content: [{ type: "text" as const, text: `Queued goal: ${queued.queueId}\nObjective: ${objective}` }], details: { goal: getGoal(), telemetry: getTelemetry(), queued } as QueueToolDetails };
+.pi/extensions/goal/queue-tools.ts:202:	return { content: [{ type: "text" as const, text: `Error: ${message}` }], details: { goal: getGoal(), telemetry: getTelemetry(), error: message } as QueueToolDetails };
+.pi/extensions/goal/monitor.ts:15:import { applyMonitorDecisionToFloorTelemetry } from "./telemetry";
+.pi/extensions/goal/floor-steering.ts:3:import type { FloorValuePassId, GoalState, GoalTelemetrySnapshot } from "./types";
+.pi/extensions/goal/floor-steering.ts:17:	goal: GoalState;
+.pi/extensions/goal/floor-steering.ts:18:	telemetry: GoalTelemetrySnapshot | null;
+.pi/extensions/goal/floor-steering.ts:91:	const completed = new Set(context.telemetry?.completedFloorCardIds ?? []);
+.pi/extensions/goal/floor-steering.ts:92:	const last = context.telemetry?.lastFloorCardId;
+.pi/extensions/goal/floor-steering.ts:97:export function buildFloorContinuationGuidance(context: { goal: GoalState; telemetry: GoalTelemetrySnapshot | null; floor: CompletionFloorEvaluation; card: FloorWorkCard }): string {
+.pi/extensions/goal/floor-steering.ts:111:export function buildFloorCompletionRefusal(context: { goal: GoalState; floor: CompletionFloorEvaluation; card: FloorWorkCard }): string {
+.pi/extensions/goal/floor-steering.ts:119:Before trying update_goal(status:"complete") again, produce new objective-linked evidence:
+.pi/extensions/goal/monitor-state.ts:52:	pi.appendEntry(GOAL_MONITOR_LOG_ENTRY_TYPE, entry);
+.pi/extensions/goal/monitor-report.ts:9:import type { GoalMonitorFloorReport, GoalMonitorRecentEntry, GoalMonitorReport, GoalState, GoalTelemetrySnapshot } from "./types";
+.pi/extensions/goal/monitor-report.ts:11:export function buildGoalMonitorReport(ctx: ExtensionContext, goal: GoalState, telemetry: GoalTelemetrySnapshot | null, now = Date.now()): GoalMonitorReport {
+.pi/extensions/goal/monitor-report.ts:23:		telemetry,
+.pi/extensions/goal/monitor-report.ts:31:		floor: buildFloorReport(goal, telemetry),
+.pi/extensions/goal/monitor-report.ts:35:function buildFloorReport(goal: GoalState, telemetry: GoalTelemetrySnapshot | null): GoalMonitorFloorReport {
+.pi/extensions/goal/monitor-report.ts:40:		lastFloorCardId: telemetry?.lastFloorCardId,
+.pi/extensions/goal/monitor-report.ts:41:		completedFloorCardIds: telemetry?.completedFloorCardIds ?? [],
+.pi/extensions/goal/monitor-report.ts:42:		floorSteerCount: telemetry?.floorSteerCount ?? 0,
+.pi/extensions/goal/monitor-report.ts:43:		floorChurnSteerCount: telemetry?.floorChurnSteerCount ?? 0,
+.pi/extensions/goal/monitor-report.ts:44:		floorQualityState: telemetry?.floorQualityState ?? (floor.anyFloorConfigured && !floor.allFloorsMet ? "eligible" : "inactive"),
+.pi/extensions/goal/floor.ts:1:import type { GoalState } from "./types";
+.pi/extensions/goal/floor.ts:21:export function evaluateCompletionFloor(goal: GoalState): CompletionFloorEvaluation {
+.pi/extensions/goal/floor.ts:36:export function isCompletionFloorUnmet(goal: GoalState): boolean {
+.pi/extensions/goal/queue-state.ts:110:	pi.appendEntry(STATE_ENTRY_TYPE, { version: 1, kind: "enqueue", queueId: goal.queueId, goal, reason: "enqueue", at: Date.now() } as GoalQueueEvent);
+.pi/extensions/goal/queue-state.ts:114:	pi.appendEntry(STATE_ENTRY_TYPE, { version: 1, kind: "dequeue", queueId: metadata.queueId, reason, rationale: metadata.audit?.rationale, authority: metadata.audit?.authority, at: Date.now() } as GoalQueueEvent);
+.pi/extensions/goal/queue-state.ts:118:	pi.appendEntry(STATE_ENTRY_TYPE, { version: 1, kind: "remove", queueId, reason, at: Date.now() } as GoalQueueEvent);
+.pi/extensions/goal/ui.ts:4:import type { GoalState } from "./types";
+.pi/extensions/goal/ui.ts:7:export function syncGoalUi(ctx: ExtensionContext, goal: GoalState | null): void {
+.pi/extensions/goal/ui.ts:21:export function showGoalSummary(ctx: ExtensionContext, goal: GoalState): void {
+.pi/extensions/goal/ui.ts:25:export function notifyGoal(ctx: ExtensionContext, goal: GoalState, prefix = "Goal"): void {
+.pi/extensions/goal/ui.ts:37:export async function promptResumePausedGoal(ctx: ExtensionContext, goal: GoalState): Promise<boolean> {
+.pi/extensions/goal/state.ts:3:import { isTelemetry } from "./telemetry";
+.pi/extensions/goal/state.ts:4:import type { GoalRuntimeState, GoalState, GoalTelemetrySnapshot, MutationResult, PiGoalEventReason, PiGoalStateEvent } from "./types";
+.pi/extensions/goal/state.ts:6:export type CreateGoalStateInput = {
+.pi/extensions/goal/state.ts:15:let runtimeState: GoalRuntimeState = { goal: null, telemetry: null };
+.pi/extensions/goal/state.ts:17:export function getGoal(): GoalState | null {
+.pi/extensions/goal/state.ts:22:	return runtimeState.telemetry;
+.pi/extensions/goal/state.ts:26:	return { goal: runtimeState.goal, telemetry: runtimeState.telemetry };
+.pi/extensions/goal/state.ts:29:export function replayGoalState(ctx: ExtensionContext): GoalRuntimeState {
+.pi/extensions/goal/state.ts:30:	let next: GoalRuntimeState = { goal: null, telemetry: null };
+.pi/extensions/goal/state.ts:44:export function createGoalState(input: CreateGoalStateInput): GoalState {
+.pi/extensions/goal/state.ts:63:	goal: GoalState,
+.pi/extensions/goal/state.ts:64:	telemetry: GoalTelemetrySnapshot,
+.pi/extensions/goal/state.ts:67:	return persistEvent(pi, { kind: "set", goalId: goal.goalId, goal, telemetry, reason });
+.pi/extensions/goal/state.ts:72:	goal: GoalState,
+.pi/extensions/goal/state.ts:73:	telemetry: GoalTelemetrySnapshot | null,
+.pi/extensions/goal/state.ts:77:		return { ok: false, goal: runtimeState.goal, telemetry: runtimeState.telemetry, message: "Stale goal update ignored." };
+.pi/extensions/goal/state.ts:79:	return persistEvent(pi, { kind: "update", goalId: goal.goalId, goal, telemetry, reason });
+.pi/extensions/goal/state.ts:84:	telemetry: GoalTelemetrySnapshot | null,
+.pi/extensions/goal/state.ts:88:	if (!goal || !telemetry || telemetry.goalId !== goal.goalId) {
+.pi/extensions/goal/state.ts:89:		return { ok: false, goal, telemetry: runtimeState.telemetry, message: "Stale telemetry update ignored." };
+.pi/extensions/goal/state.ts:91:	return persistEvent(pi, { kind: "telemetry", goalId: goal.goalId, goal, telemetry, reason });
+.pi/extensions/goal/state.ts:98:	telemetry: GoalTelemetrySnapshot | null,
+.pi/extensions/goal/state.ts:103:		return { ok: false, goal: current, telemetry: runtimeState.telemetry, message: "Stale accounting ignored." };
+.pi/extensions/goal/state.ts:105:	const goal: GoalState = {
+.pi/extensions/goal/state.ts:111:	return persistEvent(pi, { kind: "account", goalId, goal, telemetry, delta, reason });
+.pi/extensions/goal/state.ts:115:	return persistEvent(pi, { kind: "clear", goalId: runtimeState.goal?.goalId, goal: null, telemetry: null, reason });
+.pi/extensions/goal/state.ts:120:	input: Omit<PiGoalStateEvent, "version" | "at">,
+.pi/extensions/goal/state.ts:122:	const event: PiGoalStateEvent = { version: STATE_EVENT_VERSION, at: Date.now(), ...input };
+.pi/extensions/goal/state.ts:123:	pi.appendEntry(STATE_ENTRY_TYPE, event);
+.pi/extensions/goal/state.ts:125:	return { ok: true, goal: runtimeState.goal, telemetry: runtimeState.telemetry };
+.pi/extensions/goal/state.ts:128:function applyEvent(state: GoalRuntimeState, event: PiGoalStateEvent): GoalRuntimeState {
+.pi/extensions/goal/state.ts:129:	if (event.kind === "clear") return { goal: null, telemetry: null };
+.pi/extensions/goal/state.ts:131:	const parsedGoal = toGoalState(event.goal);
+.pi/extensions/goal/state.ts:133:	const telemetry = event.telemetry === null ? null : isTelemetry(event.telemetry) ? event.telemetry : state.telemetry;
+.pi/extensions/goal/state.ts:134:	return { goal, telemetry };
+.pi/extensions/goal/state.ts:137:function entryToGoalEvent(entry: unknown): PiGoalStateEvent | null {
+.pi/extensions/goal/state.ts:144:function isGoalEvent(value: unknown): value is PiGoalStateEvent {
+.pi/extensions/goal/state.ts:150:function toGoalState(value: unknown): GoalState | null {
+.pi/extensions/goal/state.ts:157:		...(v as GoalState),
+.pi/extensions/goal/budget.ts:2:import type { BudgetLimitReason, BudgetPressure, BudgetPressureKind, GoalState } from "./types";
+.pi/extensions/goal/budget.ts:4:export function evaluateBudgetPressure(goal: GoalState): BudgetPressure {
+.pi/extensions/goal/budget.ts:10:export function budgetLimitReason(goal: GoalState): BudgetLimitReason | undefined {
+.pi/extensions/goal/budget.ts:29:export function isBudgetExhausted(goal: GoalState): BudgetLimitReason | undefined {
+.pi/extensions/goal/budget.ts:35:export function canActivateGoal(goal: GoalState): boolean {
+.pi/extensions/goal/budget.ts:41:function tokenPressure(goal: GoalState): BudgetPressure {
+.pi/extensions/goal/budget.ts:50:function timePressure(goal: GoalState): BudgetPressure {
+.pi/extensions/goal/tool-results.ts:5:import type { FloorValuePassId, GoalState, GoalTelemetrySnapshot, NoMoreValuableWorkReason } from "./types";
+.pi/extensions/goal/tool-results.ts:8:	goal: GoalState | null;
+.pi/extensions/goal/tool-results.ts:9:	telemetry?: GoalTelemetrySnapshot | null;
+.pi/extensions/goal/tool-results.ts:28:export function resultForGoal(goal: GoalState | null, telemetry: GoalTelemetrySnapshot | null, prefix?: string) {
+.pi/extensions/goal/tool-results.ts:29:	const details: ToolDetails = { goal, telemetry, remaining_tokens: remainingTokens(goal), remaining_time_seconds: remainingTime(goal), floor: goal ? evaluateCompletionFloor(goal) : undefined };
+.pi/extensions/goal/tool-results.ts:42:	return { content: [{ type: "text" as const, text: lines.length ? lines.join("\n") : "No reusable goal templates found." }], details: { goal: getGoal(), telemetry: getTelemetry(), templates } as ToolDetails };
+.pi/extensions/goal/tool-results.ts:46:	return { content: [{ type: "text" as const, text: `Error: ${error}` }], details: { goal: getGoal(), telemetry: getTelemetry(), error } as ToolDetails };
+.pi/extensions/goal/tool-results.ts:49:export function remainingTokens(goal: GoalState | null): number | undefined {
+.pi/extensions/goal/tool-results.ts:53:export function remainingTime(goal: GoalState | null): number | undefined {
+.pi/extensions/goal/tool-results.ts:57:export function formatToolGoal(goal: GoalState | null): string {
+.pi/extensions/goal/types.ts:5:export type GoalState = {
+.pi/extensions/goal/types.ts:90:export type PiGoalEventKind = "set" | "update" | "account" | "telemetry" | "clear";
+.pi/extensions/goal/types.ts:103:export type PiGoalStateEvent = {
+.pi/extensions/goal/types.ts:107:	goal: GoalState | null;
+.pi/extensions/goal/types.ts:108:	telemetry?: GoalTelemetrySnapshot | null;
+.pi/extensions/goal/types.ts:115:	goal: GoalState | null;
+.pi/extensions/goal/types.ts:116:	telemetry: GoalTelemetrySnapshot | null;
+.pi/extensions/goal/types.ts:125:	progressCount: number;
+.pi/extensions/goal/types.ts:126:	completedGoal: boolean;
+.pi/extensions/goal/types.ts:143:export type GoalPauseInterrupter = (ctx: ExtensionContext, goal: GoalState) => void;
+.pi/extensions/goal/types.ts:193:	goal: GoalState;
+.pi/extensions/goal/types.ts:194:	telemetry: GoalTelemetrySnapshot | null;
+.pi/extensions/goal/types.ts:207:	goal: GoalState | null;
+.pi/extensions/goal/types.ts:208:	telemetry: GoalTelemetrySnapshot | null;
+.pi/extensions/goal/lifecycle.ts:26:import { getGoal, getTelemetry, persistAccountGoal, persistTelemetry, persistUpdateGoal, replayGoalState } from "./state";
+.pi/extensions/goal/lifecycle.ts:30:import { applyTurnTelemetry, consumeNextTurnOrigin, makeTurnSnapshot, noteBudgetHardStop, noteBudgetLimit, noteBudgetWarning, noteSafetyPause } from "./telemetry";
+.pi/extensions/goal/lifecycle.ts:31:import { notifyWarning, promptResumePausedGoal, syncGoalUi } from "./ui";
+.pi/extensions/goal/lifecycle.ts:32:import type { BudgetHardStopReason, BudgetLimitReason, BudgetPressure, GoalState, GoalTelemetrySnapshot, StreamBudgetSignal, TurnAccountingSnapshot } from "./types";
+.pi/extensions/goal/lifecycle.ts:40:		const state = replayGoalState(ctx);
+.pi/extensions/goal/lifecycle.ts:43:		syncGoalUi(ctx, state.goal);
+.pi/extensions/goal/lifecycle.ts:57:	const state = replayGoalState(ctx);
+.pi/extensions/goal/lifecycle.ts:60:	syncGoalUi(ctx, state.goal);
+.pi/extensions/goal/lifecycle.ts:66:			const active: GoalState = { ...state.goal, status: "active", updatedAt: Date.now() };
+.pi/extensions/goal/lifecycle.ts:67:			persistUpdateGoal(pi, active, state.telemetry, "resume");
+.pi/extensions/goal/lifecycle.ts:68:			syncGoalUi(ctx, active);
+.pi/extensions/goal/lifecycle.ts:83:	// excluded because no agent work should be in progress for them.
+.pi/extensions/goal/lifecycle.ts:100:	const estimated: GoalState = {
+.pi/extensions/goal/lifecycle.ts:112:		const stopped: GoalState = { ...goal, status: "budgetLimited", updatedAt: Date.now() };
+.pi/extensions/goal/lifecycle.ts:116:		syncGoalUi(ctx, stopped);
+.pi/extensions/goal/lifecycle.ts:130:	// because the wrap-up turn needs to complete so the agent can summarize progress.
+.pi/extensions/goal/lifecycle.ts:143:	// mid-turn, (2) telemetry flags prevent re-sending if turn_end already warned.
+.pi/extensions/goal/lifecycle.ts:146:		const telemetry = getTelemetry();
+.pi/extensions/goal/lifecycle.ts:147:		if (pressure.kind === "tokenWarning" && telemetry?.tokenBudgetWarningSent) return;
+.pi/extensions/goal/lifecycle.ts:148:		if (pressure.kind === "timeWarning" && telemetry?.timeBudgetWarningSent) return;
+.pi/extensions/goal/lifecycle.ts:171:	if (event.toolName === "update_goal") return noteGoalUpdateResult(event.details);
+.pi/extensions/goal/lifecycle.ts:172:	activeTurn.progressCount++;
+.pi/extensions/goal/lifecycle.ts:181:		activeTurn.progressCount++;
+.pi/extensions/goal/lifecycle.ts:182:		if ((goal as Record<string, unknown>).status === "complete") activeTurn.completedGoal = true;
+.pi/extensions/goal/lifecycle.ts:199:	const madeProgress = turn.completedGoal || turn.progressCount > 0;
+.pi/extensions/goal/lifecycle.ts:200:	let telemetry = applyTurnTelemetry(getTelemetry(), turn, madeProgress);
+.pi/extensions/goal/lifecycle.ts:201:	let result = persistAccountGoal(pi, turn.goalId, { timeUsedSeconds: elapsed, tokensUsed: tokens }, telemetry, "turn");
+.pi/extensions/goal/lifecycle.ts:205:		result = handleBudgetPressure(pi, ctx, updated, result.telemetry);
+.pi/extensions/goal/lifecycle.ts:214:			enforceBudgetHardStop(pi, ctx, updated, pressure, result.telemetry);
+.pi/extensions/goal/lifecycle.ts:224:	telemetry = result.telemetry;
+.pi/extensions/goal/lifecycle.ts:226:	if (updated?.status === "active" && shouldPauseForSafety(telemetry) && telemetry) {
+.pi/extensions/goal/lifecycle.ts:227:		const reason = telemetry.consecutiveAutoTurns >= MAX_CONSECUTIVE_AUTO_TURNS ? "maxAutoTurns" : "noProgress";
+.pi/extensions/goal/lifecycle.ts:232:	finishTurnGoal(pi, ctx, updated, turn.completedGoal);
+.pi/extensions/goal/lifecycle.ts:235:function finishTurnGoal(pi: ExtensionAPI, ctx: ExtensionContext, goal: GoalState | null, completedThisTurn: boolean): void {
+.pi/extensions/goal/lifecycle.ts:238:	syncGoalUi(ctx, goal);
+.pi/extensions/goal/lifecycle.ts:245:	goal: GoalState,
+.pi/extensions/goal/lifecycle.ts:251:	const paused: GoalState = { ...goal, status: "paused", updatedAt: Date.now() };
+.pi/extensions/goal/lifecycle.ts:252:	const telemetry = noteSafetyPause(getTelemetry(), reason);
+.pi/extensions/goal/lifecycle.ts:253:	persistUpdateGoal(pi, paused, telemetry, reason === "abort" ? "abort" : "safety");
+.pi/extensions/goal/lifecycle.ts:254:	if (telemetry) persistTelemetry(pi, telemetry, reason === "abort" ? "abort" : "safety");
+.pi/extensions/goal/lifecycle.ts:255:	syncGoalUi(ctx, paused);
+.pi/extensions/goal/lifecycle.ts:259:function shouldPauseForSafety(telemetry: GoalTelemetrySnapshot | null): boolean {
+.pi/extensions/goal/lifecycle.ts:260:	if (!telemetry) return false;
+.pi/extensions/goal/lifecycle.ts:261:	return telemetry.consecutiveAutoTurns >= MAX_CONSECUTIVE_AUTO_TURNS || telemetry.consecutiveNoProgressTurns >= MAX_NO_PROGRESS_AUTO_TURNS;
+.pi/extensions/goal/lifecycle.ts:264:function handleBudgetPressure(pi: ExtensionAPI, ctx: ExtensionContext, goal: GoalState, telemetry: GoalTelemetrySnapshot | null) {
+.pi/extensions/goal/lifecycle.ts:266:	if (isBudgetHardStop(pressure.kind)) return enforceBudgetHardStop(pi, ctx, goal, pressure, telemetry);
+.pi/extensions/goal/lifecycle.ts:267:	if (isBudgetReached(pressure.kind)) return markBudgetReached(pi, ctx, goal, pressure, telemetry);
+.pi/extensions/goal/lifecycle.ts:268:	if (isBudgetWarning(pressure.kind)) warnBudgetPressure(pi, ctx, pressure, telemetry);
+.pi/extensions/goal/lifecycle.ts:269:	return { ok: true, goal, telemetry };
+.pi/extensions/goal/lifecycle.ts:272:function enforceBudgetHardStop(pi: ExtensionAPI, ctx: ExtensionContext, goal: GoalState, pressure: BudgetPressure, telemetry: GoalTelemetrySnapshot | null) {
+.pi/extensions/goal/lifecycle.ts:275:	// the goal to budgetLimited, persisted telemetry, and aborted.
+.pi/extensions/goal/lifecycle.ts:276:	if (telemetry?.lastBudgetHardStopReason) {
+.pi/extensions/goal/lifecycle.ts:278:		return { ok: true, goal, telemetry };
+.pi/extensions/goal/lifecycle.ts:282:	const stopped: GoalState = { ...goal, status: "budgetLimited", updatedAt: Date.now() };
+.pi/extensions/goal/lifecycle.ts:283:	const nextTelemetry = noteBudgetHardStop(noteBudgetLimit(telemetry, pressureBudgetLimitReason(pressure)), budgetHardStopReason(pressure));
+.pi/extensions/goal/lifecycle.ts:285:	syncGoalUi(ctx, result.goal);
+.pi/extensions/goal/lifecycle.ts:291:function markBudgetReached(pi: ExtensionAPI, ctx: ExtensionContext, goal: GoalState, pressure: BudgetPressure, telemetry: GoalTelemetrySnapshot | null) {
+.pi/extensions/goal/lifecycle.ts:294:	const limited: GoalState = { ...goal, status: "budgetLimited", updatedAt: Date.now() };
+.pi/extensions/goal/lifecycle.ts:295:	const result = persistUpdateGoal(pi, limited, noteBudgetLimit(telemetry, pressureBudgetLimitReason(pressure)), "budget");
+.pi/extensions/goal/lifecycle.ts:300:function warnBudgetPressure(pi: ExtensionAPI, ctx: ExtensionContext, pressure: BudgetPressure, telemetry: GoalTelemetrySnapshot | null): void {
+.pi/extensions/goal/lifecycle.ts:301:	if (warningAlreadySent(pressure, telemetry)) return;
+.pi/extensions/goal/lifecycle.ts:302:	const nextTelemetry = noteBudgetWarning(telemetry, pressure.kind === "tokenWarning" ? "tokenWarning" : "timeWarning");
+.pi/extensions/goal/lifecycle.ts:307:function warningAlreadySent(pressure: BudgetPressure, telemetry: GoalTelemetrySnapshot | null): boolean {
+.pi/extensions/goal/lifecycle.ts:308:	if (pressure.kind === "tokenWarning") return Boolean(telemetry?.tokenBudgetWarningSent);
+.pi/extensions/goal/lifecycle.ts:309:	if (pressure.kind === "timeWarning") return Boolean(telemetry?.timeBudgetWarningSent);
+.pi/extensions/goal/lifecycle.ts:379:function goalSteeringMatchesStatus(customType: string, kind: unknown, status: GoalState["status"]): boolean {
+.pi/extensions/goal/monitor-prompts.ts:52:- suggest the single simplest concrete next action likely to unblock progress
+.pi/extensions/goal/monitor-prompts.ts:147:	const telemetry = report.telemetry;
+.pi/extensions/goal/monitor-prompts.ts:148:	if (!telemetry) return "<telemetry>none</telemetry>";
+.pi/extensions/goal/monitor-prompts.ts:149:	return `<telemetry>
+.pi/extensions/goal/monitor-prompts.ts:150:    <total_turns>${telemetry.totalTurns}</total_turns>
+.pi/extensions/goal/monitor-prompts.ts:151:    <user_turns>${telemetry.userTurns}</user_turns>
+.pi/extensions/goal/monitor-prompts.ts:152:    <auto_turns>${telemetry.autoTurns}</auto_turns>
+.pi/extensions/goal/monitor-prompts.ts:153:    <consecutive_auto_turns>${telemetry.consecutiveAutoTurns}</consecutive_auto_turns>
+.pi/extensions/goal/monitor-prompts.ts:154:    <consecutive_no_progress_turns>${telemetry.consecutiveNoProgressTurns}</consecutive_no_progress_turns>
+.pi/extensions/goal/monitor-prompts.ts:155:    <last_turn_origin>${escapeXml(telemetry.lastTurnOrigin ?? "unknown")}</last_turn_origin>
+.pi/extensions/goal/monitor-prompts.ts:156:    <last_continuation_reason>${escapeXml(telemetry.lastContinuationReason ?? "unknown")}</last_continuation_reason>
+.pi/extensions/goal/monitor-prompts.ts:157:    <last_skip_reason>${escapeXml(telemetry.lastSkipReason ?? "none")}</last_skip_reason>
+.pi/extensions/goal/monitor-prompts.ts:158:    <last_turn_tool_call_count>${telemetry.lastTurnToolCallCount ?? 0}</last_turn_tool_call_count>
+.pi/extensions/goal/monitor-prompts.ts:159:    <last_turn_tool_result_count>${telemetry.lastTurnToolResultCount ?? 0}</last_turn_tool_result_count>
+.pi/extensions/goal/monitor-prompts.ts:160:    <last_turn_completed_goal>${telemetry.lastTurnCompletedGoal ?? false}</last_turn_completed_goal>
+.pi/extensions/goal/monitor-prompts.ts:161:    <budget_wrap_up_sent>${telemetry.budgetWrapUpSent ?? false}</budget_wrap_up_sent>
+.pi/extensions/goal/monitor-prompts.ts:162:    <last_progress_at>${telemetry.lastProgressAt ?? "unknown"}</last_progress_at>
+.pi/extensions/goal/monitor-prompts.ts:163:    <last_safety_pause_reason>${escapeXml(telemetry.lastSafetyPauseReason ?? "none")}</last_safety_pause_reason>
+.pi/extensions/goal/monitor-prompts.ts:164:    <last_budget_limit_reason>${escapeXml(telemetry.lastBudgetLimitReason ?? "none")}</last_budget_limit_reason>
+.pi/extensions/goal/monitor-prompts.ts:165:    <last_budget_warning_reason>${escapeXml(telemetry.lastBudgetWarningReason ?? "none")}</last_budget_warning_reason>
+.pi/extensions/goal/monitor-prompts.ts:166:    <last_budget_hard_stop_reason>${escapeXml(telemetry.lastBudgetHardStopReason ?? "none")}</last_budget_hard_stop_reason>
+.pi/extensions/goal/monitor-prompts.ts:167:    <token_budget_warning_sent>${telemetry.tokenBudgetWarningSent ?? false}</token_budget_warning_sent>
+.pi/extensions/goal/monitor-prompts.ts:168:    <time_budget_warning_sent>${telemetry.timeBudgetWarningSent ?? false}</time_budget_warning_sent>
+.pi/extensions/goal/monitor-prompts.ts:169:    <last_floor_card_id>${escapeXml(telemetry.lastFloorCardId ?? "none")}</last_floor_card_id>
+.pi/extensions/goal/monitor-prompts.ts:170:    <completed_floor_card_ids>${escapeXml((telemetry.completedFloorCardIds ?? []).join(",") || "none")}</completed_floor_card_ids>
+.pi/extensions/goal/monitor-prompts.ts:171:    <floor_steer_count>${telemetry.floorSteerCount ?? 0}</floor_steer_count>
+.pi/extensions/goal/monitor-prompts.ts:172:    <floor_churn_steer_count>${telemetry.floorChurnSteerCount ?? 0}</floor_churn_steer_count>
+.pi/extensions/goal/monitor-prompts.ts:173:    <floor_quality_state>${escapeXml(telemetry.floorQualityState ?? "inactive")}</floor_quality_state>
+.pi/extensions/goal/monitor-prompts.ts:174:    <no_more_valuable_work_reason>${escapeXml(telemetry.noMoreValuableWorkReason ?? "none")}</no_more_valuable_work_reason>
+.pi/extensions/goal/monitor-prompts.ts:175:    <updated_at>${telemetry.updatedAt}</updated_at>
+.pi/extensions/goal/monitor-prompts.ts:176:  </telemetry>`;
+.pi/extensions/goal/telemetry.ts:48:	telemetry: GoalTelemetrySnapshot | null,
+.pi/extensions/goal/telemetry.ts:52:	if (!telemetry) return null;
+.pi/extensions/goal/telemetry.ts:53:	return { ...telemetry, lastContinuationReason: reason, lastSkipReason: undefined, updatedAt: now };
+.pi/extensions/goal/telemetry.ts:57:	telemetry: GoalTelemetrySnapshot | null,
+.pi/extensions/goal/telemetry.ts:61:	if (!telemetry) return null;
+.pi/extensions/goal/telemetry.ts:62:	return { ...telemetry, lastSkipReason: reason, updatedAt: now };
+.pi/extensions/goal/telemetry.ts:66:	telemetry: GoalTelemetrySnapshot | null,
+.pi/extensions/goal/telemetry.ts:69:	if (!telemetry) return null;
+.pi/extensions/goal/telemetry.ts:70:	return { ...telemetry, budgetWrapUpSent: true, updatedAt: now };
+.pi/extensions/goal/telemetry.ts:74:	telemetry: GoalTelemetrySnapshot | null,
+.pi/extensions/goal/telemetry.ts:78:	if (!telemetry) return null;
+.pi/extensions/goal/telemetry.ts:79:	return { ...telemetry, lastBudgetLimitReason: reason, updatedAt: now };
+.pi/extensions/goal/telemetry.ts:83:	telemetry: GoalTelemetrySnapshot | null,
+.pi/extensions/goal/telemetry.ts:87:	if (!telemetry) return null;
+.pi/extensions/goal/telemetry.ts:89:		...telemetry,
+.pi/extensions/goal/telemetry.ts:91:		tokenBudgetWarningSent: telemetry.tokenBudgetWarningSent || reason === "tokenWarning",
+.pi/extensions/goal/telemetry.ts:92:		timeBudgetWarningSent: telemetry.timeBudgetWarningSent || reason === "timeWarning",
+.pi/extensions/goal/telemetry.ts:98:	telemetry: GoalTelemetrySnapshot | null,
+.pi/extensions/goal/telemetry.ts:102:	if (!telemetry) return null;
+.pi/extensions/goal/telemetry.ts:103:	return { ...telemetry, lastBudgetHardStopReason: reason, updatedAt: now };
+.pi/extensions/goal/telemetry.ts:107:	telemetry: GoalTelemetrySnapshot | null,
+.pi/extensions/goal/telemetry.ts:111:	if (!telemetry) return null;
+.pi/extensions/goal/telemetry.ts:112:	return { ...telemetry, lastSafetyPauseReason: reason, updatedAt: now };
+.pi/extensions/goal/telemetry.ts:116:	telemetry: GoalTelemetrySnapshot | null,
+.pi/extensions/goal/telemetry.ts:119:	if (!telemetry) return null;
+.pi/extensions/goal/telemetry.ts:121:		...telemetry,
+.pi/extensions/goal/telemetry.ts:130:	telemetry: GoalTelemetrySnapshot | null,
+.pi/extensions/goal/telemetry.ts:135:	if (!telemetry || telemetry.goalId !== turn.goalId) return telemetry;
+.pi/extensions/goal/telemetry.ts:138:		...telemetry,
+.pi/extensions/goal/telemetry.ts:139:		totalTurns: telemetry.totalTurns + 1,
+.pi/extensions/goal/telemetry.ts:140:		userTurns: telemetry.userTurns + (turn.origin === "user" ? 1 : 0),
+.pi/extensions/goal/telemetry.ts:141:		autoTurns: telemetry.autoTurns + (auto ? 1 : 0),
+.pi/extensions/goal/telemetry.ts:142:		consecutiveAutoTurns: auto ? telemetry.consecutiveAutoTurns + 1 : 0,
+.pi/extensions/goal/telemetry.ts:143:		consecutiveNoProgressTurns: auto && !madeProgress ? telemetry.consecutiveNoProgressTurns + 1 : 0,
+.pi/extensions/goal/telemetry.ts:147:		lastTurnCompletedGoal: turn.completedGoal,
+.pi/extensions/goal/telemetry.ts:148:		lastProgressAt: madeProgress ? now : telemetry.lastProgressAt,
+.pi/extensions/goal/telemetry.ts:154:	telemetry: GoalTelemetrySnapshot | null,
+.pi/extensions/goal/telemetry.ts:158:	if (!telemetry) return null;
+.pi/extensions/goal/telemetry.ts:160:		...telemetry,
+.pi/extensions/goal/telemetry.ts:162:		floorSteerCount: (telemetry.floorSteerCount ?? 0) + 1,
+.pi/extensions/goal/telemetry.ts:169:	telemetry: GoalTelemetrySnapshot | null,
+.pi/extensions/goal/telemetry.ts:172:	if (!telemetry?.lastFloorCardId) return telemetry;
+.pi/extensions/goal/telemetry.ts:173:	const completed = uniqueFloorCards([...(telemetry.completedFloorCardIds ?? []), telemetry.lastFloorCardId]);
+.pi/extensions/goal/telemetry.ts:175:		...telemetry,
+.pi/extensions/goal/telemetry.ts:183:	telemetry: GoalTelemetrySnapshot | null,
+.pi/extensions/goal/telemetry.ts:186:	if (!telemetry) return null;
+.pi/extensions/goal/telemetry.ts:188:		...telemetry,
+.pi/extensions/goal/telemetry.ts:189:		floorChurnSteerCount: (telemetry.floorChurnSteerCount ?? 0) + 1,
+.pi/extensions/goal/telemetry.ts:196:	telemetry: GoalTelemetrySnapshot | null,
+.pi/extensions/goal/telemetry.ts:199:	if (!telemetry) return null;
+.pi/extensions/goal/telemetry.ts:201:		...telemetry,
+.pi/extensions/goal/telemetry.ts:209:	telemetry: GoalTelemetrySnapshot | null,
+.pi/extensions/goal/telemetry.ts:214:			return noteProductiveFloorWork(telemetry);
+.pi/extensions/goal/telemetry.ts:219:			return noteFloorChurnSteer(telemetry);
+.pi/extensions/goal/telemetry.ts:221:			return noteFloorQualityExhausted(telemetry);
+.pi/extensions/goal/telemetry.ts:223:			return telemetry;
+.pi/extensions/goal/telemetry.ts:228:	return { goalId, origin, startedAt, toolCallCount: 0, toolResultCount: 0, progressCount: 0, completedGoal: false };
+.pi/extensions/goal/format.ts:4:import type { GoalState, GoalStatus } from "./types";
+.pi/extensions/goal/format.ts:69:export function goalStatusLabel(goal: GoalState): string {
+.pi/extensions/goal/format.ts:97:export function formatTimeResource(goal: GoalState): string {
+.pi/extensions/goal/format.ts:103:export function formatTokenResource(goal: GoalState): string {
+.pi/extensions/goal/format.ts:109:export function formatTimeFloor(goal: GoalState): string | undefined {
+.pi/extensions/goal/format.ts:115:export function formatTokenFloor(goal: GoalState): string | undefined {
+.pi/extensions/goal/format.ts:121:export function goalUsageSummary(goal: GoalState): string {
+.pi/extensions/goal/format.ts:125:export function footerStatusText(goal: GoalState): string {
+.pi/extensions/goal/format.ts:139:function footerUsage(goal: GoalState): string | undefined {
+.pi/extensions/goal/format.ts:161:export function goalSummaryLines(goal: GoalState): string[] {
+
+## sentrux planning baseline
+$ sentrux gate --save .pi/extensions/goal
+Scanning .pi/extensions/goal...
+[build_project_map] 30 files, 2 unique dirs, 2 cache misses, 0.1ms
+[resolve] 112 resolved, 22 unresolved (of 134 total specs)
+[resolve_imports] project_map 0.1ms, suffix_idx 0.1ms, suffix_resolve 1.2ms, total 1.5ms
+[build_graphs] 30 files | maps 0.0ms, imports 1.5ms, calls+inherit 0.5ms, total 2.0ms | 111 import, 591 call, 0 inherit edges
+Baseline saved to .pi/extensions/goal/.sentrux/baseline.json
+Quality: 6241
+
+Run `sentrux gate` after making changes to compare.
+## focused source excerpts for ISSUE-014 design
+$ rg --glob !*.map -n progress estimate surfaces
+.ai/issues/open/ISSUE-011-goal-widget-real-component-and-narrow-width.md:61:2. Keep rendering pure and deterministic through `renderGoalWidget(goal, theme, width)`.
+.ai/issues/open/ISSUE-011-goal-widget-real-component-and-narrow-width.md:97:3. Keep `GoalWidget.render(width)` delegating to `renderGoalWidget(goal, theme, width)`.
+.pi/extensions/goal/command.ts:19:import { notifyGoal, notifyInfo, notifyWarning, showGoalSummary, showNoGoal, syncGoalUi } from "./ui";
+.pi/extensions/goal/command.ts:200:	syncGoalUi(ctx, goal);
+.pi/extensions/goal/command.ts:228:	syncGoalUi(ctx, paused);
+.pi/extensions/goal/command.ts:267:	syncGoalUi(ctx, active);
+.pi/extensions/goal/command.ts:279:	syncGoalUi(ctx, result.goal);
+.pi/extensions/goal/completion-gate.ts:18:export function decideGoalCompletion(input: GoalCompletionGateInput): CompletionDecision {
+.pi/extensions/goal/widget.ts:41:export function renderGoalWidget(goal: GoalState, theme: GoalWidgetTheme, width: number): string[] {
+.pi/extensions/goal/widget.ts:42:	if (width < MIN_CARD_WIDTH) return compactLines(goal, theme, width);
+.pi/extensions/goal/widget.ts:62:		return renderGoalWidget(this.goal, this.theme, width);
+.pi/extensions/goal/widget.ts:68:function compactLines(goal: GoalState, theme: GoalWidgetTheme, width: number): string[] {
+.pi/extensions/goal/continuation.ts:86:	if (telemetry && telemetry.consecutiveNoProgressTurns >= MAX_NO_PROGRESS_AUTO_TURNS) return skip(pi, "safetyCap");
+.pi/extensions/goal/lifecycle.ts:31:import { notifyWarning, promptResumePausedGoal, syncGoalUi } from "./ui";
+.pi/extensions/goal/lifecycle.ts:43:		syncGoalUi(ctx, state.goal);
+.pi/extensions/goal/lifecycle.ts:60:	syncGoalUi(ctx, state.goal);
+.pi/extensions/goal/lifecycle.ts:68:			syncGoalUi(ctx, active);
+.pi/extensions/goal/lifecycle.ts:116:		syncGoalUi(ctx, stopped);
+.pi/extensions/goal/lifecycle.ts:175:function noteGoalUpdateResult(details: unknown): void {
+.pi/extensions/goal/lifecycle.ts:238:	syncGoalUi(ctx, goal);
+.pi/extensions/goal/lifecycle.ts:255:	syncGoalUi(ctx, paused);
+.pi/extensions/goal/lifecycle.ts:261:	return telemetry.consecutiveAutoTurns >= MAX_CONSECUTIVE_AUTO_TURNS || telemetry.consecutiveNoProgressTurns >= MAX_NO_PROGRESS_AUTO_TURNS;
+.pi/extensions/goal/lifecycle.ts:285:	syncGoalUi(ctx, result.goal);
+.pi/extensions/goal/state.ts:4:import type { GoalRuntimeState, GoalState, GoalTelemetrySnapshot, MutationResult, PiGoalEventReason, PiGoalStateEvent } from "./types";
+.pi/extensions/goal/state.ts:120:	input: Omit<PiGoalStateEvent, "version" | "at">,
+.pi/extensions/goal/state.ts:122:	const event: PiGoalStateEvent = { version: STATE_EVENT_VERSION, at: Date.now(), ...input };
+.pi/extensions/goal/state.ts:128:function applyEvent(state: GoalRuntimeState, event: PiGoalStateEvent): GoalRuntimeState {
+.pi/extensions/goal/state.ts:137:function entryToGoalEvent(entry: unknown): PiGoalStateEvent | null {
+.pi/extensions/goal/state.ts:144:function isGoalEvent(value: unknown): value is PiGoalStateEvent {
+.pi/extensions/goal/monitor-prompts.ts:154:    <consecutive_no_progress_turns>${telemetry.consecutiveNoProgressTurns}</consecutive_no_progress_turns>
+.pi/extensions/goal/monitor-prompts.ts:162:    <last_progress_at>${telemetry.lastProgressAt ?? "unknown"}</last_progress_at>
+.pi/extensions/goal/tool-results.ts:57:export function formatToolGoal(goal: GoalState | null): string {
+.pi/extensions/goal/telemetry.ts:36:		consecutiveNoProgressTurns: 0,
+.pi/extensions/goal/telemetry.ts:123:		consecutiveNoProgressTurns: 0,
+.pi/extensions/goal/telemetry.ts:143:		consecutiveNoProgressTurns: auto && !madeProgress ? telemetry.consecutiveNoProgressTurns + 1 : 0,
+.pi/extensions/goal/telemetry.ts:148:		lastProgressAt: madeProgress ? now : telemetry.lastProgressAt,
+.pi/extensions/goal/ui.ts:3:import { footerStatusText, goalSummaryLines, goalUsageSummary, statusLabel } from "./format";
+.pi/extensions/goal/ui.ts:7:export function syncGoalUi(ctx: ExtensionContext, goal: GoalState | null): void {
+.pi/extensions/goal/ui.ts:13:	ctx.ui.setStatus(STATUS_UI_KEY, footerStatusText(goal));
+.pi/extensions/goal/ui.ts:22:	ctx.ui.notify(goalSummaryLines(goal).join("\n"), "info");
+.pi/extensions/goal/queue-tools.ts:10:import { syncGoalUi } from "./ui";
+.pi/extensions/goal/queue-tools.ts:77:			syncGoalUi(ctx, getGoal());
+.pi/extensions/goal/queue-tools.ts:165:	syncGoalUi(ctx, goal);
+.pi/extensions/goal/format.ts:125:export function footerStatusText(goal: GoalState): string {
+.pi/extensions/goal/format.ts:161:export function goalSummaryLines(goal: GoalState): string[] {
+.pi/extensions/goal/types.ts:5:export type GoalState = {
+.pi/extensions/goal/types.ts:59:export type GoalTelemetrySnapshot = {
+.pi/extensions/goal/types.ts:66:	consecutiveNoProgressTurns: number;
+.pi/extensions/goal/types.ts:74:	lastProgressAt?: number;
+.pi/extensions/goal/types.ts:103:export type PiGoalStateEvent = {
+.pi/extensions/goal/tools.ts:5:import { decideGoalCompletion, type CompletionDecision } from "./completion-gate";
+.pi/extensions/goal/tools.ts:12:import { syncGoalUi } from "./ui";
+.pi/extensions/goal/tools.ts:35:const UpdateGoalParams = Type.Object({
+.pi/extensions/goal/tools.ts:150:		parameters: UpdateGoalParams,
+.pi/extensions/goal/tools.ts:173:			syncGoalUi(ctx, null);
+.pi/extensions/goal/tools.ts:210:type UpdateGoalInput = {
+.pi/extensions/goal/tools.ts:253:	syncGoalUi(ctx, goal);
+.pi/extensions/goal/tools.ts:269:	const completionDecision = decideGoalCompletion({
+.pi/extensions/goal/tools.ts:283:	syncGoalUi(ctx, update.goal);
+.pi/extensions/goal/tools.ts:299:	syncGoalUi(ctx, goal);
+.pi/extensions/goal/tools.ts:327:function buildGoalUpdate(goal: GoalState, params: UpdateGoalInput): GoalUpdateResult {
+## stale reference cleanup for ISSUE-014
+updated .ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/01-open-promotion-addendum.md
+updated .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/33-stack-inventory-after-promotion.md
+updated .ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/final-order.md
+updated .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/19-current-inventory-after-promotion.md
+updated .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/06-final-audit.md
+updated .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/06-final-audit.md
+updated .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/09-stack-continuation-note.md
+updated .ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/16-queue-continuation-note.md
+updated .ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/14-stack-compatibility-review.md
+updated .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/02-grounded-research.md
+$ rm refine issue
+## final sentrux gate
+$ sentrux gate --save .pi/extensions/goal
+Scanning .pi/extensions/goal...
+[build_project_map] 30 files, 2 unique dirs, 2 cache misses, 0.1ms
+[resolve] 112 resolved, 22 unresolved (of 134 total specs)
+[resolve_imports] project_map 0.1ms, suffix_idx 0.1ms, suffix_resolve 1.1ms, total 1.3ms
+[build_graphs] 30 files | maps 0.0ms, imports 1.4ms, calls+inherit 0.4ms, total 1.8ms | 111 import, 591 call, 0 inherit edges
+Baseline saved to .pi/extensions/goal/.sentrux/baseline.json
+Quality: 6241
+
+Run `sentrux gate` after making changes to compare.
+## final npm quality gate
+$ npm run quality:goal
+
+> pi-goals@0.2.0 quality:goal
+> sentrux gate .pi/extensions/goal && sentrux check .pi/extensions/goal && npm run slop:goal && npm run typecheck:goal && pi --offline --no-session --no-tools -e .pi/extensions/goal/index.ts --list-models >/tmp/pi-goal-quality-load.txt
+
+Scanning .pi/extensions/goal...
+[build_project_map] 30 files, 2 unique dirs, 2 cache misses, 0.1ms
+[resolve] 112 resolved, 22 unresolved (of 134 total specs)
+[resolve_imports] project_map 0.1ms, suffix_idx 0.1ms, suffix_resolve 0.7ms, total 1.0ms
+[build_graphs] 30 files | maps 0.0ms, imports 1.0ms, calls+inherit 0.6ms, total 1.6ms | 111 import, 591 call, 0 inherit edges
+sentrux gate — structural regression check
+
+Quality:      6241 -> 6241
+Coupling:     0.16 → 0.16
+Cycles:       0 → 0
+God files:    0 → 0
+
+Distance from Main Sequence: 0.25
+
+✓ No degradation detected
+Scanning .pi/extensions/goal...
+[build_project_map] 30 files, 2 unique dirs, 2 cache misses, 0.1ms
+[resolve] 112 resolved, 22 unresolved (of 134 total specs)
+[resolve_imports] project_map 0.1ms, suffix_idx 0.1ms, suffix_resolve 0.9ms, total 1.1ms
+[build_graphs] 30 files | maps 0.0ms, imports 1.1ms, calls+inherit 0.5ms, total 1.7ms | 111 import, 591 call, 0 inherit edges
+sentrux check — 33 rules checked
+
+Quality: 6241
+
+✓ All rules pass
+
+> pi-goals@0.2.0 slop:goal
+> if rg -n 'as unknown as|as any' .pi/extensions/goal; then exit 1; else exit 0; fi
+
+
+> pi-goals@0.2.0 typecheck:goal
+> tsc --noEmit --target ES2022 --module ESNext --moduleResolution node --ignoreDeprecations 6.0 --types node --strict --skipLibCheck .pi/extensions/goal/*.ts
+
+provider      model                       context  max-out  thinking  images
+anthropic     claude-3-5-haiku-20241022   200K     8.2K     no        yes
+anthropic     claude-3-5-haiku-latest     200K     8.2K     no        yes
+anthropic     claude-3-5-sonnet-20240620  200K     8.2K     no        yes
+anthropic     claude-3-5-sonnet-20241022  200K     8.2K     no        yes
+anthropic     claude-3-7-sonnet-20250219  200K     64K      yes       yes
+anthropic     claude-3-haiku-20240307     200K     4.1K     no        yes
+anthropic     claude-3-opus-20240229      200K     4.1K     no        yes
+anthropic     claude-3-sonnet-20240229    200K     4.1K     no        yes
+anthropic     claude-haiku-4-5            200K     64K      yes       yes
+anthropic     claude-haiku-4-5-20251001   200K     64K      yes       yes
+anthropic     claude-opus-4-0             200K     32K      yes       yes
+anthropic     claude-opus-4-1             200K     32K      yes       yes
+anthropic     claude-opus-4-1-20250805    200K     32K      yes       yes
+anthropic     claude-opus-4-20250514      200K     32K      yes       yes
+anthropic     claude-opus-4-5             200K     64K      yes       yes
+anthropic     claude-opus-4-5-20251101    200K     64K      yes       yes
+anthropic     claude-opus-4-6             1M       128K     yes       yes
+anthropic     claude-opus-4-7             1M       128K     yes       yes
+anthropic     claude-sonnet-4-0           200K     64K      yes       yes
+anthropic     claude-sonnet-4-20250514    200K     64K      yes       yes
+anthropic     claude-sonnet-4-5           200K     64K      yes       yes
+anthropic     claude-sonnet-4-5-20250929  200K     64K      yes       yes
+anthropic     claude-sonnet-4-6           1M       64K      yes       yes
+openai-codex  gpt-5.1                     272K     128K     yes       yes
+openai-codex  gpt-5.1-codex-max           272K     128K     yes       yes
+openai-codex  gpt-5.1-codex-mini          272K     128K     yes       yes
+openai-codex  gpt-5.2                     272K     128K     yes       yes
+openai-codex  gpt-5.2-codex               272K     128K     yes       yes
+openai-codex  gpt-5.3-codex               272K     128K     yes       yes
+openai-codex  gpt-5.3-codex-spark         128K     128K     yes       no
+openai-codex  gpt-5.4                     272K     128K     yes       yes
+openai-codex  gpt-5.4-mini                272K     128K     yes       yes
+openai-codex  gpt-5.5                     272K     128K     yes       yes
+opencode-go   deepseek-v4-flash           1M       384K     yes       no
+opencode-go   deepseek-v4-pro             1M       384K     yes       no
+opencode-go   glm-5                       202.8K   32.8K    yes       no
+opencode-go   glm-5.1                     202.8K   32.8K    yes       no
+opencode-go   kimi-k2.5                   262.1K   65.5K    yes       yes
+opencode-go   kimi-k2.6                   262.1K   65.5K    yes       yes
+opencode-go   mimo-v2.5                   1M       128K     yes       yes
+opencode-go   mimo-v2.5-pro               1.0M     128K     yes       no
+opencode-go   minimax-m2.5                204.8K   65.5K    yes       no
+opencode-go   minimax-m2.7                204.8K   131.1K   yes       no
+opencode-go   qwen3.5-plus                262.1K   65.5K    yes       yes
+opencode-go   qwen3.6-plus                262.1K   65.5K    yes       yes
+quality_exit=0
+## final path/reference probes
+$ test open issue exists and refine issue absent
+PASS open_exists_refine_absent
+$ rg stale refine path outside ISSUE-014 workflow artifacts/raw logs
+PASS stale_canonical_refine_issue014_refs=0
+$ rg open path in stack/dependency docs
+.ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/09-stack-continuation-note.md:10:1. `.ai/issues/open/ISSUE-014-goal-progress-estimates.md`
+.ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/final-order.md:26:10. `.ai/issues/open/ISSUE-014-goal-progress-estimates.md` — Agent-estimated goal progress percentage.
+## issue structural / proof-shape probe
+$ python3 structural probe
+PASS issue014_structural_probe required_signals=11 linked_artifacts=7
+## artifact visibility and whitespace checks
+$ git status --short --untracked-files=all relevant paths
+ M .ai/docs/issue-workflow/ISSUE-015-goal-subgoals/02-grounded-research.md
+ M .ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/33-stack-inventory-after-promotion.md
+ M .ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/14-stack-compatibility-review.md
+ M .ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/16-queue-continuation-note.md
+ M .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/06-final-audit.md
+ M .ai/docs/issue-workflow/ISSUE-024-goal-audit-command/19-current-inventory-after-promotion.md
+ M .ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/01-open-promotion-addendum.md
+ M .ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/final-order.md
+ M .ai/issues/open/ISSUE-015-goal-subgoals.md
+ M .ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md
+ M .ai/issues/open/ISSUE-022-goal-history-checkpoints-and-compaction.md
+ D .ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md
+ D .ai/issues/refine/ISSUE-014-goal-progress-estimates.md
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/07-acceptance-traceability.md
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/08-implementation-handoff.md
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/09-stack-continuation-note.md
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/artifact-visibility-diff-check.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/commands.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/comprehensive-completion-probe.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/final-artifact-visibility.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/final-audit-table-consistency-check.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/final-closeout-status-snapshot.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/final-comprehensive-completion-probe.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/final-diff-check.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/final-final-diff-check.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/final-inventory.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/final-path-reference-probes.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/final-post-closeout-diff-check.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/final-visibility-after-handoff.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/framed-width-thresholds.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/issue-structural-probe.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/pre-refinement-widget-gap.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/quality-goal-open-promotion.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/reference-cleanup.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/reference-inventory-pre.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/sentrux-gate-final.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/sentrux-gate-pre.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/stack-continuation-probe.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/tui-component-source-excerpts.log
+?? .ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/tui-source-discovery.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/artifact-visibility-diff-check.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/commands.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/final-path-reference-probes.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/focused-source-excerpts.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/issue-structural-probe.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/pre-refinement-progress-invariant-probe-v2.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/pre-refinement-progress-invariant-probe.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/quality-goal-open-promotion.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/reference-cleanup.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/sentrux-gate-final.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/sentrux-gate-pre.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/source-surface-inventory.log
+?? .ai/issues/open/ISSUE-011-goal-widget-real-component-and-narrow-width.md
+?? .ai/issues/open/ISSUE-014-goal-progress-estimates.md
+$ git check-ignore artifacts/open issue
+.gitignore:11:!.ai/docs/issue-workflow/**	.ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/00-request.md
+$ git diff --check
+PASS artifact_visibility_and_diff_check
+## final stack inventory
+$ find .ai/issues/refine -maxdepth 1 -type f | sort
+.ai/issues/refine/ISSUE-013-goal-update-natural-language.md
+$ find .ai/issues/open -maxdepth 1 -type f | sort | rg "ISSUE-011|ISSUE-013|ISSUE-014|ISSUE-015|ISSUE-016|ISSUE-018|ISSUE-019|ISSUE-021|ISSUE-022|ISSUE-023|ISSUE-024|ISSUE-037"
+.ai/issues/open/ISSUE-011-goal-widget-real-component-and-narrow-width.md
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md
+.ai/issues/open/ISSUE-015-goal-subgoals.md
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md
+.ai/issues/open/ISSUE-018-goal-start-in-worktree.md
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md
+.ai/issues/open/ISSUE-022-goal-history-checkpoints-and-compaction.md
+.ai/issues/open/ISSUE-023-goal-dependency-triggers-and-watchers.md
+.ai/issues/open/ISSUE-024-goal-audit-command.md
+.ai/issues/open/ISSUE-037-goal-queue-auto-continuation-after-complete.md
+## comprehensive completion probe after final audit
+$ python3 comprehensive ISSUE-014 probe
+PASS issue014_comprehensive_completion artifacts=7 required_signals=7
+$ git diff --check
+PASS comprehensive_completion_and_diff
+## final artifact visibility after final audit
+$ git status --short --untracked-files=all ISSUE-014 paths
+ D .ai/issues/refine/ISSUE-014-goal-progress-estimates.md
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/artifact-visibility-diff-check.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/commands.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/comprehensive-completion-probe.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/final-artifact-visibility.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/final-inventory.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/final-path-reference-probes.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/focused-source-excerpts.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/issue-structural-probe.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/pre-refinement-progress-invariant-probe-v2.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/pre-refinement-progress-invariant-probe.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/quality-goal-open-promotion.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/reference-cleanup.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/sentrux-gate-final.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/sentrux-gate-pre.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/source-surface-inventory.log
+?? .ai/issues/open/ISSUE-014-goal-progress-estimates.md
+$ git check-ignore final audit and issue
+.gitignore:11:!.ai/docs/issue-workflow/**	.ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/06-final-audit.md
+$ test all canonical artifacts exist
+$ git diff --check
+PASS final_artifact_visibility artifacts=7
+## final post-audit diff check
+$ git diff --check
+PASS final_post_audit_diff_check
+## final comprehensive probe after handoff artifacts
+$ python3 final comprehensive ISSUE-014 probe
+PASS final_issue014_comprehensive_completion artifacts=10 required_signals=7
+$ git check-ignore handoff artifact
+.gitignore:11:!.ai/docs/issue-workflow/**	.ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/08-implementation-handoff.md
+$ git diff --check
+PASS final_comprehensive_after_handoff
+## final audit table consistency check
+$ rg final-comprehensive in final audit and git diff --check
+52:| Final comprehensive artifact/link check | `raw/final-comprehensive-completion-probe.log` | PASS |
+PASS final_audit_table_consistency_check
+## final closeout status snapshot
+$ find .ai/issues/refine -maxdepth 1 -type f | sort
+.ai/issues/refine/ISSUE-013-goal-update-natural-language.md
+$ rg ISSUE-014 in final-order and ISSUE-013 dependency context
+.ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/final-order.md:26:10. `.ai/issues/open/ISSUE-014-goal-progress-estimates.md` — Agent-estimated goal progress percentage.
+.ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/final-order.md:27:11. `.ai/issues/refine/ISSUE-013-goal-update-natural-language.md` — `/goal update "natural language"`.
+.ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/final-order.md:39:- ISSUE-011 comes before ISSUE-014 because progress rendering depends on widget/layout decisions.
+.ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/final-order.md:40:- ISSUE-014 is useful but explicitly advisory and must not weaken completion audits/proofs.
+.ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/final-order.md:41:- ISSUE-013 is lowest in this stack because natural-language update UX is convenience-oriented compared with completion safety, subgoal orchestration, waiting, history, worktree, and UI foundations.
+.ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/09-stack-continuation-note.md:3:Issue: ISSUE-014 — agent-estimated goal progress percentage
+.ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/09-stack-continuation-note.md:8:ISSUE-014 is satisfied for the refine-to-open stack. The parent queue orchestration item should remain queued because one refine issue still needs promotion:
+.ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/09-stack-continuation-note.md:10:1. `.ai/issues/refine/ISSUE-013-goal-update-natural-language.md`
+.ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/09-stack-continuation-note.md:14:ISSUE-013 designs natural-language update UX over the same goal mutation surface. It should treat the promoted ISSUE-014 path as current planning truth if it touches progress fields:
+.ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/09-stack-continuation-note.md:16:- `.ai/issues/open/ISSUE-014-goal-progress-estimates.md`
+.ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/09-stack-continuation-note.md:18:Natural-language updates must not infer progress edits unless the user explicitly asks to update progress, and must preserve the advisory-only/completion-boundary semantics from ISSUE-014.
+.ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/09-stack-continuation-note.md:22:If a stale child queue entry later asks to create/refine ISSUE-014 again, treat it as already satisfied because the canonical open issue now exists and the refine source was removed.
+$ git status --short --untracked-files=all ISSUE-014 paths
+ D .ai/issues/refine/ISSUE-014-goal-progress-estimates.md
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/07-acceptance-traceability.md
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/08-implementation-handoff.md
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/09-stack-continuation-note.md
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/artifact-visibility-diff-check.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/commands.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/comprehensive-completion-probe.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/final-artifact-visibility.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/final-audit-table-consistency-check.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/final-closeout-status-snapshot.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/final-comprehensive-completion-probe.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/final-inventory.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/final-path-reference-probes.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/final-post-audit-diff-check.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/focused-source-excerpts.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/issue-structural-probe.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/pre-refinement-progress-invariant-probe-v2.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/pre-refinement-progress-invariant-probe.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/quality-goal-open-promotion.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/reference-cleanup.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/sentrux-gate-final.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/sentrux-gate-pre.log
+?? .ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/source-surface-inventory.log
+?? .ai/issues/open/ISSUE-014-goal-progress-estimates.md
+PASS final_closeout_status_snapshot

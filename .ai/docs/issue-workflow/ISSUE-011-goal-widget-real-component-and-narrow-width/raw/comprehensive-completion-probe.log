@@ -1,0 +1,3 @@
+## comprehensive completion probe
+$ python3 comprehensive ISSUE-011 probe
+PASS issue011_comprehensive_completion artifacts=9 required_signals=9

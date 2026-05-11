@@ -1,0 +1,5 @@
+
+## promotion cleanup
+updated stale ISSUE-023 refine references to open path and removed refine copy
+PASS stale_refine_issue023_refs=0
+PASS issue023_open_exists_refine_absent

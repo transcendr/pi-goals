@@ -1,0 +1,86 @@
+## TUI/widget source excerpts (maps excluded)
+$ rg --glob !*.map ...
+.pi/extensions/goal/ui.ts:10:		ctx.ui.setWidget(WIDGET_UI_KEY, undefined);
+.pi/extensions/goal/ui.ts:14:	ctx.ui.setWidget(WIDGET_UI_KEY, goalWidgetFactory(goal), { placement: "aboveEditor" });
+node_modules/@earendil-works/pi-tui/dist/index.d.ts:2:export { Box } from "./components/box.js";
+node_modules/@earendil-works/pi-tui/dist/index.d.ts:8:export { type DefaultTextStyle, Markdown, type MarkdownTheme } from "./components/markdown.js";
+node_modules/@earendil-works/pi-tui/dist/index.d.ts:12:export { Text } from "./components/text.js";
+node_modules/@earendil-works/pi-tui/dist/index.d.ts:13:export { TruncatedText } from "./components/truncated-text.js";
+node_modules/@earendil-works/pi-tui/dist/index.d.ts:21:export { type Component, Container, CURSOR_MARKER, type Focusable, isFocusable, type OverlayAnchor, type OverlayHandle, type OverlayMargin, type OverlayOptions, type SizeValue, TUI, } from "./tui.js";
+node_modules/@earendil-works/pi-tui/dist/index.d.ts:22:export { truncateToWidth, visibleWidth, wrapTextWithAnsi } from "./utils.js";
+.pi/extensions/goal/widget.ts:14:	render(width: number): string[];
+.pi/extensions/goal/widget.ts:34:const MIN_CARD_WIDTH = 28;
+.pi/extensions/goal/widget.ts:42:	if (width < MIN_CARD_WIDTH) return compactLines(goal, theme, width);
+.pi/extensions/goal/widget.ts:43:	const cardWidth = Math.min(MAX_CARD_WIDTH, Math.max(MIN_CARD_WIDTH, width));
+.pi/extensions/goal/widget.ts:47:		topBorder(cardWidth, style, theme),
+.pi/extensions/goal/widget.ts:48:		contentLine(theme.fg("dim", objectiveExcerpt(goal.objective, contentWidth)), contentWidth, theme),
+.pi/extensions/goal/widget.ts:49:		contentLine(resourceLine(timeResource(goal), theme), contentWidth, theme),
+.pi/extensions/goal/widget.ts:50:		contentLine(resourceLine(tokenResource(goal), theme), contentWidth, theme),
+.pi/extensions/goal/widget.ts:51:		contentLine(floorLine(goal, theme), contentWidth, theme),
+.pi/extensions/goal/widget.ts:52:		contentLine(commandLine(goal.status, theme), contentWidth, theme),
+.pi/extensions/goal/widget.ts:61:	render(width: number): string[] {
+.pi/extensions/goal/widget.ts:68:function compactLines(goal: GoalState, theme: GoalWidgetTheme, width: number): string[] {
+.pi/extensions/goal/widget.ts:79:function topBorder(width: number, style: StatusStyle, theme: GoalWidgetTheme): string {
+.pi/extensions/goal/widget.ts:92:function contentLine(content: string, width: number, theme: GoalWidgetTheme): string {
+node_modules/@earendil-works/pi-tui/dist/tui.d.ts:7: * Component interface - all components must implement this
+node_modules/@earendil-works/pi-tui/dist/tui.d.ts:15:    render(width: number): string[];
+node_modules/@earendil-works/pi-tui/dist/tui.d.ts:121: * Container - a component that contains other components
+node_modules/@earendil-works/pi-tui/dist/tui.d.ts:123:export declare class Container implements Component {
+node_modules/@earendil-works/pi-tui/dist/tui.d.ts:129:    render(width: number): string[];
+node_modules/@earendil-works/pi-tui/dist/tui.d.ts:134:export declare class TUI extends Container {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/modes/interactive/components/dynamic-border.js:7: * function when using DynamicBorder in components exported for extension use.
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/modes/interactive/components/dynamic-border.js:9:export class DynamicBorder {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/modes/interactive/components/dynamic-border.js:17:    render(width) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/tui.md:15:  render(width: number): string[];
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/tui.md:24:| `render(width)` | Return array of strings (one per line). Each line **must not exceed `width`**. |
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/tui.md:41:  render(width: number): string[] {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/tui.md:295:render(width: number): string[] {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/tui.md:343:  render(width: number): string[] {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/tui.md:463:  render(width: number): string[] {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/tui.md:498:    // Pre-baked theme colors stored in Text component
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/tui.md:590:For letting users pick from a list of options. Use `SelectList` from `@earendil-works/pi-tui` with `DynamicBorder` for framing.
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/tui.md:594:import { DynamicBorder } from "@earendil-works/pi-coding-agent";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/tui.md:609:      container.addChild(new DynamicBorder((s: string) => theme.fg("accent", s)));
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/tui.md:630:      container.addChild(new DynamicBorder((s: string) => theme.fg("accent", s)));
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/tui.md:774:ctx.ui.setWidget("my-widget", ["Line 1", "Line 2"]);
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/tui.md:777:ctx.ui.setWidget("my-widget", ["Line 1", "Line 2"], { placement: "belowEditor" });
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/tui.md:780:ctx.ui.setWidget("my-widget", (_tui, theme) => {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/tui.md:793:ctx.ui.setWidget("my-widget", undefined);
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/tui.md:805:  render(width: number): string[] {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/tui.md:864:  render(width: number): string[] {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/tui.md:865:    const lines = super.render(width);
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/tui.md:900:2. **Always type DynamicBorder color param** - Write `(s: string) => theme.fg("accent", s)`, not `(s) => theme.fg("accent", s)`.
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/tui.md:910:- **Selection UI**: [examples/extensions/preset.ts](../examples/extensions/preset.ts) - SelectList with DynamicBorder framing
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/tui.md:913:- **Status indicators**: [examples/extensions/plan-mode.ts](../examples/extensions/plan-mode.ts) - setStatus and setWidget
+
+$ rg --glob !*.map "Card|card|border|Border" pi-tui dist public files
+node_modules/@earendil-works/pi-tui/dist/components/markdown.js:234:                lines.push(this.theme.codeBlockBorder(`\`\`\`${token.lang || ""}`));
+node_modules/@earendil-works/pi-tui/dist/components/markdown.js:248:                lines.push(this.theme.codeBlockBorder("```"));
+node_modules/@earendil-works/pi-tui/dist/components/markdown.js:276:                // Calculate available width for quote content (subtract border "│ " = 2 chars)
+node_modules/@earendil-works/pi-tui/dist/components/markdown.js:300:                        lines.push(this.theme.quoteBorder("│ ") + wrappedLine);
+node_modules/@earendil-works/pi-tui/dist/components/markdown.js:491:                lines.push(this.theme.codeBlockBorder(`\`\`\`${token.lang || ""}`));
+node_modules/@earendil-works/pi-tui/dist/components/markdown.js:504:                lines.push(this.theme.codeBlockBorder("```"));
+node_modules/@earendil-works/pi-tui/dist/components/markdown.js:549:        // Calculate border overhead: "│ " + (n-1) * " │ " + " │"
+node_modules/@earendil-works/pi-tui/dist/components/markdown.js:551:        const borderOverhead = 3 * numCols + 1;
+node_modules/@earendil-works/pi-tui/dist/components/markdown.js:552:        const availableForCells = availableWidth - borderOverhead;
+node_modules/@earendil-works/pi-tui/dist/components/markdown.js:601:        const totalNaturalWidth = naturalWidths.reduce((a, b) => a + b, 0) + borderOverhead;
+node_modules/@earendil-works/pi-tui/dist/components/markdown.js:639:        // Render top border
+node_modules/@earendil-works/pi-tui/dist/components/markdown.js:640:        const topBorderCells = columnWidths.map((w) => "─".repeat(w));
+node_modules/@earendil-works/pi-tui/dist/components/markdown.js:641:        lines.push(`┌─${topBorderCells.join("─┬─")}─┐`);
+node_modules/@earendil-works/pi-tui/dist/components/markdown.js:679:        // Render bottom border
+node_modules/@earendil-works/pi-tui/dist/components/markdown.js:680:        const bottomBorderCells = columnWidths.map((w) => "─".repeat(w));
+node_modules/@earendil-works/pi-tui/dist/components/markdown.js:681:        lines.push(`└─${bottomBorderCells.join("─┴─")}─┘`);
+node_modules/@earendil-works/pi-tui/dist/components/editor.d.ts:26:    borderColor: (str: string) => string;
+node_modules/@earendil-works/pi-tui/dist/components/editor.d.ts:42:    borderColor: (str: string) => string;
+node_modules/@earendil-works/pi-tui/dist/components/editor.js:174:    // Border color (can be changed dynamically)
+node_modules/@earendil-works/pi-tui/dist/components/editor.js:175:    borderColor;
+node_modules/@earendil-works/pi-tui/dist/components/editor.js:217:        this.borderColor = theme.borderColor;
+node_modules/@earendil-works/pi-tui/dist/components/editor.js:329:        const horizontal = this.borderColor("─");
+node_modules/@earendil-works/pi-tui/dist/components/editor.js:354:        // Render top border (with scroll indicator if scrolled down)
+node_modules/@earendil-works/pi-tui/dist/components/editor.js:359:                result.push(this.borderColor(indicator + "─".repeat(remaining)));
+node_modules/@earendil-works/pi-tui/dist/components/editor.js:362:                result.push(this.borderColor(truncateToWidth(indicator, width)));
+node_modules/@earendil-works/pi-tui/dist/components/editor.js:405:            // Render the line (no side borders, just horizontal lines above and below)
+node_modules/@earendil-works/pi-tui/dist/components/editor.js:408:        // Render bottom border (with scroll indicator if more content below)
+node_modules/@earendil-works/pi-tui/dist/components/editor.js:413:            result.push(this.borderColor(indicator + "─".repeat(Math.max(0, remaining))));
+node_modules/@earendil-works/pi-tui/dist/components/markdown.d.ts:30:    codeBlockBorder: (text: string) => string;
+node_modules/@earendil-works/pi-tui/dist/components/markdown.d.ts:32:    quoteBorder: (text: string) => string;

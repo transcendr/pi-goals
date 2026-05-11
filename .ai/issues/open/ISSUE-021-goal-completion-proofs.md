@@ -16,7 +16,7 @@ Depends on:
 Related:
 - `.ai/issues/open/ISSUE-015-goal-subgoals.md`
 - `.ai/issues/open/ISSUE-022-goal-history-checkpoints-and-compaction.md`
-- `.ai/issues/refine/ISSUE-023-goal-dependency-triggers-and-watchers.md`
+- `.ai/issues/open/ISSUE-023-goal-dependency-triggers-and-watchers.md`
 - `.ai/issues/open/ISSUE-024-goal-audit-command.md`
 - `.ai/issues/open/ISSUE-037-goal-queue-auto-continuation-after-complete.md`
 - `.ai/docs/pi-goals-live-probe-testing.md`
@@ -144,7 +144,7 @@ Before `update_goal(status:"complete")` succeeds:
 - `.ai/issues/open/ISSUE-037-goal-queue-auto-continuation-after-complete.md`
 - `.ai/issues/open/ISSUE-015-goal-subgoals.md`
 - `.ai/issues/open/ISSUE-022-goal-history-checkpoints-and-compaction.md`
-- `.ai/issues/refine/ISSUE-023-goal-dependency-triggers-and-watchers.md`
+- `.ai/issues/open/ISSUE-023-goal-dependency-triggers-and-watchers.md`
 - `.ai/issues/open/ISSUE-024-goal-audit-command.md`
 
 ### Current behavior facts

@@ -10,9 +10,9 @@
 2. `.ai/issues/refine/ISSUE-018-goal-start-in-worktree.md`
 3. `.ai/issues/refine/ISSUE-019-parallel-multiple-goals.md`
 4. `.ai/issues/refine/ISSUE-023-goal-dependency-triggers-and-watchers.md`
-5. `.ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md`
-6. `.ai/issues/refine/ISSUE-014-goal-progress-estimates.md`
-7. `.ai/issues/refine/ISSUE-013-goal-update-natural-language.md`
+5. `.ai/issues/open/ISSUE-011-goal-widget-real-component-and-narrow-width.md`
+6. `.ai/issues/open/ISSUE-014-goal-progress-estimates.md`
+7. `.ai/issues/open/ISSUE-013-goal-update-natural-language.md`
 
 ## Parent orchestration rule
 

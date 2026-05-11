@@ -1,0 +1,772 @@
+## session start: ISSUE-019 refinement
+2026-05-11T06:27:28Z
+$ git status --short --untracked-files=all
+ M .ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/01-open-promotion-addendum.md
+ M .ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/final-order.md
+ M .ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md
+ D .ai/issues/refine/ISSUE-018-goal-start-in-worktree.md
+ M .ai/issues/refine/ISSUE-019-parallel-multiple-goals.md
+ M .pi/extensions/goal/.sentrux/baseline.json
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/raw/commands.log
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/raw/final-validation.log
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/raw/issue018-invariant-probe.log
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/raw/quality-goal-open-promotion.log
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/raw/sentrux-gate.log
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/raw/stale-018-references-before.log
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/raw/stale-reference-audit.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/commands.log
+?? .ai/issues/open/ISSUE-018-goal-start-in-worktree.md
+
+$ test -f .ai/issues/refine/ISSUE-019-parallel-multiple-goals.md && echo refine_exists
+refine_exists
+
+$ find .ai/issues/refine .ai/issues/open -maxdepth 1 -type f -name "ISSUE-*.md" | sort
+.ai/issues/open/ISSUE-015-goal-subgoals.md
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md
+.ai/issues/open/ISSUE-018-goal-start-in-worktree.md
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md
+.ai/issues/open/ISSUE-022-goal-history-checkpoints-and-compaction.md
+.ai/issues/open/ISSUE-024-goal-audit-command.md
+.ai/issues/open/ISSUE-037-goal-queue-auto-continuation-after-complete.md
+.ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md
+.ai/issues/refine/ISSUE-013-goal-update-natural-language.md
+.ai/issues/refine/ISSUE-014-goal-progress-estimates.md
+.ai/issues/refine/ISSUE-019-parallel-multiple-goals.md
+.ai/issues/refine/ISSUE-023-goal-dependency-triggers-and-watchers.md
+
+## research probes
+$ rg -n "GoalState|active|queue|subgoal|worktree|session|newSession|switchSession|budget|continuation|monitor|widget|status|completion|proof|audit|checkpoint" .pi/extensions/goal README.md .ai/issues/refine/ISSUE-019-parallel-multiple-goals.md .ai/issues/open/ISSUE-018-goal-start-in-worktree.md .ai/issues/open/ISSUE-015-goal-subgoals.md .ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md .ai/issues/open/ISSUE-021-goal-completion-proofs.md .ai/issues/open/ISSUE-022-goal-history-checkpoints-and-compaction.md .ai/issues/open/ISSUE-024-goal-audit-command.md | head -260
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:8:Next best session: implement and validate idle-nudge continuation policy
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:9:Next best session rationale: The policy schema, default behavior, timer semantics, update surface, UI wording, and proof strategy are now locked for a bounded first pass.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:15:- `.ai/issues/fixed/ISSUE-003-paused-goal-continuation-guard.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:17:- `.ai/issues/open/ISSUE-015-goal-subgoals.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:18:- `.ai/issues/open/ISSUE-018-goal-start-in-worktree.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:20:- `.ai/issues/open/ISSUE-037-goal-queue-auto-continuation-after-complete.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:25:Add an optional per-goal auto-continuation policy that lets an active goal intentionally go idle without being paused, while still allowing a delayed nudge to reassess whether the agent should continue.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:29:Current goal continuation is optimized for immediate persistence: when an active goal reaches `agent_end`, `scheduleMaybeContinueGoal()` schedules a short follow-up if the context is idle and safe. That is useful for autonomous work, but awkward for goals waiting on an external process, another agent, CI, a user, or a long terminal command.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:31:The system needs a first-class active-but-waiting mode that does not overload `paused`. Paused means user requested no work. Idle-tolerant active goals mean work is still active, but immediate self-continuation is temporarily counterproductive.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:39:- Proof threat model: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/04-proof-threat-model.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:41:- Final audit: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/06-final-audit.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:50:- Queue continuation note: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/13-queue-continuation-note.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:51:- Package script proof check: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/14-package-script-proof-check.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:60:- Monitor prompt recheck: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/21-monitor-prompt-recheck.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:61:- Queue steering recheck: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/22-queue-steering-recheck.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:65:- Proof command normalization: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/26-proof-command-normalization.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:68:- UI/widget/format source recheck: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/29-ui-widget-format-recheck.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:70:- Monitor report source recheck: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/31-monitor-report-source-recheck.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:73:- Goal completion readiness: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/34-goal-completion-readiness.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:75:- Non-implementation final audit: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/36-nonimplementation-final-audit.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:80:- Default behavior remains current immediate auto-continuation.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:85:- The goal remains `active`, not `paused`, while waiting.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:86:- UI/tool output shows active-but-waiting state compactly.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:94:- `GoalState` has no idle/auto-continuation policy fields today.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:95:- `continuation.ts` centralizes immediate auto-continuation scheduling and uses a 25ms timer.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:96:- `maybeContinueGoal()` already stale-guards by goal id/status, idle state, pending messages, and safety counters.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:97:- `constants.ts` already has a 90-second monitor interval, but delayed idle nudges should be a separate runtime timer/prompt from churn monitoring.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:98:- `prompts.ts`, `ui.ts`, `widget.ts`, and `format.ts` have no active-waiting display or prompt context today.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:103:- Add optional fields to `GoalState`:
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:111:- No new public goal status is introduced.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:112:- Delayed nudge timer is separate from churn monitor timer.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:119:- [ ] Extend `.pi/extensions/goal/continuation.ts` with delayed idle-nudge timer management and cancellation.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:120:- [ ] Suppress immediate `agent_end` continuation for `idle_nudge` and `manual` modes.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:121:- [ ] Add stale guards for delayed nudges: goal id, status active, unchanged policy, idle context, no pending messages.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:123:- [ ] Extend tool output/footer/widget summaries with active waiting state.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:132:- Existing goals without policy fields behave exactly like current immediate continuation goals.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:135:- Delayed nudges are stale-guarded and do not fire after pause, completion, clear, replacement, pending messages, or non-idle context.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:136:- `manual` mode schedules no automatic continuation and no delayed nudge.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:137:- Tool output and compact UI indicate active waiting mode and reason when configured.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:144:Source artifact: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/04-proof-threat-model.md`.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:146:Primary invariant: an active goal configured for `idle_nudge` may intentionally go idle without immediate auto-continuation, while still receiving a stale-guarded delayed nudge that asks the agent to reassess the wait.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:150:- Immediate continuation still fires for idle-nudge goals.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:153:- UI/tool output hides active waiting state.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:160:issue{id,status,target_session,goal}:
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:161:  "ISSUE-016","execution-ready-first-pass","implement idle-nudge continuation policy","active goals can intentionally wait without immediate continuation and receive delayed reassessment nudges"
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:163:  "lr1","default missing policy remains immediate auto-continuation"
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:166:  "lr4","goal remains active rather than paused while waiting"
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:173:  "s4",".pi/extensions/goal/continuation.ts","add delayed nudge timers and suppress immediate continuation by policy"
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:175:  "s6",".pi/extensions/goal/format.ts","render active waiting summaries for tool/UI/widget helpers"
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:178:## Required proofs
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:182:required_proofs[6]{name,source,command,pass_condition,scope,notes}:
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:184:  "idle_nudge_suppresses_immediate","ISSUE-016","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-idle-nudge-suppresses-immediate-probe.mjs","exit 0 and output includes PASS suppresses_immediate_continuation","run","must fail if 25ms follow-up still schedules for idle_nudge"
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:186:  "manual_mode_probe","ISSUE-016","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-manual-mode-no-auto-probe.mjs","exit 0 and output includes PASS manual_schedules_no_auto_followup","run","must fail if manual mode schedules any automatic continuation"
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:193:- Full external process monitoring; see watcher/dependency issue.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:195:- New public goal status beyond the existing status union.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:197:- Replacing churn monitor behavior.
+.ai/issues/refine/ISSUE-019-parallel-multiple-goals.md:7:Next best session: architecture refinement pass for multi-goal orchestration
+.ai/issues/refine/ISSUE-019-parallel-multiple-goals.md:8:Next best session rationale: Parallel goals affect state model, sessions, worktrees, budgets, and UI; this needs architecture design first.
+.ai/issues/refine/ISSUE-019-parallel-multiple-goals.md:12:- `.ai/issues/open/ISSUE-018-goal-start-in-worktree.md`
+.ai/issues/refine/ISSUE-019-parallel-multiple-goals.md:13:- `.ai/issues/open/ISSUE-015-goal-subgoals.md`
+.ai/issues/refine/ISSUE-019-parallel-multiple-goals.md:15:Goal: Design support for multiple goals that can run sequentially or in parallel as multiple Pi agents, optionally with one worktree per goal.
+.ai/issues/refine/ISSUE-019-parallel-multiple-goals.md:19:The first version intentionally supports one branch-local goal. Larger workflows may require several independent goals: parallel investigation paths, sequential release checklist goals, or multiple implementation shards. This cannot be bolted on casually because state, UI, continuation, budgets, and worktree ownership all become multi-tenant.
+.ai/issues/refine/ISSUE-019-parallel-multiple-goals.md:23:- Multiple named goals with ids, names, status, budgets, and optional worktree/session ownership.
+.ai/issues/refine/ISSUE-019-parallel-multiple-goals.md:24:- Sequential mode: one active goal runs at a time; next begins when previous completes or pauses.
+.ai/issues/refine/ISSUE-019-parallel-multiple-goals.md:25:- Parallel mode: multiple Pi agents pursue goals concurrently, optionally isolated by worktree.
+.ai/issues/refine/ISSUE-019-parallel-multiple-goals.md:26:- UI shows aggregate status plus current/selected goal details.
+.ai/issues/refine/ISSUE-019-parallel-multiple-goals.md:31:1. Is multi-goal state a new top-level runtime or an extension of current `GoalState`?
+.ai/issues/refine/ISSUE-019-parallel-multiple-goals.md:32:2. What does "active" mean when multiple goals exist?
+.ai/issues/refine/ISSUE-019-parallel-multiple-goals.md:35:5. How are shared budgets, worktrees, branch state, and completion proofs partitioned?
+.ai/issues/refine/ISSUE-019-parallel-multiple-goals.md:43:- Worktree/session ownership is explicit when used.
+.ai/issues/refine/ISSUE-019-parallel-multiple-goals.md:50:- Silent automatic spawning of paid model sessions.
+.ai/issues/refine/ISSUE-019-parallel-multiple-goals.md:57:- [ ] Decide agent/session/worktree orchestration mechanism.
+.ai/issues/refine/ISSUE-019-parallel-multiple-goals.md:58:- [ ] Define UI model for list/focus/aggregate status.
+.ai/issues/refine/ISSUE-019-parallel-multiple-goals.md:59:- [ ] Define budget/safety controls for parallel execution.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:1:# ISSUE-015 — Goals with agent-managed subgoals
+.ai/issues/open/ISSUE-015-goal-subgoals.md:8:Next best session: focused implementation/validation pass for nested child subgoals
+.ai/issues/open/ISSUE-015-goal-subgoals.md:9:Next best session rationale: The major architecture fork is now locked by owner decision: first release should implement a nested child goal runtime inside the active parent goal, not lightweight checklist-only subgoals and not separate queued/top-level child goals. The remaining work is implementation and validation within that bounded scope.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:16:- `.ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:19:- `.ai/issues/open/ISSUE-021-goal-completion-proofs.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:20:- `.ai/issues/open/ISSUE-022-goal-history-checkpoints-and-compaction.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:21:- `.ai/issues/open/ISSUE-024-goal-audit-command.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:22:- `.ai/issues/fixed/ISSUE-027-goal-queue.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:26:Add first-class agent-managed subgoals to `pi-goal` so a long-running parent goal can enter a bounded blocking child workflow, track child status/evidence durably, and then resume the parent without replacing the top-level goal or delaying the child behind the queue.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:28:First release target: one active top-level goal with a one-level nested child runtime. This is intentionally narrower than arbitrary project management, parallel goals, or multi-agent child sessions.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:32:A single objective string is too coarse for large goals. Agents naturally break work into subgoals, but today that structure is only implicit in chat. This makes parent/child workflow cases fragile:
+.ai/issues/open/ISSUE-015-goal-subgoals.md:34:- starting `/goal dirty-worktree-cleanup ...` while a parent goal is active collides with or replaces the parent;
+.ai/issues/open/ISSUE-015-goal-subgoals.md:35:- queueing the cleanup delays a blocking prerequisite instead of running it inline;
+.ai/issues/open/ISSUE-015-goal-subgoals.md:36:- doing it only in chat loses durable progress, auditability, reload behavior, and parent return state.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:38:Reference use case: `deslop-pipeline` may discover a dirty worktree during preflight. The correct behavior is to enter a blocking `dirty-worktree-cleanup` child, complete or escalate it with evidence, then return to the parent pipeline at the Sentrux baseline step. Existing top-level goal and queue semantics do not express that cleanly.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:42:- Request intake: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/00-request.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:43:- Protocol read: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/01-protocol-read.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:44:- Grounded research: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/02-grounded-research.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:45:- Design lock: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/03-design-lock.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:46:- Proof threat model: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/04-proof-threat-model.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:47:- Issue writeback: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/05-issue-writeback.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:48:- Final audit: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/06-final-audit.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:49:- Raw command log: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/commands.log`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:50:- Research scan log: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/research-rg.log`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:51:- Sentrux planning sensor: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/sentrux-gate.log`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:52:- Validation probe log: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/validation-probe.log`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:53:- Path existence audit: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/path-existence-audit.log`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:54:- Diff check: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/diff-check.log`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:55:- Final status: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/status-final.log`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:56:- Final check-ignore: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/check-ignore-final.log`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:57:- Acceptance traceability: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/07-acceptance-traceability.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:58:- Open-bucket promotion: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/08-open-bucket-promotion.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:59:- Migration consistency audit: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/09-migration-consistency-audit.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:60:- Current code readiness audit: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/10-current-code-readiness-audit.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:61:- Downstream reference update: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/11-downstream-reference-update.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:62:- Package script proof check: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/12-package-script-proof-check.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:63:- Promotion invariant probe: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/promotion-invariant-probe.log`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:64:- Quality gate log: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/quality-goal-open-promotion.log`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:65:- Executor handoff: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/13-executor-handoff.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:66:- Non-implementation boundary: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/14-non-implementation-boundary.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:67:- Queue continuation note: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/15-queue-continuation-note.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:68:- Stale reference audit: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/16-stale-reference-audit.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:69:- Template containment readback: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/17-template-containment-readback.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:70:- Parent pipeline readback: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/18-parent-pipeline-readback.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:71:- Subgoal state matrix: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/19-subgoal-state-matrix.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:72:- Replay bounds handoff: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/20-replay-bounds-handoff.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:73:- Closeout summary: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/21-closeout-summary.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:74:- Final open/refine inventories: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/open-inventory-final.log`, `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/refine-inventory-final.log`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:75:- Queue state checkpoint: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/22-queue-state-checkpoint.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:76:- Types source recheck: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/23-types-source-recheck.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:77:- State source recheck: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/24-state-source-recheck.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:78:- Tools registration recheck: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/25-tools-registration-recheck.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:79:- Tool output recheck: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/26-tool-output-recheck.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:80:- Widget source recheck: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/27-widget-source-recheck.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:81:- Prompt source recheck: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/28-prompt-source-recheck.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:82:- README update plan: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/29-readme-update-plan.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:83:- Stack order after promotion: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/30-stack-order-after-promotion.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:84:- Acceptance traceability addendum: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/31-acceptance-traceability-addendum.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:85:- Fingerprint: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/32-fingerprint.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:86:- Monitor report recheck: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/33-monitor-report-recheck.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:87:- UI source recheck: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/34-ui-source-recheck.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:88:- Format source recheck: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/35-format-source-recheck.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:89:- Final promotion invariant: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/36-final-promotion-invariant.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:90:- Budget source recheck: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/37-budget-source-recheck.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:91:- Queue source recheck: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/38-queue-source-recheck.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:92:- Final closeout readback: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/39-final-closeout-readback.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:93:- Final closeout probe: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/final-closeout-probe.log`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:99:- A `GoalState` may contain an ordered, bounded list of subgoals.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:101:- At most one subgoal is active at a time for the first release.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:102:- A subgoal can carry:
+.ai/issues/open/ISSUE-015-goal-subgoals.md:103:  - stable `subgoalId`;
+.ai/issues/open/ISSUE-015-goal-subgoals.md:106:  - status;
+.ai/issues/open/ISSUE-015-goal-subgoals.md:109:  - optional child budgets/floors/proof references when supported;
+.ai/issues/open/ISSUE-015-goal-subgoals.md:111:- Entering a child focuses continuation guidance on the child objective while preserving parent context.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:116:- A subgoal may reference a reusable template under `.ai/.pi-goals/` as its execution recipe.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:117:- Template resolution for a subgoal should render child objective text and store trusted metadata, not call `create_goal_from_template` and not enqueue a top-level goal.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:118:- The `deslop-pipeline` → `dirty-worktree-cleanup` scenario is the reference case: the child cleanup runs inline under the parent and then returns to the parent pipeline.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:120:### Completion and audit semantics
+.ai/issues/open/ISSUE-015-goal-subgoals.md:122:- Parent completion is refused if any blocking subgoal is `pending`, `active`, `failed`, or `blocked` without explicit escalation evidence.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:123:- Accepted terminal states for a blocking subgoal are:
+.ai/issues/open/ISSUE-015-goal-subgoals.md:126:- Subgoal progress counts are advisory. They must not replace qualitative completion audit or durable proof gates.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:127:- Future `/goal audit` should incorporate subgoal state, but parent completion must be deterministically blocked even without `/goal audit`.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:131:- `get_goal` and related tool output should summarize current child, status, and blockers.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:132:- The footer/widget should show a compact child row such as `subgoal 1/3 active: clean dirty worktree` when subgoals exist.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:133:- Detailed subgoal lists belong in tool output, not in the narrow widget.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:134:- No-subgoal goals should render exactly as before.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:138:Source artifact: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/02-grounded-research.md`.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:146:- `.pi/extensions/goal/completion-gate.ts`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:148:- `.pi/extensions/goal/monitor-report.ts`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:149:- `.pi/extensions/goal/monitor.ts`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:151:- `.pi/extensions/goal/widget.ts`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:153:- `.pi/extensions/goal/queue-state.ts`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:154:- `.pi/extensions/goal/queue-tools.ts`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:158:- `.ai/.pi-goals/dirty-worktree-cleanup.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:159:- `.ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:161:- `.ai/issues/open/ISSUE-021-goal-completion-proofs.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:162:- `.ai/issues/open/ISSUE-022-goal-history-checkpoints-and-compaction.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:163:- `.ai/issues/open/ISSUE-024-goal-audit-command.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:164:- `.ai/issues/fixed/ISSUE-027-goal-queue.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:168:- `GoalState` has no subgoal fields today.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:169:- State replay is branch-local and defensive; optional subgoal fields can be added without breaking older events if parsing remains bounded.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:170:- `tools.ts` and `completion-gate.ts` already form the right seam for deterministic completion refusal.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:173:- UI/widget space is already dense; subgoal rendering must be compact.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:178:Source artifact: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/03-design-lock.md`.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:184:- Preserve one active top-level `GoalState`.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:186:- Keep subgoals ordered and bounded; first release allows at most one active child.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:187:- Store child records in parent `GoalState`, not in the queue and not in a separate top-level goal.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:189:- Include subgoal state in completion gating, tool details, prompt context, format summaries, and compact UI.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:190:- Reuse ISSUE-021 proof concepts later rather than inventing a separate subgoal proof engine.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:194:- Checklist-only subgoals: too weak for blocking reusable child workflows.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:195:- Separate queued/top-level child goals: reintroduces replacement/delay and fragile parent resume behavior.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:196:- Arbitrary-depth subgoal trees: too large for first release.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:197:- Separate child Pi/Solo sessions: belongs to future parallel/multi-goal architecture.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:198:- Progress aggregation as completion proof: conflicts with ISSUE-014's safety boundary.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:205:type GoalSubgoalStatus = "pending" | "active" | "paused" | "blocked" | "failed" | "complete" | "abandoned";
+.ai/issues/open/ISSUE-015-goal-subgoals.md:208:  subgoalId: string;
+.ai/issues/open/ISSUE-015-goal-subgoals.md:211:  status: GoalSubgoalStatus;
+.ai/issues/open/ISSUE-015-goal-subgoals.md:228:type GoalState = {
+.ai/issues/open/ISSUE-015-goal-subgoals.md:230:  subgoals?: GoalSubgoal[];
+.ai/issues/open/ISSUE-015-goal-subgoals.md:231:  activeSubgoalId?: string;
+.ai/issues/open/ISSUE-015-goal-subgoals.md:237:- Missing `subgoals` means no subgoals.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:238:- Unknown/invalid subgoal records are ignored or sanitized rather than crashing replay.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:240:- Child usage may be tracked separately but total token/time accounting remains on the parent goal; child budgets must not permit exceeding parent hard budgets.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:246:- `list_goal_subgoals` — show ordered subgoals, active child, blockers, and counts.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:247:- `create_goal_subgoal` — create a child record with title/objective or resolved template recipe, optional `blocking`, and optional `return_to_parent`.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:248:- `enter_goal_subgoal` — mark a pending/paused child active and focus continuation context.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:249:- `update_goal_subgoal` — update status, notes/evidence, blocker reason, return point, budgets/floors, or title.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:250:- `remove_goal_subgoal` — remove only when explicitly requested or before meaningful child work starts; completed/audited children should normally remain as evidence.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:254:- Do not create subgoals for ordinary task decomposition unless pursuing an explicit persistent goal and the child is useful for audit/resume.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:255:- Creating a template-backed subgoal must resolve the template into child objective text without replacing the top-level goal.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:256:- Completing a child requires evidence text or proof reference when the child is blocking.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:261:- [ ] Add subgoal types and bounded parsing helpers in `.pi/extensions/goal/types.ts` / a focused helper module.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:262:- [ ] Extend `GoalState` creation/replay to carry optional subgoals and `activeSubgoalId` safely.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:263:- [ ] Add `subgoal-tools.ts` and register tools from `.pi/extensions/goal/tools.ts` without bloating `tools.ts`.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:264:- [ ] Add deterministic helper functions for active child lookup, terminal-state checks, blocker summaries, and template-backed child objective rendering.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:265:- [ ] Extend `completion-gate.ts` so parent `complete` is refused when blocking subgoals are unresolved.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:266:- [ ] Extend `tool-results.ts` and `format.ts` with concise subgoal summaries.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:267:- [ ] Extend `prompts.ts` continuation guidance to include parent objective plus active child objective/return point.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:268:- [ ] Update `ui.ts` / `widget.ts` for compact current-child rendering.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:269:- [ ] Add targeted validation probes under `.ai/validation/` for replay, completion blocking, template containment, and rendering.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:270:- [ ] Update README after implementation to document subgoal model tools and the parent/child workflow boundary.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:276:- A parent goal can create a blocking child subgoal and make it the active child without replacing the top-level goal.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:277:- A child can be created from a reusable goal template recipe without calling top-level `create_goal_from_template` or queue start semantics.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:278:- Reload/replay preserves subgoal order, active child, status, evidence, and parent return point.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:279:- `update_goal(status:"complete")` refuses parent completion while a blocking child is pending/active/failed or blocked/abandoned without explicit reason/evidence.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:280:- Completing a blocking child records durable evidence and clears active child focus or returns to parent focus.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:282:- Widget/footer rendering remains compact and does not regress no-subgoal display.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:283:- Parent hard budgets still win over child budgets/floors.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:288:Source artifact: `.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/04-proof-threat-model.md`.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:290:Primary invariant: a parent goal cannot be honestly completed while a blocking child subgoal remains active, incomplete, failed, or unresolved; completing/escalating a child must leave durable, replayable evidence and a clear return-to-parent point.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:294:- Parent completion succeeds with active child still present.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:295:- Template-backed child accidentally creates/replaces/queues a top-level goal.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:296:- Replay drops active child state.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:297:- UI/tool output hides the child so the agent audits only the parent string.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:304:issue{id,status,target_session,goal}:
+.ai/issues/open/ISSUE-015-goal-subgoals.md:305:  "ISSUE-015","execution-ready-first-pass","focused implementation/validation","add nested child subgoals under one active parent pi-goal"
+.ai/issues/open/ISSUE-015-goal-subgoals.md:307:  "lr1","preserve one active top-level GoalState"
+.ai/issues/open/ISSUE-015-goal-subgoals.md:308:  "lr2","store one-level ordered bounded subgoals on the parent goal"
+.ai/issues/open/ISSUE-015-goal-subgoals.md:309:  "lr3","support one active child subgoal with objective, status, evidence, template recipe, and return-to-parent instruction"
+.ai/issues/open/ISSUE-015-goal-subgoals.md:310:  "lr4","block parent completion while blocking child subgoals are unresolved"
+.ai/issues/open/ISSUE-015-goal-subgoals.md:311:  "lr5","render current child and done/total compactly without regressing no-subgoal UI"
+.ai/issues/open/ISSUE-015-goal-subgoals.md:312:  "lr6","resolve template-backed child workflows without top-level goal replacement or queue delay"
+.ai/issues/open/ISSUE-015-goal-subgoals.md:314:  "inv1","subgoals do not create a second top-level persistent goal"
+.ai/issues/open/ISSUE-015-goal-subgoals.md:315:  "inv2","parent hard budgets constrain child work"
+.ai/issues/open/ISSUE-015-goal-subgoals.md:316:  "inv3","subgoal progress/counts are advisory and never proof of parent completion"
+.ai/issues/open/ISSUE-015-goal-subgoals.md:320:  "s1",".pi/extensions/goal/types.ts","add subgoal schema/status types"
+.ai/issues/open/ISSUE-015-goal-subgoals.md:321:  "s2",".pi/extensions/goal/state.ts","parse/replay optional bounded subgoal fields"
+.ai/issues/open/ISSUE-015-goal-subgoals.md:322:  "s3",".pi/extensions/goal/subgoal-tools.ts","new model tool surface for child lifecycle"
+.ai/issues/open/ISSUE-015-goal-subgoals.md:323:  "s4",".pi/extensions/goal/completion-gate.ts","refuse parent completion on unresolved blocking children"
+.ai/issues/open/ISSUE-015-goal-subgoals.md:324:  "s5",".pi/extensions/goal/prompts.ts","include active child context in continuation guidance"
+.ai/issues/open/ISSUE-015-goal-subgoals.md:326:  "s7",".pi/extensions/goal/widget.ts","compact current-child rendering"
+.ai/issues/open/ISSUE-015-goal-subgoals.md:328:  "v1","parent completion blocked with active blocking child","completion probe"
+.ai/issues/open/ISSUE-015-goal-subgoals.md:329:  "v2","template-backed child does not replace or dequeue top-level goal","template containment probe"
+.ai/issues/open/ISSUE-015-goal-subgoals.md:330:  "v3","reload/replay preserves active child and evidence","state replay probe"
+.ai/issues/open/ISSUE-015-goal-subgoals.md:331:  "v4","no-subgoal and active-child widget modes render within width bounds","render probe"
+.ai/issues/open/ISSUE-015-goal-subgoals.md:335:## Required proofs
+.ai/issues/open/ISSUE-015-goal-subgoals.md:339:required_proofs[5]{name,source,command,pass_condition,scope,notes}:
+.ai/issues/open/ISSUE-015-goal-subgoals.md:341:  "subgoal_replay_probe","ISSUE-015","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-subgoal-replay-probe.mjs","exit 0 and output includes PASS replay_preserves_active_subgoal","run","probe should create parent+child events and replay them"
+.ai/issues/open/ISSUE-015-goal-subgoals.md:342:  "completion_block_probe","ISSUE-015","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-subgoal-completion-block-probe.mjs","exit 0 and output includes PASS completion_blocked_by_subgoal","run","must fail if parent completion succeeds with unresolved blocking child"
+.ai/issues/open/ISSUE-015-goal-subgoals.md:343:  "template_child_probe","ISSUE-015","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-subgoal-template-child-probe.mjs","exit 0 and output includes PASS no_top_level_replacement","run","must prove template-backed child stays nested"
+.ai/issues/open/ISSUE-015-goal-subgoals.md:344:  "live_probe_or_skip","ISSUE-015","cd /Users/bryan/dev/personal/experiments/pi-goals && test -s .ai/validation/goal-subgoal-live-probe-closeout.md","exit 0","run","record live probe evidence or explicit skip rationale grounded in deterministic coverage"
+.ai/issues/open/ISSUE-015-goal-subgoals.md:349:- Arbitrary-depth subgoal trees.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:350:- Parallel child agents, child worktrees, or multi-session orchestration.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:351:- Slash-command subgoal management.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:354:- Independent subgoal proof runner separate from ISSUE-021.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:355:- Durable human-readable checkpoints beyond compact state/evidence fields; see ISSUE-022.
+
+$ rg -n "interface ExtensionCommandContext|newSession\(|switchSession\(|sendUserMessage|setSessionName|ExtensionAPI|exec\(" /Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts /Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples /Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs 2>/dev/null | head -180
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:241:export interface ExtensionCommandContext extends ExtensionContext {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:245:    newSession(options?: {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:269:    switchSession(sessionPath: string, options?: {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:280: * This is passed to `withSession()` callbacks on `newSession()`, `fork()`, and `switchSession()`.
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:287:    sendUserMessage(content: string | (TextContent | ImageContent)[], options?: {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:781: * ExtensionAPI passed to extension factory functions.
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:783:export interface ExtensionAPI {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:841:    sendUserMessage(content: string | (TextContent | ImageContent)[], options?: {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:847:    setSessionName(name: string): void;
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:853:    exec(command: string, args: string[], options?: ExecOptions): Promise<ExecResult>;
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:1003:export type ExtensionFactory = (pi: ExtensionAPI) => void | Promise<void>;
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:1076:    sendUserMessage: SendUserMessageHandler;
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:1078:    setSessionName: SetSessionNameHandler;
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:1109:export interface ExtensionCommandContextActions {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/custom-provider.md:33:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/custom-provider.md:35:export default function (pi: ExtensionAPI) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/custom-provider.md:99:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/custom-provider.md:101:export default async function (pi: ExtensionAPI) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/session-format.md:194:For sessions with a parent (created via `/fork`, `/clone`, or `newSession({ parentSession })`):
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/session-format.md:285:Session metadata (e.g., user-defined display name). Set via `/name` command or `pi.setSessionName()` in extensions.
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/session-format.md:377:- `newSession(options?)` - Start a new session (options: `{ parentSession?: string }`)
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/sdk.md:159:- `newSession()`
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/sdk.md:160:- `switchSession()`
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/sdk.md:177:await runtime.newSession();
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/sdk.md:743:await runtime.newSession();
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/sdk.md:746:await runtime.switchSession("/path/to/session.jsonl");
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/sdk.md:1142:type ExtensionAPI
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/sdk/13-session-runtime.ts:56:await runtime.newSession();
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/sdk/13-session-runtime.ts:58:console.log("After newSession():", session.sessionFile);
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/sdk/13-session-runtime.ts:61:	await runtime.switchSession(originalSessionFile);
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/sdk/13-session-runtime.ts:63:	console.log("After switchSession():", session.sessionFile);
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/sdk/06-extensions.ts:13: *   export default function (pi: ExtensionAPI) { ... }
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/sdk/06-extensions.ts:56:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/sdk/06-extensions.ts:58:export default function (pi: ExtensionAPI) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/hello.ts:6:import { defineTool, type ExtensionAPI } from "@earendil-works/pi-coding-agent";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/hello.ts:24:export default function (pi: ExtensionAPI) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/tui.md:593:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/tui.md:825:import { CustomEditor, type ExtensionAPI } from "@earendil-works/pi-coding-agent";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/tui.md:877:export default function (pi: ExtensionAPI) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/preset.ts:44:import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/preset.ts:107:export default function presetExtension(pi: ExtensionAPI) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/input-transform.ts:12:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/input-transform.ts:14:export default function (pi: ExtensionAPI) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/qna.ts:11:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/qna.ts:30:export default function (pi: ExtensionAPI) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/bash-spawn-hook.ts:10:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/bash-spawn-hook.ts:13:export default function (pi: ExtensionAPI) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:47:- [ExtensionAPI Methods](#extensionapi-methods)
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:60:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:63:export default function (pi: ExtensionAPI) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:142:| `@earendil-works/pi-coding-agent` | Extension types (`ExtensionAPI`, `ExtensionContext`, events) |
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:155:An extension exports a default factory function that receives `ExtensionAPI`. The factory can be synchronous or asynchronous:
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:158:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:160:export default function (pi: ExtensionAPI) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:187:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:189:export default async function (pi: ExtensionAPI) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:793:      exec(command, cwd, options) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:794:        return local.exec(`source ~/.profile\n${command}`, cwd, options);
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:821:  // event.source - "interactive" (typed), "rpc" (API), or "extension" (via sendUserMessage)
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:991:### ctx.newSession(options?)
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:999:const result = await ctx.newSession({
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1010:    await ctx.sendUserMessage(kickoff);
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1069:### ctx.switchSession(sessionPath, options?)
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1074:const result = await ctx.switchSession("/path/to/session.jsonl", {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1076:    await ctx.sendUserMessage("Resume work in the replacement session");
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1102:      await ctx.switchSession(choice, {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1114:`withSession` receives a fresh `ReplacedSessionContext`, which extends `ExtensionCommandContext` with async `sendMessage()` and `sendUserMessage()` helpers bound to the replacement session.
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1129:    await ctx.newSession({
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1131:        await ctx.sendUserMessage(kickoff);
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1144:    await ctx.newSession({
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1148:        pi.sendUserMessage("wrong");
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1184:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1187:export default function (pi: ExtensionAPI) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1202:      pi.sendUserMessage("/reload-runtime", { deliverAs: "followUp" });
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1211:## ExtensionAPI Methods
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1291:### pi.sendUserMessage(content, options?)
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1297:pi.sendUserMessage("What is 2+2?");
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1300:pi.sendUserMessage([
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1306:pi.sendUserMessage("Focus on error handling", { deliverAs: "steer" });
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1307:pi.sendUserMessage("And then summarize", { deliverAs: "followUp" });
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1336:### pi.setSessionName(name)
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1341:pi.setSessionName("Refactor auth module");
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1474:### pi.exec(command, args, options?)
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1479:const result = await pi.exec("git", ["status"], { signal, timeout: 5000 });
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1631:export default function (pi: ExtensionAPI) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1743:    const result = await pi.exec("some-command", [], { signal });
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1962:export default function (pi: ExtensionAPI) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:2390:import { CustomEditor, type ExtensionAPI } from "@earendil-works/pi-coding-agent";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:2409:export default function (pi: ExtensionAPI) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:2537:| `send-user-message.ts` | Inject user messages | `registerCommand`, `sendUserMessage` |
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:2538:| `reload-runtime.ts` | Reload command and LLM tool handoff | `registerCommand`, `ctx.reload()`, `sendUserMessage` |
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:2591:| `session-name.ts` | Name sessions for selector | `setSessionName`, `getSessionName` |
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/working-indicator.ts:19:import type { ExtensionAPI, ExtensionContext, WorkingIndicatorOptions } from "@earendil-works/pi-coding-agent";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/working-indicator.ts:86:export default function (pi: ExtensionAPI) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/model-status.ts:10:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/model-status.ts:12:export default function (pi: ExtensionAPI) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/custom-header.ts:8:import type { ExtensionAPI, Theme } from "@earendil-works/pi-coding-agent";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/custom-header.ts:47:export default function (pi: ExtensionAPI) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/file-trigger.ts:12:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/file-trigger.ts:14:export default function (pi: ExtensionAPI) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/timed-confirm.ts:10:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/timed-confirm.ts:12:export default function (pi: ExtensionAPI) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/tool-override.ts:24:import { type ExtensionAPI, getAgentDir, withFileMutationQueue } from "@earendil-works/pi-coding-agent";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/tool-override.ts:68:export default function (pi: ExtensionAPI) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/message-renderer.ts:10:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/message-renderer.ts:13:export default function (pi: ExtensionAPI) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/dirty-repo-guard.ts:8:import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/dirty-repo-guard.ts:11:	pi: ExtensionAPI,
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/dirty-repo-guard.ts:16:	const { stdout, code } = await pi.exec("git", ["status", "--porcelain"]);
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/dirty-repo-guard.ts:47:export default function (pi: ExtensionAPI) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/trigger-compact.ts:1:import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/trigger-compact.ts:5:export default function (pi: ExtensionAPI) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/ssh.ts:17:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/ssh.ts:114:export default function (pi: ExtensionAPI) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/minimal-mode.ts:19:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/minimal-mode.ts:67:export default function (pi: ExtensionAPI) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/hidden-thinking-label.ts:21:import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/hidden-thinking-label.ts:25:export default function (pi: ExtensionAPI) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/commands.ts:13:import type { ExtensionAPI, SlashCommandInfo } from "@earendil-works/pi-coding-agent";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/commands.ts:15:export default function commandsExtension(pi: ExtensionAPI) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/pirate.ts:13:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/pirate.ts:15:export default function pirateExtension(pi: ExtensionAPI) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/mac-system-theme.ts:10:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/mac-system-theme.ts:25:export default function (pi: ExtensionAPI) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/custom-footer.ts:12:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/custom-footer.ts:15:export default function (pi: ExtensionAPI) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/titlebar-spinner.ts:12:import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/titlebar-spinner.ts:16:function getBaseTitle(pi: ExtensionAPI): string {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/titlebar-spinner.ts:22:export default function (pi: ExtensionAPI) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/todo.ts:14:import type { ExtensionAPI, ExtensionContext, Theme } from "@earendil-works/pi-coding-agent";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/todo.ts:105:export default function (pi: ExtensionAPI) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/bookmark.ts:10:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/bookmark.ts:12:export default function (pi: ExtensionAPI) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/built-in-tool-renderer.ts:28:import type { BashToolDetails, EditToolDetails, ExtensionAPI, ReadToolDetails } from "@earendil-works/pi-coding-agent";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/built-in-tool-renderer.ts:32:export default function (pi: ExtensionAPI) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/claude-rules.ts:22:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/claude-rules.ts:49:export default function claudeRulesExtension(pi: ExtensionAPI) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/README.md:61:| `send-user-message.ts` | Demonstrates `pi.sendUserMessage()` for sending user messages from extensions |
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/README.md:118:| `session-name.ts` | Name sessions for the session selector via `setSessionName` |
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/README.md:140:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/README.md:143:export default function (pi: ExtensionAPI) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/inline-bash.ts:17:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/inline-bash.ts:19:export default function (pi: ExtensionAPI) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/inline-bash.ts:45:		let match = PATTERN.exec(text);
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/inline-bash.ts:48:			match = PATTERN.exec(text);
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/inline-bash.ts:54:				const bashResult = await pi.exec("bash", ["-c", command], {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/custom-compaction.ts:17:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/custom-compaction.ts:20:export default function (pi: ExtensionAPI) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/working-message-test.ts:15:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/working-message-test.ts:20:export default function (pi: ExtensionAPI) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/subagent/index.ts:22:import { type ExtensionAPI, getMarkdownTheme, withFileMutationQueue } from "@earendil-works/pi-coding-agent";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/subagent/index.ts:431:export default function (pi: ExtensionAPI) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/rpc-demo.ts:20:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/rpc-demo.ts:22:export default function (pi: ExtensionAPI) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/modal-editor.ts:12:import { CustomEditor, type ExtensionAPI } from "@earendil-works/pi-coding-agent";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/modal-editor.ts:81:export default function (pi: ExtensionAPI) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/prompt-customizer.ts:15:import type { BuildSystemPromptOptions, ExtensionAPI } from "@earendil-works/pi-coding-agent";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/prompt-customizer.ts:86:export default function promptCustomizer(pi: ExtensionAPI) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/space-invaders.ts:6:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/space-invaders.ts:527:export default function (pi: ExtensionAPI) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/reload-runtime.ts:8:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/reload-runtime.ts:11:export default function (pi: ExtensionAPI) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/reload-runtime.ts:30:			pi.sendUserMessage("/reload-runtime", { deliverAs: "followUp" });
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/system-prompt-header.ts:6:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/system-prompt-header.ts:8:export default function (pi: ExtensionAPI) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/question.ts:7:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/question.ts:36:export default function question(pi: ExtensionAPI) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/auto-commit-on-exit.ts:8:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/auto-commit-on-exit.ts:10:export default function (pi: ExtensionAPI) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/auto-commit-on-exit.ts:13:		const { stdout: status, code } = await pi.exec("git", ["status", "--porcelain"]);
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/auto-commit-on-exit.ts:42:		await pi.exec("git", ["add", "-A"]);
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/auto-commit-on-exit.ts:43:		const { code: commitCode } = await pi.exec("git", ["commit", "-m", commitMessage]);
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/doom-overlay/index.ts:12:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/doom-overlay/index.ts:21:export default function (pi: ExtensionAPI) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/protected-paths.ts:8:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/protected-paths.ts:10:export default function (pi: ExtensionAPI) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/confirm-destructive.ts:8:import type { ExtensionAPI, SessionBeforeSwitchEvent, SessionMessageEntry } from "@earendil-works/pi-coding-agent";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/confirm-destructive.ts:10:export default function (pi: ExtensionAPI) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/tic-tac-toe.ts:21:import type { ExtensionAPI, ExtensionContext, Theme, ToolExecutionMode } from "@earendil-works/pi-coding-agent";
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/tic-tac-toe.ts:658:export default function (pi: ExtensionAPI) {
+
+$ git worktree list --porcelain | head -120
+worktree /Users/bryan/dev/personal/experiments/pi-goals
+HEAD 3e508bd126d8e28813a7fd58b65e6ac1d1a03a7e
+branch refs/heads/develop
+
+$ sentrux gate --save .pi/extensions/goal
+Scanning .pi/extensions/goal...
+[build_project_map] 30 files, 2 unique dirs, 2 cache misses, 0.1ms
+[resolve] 112 resolved, 22 unresolved (of 134 total specs)
+[resolve_imports] project_map 0.1ms, suffix_idx 0.1ms, suffix_resolve 1.3ms, total 1.5ms
+[build_graphs] 30 files | maps 0.0ms, imports 1.5ms, calls+inherit 0.4ms, total 2.0ms | 111 import, 591 call, 0 inherit edges
+Baseline saved to .pi/extensions/goal/.sentrux/baseline.json
+Quality: 6241
+
+Run `sentrux gate` after making changes to compare.
+sentrux_exit=0
+.ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/01-open-promotion-addendum.md:17:7. `.ai/issues/refine/ISSUE-019-parallel-multiple-goals.md`
+.ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/final-order.md:23:7. `.ai/issues/refine/ISSUE-019-parallel-multiple-goals.md` — Multiple sequential or parallel goals.
+.ai/issues/open/ISSUE-018-goal-start-in-worktree.md:17:- `.ai/issues/refine/ISSUE-019-parallel-multiple-goals.md`
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:44:- Request intake: `.ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/00-request.md`
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:45:- Protocol read: `.ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/01-protocol-read.md`
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:46:- Grounded research: `.ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/02-grounded-research.md`
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:47:- Design lock: `.ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/03-design-lock.md`
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:48:- Proof threat model: `.ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/04-proof-threat-model.md`
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:49:- Issue writeback: `.ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/05-issue-writeback.md`
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:50:- Final audit: `.ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/06-final-audit.md`
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:51:- Raw command log: `.ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/commands.log`
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:52:- Sentrux planning sensor: `.ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/sentrux-gate.log`
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:116:Source artifact: `.ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/02-grounded-research.md`.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:132:Source artifact: `.ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/03-design-lock.md`.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:188:Source artifact: `.ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/04-proof-threat-model.md`.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:18:- `.ai/issues/refine/ISSUE-019-parallel-multiple-goals.md`
+.ai/issues/fixed/ISSUE-027-goal-queue.md:15:- `.ai/issues/refine/ISSUE-019-parallel-multiple-goals.md`
+
+## writeback and promotion operations
+$ rm .ai/issues/refine/ISSUE-019-parallel-multiple-goals.md
+removed refine copy after open issue writeback
+$ rg -n "issues/refine/ISSUE-019|ISSUE-019-parallel-multiple-goals" .ai/issues .ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10 --glob "!**/raw/**"
+.ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/01-open-promotion-addendum.md:17:7. `.ai/issues/open/ISSUE-019-parallel-multiple-goals.md`
+.ai/issues/open/ISSUE-018-goal-start-in-worktree.md:17:- `.ai/issues/open/ISSUE-019-parallel-multiple-goals.md`
+.ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/final-order.md:23:7. `.ai/issues/open/ISSUE-019-parallel-multiple-goals.md` — Multiple sequential or parallel goals.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:44:- Request intake: `.ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/00-request.md`
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:45:- Protocol read: `.ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/01-protocol-read.md`
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:46:- Grounded research: `.ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/02-grounded-research.md`
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:47:- Design lock: `.ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/03-design-lock.md`
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:48:- Proof threat model: `.ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/04-proof-threat-model.md`
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:49:- Issue writeback: `.ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/05-issue-writeback.md`
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:50:- Final audit: `.ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/06-final-audit.md`
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:51:- Raw command log: `.ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/commands.log`
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:52:- Sentrux planning sensor: `.ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/sentrux-gate.log`
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:116:Source artifact: `.ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/02-grounded-research.md`.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:132:Source artifact: `.ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/03-design-lock.md`.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:188:Source artifact: `.ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/04-proof-threat-model.md`.
+.ai/issues/open/ISSUE-015-goal-subgoals.md:18:- `.ai/issues/open/ISSUE-019-parallel-multiple-goals.md`
+.ai/issues/fixed/ISSUE-027-goal-queue.md:15:- `.ai/issues/open/ISSUE-019-parallel-multiple-goals.md`
+
+## validation expansion probe for ISSUE-019 planning invariant
+$ node - <<'NODE'
+
+## validation expansion probe rerun with exact rejected-alternative wording
+$ node - <<'NODE'
+PASS issue019_invariant_probe multi_goal_design_locked links=12 proof_rows=8
+node_probe_exit=0
+$ npm run quality:goal
+
+> pi-goals@0.2.0 quality:goal
+> sentrux gate .pi/extensions/goal && sentrux check .pi/extensions/goal && npm run slop:goal && npm run typecheck:goal && pi --offline --no-session --no-tools -e .pi/extensions/goal/index.ts --list-models >/tmp/pi-goal-quality-load.txt
+
+Scanning .pi/extensions/goal...
+[build_project_map] 30 files, 2 unique dirs, 2 cache misses, 0.1ms
+[resolve] 112 resolved, 22 unresolved (of 134 total specs)
+[resolve_imports] project_map 0.1ms, suffix_idx 0.1ms, suffix_resolve 1.5ms, total 1.8ms
+[build_graphs] 30 files | maps 0.0ms, imports 1.8ms, calls+inherit 0.5ms, total 2.3ms | 111 import, 591 call, 0 inherit edges
+sentrux gate — structural regression check
+
+Quality:      6241 -> 6241
+Coupling:     0.16 → 0.16
+Cycles:       0 → 0
+God files:    0 → 0
+
+Distance from Main Sequence: 0.25
+
+✓ No degradation detected
+Scanning .pi/extensions/goal...
+[build_project_map] 30 files, 2 unique dirs, 2 cache misses, 0.1ms
+[resolve] 112 resolved, 22 unresolved (of 134 total specs)
+[resolve_imports] project_map 0.1ms, suffix_idx 0.1ms, suffix_resolve 1.1ms, total 1.3ms
+[build_graphs] 30 files | maps 0.0ms, imports 1.3ms, calls+inherit 0.4ms, total 1.8ms | 111 import, 591 call, 0 inherit edges
+sentrux check — 33 rules checked
+
+Quality: 6241
+
+✓ All rules pass
+
+> pi-goals@0.2.0 slop:goal
+> if rg -n 'as unknown as|as any' .pi/extensions/goal; then exit 1; else exit 0; fi
+
+
+> pi-goals@0.2.0 typecheck:goal
+> tsc --noEmit --target ES2022 --module ESNext --moduleResolution node --ignoreDeprecations 6.0 --types node --strict --skipLibCheck .pi/extensions/goal/*.ts
+
+provider      model                       context  max-out  thinking  images
+anthropic     claude-3-5-haiku-20241022   200K     8.2K     no        yes
+anthropic     claude-3-5-haiku-latest     200K     8.2K     no        yes
+anthropic     claude-3-5-sonnet-20240620  200K     8.2K     no        yes
+anthropic     claude-3-5-sonnet-20241022  200K     8.2K     no        yes
+anthropic     claude-3-7-sonnet-20250219  200K     64K      yes       yes
+anthropic     claude-3-haiku-20240307     200K     4.1K     no        yes
+anthropic     claude-3-opus-20240229      200K     4.1K     no        yes
+anthropic     claude-3-sonnet-20240229    200K     4.1K     no        yes
+anthropic     claude-haiku-4-5            200K     64K      yes       yes
+anthropic     claude-haiku-4-5-20251001   200K     64K      yes       yes
+anthropic     claude-opus-4-0             200K     32K      yes       yes
+anthropic     claude-opus-4-1             200K     32K      yes       yes
+anthropic     claude-opus-4-1-20250805    200K     32K      yes       yes
+anthropic     claude-opus-4-20250514      200K     32K      yes       yes
+anthropic     claude-opus-4-5             200K     64K      yes       yes
+anthropic     claude-opus-4-5-20251101    200K     64K      yes       yes
+anthropic     claude-opus-4-6             1M       128K     yes       yes
+anthropic     claude-opus-4-7             1M       128K     yes       yes
+anthropic     claude-sonnet-4-0           200K     64K      yes       yes
+anthropic     claude-sonnet-4-20250514    200K     64K      yes       yes
+anthropic     claude-sonnet-4-5           200K     64K      yes       yes
+anthropic     claude-sonnet-4-5-20250929  200K     64K      yes       yes
+anthropic     claude-sonnet-4-6           1M       64K      yes       yes
+openai-codex  gpt-5.1                     272K     128K     yes       yes
+openai-codex  gpt-5.1-codex-max           272K     128K     yes       yes
+openai-codex  gpt-5.1-codex-mini          272K     128K     yes       yes
+openai-codex  gpt-5.2                     272K     128K     yes       yes
+openai-codex  gpt-5.2-codex               272K     128K     yes       yes
+openai-codex  gpt-5.3-codex               272K     128K     yes       yes
+openai-codex  gpt-5.3-codex-spark         128K     128K     yes       no
+openai-codex  gpt-5.4                     272K     128K     yes       yes
+openai-codex  gpt-5.4-mini                272K     128K     yes       yes
+openai-codex  gpt-5.5                     272K     128K     yes       yes
+opencode-go   deepseek-v4-flash           1M       384K     yes       no
+opencode-go   deepseek-v4-pro             1M       384K     yes       no
+opencode-go   glm-5                       202.8K   32.8K    yes       no
+opencode-go   glm-5.1                     202.8K   32.8K    yes       no
+opencode-go   kimi-k2.5                   262.1K   65.5K    yes       yes
+opencode-go   kimi-k2.6                   262.1K   65.5K    yes       yes
+opencode-go   mimo-v2.5                   1M       128K     yes       yes
+opencode-go   mimo-v2.5-pro               1.0M     128K     yes       no
+opencode-go   minimax-m2.5                204.8K   65.5K    yes       no
+opencode-go   minimax-m2.7                204.8K   131.1K   yes       no
+opencode-go   qwen3.5-plus                262.1K   65.5K    yes       yes
+opencode-go   qwen3.6-plus                262.1K   65.5K    yes       yes
+quality_goal_exit=0
+
+## stale dependency path audit after promotion
+$ rg -n "\.ai/issues/refine/ISSUE-019-parallel-multiple-goals\.md" .ai/issues .ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10 --glob "!**/raw/**"
+PASS stale_refine_issue019_refs=0
+$ test -f .ai/issues/open/ISSUE-019-parallel-multiple-goals.md && test ! -e .ai/issues/refine/ISSUE-019-parallel-multiple-goals.md
+PASS issue019_open_exists_refine_absent
+
+## final validation probes
+$ git diff --check
+diff_check_exit=0
+$ node issue links/artifacts/proof probe
+PASS issue019_artifacts_and_required_proofs linked=11 proof_rows=8
+$ test -f .ai/issues/open/ISSUE-019-parallel-multiple-goals.md && test ! -e .ai/issues/refine/ISSUE-019-parallel-multiple-goals.md
+promotion_path_probe_exit=0
+$ git status --short --untracked-files=all .ai/issues/open/ISSUE-019-parallel-multiple-goals.md .ai/issues/refine/ISSUE-019-parallel-multiple-goals.md .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals | head -140
+ D .ai/issues/refine/ISSUE-019-parallel-multiple-goals.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/commands.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/final-validation.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/issue019-invariant-probe.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/quality-goal-open-promotion.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/sentrux-gate.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/stale-019-references-before.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/stale-reference-audit.log
+?? .ai/issues/open/ISSUE-019-parallel-multiple-goals.md
+$ git check-ignore -v .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/06-final-audit.md || true
+.gitignore:11:!.ai/docs/issue-workflow/**	.ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/06-final-audit.md
+
+## final validation probes after audit/link updates
+$ git diff --check
+diff_check_exit=0
+$ node final issue links/artifacts/proof probe
+PASS issue019_final_artifacts_and_required_proofs linked=12 proof_rows=8
+$ rg stale refine reference final
+PASS stale_refine_issue019_refs=0
+
+## validation expansion: issue-to-artifact and invariant coverage probe
+$ node - <<'NODE'
+PASS issue019_validation_expansion artifacts=16 proof_rows=8 acceptance_rows=13
+covers_invariant=artifact links and handoff/traceability would fail if the promoted issue omitted local-active isolation, external non-driving boundary, queue/subgoal separation, or required deterministic probes
+
+## post-expansion link and invariant audit
+$ git diff --check
+diff_check_exit=0
+$ node all issue artifact links probe
+PASS issue019_all_artifacts_linked count=17
+
+## protocol coverage probe after direct artifact readback
+$ node - <<'NODE'
+
+## protocol coverage probe rerun with source-artifact exact wording
+$ node - <<'NODE'
+PASS issue019_protocol_coverage reads=9 research=6 issue_research=6 design=6
+covers_objective=confirms mandatory protocol-read, grounded research writeback, and design-lock facts are present in artifacts and canonical issue
+
+## all-artifact link rerun after protocol coverage probe
+$ node all issue artifact links probe with protocol coverage
+PASS issue019_all_artifacts_linked_final count=18
+$ git diff --check
+diff_check_exit=0
+
+## completion audit link verification
+$ node completion audit and all artifact link probe
+PASS issue019_completion_audit_linked artifacts=19 audit_checks=5
+$ git status --short --untracked-files=all issue019 paths
+ D .ai/issues/refine/ISSUE-019-parallel-multiple-goals.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/07-acceptance-traceability.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/08-implementation-handoff.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/09-completion-audit.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/commands.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/final-validation.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/issue019-invariant-probe.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/protocol-coverage-probe.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/quality-goal-open-promotion.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/sentrux-gate.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/stale-019-references-before.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/stale-reference-audit.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/validation-expansion-final.log
+?? .ai/issues/open/ISSUE-019-parallel-multiple-goals.md
+$ git check-ignore -v .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/09-completion-audit.md || true
+.gitignore:11:!.ai/docs/issue-workflow/**	.ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/09-completion-audit.md
+## final comprehensive completion probe
+$ node - <<'NODE'
+PASS issue019_comprehensive_completion artifacts=19 proof_rows=8
+covers_objective=open issue exists, refine copy absent, all artifacts linked, required design invariants present, required proof block shaped, and key validation logs green
+
+## final final link check after comprehensive probe link
+PASS issue019_every_artifact_linked count=20
+diff_check_exit=0
+
+## final stale-path and visibility verification before completion
+PASS no non-raw stale refine ISSUE-019 references
+PASS open issue exists and refine issue absent
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/07-acceptance-traceability.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/08-implementation-handoff.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/09-completion-audit.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/commands.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/comprehensive-completion-probe.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/final-validation.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/issue019-invariant-probe.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/protocol-coverage-probe.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/quality-goal-open-promotion.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/sentrux-gate.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/stale-019-references-before.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/stale-reference-audit.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/validation-expansion-final.log
+?? .ai/issues/open/ISSUE-019-parallel-multiple-goals.md
+.gitignore:11:!.ai/docs/issue-workflow/**	.ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/09-completion-audit.md
+
+## final audit consistency after comprehensive probe note
+PASS issue019_final_audit_consistency comprehensive probe recorded and linked
+diff_check_exit=0
+
+## closeout sanity check
+PASS issue019_closeout_sanity
+PASS completion_audit_link_and_conclusion_present

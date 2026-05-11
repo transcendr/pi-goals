@@ -11,7 +11,7 @@ Issue kind: bug
 Target repo roots: `/Users/bryan/dev/personal/experiments/pi-goals`
 Parent issue: `.ai/issues/fixed/ISSUE-001-pi-goal-extension.md`
 Related:
-- `.ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md`
+- `.ai/issues/open/ISSUE-011-goal-widget-real-component-and-narrow-width.md`
 
 Goal: Fix pi-goal widget rendering so multiline goal objectives cannot break the widget card layout. The widget renderer must return one terminal-safe string per rendered line, with no embedded line breaks and no line exceeding the requested width.
 

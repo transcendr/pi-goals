@@ -1,0 +1,85 @@
+
+## final validation probes
+$ git diff --check
+diff_check_exit=0
+
+$ test -f .ai/issues/open/ISSUE-018-goal-start-in-worktree.md && test ! -e .ai/issues/refine/ISSUE-018-goal-start-in-worktree.md
+promotion_path_probe_exit=0
+
+$ node required proof/artifact link probe
+PASS issue018_required_proofs_and_artifacts rows=7
+
+$ git status --short --untracked-files=all .ai/issues/open/ISSUE-018-goal-start-in-worktree.md .ai/issues/refine/ISSUE-018-goal-start-in-worktree.md .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree | head -120
+ D .ai/issues/refine/ISSUE-018-goal-start-in-worktree.md
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/raw/commands.log
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/raw/final-validation.log
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/raw/issue018-invariant-probe.log
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/raw/quality-goal-open-promotion.log
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/raw/sentrux-gate.log
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/raw/stale-018-references-before.log
+?? .ai/issues/open/ISSUE-018-goal-start-in-worktree.md
+
+$ git check-ignore -v .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/00-request.md || true
+.gitignore:11:!.ai/docs/issue-workflow/**	.ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/00-request.md
+
+## final validation probes after final audit artifact
+$ test -f .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/06-final-audit.md
+final_audit_exists=1
+$ node issue links and artifact existence probe
+PASS issue018_all_required_artifacts_linked_and_exist count=8
+$ git status --short --untracked-files=all .ai/issues/open/ISSUE-018-goal-start-in-worktree.md .ai/issues/refine/ISSUE-018-goal-start-in-worktree.md .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree | head -140
+ D .ai/issues/refine/ISSUE-018-goal-start-in-worktree.md
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/raw/commands.log
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/raw/final-validation.log
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/raw/issue018-invariant-probe.log
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/raw/quality-goal-open-promotion.log
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/raw/sentrux-gate.log
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/raw/stale-018-references-before.log
+?? .ai/issues/open/ISSUE-018-goal-start-in-worktree.md
+$ git check-ignore -v .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/06-final-audit.md || true
+.gitignore:11:!.ai/docs/issue-workflow/**	.ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/06-final-audit.md
+
+## final validation probes after stale reference fix
+$ git diff --check
+diff_check_exit=0
+$ node issue links and artifact existence probe
+PASS issue018_all_required_artifacts_linked_and_exist count=9
+$ rg stale refine reference final
+PASS stale_refine_issue018_refs=0
+
+## final closeout status
+$ git status --short --untracked-files=all .ai/issues/open/ISSUE-018-goal-start-in-worktree.md .ai/issues/refine/ISSUE-018-goal-start-in-worktree.md .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree .ai/issues/refine/ISSUE-019-parallel-multiple-goals.md .ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md .ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/final-order.md .ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/01-open-promotion-addendum.md .pi/extensions/goal/.sentrux/baseline.json
+ M .ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/01-open-promotion-addendum.md
+ M .ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/final-order.md
+ M .ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md
+ D .ai/issues/refine/ISSUE-018-goal-start-in-worktree.md
+ M .ai/issues/refine/ISSUE-019-parallel-multiple-goals.md
+ M .pi/extensions/goal/.sentrux/baseline.json
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/raw/commands.log
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/raw/final-validation.log
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/raw/issue018-invariant-probe.log
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/raw/quality-goal-open-promotion.log
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/raw/sentrux-gate.log
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/raw/stale-018-references-before.log
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/raw/stale-reference-audit.log
+?? .ai/issues/open/ISSUE-018-goal-start-in-worktree.md

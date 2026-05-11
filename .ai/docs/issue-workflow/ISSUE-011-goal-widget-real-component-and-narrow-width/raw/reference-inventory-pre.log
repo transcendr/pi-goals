@@ -1,0 +1,54 @@
+## dependency/reference inventory before ISSUE-011 promotion
+$ rg -n ".ai/issues/refine/ISSUE-011|ISSUE-011-goal-widget-real-component-and-narrow-width|ISSUE-011" .ai/issues .ai/docs README.md .pi/extensions/goal package.json
+.ai/issues/open/ISSUE-015-goal-subgoals.md:16:- `.ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md`
+.ai/issues/open/ISSUE-015-goal-subgoals.md:159:- `.ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md`
+.ai/issues/refine/ISSUE-014-goal-progress-estimates.md:11:Depends on: `.ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md`
+.ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md:1:# ISSUE-011 — Refine goal widget component/layout strategy
+.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/33-stack-inventory-after-promotion.md:25:6. `.ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md`
+.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/13-queue-continuation-note.md:17:Then ISSUE-022, ISSUE-018, ISSUE-019, ISSUE-023, ISSUE-011, ISSUE-014, and ISSUE-013.
+.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/refine-inventory-final.log:1:.ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md
+.ai/issues/fixed/ISSUE-007-goal-budget-warning-and-hard-stop.md:40:- Widget layout/card refactor; see `ISSUE-011` in refine.
+.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/current-refine-open-inventory-summary.log:7:refine .ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md
+.ai/issues/fixed/ISSUE-009-goal-budget-edit-status-recompute.md:39:- Widget card/layout refactor; see `ISSUE-011`.
+.ai/issues/fixed/ISSUE-025-goal-line-breaks-widget-rendering.md:14:- `.ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md`
+.ai/issues/fixed/ISSUE-025-goal-line-breaks-widget-rendering.md:90:- Do not broaden into ISSUE-011 card/Box/narrow-width refinement.
+.ai/docs/issue-workflow/ISSUE-024-goal-audit-command/19-current-inventory-after-promotion.md:13:5. `.ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md`
+.ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/raw/commands.log:19:ISSUE-011-goal-widget-real-component-and-narrow-width.md
+.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/33-queue-continuation-note.md:17:- Continue the stack with ISSUE-015 next, then ISSUE-016, ISSUE-024, ISSUE-022, ISSUE-018, ISSUE-019, ISSUE-023, ISSUE-011, ISSUE-014, and ISSUE-013.
+.ai/docs/issue-workflow/ISSUE-024-goal-audit-command/06-final-audit.md:64:5. `.ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md`
+.ai/docs/issue-workflow/ISSUE-024-goal-audit-command/raw/refine-inventory-final.log:1:.ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md
+.ai/docs/issue-workflow/ISSUE-036-minimum-goal-spend-floors/raw/commands.log:42:.ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md
+.ai/docs/issue-workflow/ISSUE-036-minimum-goal-spend-floors/raw/commands.log:1071:./.ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md
+.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/refine-inventory-final.log:1:.ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md
+.ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/01-open-promotion-addendum.md:19:9. `.ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md`
+.ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/03-design-lock.md:126:- The first pass does not implement a full dashboard; ISSUE-011 can later improve component layout.
+.ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/commands.log:38:.ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md
+.ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/commands.log:123:.ai/issues/open/ISSUE-015-goal-subgoals.md:16:- `.ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md`
+.ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/commands.log:214:.ai/issues/open/ISSUE-015-goal-subgoals.md:159:- `.ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md`
+.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/raw/open-refine-inventory-after-promotion.log:3:.ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md
+.ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/final-order.md:25:9. `.ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md` — Goal widget component/layout strategy.
+.ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/final-order.md:39:- ISSUE-011 comes before ISSUE-014 because progress rendering depends on widget/layout decisions.
+.ai/docs/issue-workflow/ISSUE-025-goal-line-breaks-widget-rendering/03-design-lock.md:21:  widget_redesign,"perform full card/Box/narrow-width redesign","belongs to ISSUE-011 refine, too broad for this bug"
+.ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/pre-refinement-widget-gap.log:1:# commands.log — ISSUE-011 refinement
+.ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/raw/commands.log:64:.ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md
+.ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/raw/commands.log:219:.ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md:14:- At narrow widths, the framed header can degrade or truncate instead of switching to a clean compact layout.
+.ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/raw/commands.log:220:.ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md:28:5. What exact compact layout should be shown below that minimum?
+.ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/raw/commands.log:221:.ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md:33:- Widths below the viable framed minimum switch to compact unframed rows.
+.ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/raw/commands.log:222:.ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md:42:- [ ] 011.2 Decide whether to use `Box`/`Text`/`Container`, custom border rendering, or compact-only rendering.
+.ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/raw/commands.log:223:.ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md:43:- [ ] 011.3 Specify exact width thresholds and compact layout for each status.
+.ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/raw/commands.log:931:$ git status --short --untracked-files=all | rg "ISSUE-022|ISSUE-018|ISSUE-019|ISSUE-023|ISSUE-011|ISSUE-014|ISSUE-013|sentrux|refine-issue-leverage-order|ISSUE-015|ISSUE-016|ISSUE-021|ISSUE-024"
+.ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/raw/commands.log:1455:PASS ISSUE-011 covered
+.ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/commands.log:540:.ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md
+.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/02-grounded-research.md:48:- `.ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md` means subgoal UI must be conservative until widget strategy is refined.
+.ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/16-queue-continuation-note.md:27:- `.ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md`
+.ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/raw/commands.log:1:# commands.log — ISSUE-011 refinement
+.ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/final-inventory.log:4:.ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md
+.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/05-issue-writeback.md:24:- Existing dependencies on ISSUE-011 and ISSUE-014 were downgraded to related issues because first release only needs compact child rendering/counts and does not require progress-percent or widget-card redesign first.
+.ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/14-stack-compatibility-review.md:8:- `.ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md`
+.ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/14-stack-compatibility-review.md:17:- ISSUE-011 widget layout affects how latest checkpoint/count hints may render later, but ISSUE-022 should keep widget changes minimal and prefer detailed history in tool/command output.
+.ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/14-stack-compatibility-review.md:33:  "ISSUE-011","future widget can render latest checkpoint hints","keep first-pass history detail in command/tool output"
+.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/path-existence-audit.log:22:PASS .ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md
+.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/15-queue-continuation-note.md:17:- Continue the stack with ISSUE-016 next, then ISSUE-024, ISSUE-022, ISSUE-018, ISSUE-019, ISSUE-023, ISSUE-011, ISSUE-014, and ISSUE-013.
+.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/refine-inventory-final.log:1:.ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md
+.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/stack-order-after-promotion-probe.log:3:PASS ISSUE-015 absent from refine inventory :: .ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md,.ai/issues/refine/ISSUE-013-goal-update-natural-language.md,.ai/issues/refine/ISSUE-014-goal-progress-estimates.md,.ai/issues/refine/ISSUE-016-goal-idle-tolerant-mode.md,.ai/issues/refine/ISSUE-018-goal-start-in-worktree.md,.ai/issues/refine/ISSUE-019-parallel-multiple-goals.md,.ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md,.ai/issues/refine/ISSUE-023-goal-dependency-triggers-and-watchers.md,.ai/issues/refine/ISSUE-024-goal-audit-command.md
+.ai/docs/issue-workflow/ISSUE-015-goal-subgoals/raw/open-path-audit.log:50:PASS .ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md exists

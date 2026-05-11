@@ -1,0 +1,8 @@
+
+## validation expansion probe for ISSUE-019 planning invariant
+$ node - <<'NODE'
+
+## validation expansion probe rerun with exact rejected-alternative wording
+$ node - <<'NODE'
+PASS issue019_invariant_probe multi_goal_design_locked links=12 proof_rows=8
+node_probe_exit=0

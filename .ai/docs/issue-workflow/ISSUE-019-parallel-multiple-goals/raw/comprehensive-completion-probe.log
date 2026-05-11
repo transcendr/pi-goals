@@ -1,0 +1,4 @@
+## final comprehensive completion probe
+$ node - <<'NODE'
+PASS issue019_comprehensive_completion artifacts=19 proof_rows=8
+covers_objective=open issue exists, refine copy absent, all artifacts linked, required design invariants present, required proof block shaped, and key validation logs green

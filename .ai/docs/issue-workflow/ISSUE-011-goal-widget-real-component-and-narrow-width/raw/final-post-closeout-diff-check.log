@@ -1,0 +1,3 @@
+## final post-closeout diff check
+$ git diff --check
+PASS final_post_closeout_diff_check

@@ -1,0 +1,8 @@
+
+## protocol coverage probe after direct artifact readback
+$ node - <<'NODE'
+
+## protocol coverage probe rerun with source-artifact exact wording
+$ node - <<'NODE'
+PASS issue019_protocol_coverage reads=9 research=6 issue_research=6 design=6
+covers_objective=confirms mandatory protocol-read, grounded research writeback, and design-lock facts are present in artifacts and canonical issue

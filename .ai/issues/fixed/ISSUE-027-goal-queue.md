@@ -12,8 +12,8 @@ Target repo roots: `/Users/bryan/dev/personal/experiments/pi-goals`
 Parent issue: `.ai/issues/fixed/ISSUE-001-pi-goal-extension.md`
 Depends on: none for first pass
 Related:
-- `.ai/issues/refine/ISSUE-019-parallel-multiple-goals.md`
-- `.ai/issues/refine/ISSUE-023-goal-dependency-triggers-and-watchers.md`
+- `.ai/issues/open/ISSUE-019-parallel-multiple-goals.md`
+- `.ai/issues/open/ISSUE-023-goal-dependency-triggers-and-watchers.md`
 
 Goal: Add a durable sequential queue for future pi-goals so users and agents can enqueue goals while another goal is active, inspect the queue, and advance to the next queued goal after the current goal completes or clears.
 

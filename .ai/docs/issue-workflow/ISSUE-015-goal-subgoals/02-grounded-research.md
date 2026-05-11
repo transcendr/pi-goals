@@ -44,8 +44,8 @@ Sentrux planning sensor result: quality `6241`; no implementation was changed fo
 
 ### Related issue facts
 
-- `.ai/issues/refine/ISSUE-014-goal-progress-estimates.md` says progress must not weaken completion audit; subgoal aggregate progress should likewise remain advisory.
-- `.ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md` means subgoal UI must be conservative until widget strategy is refined.
+- `.ai/issues/open/ISSUE-014-goal-progress-estimates.md` says progress must not weaken completion audit; subgoal aggregate progress should likewise remain advisory.
+- `.ai/issues/open/ISSUE-011-goal-widget-real-component-and-narrow-width.md` means subgoal UI must be conservative until widget strategy is refined.
 - `.ai/issues/refine/ISSUE-021-goal-completion-proofs.md` locks durable proof gates for top-level goals; subgoal proof integration should reuse that design when available, but first subgoal state should not depend on ISSUE-021 landing first.
 - `.ai/issues/refine/ISSUE-022-goal-history-checkpoints-and-compaction.md` depends on subgoal semantics; child start/finish/blocker events will become checkpoint material later.
 - `.ai/issues/refine/ISSUE-024-goal-audit-command.md` should consume subgoal state in future; subgoals should provide deterministic completion blockers independent of audit command UX.

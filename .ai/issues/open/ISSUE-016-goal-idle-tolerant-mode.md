@@ -15,8 +15,8 @@ Depends on:
 - `.ai/issues/fixed/ISSUE-003-paused-goal-continuation-guard.md`
 Related:
 - `.ai/issues/open/ISSUE-015-goal-subgoals.md`
-- `.ai/issues/refine/ISSUE-018-goal-start-in-worktree.md`
-- `.ai/issues/refine/ISSUE-023-goal-dependency-triggers-and-watchers.md`
+- `.ai/issues/open/ISSUE-018-goal-start-in-worktree.md`
+- `.ai/issues/open/ISSUE-023-goal-dependency-triggers-and-watchers.md`
 - `.ai/issues/open/ISSUE-037-goal-queue-auto-continuation-after-complete.md`
 - `.ai/docs/pi-goals-live-probe-testing.md`
 

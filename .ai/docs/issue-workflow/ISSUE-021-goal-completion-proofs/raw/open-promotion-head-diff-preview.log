@@ -3,7 +3,7 @@
 @@ -1,64 +1,328 @@
 -# ISSUE-021 — Refine durable/auditable goal completion proofs
 +# ISSUE-021 — Durable/auditable goal completion proofs
- 
+
 -Status: refine — needs design decision before execution
 +Status: open — execution-ready for first proof-gate implementation pass
  Priority: P1
@@ -30,22 +30,22 @@
 +- `.ai/issues/refine/ISSUE-024-goal-audit-command.md`
 +- `.ai/issues/open/ISSUE-037-goal-queue-auto-continuation-after-complete.md`
 +- `.ai/docs/pi-goals-live-probe-testing.md`
- 
+
 -Goal: Design goal completion proof gates: durable commands/conditions that must pass before a goal can be considered complete.
 +## Goal
- 
+
 -## Problem
 +Add durable/auditable proof gates for `pi-goals`: explicit proof commands and pass conditions that must have fresh passing results before a goal can be marked complete.
- 
+
 -The current continuation prompt asks the agent to audit completion, but completion is still ultimately a model judgment through `update_goal(status:"complete")`. Some goals should have explicit durable proof commands and pass/fail conditions, such as `exit 0` or output containing `SUCCESS`, that must pass before completion is allowed.
 +Proof gates complement, but do not replace, the qualitative completion audit. The agent still needs to verify that the objective is actually satisfied; proof gates provide runtime-enforced evidence for requirements that can be checked by bounded commands.
- 
+
 -## Desired behavior sketch
 +## Problem/context
- 
+
 -A goal may include proof gates like:
 +Current completion is still ultimately a model action through `update_goal(status:"complete")`. The continuation prompt asks for a completion audit, and ISSUE-036 added hard completion floors, but there is no way to attach durable command-based proofs such as:
- 
+
  ```text
 -proofs:
 -  - command: npm test
@@ -55,14 +55,14 @@
 +npm run quality:goal exits 0
 +node .ai/validation/specific-probe.mjs exits 0 and prints PASS
  ```
- 
+
 -Before `update_goal(status:"complete")` succeeds, the runtime or tool checks the gates and records proof results. Failed or stale proofs block completion with clear evidence.
 +Recent issues raise the priority:
- 
+
 -## Open design questions
 +- ISSUE-036 showed hard completion gates can be added safely through a shared completion decision module.
 +- ISSUE-037 documented a live queue-continuation false-green/stop failure after a goal was marked complete while queued work remained.
- 
+
 -1. Are proof gates stored in goal state, prompt-doc frontmatter, subgoals, or all of the above?
 -2. Who runs proof commands: the model manually, the extension runtime, or a delegated verifier tool?
 -3. How are command timeouts, working directory, env vars, and output caps handled?
@@ -70,10 +70,10 @@
 -5. What condition DSL is safe and expressive enough (`exit 0`, `contains`, regex, JSON path)?
 -6. Can users override failed proofs, and how is that audited?
 +Some goals need explicit proof gates that make false-green completion difficult even when the model is overconfident, distracted, or missing context.
- 
+
 -## Candidate acceptance criteria after refinement
 +## Transcript artifacts
- 
+
 -- Proof gates are explicit, durable, and replayable with bounded output storage.
 -- Completion is blocked when required proofs have not passed or have gone stale.
 -- Conditions support at least exit status and output containment.
@@ -114,15 +114,15 @@
 +- Migration consistency audit: `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/25-migration-consistency-audit.md`
 +- Current code readiness audit: `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/26-current-code-readiness-audit.md`
 +- Downstream reference update: `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/27-downstream-reference-update.md`
- 
+
 -## Non-goals for first refinement
 +## Desired behavior
- 
+
 -- Arbitrary shell execution from untrusted prompt docs without confirmation.
 -- Full CI/CD integration.
 -- Cryptographic attestation.
 +Users/agents can configure required proof gates on a goal. A proof gate includes at minimum:
- 
+
 -## Refinement todos
 +- stable proof id;
 +- trusted requirement source/reference;
@@ -133,7 +133,7 @@
 +- condition type and expected value when applicable;
 +- freshness policy;
 +- required/optional flag, with first release focused on required gates.
- 
+
 -- [ ] Define proof schema and condition DSL.
 -- [ ] Decide runtime-executed vs agent-executed proof model.
 -- [ ] Define freshness/staleness semantics.

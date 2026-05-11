@@ -1,0 +1,20 @@
+$ python3 - <<PY
+PASS open_issue_exists
+PASS refine_issue_removed
+PASS refine_bucket_empty
+PASS required_artifacts_exist
+PASS raw_artifacts_exist
+PASS all_required_artifacts_linked
+PASS raw_evidence_linked
+PASS quality_log_passed
+PASS sentrux_passed
+PASS diff_check_passed
+PASS deterministic_parser_locked
+PASS completion_refusal_locked
+PASS confirmation_locked
+PASS literal_validation_locked
+PASS progress_advisory_locked
+PASS required_proofs_shape
+PASS no_external_stale_refine_refs
+PASS issue013_comprehensive_completion artifacts=7 raw=9
+python_exit=0

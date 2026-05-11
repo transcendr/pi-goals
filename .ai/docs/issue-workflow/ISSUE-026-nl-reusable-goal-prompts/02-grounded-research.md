@@ -7,7 +7,7 @@
 - `.pi/extensions/goal/command.ts`
 - `.pi/extensions/goal/tools.ts`
 - `.ai/issues/fixed/ISSUE-017-reusable-goal-prompt-docs.md`
-- `.ai/issues/refine/ISSUE-013-goal-update-natural-language.md`
+- `.ai/issues/open/ISSUE-013-goal-update-natural-language.md`
 - `.gitignore`
 
 ## Current reusable-template behavior

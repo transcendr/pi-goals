@@ -13,7 +13,7 @@ Parent issue: `.ai/issues/fixed/ISSUE-001-pi-goal-extension.md`
 Depends on:
 - `.ai/issues/fixed/ISSUE-017-reusable-goal-prompt-docs.md`
 Related:
-- `.ai/issues/refine/ISSUE-013-goal-update-natural-language.md`
+- `.ai/issues/open/ISSUE-013-goal-update-natural-language.md`
 - `.ai/.pi-goals/create-issue-doc.md`
 
 Goal: Let the agent create/start a persistent goal from any `.pi-goals/` reusable prompt using explicit natural language, with the model filling structured template arguments and the extension resolving the final objective through the existing deterministic template resolver.

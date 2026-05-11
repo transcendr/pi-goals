@@ -1,0 +1,6 @@
+# commands.log — ISSUE-023 refinement
+
+## validation_expansion: pre-refinement invariant gap probe
+$ node - <<'NODE'
+PASS issue023_pre_refinement_gap_probe invariant_signals=4 open_forks=4
+covers_invariant=current refine issue names stale-guard/visibility/timeout invariants but still has unresolved watcher-type, execution-owner, persistence, and multi-goal/worktree forks; promoted issue must lock these or later completion audit fails.

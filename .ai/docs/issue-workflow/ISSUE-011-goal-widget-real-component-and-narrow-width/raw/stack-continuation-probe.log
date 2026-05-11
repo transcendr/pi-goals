@@ -1,0 +1,6 @@
+## stack continuation probe
+$ test ISSUE-014 depends on open ISSUE-011 path and ISSUE-011 links continuation note
+11:Depends on: `.ai/issues/open/ISSUE-011-goal-widget-real-component-and-narrow-width.md`
+38:- `.ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/09-stack-continuation-note.md`
+$ git diff --check
+PASS stack_continuation_probe

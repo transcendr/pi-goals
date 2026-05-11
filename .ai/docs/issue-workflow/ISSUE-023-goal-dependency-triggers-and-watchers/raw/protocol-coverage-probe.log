@@ -1,0 +1,5 @@
+
+## protocol coverage probe
+
+## protocol coverage probe rerun with exact artifact wording
+PASS issue023_protocol_coverage reads=9 research=6 design=8 issue=6

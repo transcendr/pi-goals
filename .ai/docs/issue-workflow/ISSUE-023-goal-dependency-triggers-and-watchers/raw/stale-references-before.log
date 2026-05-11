@@ -1,0 +1,27 @@
+
+## stale references before ISSUE-023 promotion cleanup
+.ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/01-open-promotion-addendum.md:18:8. `.ai/issues/refine/ISSUE-023-goal-dependency-triggers-and-watchers.md`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:19:- `.ai/issues/refine/ISSUE-023-goal-dependency-triggers-and-watchers.md`
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md:147:- `.ai/issues/refine/ISSUE-023-goal-dependency-triggers-and-watchers.md`
+.ai/issues/open/ISSUE-023-goal-dependency-triggers-and-watchers.md:37:- Request intake: `.ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/00-request.md`
+.ai/issues/open/ISSUE-023-goal-dependency-triggers-and-watchers.md:38:- Protocol read: `.ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/01-protocol-read.md`
+.ai/issues/open/ISSUE-023-goal-dependency-triggers-and-watchers.md:39:- Grounded research: `.ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/02-grounded-research.md`
+.ai/issues/open/ISSUE-023-goal-dependency-triggers-and-watchers.md:40:- Design lock: `.ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/03-design-lock.md`
+.ai/issues/open/ISSUE-023-goal-dependency-triggers-and-watchers.md:41:- Proof threat model: `.ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/04-proof-threat-model.md`
+.ai/issues/open/ISSUE-023-goal-dependency-triggers-and-watchers.md:42:- Issue writeback: `.ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/05-issue-writeback.md`
+.ai/issues/open/ISSUE-023-goal-dependency-triggers-and-watchers.md:43:- Final audit: `.ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/06-final-audit.md`
+.ai/issues/open/ISSUE-023-goal-dependency-triggers-and-watchers.md:44:- Raw command log: `.ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/commands.log`
+.ai/issues/open/ISSUE-023-goal-dependency-triggers-and-watchers.md:45:- Pre-refinement invariant gap probe: `.ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/pre-refinement-invariant-gap.log`
+.ai/issues/open/ISSUE-023-goal-dependency-triggers-and-watchers.md:46:- Grounded research command log: `.ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/grounded-research-commands.log`
+.ai/issues/open/ISSUE-023-goal-dependency-triggers-and-watchers.md:47:- Design/proof invariant probe: `.ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/design-proof-invariant-probe.log`
+.ai/issues/open/ISSUE-023-goal-dependency-triggers-and-watchers.md:48:- Stale reference audit: `.ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/stale-reference-audit.log`
+.ai/issues/open/ISSUE-023-goal-dependency-triggers-and-watchers.md:49:- Quality gate log: `.ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/quality-goal-open-promotion.log`
+.ai/issues/open/ISSUE-023-goal-dependency-triggers-and-watchers.md:50:- Final validation log: `.ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/final-validation.log`
+.ai/issues/open/ISSUE-023-goal-dependency-triggers-and-watchers.md:128:Source artifact: `.ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/02-grounded-research.md`.
+.ai/issues/open/ISSUE-023-goal-dependency-triggers-and-watchers.md:143:Source artifact: `.ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/03-design-lock.md`.
+.ai/issues/open/ISSUE-023-goal-dependency-triggers-and-watchers.md:199:Source artifact: `.ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/04-proof-threat-model.md`.
+.ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/final-order.md:24:8. `.ai/issues/refine/ISSUE-023-goal-dependency-triggers-and-watchers.md` — Goal dependency triggers and external watchers.
+.ai/issues/open/ISSUE-022-goal-history-checkpoints-and-compaction.md:20:- `.ai/issues/refine/ISSUE-023-goal-dependency-triggers-and-watchers.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:19:- `.ai/issues/refine/ISSUE-023-goal-dependency-triggers-and-watchers.md`
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:22:- `.ai/issues/refine/ISSUE-023-goal-dependency-triggers-and-watchers.md`
+.ai/issues/fixed/ISSUE-027-goal-queue.md:16:- `.ai/issues/refine/ISSUE-023-goal-dependency-triggers-and-watchers.md`

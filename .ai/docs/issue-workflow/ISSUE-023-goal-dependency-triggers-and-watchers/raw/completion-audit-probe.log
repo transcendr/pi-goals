@@ -1,0 +1,4 @@
+
+## completion audit validation
+PASS issue023_completion_audit_coverage checks=8
+diff_check_exit=0

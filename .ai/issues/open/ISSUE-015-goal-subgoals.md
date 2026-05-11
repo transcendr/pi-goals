@@ -13,9 +13,9 @@ Target repo roots: `/Users/bryan/dev/personal/experiments/pi-goals`
 Parent issue: `.ai/issues/fixed/ISSUE-001-pi-goal-extension.md`
 Depends on: none for the first nested-child pass
 Related:
-- `.ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md`
+- `.ai/issues/open/ISSUE-011-goal-widget-real-component-and-narrow-width.md`
 - `.ai/issues/refine/ISSUE-014-goal-progress-estimates.md`
-- `.ai/issues/refine/ISSUE-019-parallel-multiple-goals.md`
+- `.ai/issues/open/ISSUE-019-parallel-multiple-goals.md`
 - `.ai/issues/open/ISSUE-021-goal-completion-proofs.md`
 - `.ai/issues/open/ISSUE-022-goal-history-checkpoints-and-compaction.md`
 - `.ai/issues/open/ISSUE-024-goal-audit-command.md`
@@ -156,7 +156,7 @@ Inspected surfaces:
 - `.pi/extensions/goal/command.ts`
 - `.ai/.pi-goals/deslop-pipeline.md`
 - `.ai/.pi-goals/dirty-worktree-cleanup.md`
-- `.ai/issues/refine/ISSUE-011-goal-widget-real-component-and-narrow-width.md`
+- `.ai/issues/open/ISSUE-011-goal-widget-real-component-and-narrow-width.md`
 - `.ai/issues/refine/ISSUE-014-goal-progress-estimates.md`
 - `.ai/issues/open/ISSUE-021-goal-completion-proofs.md`
 - `.ai/issues/open/ISSUE-022-goal-history-checkpoints-and-compaction.md`

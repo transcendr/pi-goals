@@ -1,0 +1,63 @@
+## focused source excerpts for ISSUE-014 design
+$ rg --glob !*.map -n progress estimate surfaces
+.ai/issues/open/ISSUE-011-goal-widget-real-component-and-narrow-width.md:61:2. Keep rendering pure and deterministic through `renderGoalWidget(goal, theme, width)`.
+.ai/issues/open/ISSUE-011-goal-widget-real-component-and-narrow-width.md:97:3. Keep `GoalWidget.render(width)` delegating to `renderGoalWidget(goal, theme, width)`.
+.pi/extensions/goal/command.ts:19:import { notifyGoal, notifyInfo, notifyWarning, showGoalSummary, showNoGoal, syncGoalUi } from "./ui";
+.pi/extensions/goal/command.ts:200:	syncGoalUi(ctx, goal);
+.pi/extensions/goal/command.ts:228:	syncGoalUi(ctx, paused);
+.pi/extensions/goal/command.ts:267:	syncGoalUi(ctx, active);
+.pi/extensions/goal/command.ts:279:	syncGoalUi(ctx, result.goal);
+.pi/extensions/goal/completion-gate.ts:18:export function decideGoalCompletion(input: GoalCompletionGateInput): CompletionDecision {
+.pi/extensions/goal/widget.ts:41:export function renderGoalWidget(goal: GoalState, theme: GoalWidgetTheme, width: number): string[] {
+.pi/extensions/goal/widget.ts:42:	if (width < MIN_CARD_WIDTH) return compactLines(goal, theme, width);
+.pi/extensions/goal/widget.ts:62:		return renderGoalWidget(this.goal, this.theme, width);
+.pi/extensions/goal/widget.ts:68:function compactLines(goal: GoalState, theme: GoalWidgetTheme, width: number): string[] {
+.pi/extensions/goal/continuation.ts:86:	if (telemetry && telemetry.consecutiveNoProgressTurns >= MAX_NO_PROGRESS_AUTO_TURNS) return skip(pi, "safetyCap");
+.pi/extensions/goal/lifecycle.ts:31:import { notifyWarning, promptResumePausedGoal, syncGoalUi } from "./ui";
+.pi/extensions/goal/lifecycle.ts:43:		syncGoalUi(ctx, state.goal);
+.pi/extensions/goal/lifecycle.ts:60:	syncGoalUi(ctx, state.goal);
+.pi/extensions/goal/lifecycle.ts:68:			syncGoalUi(ctx, active);
+.pi/extensions/goal/lifecycle.ts:116:		syncGoalUi(ctx, stopped);
+.pi/extensions/goal/lifecycle.ts:175:function noteGoalUpdateResult(details: unknown): void {
+.pi/extensions/goal/lifecycle.ts:238:	syncGoalUi(ctx, goal);
+.pi/extensions/goal/lifecycle.ts:255:	syncGoalUi(ctx, paused);
+.pi/extensions/goal/lifecycle.ts:261:	return telemetry.consecutiveAutoTurns >= MAX_CONSECUTIVE_AUTO_TURNS || telemetry.consecutiveNoProgressTurns >= MAX_NO_PROGRESS_AUTO_TURNS;
+.pi/extensions/goal/lifecycle.ts:285:	syncGoalUi(ctx, result.goal);
+.pi/extensions/goal/state.ts:4:import type { GoalRuntimeState, GoalState, GoalTelemetrySnapshot, MutationResult, PiGoalEventReason, PiGoalStateEvent } from "./types";
+.pi/extensions/goal/state.ts:120:	input: Omit<PiGoalStateEvent, "version" | "at">,
+.pi/extensions/goal/state.ts:122:	const event: PiGoalStateEvent = { version: STATE_EVENT_VERSION, at: Date.now(), ...input };
+.pi/extensions/goal/state.ts:128:function applyEvent(state: GoalRuntimeState, event: PiGoalStateEvent): GoalRuntimeState {
+.pi/extensions/goal/state.ts:137:function entryToGoalEvent(entry: unknown): PiGoalStateEvent | null {
+.pi/extensions/goal/state.ts:144:function isGoalEvent(value: unknown): value is PiGoalStateEvent {
+.pi/extensions/goal/monitor-prompts.ts:154:    <consecutive_no_progress_turns>${telemetry.consecutiveNoProgressTurns}</consecutive_no_progress_turns>
+.pi/extensions/goal/monitor-prompts.ts:162:    <last_progress_at>${telemetry.lastProgressAt ?? "unknown"}</last_progress_at>
+.pi/extensions/goal/tool-results.ts:57:export function formatToolGoal(goal: GoalState | null): string {
+.pi/extensions/goal/telemetry.ts:36:		consecutiveNoProgressTurns: 0,
+.pi/extensions/goal/telemetry.ts:123:		consecutiveNoProgressTurns: 0,
+.pi/extensions/goal/telemetry.ts:143:		consecutiveNoProgressTurns: auto && !madeProgress ? telemetry.consecutiveNoProgressTurns + 1 : 0,
+.pi/extensions/goal/telemetry.ts:148:		lastProgressAt: madeProgress ? now : telemetry.lastProgressAt,
+.pi/extensions/goal/ui.ts:3:import { footerStatusText, goalSummaryLines, goalUsageSummary, statusLabel } from "./format";
+.pi/extensions/goal/ui.ts:7:export function syncGoalUi(ctx: ExtensionContext, goal: GoalState | null): void {
+.pi/extensions/goal/ui.ts:13:	ctx.ui.setStatus(STATUS_UI_KEY, footerStatusText(goal));
+.pi/extensions/goal/ui.ts:22:	ctx.ui.notify(goalSummaryLines(goal).join("\n"), "info");
+.pi/extensions/goal/queue-tools.ts:10:import { syncGoalUi } from "./ui";
+.pi/extensions/goal/queue-tools.ts:77:			syncGoalUi(ctx, getGoal());
+.pi/extensions/goal/queue-tools.ts:165:	syncGoalUi(ctx, goal);
+.pi/extensions/goal/format.ts:125:export function footerStatusText(goal: GoalState): string {
+.pi/extensions/goal/format.ts:161:export function goalSummaryLines(goal: GoalState): string[] {
+.pi/extensions/goal/types.ts:5:export type GoalState = {
+.pi/extensions/goal/types.ts:59:export type GoalTelemetrySnapshot = {
+.pi/extensions/goal/types.ts:66:	consecutiveNoProgressTurns: number;
+.pi/extensions/goal/types.ts:74:	lastProgressAt?: number;
+.pi/extensions/goal/types.ts:103:export type PiGoalStateEvent = {
+.pi/extensions/goal/tools.ts:5:import { decideGoalCompletion, type CompletionDecision } from "./completion-gate";
+.pi/extensions/goal/tools.ts:12:import { syncGoalUi } from "./ui";
+.pi/extensions/goal/tools.ts:35:const UpdateGoalParams = Type.Object({
+.pi/extensions/goal/tools.ts:150:		parameters: UpdateGoalParams,
+.pi/extensions/goal/tools.ts:173:			syncGoalUi(ctx, null);
+.pi/extensions/goal/tools.ts:210:type UpdateGoalInput = {
+.pi/extensions/goal/tools.ts:253:	syncGoalUi(ctx, goal);
+.pi/extensions/goal/tools.ts:269:	const completionDecision = decideGoalCompletion({
+.pi/extensions/goal/tools.ts:283:	syncGoalUi(ctx, update.goal);
+.pi/extensions/goal/tools.ts:299:	syncGoalUi(ctx, goal);
+.pi/extensions/goal/tools.ts:327:function buildGoalUpdate(goal: GoalState, params: UpdateGoalInput): GoalUpdateResult {

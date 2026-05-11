@@ -1,0 +1,5 @@
+
+## validation_expansion: design/proof invariant coverage probe
+$ node - <<'NODE'
+PASS issue023_design_proof_invariant_coverage design_checks=11 proof_rows=8
+covers_invariant=probe would fail if the locked design omitted watcher kind bounds, extension ownership, replay/reload, stale delivery guards, local-active boundary, list/cancel surface, or required proof rows.

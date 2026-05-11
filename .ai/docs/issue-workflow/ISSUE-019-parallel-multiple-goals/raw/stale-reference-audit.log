@@ -1,0 +1,6 @@
+
+## stale dependency path audit after promotion
+$ rg -n "\.ai/issues/refine/ISSUE-019-parallel-multiple-goals\.md" .ai/issues .ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10 --glob "!**/raw/**"
+PASS stale_refine_issue019_refs=0
+$ test -f .ai/issues/open/ISSUE-019-parallel-multiple-goals.md && test ! -e .ai/issues/refine/ISSUE-019-parallel-multiple-goals.md
+PASS issue019_open_exists_refine_absent

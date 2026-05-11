@@ -1,0 +1,21 @@
+## ISSUE-013 command log
+started_at: 2026-05-11T07:27:21Z
+
+# Existing pre-refinement probe present
+-rw-r--r--@ 1 bryan  staff  540 May 11 09:23 .ai/docs/issue-workflow/ISSUE-013-goal-update-natural-language/raw/pre-refinement-nl-update-invariant-probe.log
+$ rm .ai/issues/refine/ISSUE-013-goal-update-natural-language.md
+removed refine issue after open promotion
+$ updated external stale ISSUE-013 refine references to open path
+.ai/issues/fixed/ISSUE-026-nl-reusable-goal-prompts.md
+.ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/06-final-audit.md
+.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/33-stack-inventory-after-promotion.md
+.ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/09-stack-continuation-note.md
+.ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/01-open-promotion-addendum.md
+.ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/final-order.md
+.ai/docs/issue-workflow/ISSUE-026-nl-reusable-goal-prompts/02-grounded-research.md
+.ai/docs/issue-workflow/ISSUE-024-goal-audit-command/19-current-inventory-after-promotion.md
+.ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/14-stack-compatibility-review.md
+.ai/docs/issue-workflow/ISSUE-024-goal-audit-command/06-final-audit.md
+.ai/docs/issue-workflow/ISSUE-022-goal-history-checkpoints-and-compaction/16-queue-continuation-note.md
+.ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/09-stack-continuation-note.md
+.ai/docs/issue-workflow/ISSUE-011-goal-widget-real-component-and-narrow-width/06-final-audit.md

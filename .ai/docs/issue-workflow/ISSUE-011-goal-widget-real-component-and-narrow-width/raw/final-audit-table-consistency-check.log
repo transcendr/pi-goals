@@ -1,0 +1,4 @@
+## final audit table consistency check
+$ rg final-final-diff-check in final audit and git diff --check
+53:| Final diff check after last audit edit | `raw/final-final-diff-check.log` | PASS |
+PASS final_audit_table_consistency_check

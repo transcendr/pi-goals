@@ -1,0 +1,1055 @@
+$ rg -n "update_goal|progressCount|completedGoal|goalUpdated|toolName|details.goal|details.error" .pi/extensions/goal/lifecycle.ts .pi/extensions/goal/tool-results.ts .pi/extensions/goal/completion-gate.ts .pi/extensions/goal/prompts.ts
+.pi/extensions/goal/prompts.ts:35:Do not rely on intent, partial progress, elapsed effort, memory of earlier work, or a plausible final answer as proof of completion. Only mark the goal achieved when the audit shows that the objective has actually been achieved and no required work remains. If any requirement is missing, incomplete, or unverified, keep working instead of marking the goal complete. If the objective is achieved, call update_goal with status "complete" so usage accounting is preserved. Report the final elapsed time, and if the achieved goal has a token budget, report the final consumed token budget to the user after update_goal succeeds.
+.pi/extensions/goal/prompts.ts:37:Do not call update_goal unless the goal is complete. Do not mark a goal complete merely because the budget is nearly exhausted or because you are stopping work.`,
+.pi/extensions/goal/prompts.ts:52:Stop substantive work on this goal now. Briefly acknowledge that the goal is paused and wait for /goal resume before continuing goal pursuit. Do not call update_goal unless the goal is actually complete.`,
+.pi/extensions/goal/prompts.ts:74:Do not call update_goal unless the goal is actually complete.`,
+.pi/extensions/goal/lifecycle.ts:171:	if (event.toolName === "update_goal") return noteGoalUpdateResult(event.details);
+.pi/extensions/goal/lifecycle.ts:172:	activeTurn.progressCount++;
+.pi/extensions/goal/lifecycle.ts:181:		activeTurn.progressCount++;
+.pi/extensions/goal/lifecycle.ts:182:		if ((goal as Record<string, unknown>).status === "complete") activeTurn.completedGoal = true;
+.pi/extensions/goal/lifecycle.ts:199:	const madeProgress = turn.completedGoal || turn.progressCount > 0;
+.pi/extensions/goal/lifecycle.ts:232:	finishTurnGoal(pi, ctx, updated, turn.completedGoal);
+\n$ rg -n "update|goal|budget|time_budget|token_budget|min_time|min_tokens|progress" .pi/extensions/goal/*.ts README.md .ai/issues/open/ISSUE-014-goal-progress-estimates.md
+.pi/extensions/goal/lifecycle.ts:23:import { evaluateBudgetPressure, isBudgetHardStop, isBudgetReached, isBudgetWarning } from "./budget";
+.pi/extensions/goal/lifecycle.ts:43:		syncGoalUi(ctx, state.goal);
+.pi/extensions/goal/lifecycle.ts:44:		if (state.goal?.status === "active") scheduleGoalMonitor(pi, ctx);
+.pi/extensions/goal/lifecycle.ts:45:		else cancelGoalMonitor(state.goal?.goalId, "session-tree");
+.pi/extensions/goal/lifecycle.ts:52:	pi.on("message_update", (event, ctx) => handleMessageUpdate(pi, event, ctx));
+.pi/extensions/goal/lifecycle.ts:60:	syncGoalUi(ctx, state.goal);
+.pi/extensions/goal/lifecycle.ts:61:	if (state.goal?.status === "active") scheduleGoalMonitor(pi, ctx);
+.pi/extensions/goal/lifecycle.ts:62:	else cancelGoalMonitor(state.goal?.goalId, "session-start");
+.pi/extensions/goal/lifecycle.ts:63:	if (event.reason !== "reload" && state.goal?.status === "paused" && ctx.hasUI) {
+.pi/extensions/goal/lifecycle.ts:64:		const resume = await promptResumePausedGoal(ctx, state.goal);
+.pi/extensions/goal/lifecycle.ts:66:			const active: GoalState = { ...state.goal, status: "active", updatedAt: Date.now() };
+.pi/extensions/goal/lifecycle.ts:76:	const goal = getGoal();
+.pi/extensions/goal/lifecycle.ts:77:	if (!goal) {
+.pi/extensions/goal/lifecycle.ts:81:	// Track turns for active and budget-limited goals so budget hard-stop detection
+.pi/extensions/goal/lifecycle.ts:82:	// still works during the budget wrap-up turn. Paused and completed goals are
+.pi/extensions/goal/lifecycle.ts:83:	// excluded because no agent work should be in progress for them.
+.pi/extensions/goal/lifecycle.ts:84:	if (goal.status !== "active" && goal.status !== "budgetLimited") {
+.pi/extensions/goal/lifecycle.ts:88:	activeTurn = makeTurnSnapshot(goal.goalId, consumeNextTurnOrigin(), event.timestamp || Date.now());
+.pi/extensions/goal/lifecycle.ts:94:	const goal = getGoal();
+.pi/extensions/goal/lifecycle.ts:95:	if (!goal || goal.status !== "active") return;
+.pi/extensions/goal/lifecycle.ts:97:	// Build an estimated goal with streaming usage added to persisted usage.
+.pi/extensions/goal/lifecycle.ts:101:		...goal,
+.pi/extensions/goal/lifecycle.ts:102:		tokensUsed: goal.tokensUsed + (streamTokens > 0 ? streamTokens : 0),
+.pi/extensions/goal/lifecycle.ts:103:		timeUsedSeconds: goal.timeUsedSeconds + elapsedThisTurn,
+.pi/extensions/goal/lifecycle.ts:112:		const stopped: GoalState = { ...goal, status: "budgetLimited", updatedAt: Date.now() };
+.pi/extensions/goal/lifecycle.ts:113:		const nextTelemetry = noteBudgetHardStop(noteBudgetLimit(getTelemetry(), pressureBudgetLimitReason(pressure)), budgetHardStopReason(pressure));
+.pi/extensions/goal/lifecycle.ts:114:		persistUpdateGoal(pi, stopped, nextTelemetry, "budget");
+.pi/extensions/goal/lifecycle.ts:115:		cancelGoalMonitor(goal.goalId, "budget-hard-stop");
+.pi/extensions/goal/lifecycle.ts:117:		notifyWarning(ctx, `${budgetResourceText(pressure)} budget hard stop enforced. Goal work stopped.`);
+.pi/extensions/goal/lifecycle.ts:123:		cancelGoalContinuation(goal.goalId, "budget-hard-stop");
+.pi/extensions/goal/lifecycle.ts:128:	// Reached (100%): Send a steering message so the agent sees budget context
+.pi/extensions/goal/lifecycle.ts:129:	// mid-stream. State transition to budgetLimited happens at turn_end, not here,
+.pi/extensions/goal/lifecycle.ts:130:	// because the wrap-up turn needs to complete so the agent can summarize progress.
+.pi/extensions/goal/lifecycle.ts:155:			{ customType: BUDGET_LIMIT_MESSAGE_TYPE, content: `${resource} budget warning: ${remaining} ${unit} remaining before target. Start wrapping up.`, display: false, details: { goalId: goal.goalId, kind: "budgetLimit", promptId: BUDGET_WARNING_PROMPT_ID, createdAt: Date.now() } },
+.pi/extensions/goal/lifecycle.ts:171:	if (event.toolName === "update_goal") return noteGoalUpdateResult(event.details);
+.pi/extensions/goal/lifecycle.ts:172:	activeTurn.progressCount++;
+.pi/extensions/goal/lifecycle.ts:179:	const goal = result.goal;
+.pi/extensions/goal/lifecycle.ts:180:	if (typeof goal === "object" && goal !== null) {
+.pi/extensions/goal/lifecycle.ts:181:		activeTurn.progressCount++;
+.pi/extensions/goal/lifecycle.ts:182:		if ((goal as Record<string, unknown>).status === "complete") activeTurn.completedGoal = true;
+.pi/extensions/goal/lifecycle.ts:195:	const goal = getGoal();
+.pi/extensions/goal/lifecycle.ts:196:	if (!goal || goal.goalId !== turn.goalId) return;
+.pi/extensions/goal/lifecycle.ts:199:	const madeProgress = turn.completedGoal || turn.progressCount > 0;
+.pi/extensions/goal/lifecycle.ts:201:	let result = persistAccountGoal(pi, turn.goalId, { timeUsedSeconds: elapsed, tokensUsed: tokens }, telemetry, "turn");
+.pi/extensions/goal/lifecycle.ts:202:	let updated = result.goal;
+.pi/extensions/goal/lifecycle.ts:204:	if (updated?.status === "active") {
+.pi/extensions/goal/lifecycle.ts:205:		result = handleBudgetPressure(pi, ctx, updated, result.telemetry);
+.pi/extensions/goal/lifecycle.ts:206:		updated = result.goal;
+.pi/extensions/goal/lifecycle.ts:209:	// Check for budget hard stop on budget-limited goals — the wrap-up turn or an
+.pi/extensions/goal/lifecycle.ts:211:	if (updated?.status === "budgetLimited") {
+.pi/extensions/goal/lifecycle.ts:212:		const pressure = evaluateBudgetPressure(updated);
+.pi/extensions/goal/lifecycle.ts:214:			enforceBudgetHardStop(pi, ctx, updated, pressure, result.telemetry);
+.pi/extensions/goal/lifecycle.ts:219:	if (updated?.status === "active" && event.message.role === "assistant" && event.message.stopReason === "aborted") {
+.pi/extensions/goal/lifecycle.ts:220:		await pauseForSafety(pi, ctx, updated, "abort", "Goal paused because the assistant response was aborted. Run /goal resume to continue.");
+.pi/extensions/goal/lifecycle.ts:225:	updated = result.goal;
+.pi/extensions/goal/lifecycle.ts:226:	if (updated?.status === "active" && shouldPauseForSafety(telemetry) && telemetry) {
+.pi/extensions/goal/lifecycle.ts:228:		await pauseForSafety(pi, ctx, updated, reason, "Goal paused by pi-goal safety limits. Run /goal resume to continue.");
+.pi/extensions/goal/lifecycle.ts:232:	finishTurnGoal(pi, ctx, updated, turn.completedGoal);
+.pi/extensions/goal/lifecycle.ts:235:function finishTurnGoal(pi: ExtensionAPI, ctx: ExtensionContext, goal: GoalState | null, completedThisTurn: boolean): void {
+.pi/extensions/goal/lifecycle.ts:236:	if (goal?.status === "active") scheduleGoalMonitor(pi, ctx);
+.pi/extensions/goal/lifecycle.ts:237:	else cancelGoalMonitor(goal?.goalId, "turn-end");
+.pi/extensions/goal/lifecycle.ts:238:	syncGoalUi(ctx, goal);
+.pi/extensions/goal/lifecycle.ts:239:	if (goal?.status === "complete" && completedThisTurn) sendQueueSteering(pi, "goal-complete");
+.pi/extensions/goal/lifecycle.ts:245:	goal: GoalState,
+.pi/extensions/goal/lifecycle.ts:249:	cancelGoalContinuation(goal.goalId, reason);
+.pi/extensions/goal/lifecycle.ts:250:	cancelGoalMonitor(goal.goalId, reason);
+.pi/extensions/goal/lifecycle.ts:251:	const paused: GoalState = { ...goal, status: "paused", updatedAt: Date.now() };
+.pi/extensions/goal/lifecycle.ts:264:function handleBudgetPressure(pi: ExtensionAPI, ctx: ExtensionContext, goal: GoalState, telemetry: GoalTelemetrySnapshot | null) {
+.pi/extensions/goal/lifecycle.ts:265:	const pressure = evaluateBudgetPressure(goal);
+.pi/extensions/goal/lifecycle.ts:266:	if (isBudgetHardStop(pressure.kind)) return enforceBudgetHardStop(pi, ctx, goal, pressure, telemetry);
+.pi/extensions/goal/lifecycle.ts:267:	if (isBudgetReached(pressure.kind)) return markBudgetReached(pi, ctx, goal, pressure, telemetry);
+.pi/extensions/goal/lifecycle.ts:269:	return { ok: true, goal, telemetry };
+.pi/extensions/goal/lifecycle.ts:272:function enforceBudgetHardStop(pi: ExtensionAPI, ctx: ExtensionContext, goal: GoalState, pressure: BudgetPressure, telemetry: GoalTelemetrySnapshot | null) {
+.pi/extensions/goal/lifecycle.ts:273:	// If hard stop was already enforced by a mid-stream message_update handler,
+.pi/extensions/goal/lifecycle.ts:275:	// the goal to budgetLimited, persisted telemetry, and aborted.
+.pi/extensions/goal/lifecycle.ts:277:		interruptActiveGoalTurn(pi, ctx, goal);
+.pi/extensions/goal/lifecycle.ts:278:		return { ok: true, goal, telemetry };
+.pi/extensions/goal/lifecycle.ts:280:	cancelGoalContinuation(goal.goalId, "budget-hard-stop");
+.pi/extensions/goal/lifecycle.ts:281:	cancelGoalMonitor(goal.goalId, "budget-hard-stop");
+.pi/extensions/goal/lifecycle.ts:282:	const stopped: GoalState = { ...goal, status: "budgetLimited", updatedAt: Date.now() };
+.pi/extensions/goal/lifecycle.ts:283:	const nextTelemetry = noteBudgetHardStop(noteBudgetLimit(telemetry, pressureBudgetLimitReason(pressure)), budgetHardStopReason(pressure));
+.pi/extensions/goal/lifecycle.ts:284:	const result = persistUpdateGoal(pi, stopped, nextTelemetry, "budget");
+.pi/extensions/goal/lifecycle.ts:285:	syncGoalUi(ctx, result.goal);
+.pi/extensions/goal/lifecycle.ts:286:	notifyWarning(ctx, `${budgetResourceText(pressure)} budget hard stop enforced. Goal work stopped.`);
+.pi/extensions/goal/lifecycle.ts:287:	if (result.goal) interruptActiveGoalTurn(pi, ctx, result.goal);
+.pi/extensions/goal/lifecycle.ts:291:function markBudgetReached(pi: ExtensionAPI, ctx: ExtensionContext, goal: GoalState, pressure: BudgetPressure, telemetry: GoalTelemetrySnapshot | null) {
+.pi/extensions/goal/lifecycle.ts:292:	cancelGoalContinuation(goal.goalId, "budget-reached");
+.pi/extensions/goal/lifecycle.ts:293:	cancelGoalMonitor(goal.goalId, "budget-reached");
+.pi/extensions/goal/lifecycle.ts:294:	const limited: GoalState = { ...goal, status: "budgetLimited", updatedAt: Date.now() };
+.pi/extensions/goal/lifecycle.ts:295:	const result = persistUpdateGoal(pi, limited, noteBudgetLimit(telemetry, pressureBudgetLimitReason(pressure)), "budget");
+.pi/extensions/goal/lifecycle.ts:296:	if (result.goal) scheduleBudgetLimitWrapUp(pi, ctx, result.goal);
+.pi/extensions/goal/lifecycle.ts:303:	if (nextTelemetry) persistTelemetry(pi, nextTelemetry, "budget");
+.pi/extensions/goal/lifecycle.ts:304:	notifyWarning(ctx, `${budgetResourceText(pressure)} budget warning: ${budgetRemainingText(pressure)} remaining before target. Start wrapping up.`);
+.pi/extensions/goal/lifecycle.ts:317:function budgetHardStopReason(pressure: BudgetPressure): BudgetHardStopReason {
+.pi/extensions/goal/lifecycle.ts:321:function budgetResourceText(pressure: BudgetPressure): "Token" | "Time" {
+.pi/extensions/goal/lifecycle.ts:325:function budgetRemainingText(pressure: BudgetPressure): string {
+.pi/extensions/goal/lifecycle.ts:336:	// Keep only the latest status-compatible pi-goal steering message to prevent stale continuations.
+.pi/extensions/goal/lifecycle.ts:371:	if (!current || details?.goalId !== current.goalId) return "invalid";
+.pi/extensions/goal/lifecycle.ts:372:	return goalSteeringMatchesStatus(String(message.customType), details?.kind, current.status) ? "valid" : "invalid";
+.pi/extensions/goal/lifecycle.ts:379:function goalSteeringMatchesStatus(customType: string, kind: unknown, status: GoalState["status"]): boolean {
+.pi/extensions/goal/lifecycle.ts:381:	if (customType === BUDGET_LIMIT_MESSAGE_TYPE) return status === "budgetLimited" && kind === "budgetLimit";
+.pi/extensions/goal/floor-steering.ts:17:	goal: GoalState;
+.pi/extensions/goal/floor-steering.ts:75:		chooseWhen: "Change may affect replay, queue, budgets, UI, safety, security, performance, or accessibility.",
+.pi/extensions/goal/floor-steering.ts:94:	return preferByObjective(candidates, context.goal.objective) ?? candidates.find((card) => card.id === "requirement_gap_audit") ?? candidates[0];
+.pi/extensions/goal/floor-steering.ts:97:export function buildFloorContinuationGuidance(context: { goal: GoalState; telemetry: GoalTelemetrySnapshot | null; floor: CompletionFloorEvaluation; card: FloorWorkCard }): string {
+.pi/extensions/goal/floor-steering.ts:111:export function buildFloorCompletionRefusal(context: { goal: GoalState; floor: CompletionFloorEvaluation; card: FloorWorkCard }): string {
+.pi/extensions/goal/floor-steering.ts:112:	return `Completion deferred by goal floor. The goal remains active.
+.pi/extensions/goal/floor-steering.ts:119:Before trying update_goal(status:"complete") again, produce new objective-linked evidence:
+.pi/extensions/goal/floor-steering.ts:146:	if (/compat|replay|queue|budget|ui|security|performance|accessibility/.test(lower)) ordered.push("compatibility_review");
+.pi/extensions/goal/continuation.ts:15:	goalId: string;
+.pi/extensions/goal/continuation.ts:21:	goalId: string;
+.pi/extensions/goal/continuation.ts:26:let budgetWrapUps = new Map<string, PendingBudgetWrapUp>();
+.pi/extensions/goal/continuation.ts:29:	const goal = getGoal();
+.pi/extensions/goal/continuation.ts:30:	if (!goal || goal.status !== "active") return;
+.pi/extensions/goal/continuation.ts:32:	cancelGoalContinuation(goal.goalId, "reschedule-continuation");
+.pi/extensions/goal/continuation.ts:35:	const goalId = goal.goalId;
+.pi/extensions/goal/continuation.ts:37:		if (pendingContinuation?.goalId === goalId) pendingContinuation = undefined;
+.pi/extensions/goal/continuation.ts:38:		void safelyRun(() => maybeContinueGoal(pi, ctx, reason, goalId));
+.pi/extensions/goal/continuation.ts:40:	pendingContinuation = { goalId, reason, timer };
+.pi/extensions/goal/continuation.ts:43:export function scheduleBudgetLimitWrapUp(pi: ExtensionAPI, ctx: ExtensionContext, goal: GoalState): void {
+.pi/extensions/goal/continuation.ts:44:	if (budgetWrapUps.has(goal.goalId)) return;
+.pi/extensions/goal/continuation.ts:46:		budgetWrapUps.delete(goal.goalId);
+.pi/extensions/goal/continuation.ts:47:		void safelyRun(() => maybeSendBudgetWrapUp(pi, ctx, goal.goalId));
+.pi/extensions/goal/continuation.ts:49:	budgetWrapUps.set(goal.goalId, { goalId: goal.goalId, timer });
+.pi/extensions/goal/continuation.ts:52:export function cancelGoalContinuation(goalId?: string, _reason = "cancelled"): void {
+.pi/extensions/goal/continuation.ts:53:	if (pendingContinuation && (!goalId || pendingContinuation.goalId === goalId)) {
+.pi/extensions/goal/continuation.ts:57:	for (const [pendingGoalId, pending] of budgetWrapUps) {
+.pi/extensions/goal/continuation.ts:58:		if (!goalId || pendingGoalId === goalId) {
+.pi/extensions/goal/continuation.ts:60:			budgetWrapUps.delete(pendingGoalId);
+.pi/extensions/goal/continuation.ts:65:export function interruptActiveGoalTurn(pi: ExtensionAPI, ctx: ExtensionContext, goal: GoalState): void {
+.pi/extensions/goal/continuation.ts:67:	const prompt = buildPausePrompt(goal);
+.pi/extensions/goal/continuation.ts:79:async function maybeContinueGoal(pi: ExtensionAPI, ctx: ExtensionContext, reason: ContinuationReason, goalId: string): Promise<void> {
+.pi/extensions/goal/continuation.ts:80:	const goal = getGoal();
+.pi/extensions/goal/continuation.ts:81:	if (!goal || goal.goalId !== goalId || goal.status !== "active") return skip(pi, "notActive");
+.pi/extensions/goal/continuation.ts:88:	const prompt = buildContinuationPrompt(goal, telemetry);
+.pi/extensions/goal/continuation.ts:96:async function maybeSendBudgetWrapUp(pi: ExtensionAPI, ctx: ExtensionContext, goalId: string): Promise<void> {
+.pi/extensions/goal/continuation.ts:97:	const goal = getGoal();
+.pi/extensions/goal/continuation.ts:98:	if (!goal || goal.goalId !== goalId || goal.status !== "budgetLimited") return;
+.pi/extensions/goal/continuation.ts:101:	const prompt = buildBudgetLimitPrompt(goal);
+.pi/extensions/goal/continuation.ts:102:	setNextTurnOrigin("budgetWrapUp");
+.pi/extensions/goal/continuation.ts:108:	if (telemetry) persistTelemetry(pi, telemetry, "budget");
+.pi/extensions/goal/continuation.ts:127:		if (!message.includes("ctx is stale")) console.warn(`[pi-goal] continuation failed: ${message}`);
+.pi/extensions/goal/budget.ts:4:export function evaluateBudgetPressure(goal: GoalState): BudgetPressure {
+.pi/extensions/goal/budget.ts:5:	const token = tokenPressure(goal);
+.pi/extensions/goal/budget.ts:6:	const time = timePressure(goal);
+.pi/extensions/goal/budget.ts:10:export function budgetLimitReason(goal: GoalState): BudgetLimitReason | undefined {
+.pi/extensions/goal/budget.ts:11:	const pressure = evaluateBudgetPressure(goal);
+.pi/extensions/goal/budget.ts:29:export function isBudgetExhausted(goal: GoalState): BudgetLimitReason | undefined {
+.pi/extensions/goal/budget.ts:30:	if (goal.tokenBudget !== undefined && goal.tokensUsed >= goal.tokenBudget) return "tokenBudget";
+.pi/extensions/goal/budget.ts:31:	if (goal.timeBudgetSeconds !== undefined && goal.timeUsedSeconds >= goal.timeBudgetSeconds) return "timeBudget";
+.pi/extensions/goal/budget.ts:35:export function canActivateGoal(goal: GoalState): boolean {
+.pi/extensions/goal/budget.ts:36:	if (goal.status === "complete") return true;
+.pi/extensions/goal/budget.ts:37:	if (isBudgetExhausted(goal)) return false;
+.pi/extensions/goal/budget.ts:41:function tokenPressure(goal: GoalState): BudgetPressure {
+.pi/extensions/goal/budget.ts:42:	if (goal.tokenBudget === undefined) return none();
+.pi/extensions/goal/budget.ts:43:	const remaining = goal.tokenBudget - goal.tokensUsed;
+.pi/extensions/goal/budget.ts:44:	if (goal.tokensUsed >= hardStopBudget(goal.tokenBudget)) return pressure("tokenHardStop", remaining);
+.pi/extensions/goal/budget.ts:45:	if (goal.tokensUsed >= goal.tokenBudget) return pressure("tokenReached", remaining);
+.pi/extensions/goal/budget.ts:50:function timePressure(goal: GoalState): BudgetPressure {
+.pi/extensions/goal/budget.ts:51:	if (goal.timeBudgetSeconds === undefined) return none();
+.pi/extensions/goal/budget.ts:52:	const remaining = goal.timeBudgetSeconds - goal.timeUsedSeconds;
+.pi/extensions/goal/budget.ts:53:	if (goal.timeUsedSeconds >= hardStopBudget(goal.timeBudgetSeconds)) return pressure("timeHardStop", remaining);
+.pi/extensions/goal/budget.ts:54:	if (goal.timeUsedSeconds >= goal.timeBudgetSeconds) return pressure("timeReached", remaining);
+.pi/extensions/goal/budget.ts:59:function hardStopBudget(budget: number): number {
+.pi/extensions/goal/budget.ts:60:	return Math.ceil((budget * Math.round(BUDGET_HARD_STOP_MULTIPLIER * 10)) / 10);
+.pi/extensions/goal/format.ts:1:import { budgetLimitReason } from "./budget";
+.pi/extensions/goal/format.ts:62:		case "budgetLimited":
+.pi/extensions/goal/format.ts:63:			return "limited by budget";
+.pi/extensions/goal/format.ts:69:export function goalStatusLabel(goal: GoalState): string {
+.pi/extensions/goal/format.ts:70:	if (goal.status !== "budgetLimited") return statusLabel(goal.status);
+.pi/extensions/goal/format.ts:71:	const reason = budgetLimitReason(goal);
+.pi/extensions/goal/format.ts:72:	if (reason === "tokenBudget") return "token budget reached";
+.pi/extensions/goal/format.ts:73:	if (reason === "timeBudget") return "time budget reached";
+.pi/extensions/goal/format.ts:74:	return "budget reached";
+.pi/extensions/goal/format.ts:80:			return "Commands: /goal pause, /goal clear";
+.pi/extensions/goal/format.ts:82:			return "Commands: /goal resume, /goal clear";
+.pi/extensions/goal/format.ts:83:		case "budgetLimited":
+.pi/extensions/goal/format.ts:84:			return "Commands: /goal clear (budget still exhausted; raise budget to resume)";
+.pi/extensions/goal/format.ts:86:			return "Commands: /goal clear";
+.pi/extensions/goal/format.ts:97:export function formatTimeResource(goal: GoalState): string {
+.pi/extensions/goal/format.ts:98:	const used = formatElapsed(goal.timeUsedSeconds);
+.pi/extensions/goal/format.ts:99:	if (goal.timeBudgetSeconds === undefined) return `Time: ${used}`;
+.pi/extensions/goal/format.ts:100:	return `Time: ${used} / ${formatElapsed(goal.timeBudgetSeconds)}`;
+.pi/extensions/goal/format.ts:103:export function formatTokenResource(goal: GoalState): string {
+.pi/extensions/goal/format.ts:104:	const used = formatTokensCompact(goal.tokensUsed);
+.pi/extensions/goal/format.ts:105:	if (goal.tokenBudget === undefined) return `Tokens: ${used}`;
+.pi/extensions/goal/format.ts:106:	return `Tokens: ${used} / ${formatTokensCompact(goal.tokenBudget)}`;
+.pi/extensions/goal/format.ts:109:export function formatTimeFloor(goal: GoalState): string | undefined {
+.pi/extensions/goal/format.ts:110:	if (goal.minTimeSecondsBeforeWrapUp === undefined) return undefined;
+.pi/extensions/goal/format.ts:111:	const floor = evaluateCompletionFloor(goal);
+.pi/extensions/goal/format.ts:112:	return `Time floor: ${formatElapsed(goal.timeUsedSeconds)} / ${formatElapsed(goal.minTimeSecondsBeforeWrapUp)}${floor.timeFloorMet ? " met" : " before wrap-up"}`;
+.pi/extensions/goal/format.ts:115:export function formatTokenFloor(goal: GoalState): string | undefined {
+.pi/extensions/goal/format.ts:116:	if (goal.minTokensBeforeWrapUp === undefined) return undefined;
+.pi/extensions/goal/format.ts:117:	const floor = evaluateCompletionFloor(goal);
+.pi/extensions/goal/format.ts:118:	return `Token floor: ${formatTokensCompact(goal.tokensUsed)} / ${formatTokensCompact(goal.minTokensBeforeWrapUp)}${floor.tokenFloorMet ? " met" : " before wrap-up"}`;
+.pi/extensions/goal/format.ts:121:export function goalUsageSummary(goal: GoalState): string {
+.pi/extensions/goal/format.ts:122:	return [formatTimeResource(goal), formatTokenResource(goal), formatTimeFloor(goal), formatTokenFloor(goal)].filter(Boolean).join("; ");
+.pi/extensions/goal/format.ts:125:export function footerStatusText(goal: GoalState): string {
+.pi/extensions/goal/format.ts:126:	const usage = footerUsage(goal);
+.pi/extensions/goal/format.ts:127:	switch (goal.status) {
+.pi/extensions/goal/format.ts:129:			return usage ? `Pursuing goal (${usage})` : "Pursuing goal";
+.pi/extensions/goal/format.ts:131:			return "Goal paused (/goal resume)";
+.pi/extensions/goal/format.ts:132:		case "budgetLimited":
+.pi/extensions/goal/format.ts:133:			return usage ? `${goalStatusLabel(goal)} (${usage})` : goalStatusLabel(goal);
+.pi/extensions/goal/format.ts:139:function footerUsage(goal: GoalState): string | undefined {
+.pi/extensions/goal/format.ts:140:	if (goal.status === "paused") return undefined;
+.pi/extensions/goal/format.ts:141:	if (goal.tokenBudget !== undefined) {
+.pi/extensions/goal/format.ts:142:		const used = formatTokensCompact(goal.tokensUsed);
+.pi/extensions/goal/format.ts:143:		const budget = formatTokensCompact(goal.tokenBudget);
+.pi/extensions/goal/format.ts:144:		if (goal.status === "active") return `${used} / ${budget}`;
+.pi/extensions/goal/format.ts:145:		if (goal.status === "budgetLimited") return `${used} / ${budget} tokens`;
+.pi/extensions/goal/format.ts:148:	if (goal.timeBudgetSeconds !== undefined) {
+.pi/extensions/goal/format.ts:149:		const used = formatElapsed(goal.timeUsedSeconds);
+.pi/extensions/goal/format.ts:150:		const budget = formatElapsed(goal.timeBudgetSeconds);
+.pi/extensions/goal/format.ts:151:		return goal.status === "complete" ? used : `${used} / ${budget}`;
+.pi/extensions/goal/format.ts:153:	const floor = evaluateCompletionFloor(goal);
+.pi/extensions/goal/format.ts:155:		if (floor.minTimeSecondsBeforeWrapUp !== undefined) return `floor ${formatElapsed(goal.timeUsedSeconds)} / ${formatElapsed(floor.minTimeSecondsBeforeWrapUp)}`;
+.pi/extensions/goal/format.ts:156:		if (floor.minTokensBeforeWrapUp !== undefined) return `floor ${formatTokensCompact(goal.tokensUsed)} / ${formatTokensCompact(floor.minTokensBeforeWrapUp)}`;
+.pi/extensions/goal/format.ts:158:	return goal.timeUsedSeconds > 0 ? formatElapsed(goal.timeUsedSeconds) : undefined;
+.pi/extensions/goal/format.ts:161:export function goalSummaryLines(goal: GoalState): string[] {
+.pi/extensions/goal/format.ts:164:		`Status: ${goalStatusLabel(goal)}`,
+.pi/extensions/goal/format.ts:165:		`Objective: ${goal.objective}`,
+.pi/extensions/goal/format.ts:166:		`Time used: ${formatElapsed(goal.timeUsedSeconds)}`,
+.pi/extensions/goal/format.ts:167:		`Tokens used: ${formatTokensCompact(goal.tokensUsed)}`,
+.pi/extensions/goal/format.ts:169:	if (goal.tokenBudget !== undefined) lines.push(`Token budget: ${formatTokensCompact(goal.tokenBudget)}`);
+.pi/extensions/goal/format.ts:170:	if (goal.timeBudgetSeconds !== undefined) lines.push(`Time budget: ${formatElapsed(goal.timeBudgetSeconds)}`);
+.pi/extensions/goal/format.ts:171:	if (goal.minTokensBeforeWrapUp !== undefined) lines.push(`Token wrap-up floor: ${formatTokensCompact(goal.tokensUsed)} / ${formatTokensCompact(goal.minTokensBeforeWrapUp)}`);
+.pi/extensions/goal/format.ts:172:	if (goal.minTimeSecondsBeforeWrapUp !== undefined) lines.push(`Time wrap-up floor: ${formatElapsed(goal.timeUsedSeconds)} / ${formatElapsed(goal.minTimeSecondsBeforeWrapUp)}`);
+.pi/extensions/goal/format.ts:173:	lines.push("", commandHint(goal.status));
+.pi/extensions/goal/completion-gate.ts:1:import { isBudgetExhausted } from "./budget";
+.pi/extensions/goal/completion-gate.ts:9:	| { kind: "allow_with_reason"; reason: NoMoreValuableWorkReason | "max_budget_requires_wrap_up"; floor: CompletionFloorEvaluation };
+.pi/extensions/goal/completion-gate.ts:22:	if (isBudgetExhausted(input.currentGoal)) return { kind: "allow_with_reason", reason: "max_budget_requires_wrap_up", floor };
+.pi/extensions/goal/completion-gate.ts:24:	const card = selectFloorWorkCard({ goal: input.currentGoal, telemetry: input.telemetry, floor, recentMonitorPatterns: input.recentMonitorPatterns });
+.pi/extensions/goal/completion-gate.ts:26:	const selected = card ?? selectFloorWorkCard({ goal: input.currentGoal, telemetry: null, floor, recentMonitorPatterns: input.recentMonitorPatterns });
+.pi/extensions/goal/completion-gate.ts:32:		message: buildFloorCompletionRefusal({ goal: input.currentGoal, floor, card: selected }),
+.pi/extensions/goal/floor.ts:21:export function evaluateCompletionFloor(goal: GoalState): CompletionFloorEvaluation {
+.pi/extensions/goal/floor.ts:22:	const tokenFloorMet = goal.minTokensBeforeWrapUp === undefined || goal.tokensUsed >= goal.minTokensBeforeWrapUp;
+.pi/extensions/goal/floor.ts:23:	const timeFloorMet = goal.minTimeSecondsBeforeWrapUp === undefined || goal.timeUsedSeconds >= goal.minTimeSecondsBeforeWrapUp;
+.pi/extensions/goal/floor.ts:25:		minTokensBeforeWrapUp: goal.minTokensBeforeWrapUp,
+.pi/extensions/goal/floor.ts:26:		minTimeSecondsBeforeWrapUp: goal.minTimeSecondsBeforeWrapUp,
+.pi/extensions/goal/floor.ts:27:		tokensRemainingBeforeWrapUp: remaining(goal.minTokensBeforeWrapUp, goal.tokensUsed),
+.pi/extensions/goal/floor.ts:28:		timeSecondsRemainingBeforeWrapUp: remaining(goal.minTimeSecondsBeforeWrapUp, goal.timeUsedSeconds),
+.pi/extensions/goal/floor.ts:32:		anyFloorConfigured: goal.minTokensBeforeWrapUp !== undefined || goal.minTimeSecondsBeforeWrapUp !== undefined,
+.pi/extensions/goal/floor.ts:36:export function isCompletionFloorUnmet(goal: GoalState): boolean {
+.pi/extensions/goal/floor.ts:37:	const floor = evaluateCompletionFloor(goal);
+.pi/extensions/goal/floor.ts:43:		const error = validatePositiveInteger("min_tokens_before_wrap_up", config.minTokensBeforeWrapUp);
+.pi/extensions/goal/floor.ts:46:			return "min_tokens_before_wrap_up must be less than or equal to token_budget.";
+.pi/extensions/goal/floor.ts:50:		const error = validatePositiveInteger("min_time_seconds_before_wrap_up", config.minTimeSecondsBeforeWrapUp);
+.pi/extensions/goal/floor.ts:53:			return "min_time_seconds_before_wrap_up must be less than or equal to time_budget_seconds.";
+.pi/extensions/goal/index.ts:10:export default function goalExtension(pi: ExtensionAPI): void {
+.pi/extensions/goal/index.ts:15:		(ctx, goal) => interruptActiveGoalTurn(pi, ctx, goal),
+.pi/extensions/goal/index.ts:20:	registerGoalTools(pi, (ctx, reason) => scheduleMaybeContinueGoal(pi, ctx, reason), cancelGoalContinuation, (ctx) => scheduleGoalMonitor(pi, ctx), cancelGoalMonitor, (ctx, goal) => scheduleBudgetLimitWrapUp(pi, ctx, goal), () => getQueue().length, (reason) => sendQueueSteering(pi, reason));
+.pi/extensions/goal/constants.ts:1:export const STATE_ENTRY_TYPE = "pi-goal-state";
+.pi/extensions/goal/constants.ts:2:export const CONTINUATION_MESSAGE_TYPE = "pi-goal-continuation";
+.pi/extensions/goal/constants.ts:3:export const BUDGET_LIMIT_MESSAGE_TYPE = "pi-goal-budget-limit";
+.pi/extensions/goal/constants.ts:4:export const PAUSE_MESSAGE_TYPE = "pi-goal-pause";
+.pi/extensions/goal/constants.ts:5:export const GOAL_MONITOR_MESSAGE_TYPE = "pi-goal-monitor-steer";
+.pi/extensions/goal/constants.ts:6:export const QUEUE_MESSAGE_TYPE = "pi-goal-queue-steer";
+.pi/extensions/goal/constants.ts:7:export const GOAL_MONITOR_LOG_ENTRY_TYPE = "pi-goal-monitor-log";
+.pi/extensions/goal/constants.ts:11:	"Put longer instructions in a file and refer to that file in the goal, for example: /goal follow the instructions in docs/goal.md.";
+.pi/extensions/goal/constants.ts:13:export const STATUS_UI_KEY = "pi-goal";
+.pi/extensions/goal/constants.ts:14:export const WIDGET_UI_KEY = "pi-goal";
+.pi/extensions/goal/constants.ts:33:export const CONTINUATION_PROMPT_ID = "pi-goal-continuation-v1";
+.pi/extensions/goal/constants.ts:34:export const BUDGET_LIMIT_PROMPT_ID = "pi-goal-budget-limit-v1";
+.pi/extensions/goal/constants.ts:35:export const BUDGET_WARNING_PROMPT_ID = "pi-goal-budget-warning-v1";
+.pi/extensions/goal/constants.ts:36:export const PAUSE_PROMPT_ID = "pi-goal-pause-v1";
+.pi/extensions/goal/constants.ts:37:export const GOAL_MONITOR_PROMPT_ID = "pi-goal-monitor-v1";
+.pi/extensions/goal/constants.ts:38:export const QUEUE_PROMPT_ID = "pi-goal-queue-v1";
+.pi/extensions/goal/constants.ts:40:export const GOAL_USAGE = "Usage: /goal <objective>";
+.pi/extensions/goal/constants.ts:41:export const GOAL_USAGE_HINT = "Example: /goal improve benchmark coverage";
+.pi/extensions/goal/queue-tools.ts:15:	token_budget: Type.Optional(Type.Number({ description: "Optional positive token budget" })),
+.pi/extensions/goal/queue-tools.ts:16:	time_budget_seconds: Type.Optional(Type.Number({ description: "Optional positive time budget in seconds" })),
+.pi/extensions/goal/queue-tools.ts:17:	min_tokens_before_wrap_up: Type.Optional(Type.Number({ description: "Optional positive minimum tokens before normal wrap-up/completion is allowed" })),
+.pi/extensions/goal/queue-tools.ts:18:	min_time_seconds_before_wrap_up: Type.Optional(Type.Number({ description: "Optional positive minimum time seconds before normal wrap-up/completion is allowed" })),
+.pi/extensions/goal/queue-tools.ts:22:	authority: Type.String({ description: "Your perceived authorization for dequeuing this goal, such as completed requested work or explicit user instruction" }),
+.pi/extensions/goal/queue-tools.ts:26:	goal: GoalState | null;
+.pi/extensions/goal/queue-tools.ts:50:		name: "list_goal_queue",
+.pi/extensions/goal/queue-tools.ts:52:		description: "List queued goal objectives that will be started after the current goal completes or clears.",
+.pi/extensions/goal/queue-tools.ts:53:		promptSnippet: "Discover queued goals waiting to start after the current goal.",
+.pi/extensions/goal/queue-tools.ts:54:		promptGuidelines: ["Use only when the user explicitly asks to see or review the goal queue.", "Do not infer queue listing from ordinary task requests."],
+.pi/extensions/goal/queue-tools.ts:64:		name: "enqueue_goal",
+.pi/extensions/goal/queue-tools.ts:66:		description: "Add a goal to the queue to be started after the current goal completes or clears. Use only when the user explicitly asks to queue a goal for later.",
+.pi/extensions/goal/queue-tools.ts:67:		promptSnippet: "Queue a goal for later when the user explicitly asks.",
+.pi/extensions/goal/queue-tools.ts:68:		promptGuidelines: ["Use only when the user explicitly asks to queue a goal for later, not for ordinary task requests.", "Fill flags and args from the user's prose, but ask for missing required values instead of guessing."],
+.pi/extensions/goal/queue-tools.ts:73:			const floorError = validateFloorConfig({ tokenBudget: params.token_budget, timeBudgetSeconds: params.time_budget_seconds, minTokensBeforeWrapUp: params.min_tokens_before_wrap_up, minTimeSecondsBeforeWrapUp: params.min_time_seconds_before_wrap_up });
+.pi/extensions/goal/queue-tools.ts:75:			const queued = enqueueGoal(validation.objective, "tool", { tokenBudget: params.token_budget, timeBudgetSeconds: params.time_budget_seconds, minTokensBeforeWrapUp: params.min_tokens_before_wrap_up, minTimeSecondsBeforeWrapUp: params.min_time_seconds_before_wrap_up });
+.pi/extensions/goal/queue-tools.ts:85:		name: "start_queued_goal",
+.pi/extensions/goal/queue-tools.ts:87:		description: "Start the next queued item only after deciding the queue head is a direct concrete goal. The queue item is removed only after goal creation succeeds.",
+.pi/extensions/goal/queue-tools.ts:88:		promptSnippet: "Start the queue head only when semantic classification says it is a direct goal.",
+.pi/extensions/goal/queue-tools.ts:90:			"Use this only after reading the queue head and deciding the queued text itself is the concrete goal to perform.",
+.pi/extensions/goal/queue-tools.ts:91:			"Before using this, verify the queue head is not better handled by an existing reusable goal template; if uncertain, call list_goal_templates first.",
+.pi/extensions/goal/queue-tools.ts:92:			"Do not use this when the queued text asks you to run/create/start another goal or goal template, names a prompt-like workflow, or semantically matches a reusable template; use create_goal, create_goal_from_template, or enqueue_goal for that orchestration, then dequeue_goal after it is satisfied.",
+.pi/extensions/goal/queue-tools.ts:93:			"This tool handles completed-goal replacement and safe dequeue for direct queue items only.",
+.pi/extensions/goal/queue-tools.ts:94:			"If this reports an active non-complete goal, leave the queued goal in place and continue the active goal.",
+.pi/extensions/goal/queue-tools.ts:105:		name: "dequeue_goal",
+.pi/extensions/goal/queue-tools.ts:107:		description: "Remove the first goal from the queue and return it. Prefer start_queued_goal for direct queued goals; use this after a prose/JIT orchestration item is fully satisfied.",
+.pi/extensions/goal/queue-tools.ts:110:			"Use start_queued_goal for direct queued goals.",
+.pi/extensions/goal/queue-tools.ts:111:			"Use dequeue_goal after you have separately satisfied a prose/JIT orchestration queue item, including any one-or-more consecutive active goals it required.",
+.pi/extensions/goal/queue-tools.ts:120:			if (!dequeued) return { content: [{ type: "text" as const, text: "No queued goals." }], details: { goal: getGoal(), telemetry: getTelemetry() } as QueueToolDetails };
+.pi/extensions/goal/queue-tools.ts:122:			return { content: [{ type: "text" as const, text: `Dequeued goal: ${dequeued.queueId}\nObjective: ${dequeued.objective}\nRationale: ${audit.value.rationale}\nAuthority: ${audit.value.authority}` }], details: { goal: getGoal(), telemetry: getTelemetry(), dequeued, dequeue_audit: audit.value } as QueueToolDetails };
+.pi/extensions/goal/queue-tools.ts:129:		name: "remove_queued_goal",
+.pi/extensions/goal/queue-tools.ts:131:		description: "Remove a specific goal from the queue by its queue ID.",
+.pi/extensions/goal/queue-tools.ts:132:		promptSnippet: "Remove a specific queued goal by ID.",
+.pi/extensions/goal/queue-tools.ts:133:		promptGuidelines: ["Use only when the user explicitly asks to remove a specific queued goal."],
+.pi/extensions/goal/queue-tools.ts:134:		parameters: Type.Object({ queueId: Type.String({ description: "Queue ID of the goal to remove" }) }),
+.pi/extensions/goal/queue-tools.ts:137:			if (!removed) return errorResult(`No queued goal found with id ${params.queueId}.`);
+.pi/extensions/goal/queue-tools.ts:139:			return { content: [{ type: "text" as const, text: `Removed queued goal: ${removed.queueId}` }], details: { goal: getGoal(), telemetry: getTelemetry() } as QueueToolDetails };
+.pi/extensions/goal/queue-tools.ts:146:	if (current && current.status !== "complete") return errorResult("A non-complete goal is already active. The queued goal was left in the queue.");
+.pi/extensions/goal/queue-tools.ts:148:	if (!next) return { content: [{ type: "text" as const, text: "No queued goals." }], details: { goal: current, telemetry: getTelemetry(), queue: getQueue() } as QueueToolDetails };
+.pi/extensions/goal/queue-tools.ts:159:	const goal = createGoalState({ objective, tokenBudget: next.tokenBudget, timeBudgetSeconds: next.timeBudgetSeconds, minTokensBeforeWrapUp: next.minTokensBeforeWrapUp, minTimeSecondsBeforeWrapUp: next.minTimeSecondsBeforeWrapUp });
+.pi/extensions/goal/queue-tools.ts:160:	const telemetry = createTelemetry(goal.goalId, goal.createdAt);
+.pi/extensions/goal/queue-tools.ts:161:	persistSetGoal(pi, goal, telemetry, "tool");
+.pi/extensions/goal/queue-tools.ts:164:	persistDequeue(pi, "start_queued_goal", { queueId: started.queueId, audit: { rationale: "Started queued goal as a direct concrete goal after successful goal creation.", authority: "start_queued_goal atomic create-then-dequeue path" } });
+.pi/extensions/goal/queue-tools.ts:165:	syncGoalUi(ctx, goal);
+.pi/extensions/goal/queue-tools.ts:167:	return { content: [{ type: "text" as const, text: `Started queued goal: ${started.queueId}\nObjective: ${goal.objective}` }], details: { goal, telemetry, started, queue: getQueue() } as QueueToolDetails };
+.pi/extensions/goal/queue-tools.ts:172:function resolveQueuedObjective(goal: QueuedGoal): QueuedObjectiveResolution {
+.pi/extensions/goal/queue-tools.ts:173:	if (!goal.template) return { ok: true, objective: goal.objective };
+.pi/extensions/goal/queue-tools.ts:174:	const resolved = resolveGoalTemplateByName(goal.template, goal.templateFlags ?? {}, goal.templateArgs ?? "");
+.pi/extensions/goal/queue-tools.ts:175:	if (!resolved.ok) return "notTemplate" in resolved ? { ok: false, error: `Unknown goal template '${goal.template}'.` } : { ok: false, error: resolved.error };
+.pi/extensions/goal/queue-tools.ts:184:	if (!trimmedRationale) return { ok: false, error: "rationale is required to dequeue a queued goal." };
+.pi/extensions/goal/queue-tools.ts:185:	if (!trimmedAuthority) return { ok: false, error: "authority is required to dequeue a queued goal." };
+.pi/extensions/goal/queue-tools.ts:191:	if (queue.length === 0) return { content: [{ type: "text" as const, text: "No queued goals." }], details: { goal: getGoal(), telemetry: getTelemetry(), queue } as QueueToolDetails };
+.pi/extensions/goal/queue-tools.ts:193:	return { content: [{ type: "text" as const, text: `Queued goals (${queue.length}):\n${lines.join("\n")}` }], details: { goal: getGoal(), telemetry: getTelemetry(), queue } as QueueToolDetails };
+.pi/extensions/goal/queue-tools.ts:198:	return { content: [{ type: "text" as const, text: `Queued goal: ${queued.queueId}\nObjective: ${objective}` }], details: { goal: getGoal(), telemetry: getTelemetry(), queued } as QueueToolDetails };
+.pi/extensions/goal/queue-tools.ts:202:	return { content: [{ type: "text" as const, text: `Error: ${message}` }], details: { goal: getGoal(), telemetry: getTelemetry(), error: message } as QueueToolDetails };
+.pi/extensions/goal/monitor.ts:22:	goalId: string;
+.pi/extensions/goal/monitor.ts:29:	const goal = getGoal();
+.pi/extensions/goal/monitor.ts:30:	if (!goal || goal.status !== "active") {
+.pi/extensions/goal/monitor.ts:31:		cancelGoalMonitor(goal?.goalId, "inactive");
+.pi/extensions/goal/monitor.ts:34:	if (pendingMonitor?.goalId === goal.goalId) return;
+.pi/extensions/goal/monitor.ts:36:	const timer = setTimeout(() => void safelyRun(() => runMonitorCycle(pi, ctx, goal.goalId)), 25);
+.pi/extensions/goal/monitor.ts:37:	pendingMonitor = { goalId: goal.goalId, timer };
+.pi/extensions/goal/monitor.ts:40:export function cancelGoalMonitor(goalId?: string, _reason = "cancelled"): void {
+.pi/extensions/goal/monitor.ts:41:	if (!pendingMonitor || (goalId && pendingMonitor.goalId !== goalId)) return;
+.pi/extensions/goal/monitor.ts:80:async function runMonitorCycle(pi: ExtensionAPI, ctx: ExtensionContext, goalId: string): Promise<void> {
+.pi/extensions/goal/monitor.ts:82:	if (!current || current.goalId !== goalId || current.status !== "active") {
+.pi/extensions/goal/monitor.ts:83:		cancelGoalMonitor(goalId, "inactive");
+.pi/extensions/goal/monitor.ts:91:		scheduleNextMonitorCycle(pi, ctx, goalId);
+.pi/extensions/goal/monitor.ts:96:	const sessionPath = monitorSessionPath(ctx.cwd, report.goalId);
+.pi/extensions/goal/monitor.ts:97:	mkdirSync(join(ctx.cwd, ".pi", "goal-monitor", "sessions"), { recursive: true });
+.pi/extensions/goal/monitor.ts:117:		persistMonitorDecisionLog(pi, report.goalId, report.reportId, parseErrorDecision(parsed), false);
+.pi/extensions/goal/monitor.ts:118:		console.warn(`[pi-goal] monitor parse failed: ${parsed.error}`);
+.pi/extensions/goal/monitor.ts:122:	persistMonitorDecisionLog(pi, report.goalId, report.reportId, parsed.decision, steerInjected);
+.pi/extensions/goal/monitor.ts:132:	if (!current || current.goalId !== report.goalId || current.updatedAt !== report.goal.updatedAt) return;
+.pi/extensions/goal/monitor.ts:143:			details: { goalId: report.goalId, kind: "monitorSteer", promptId: report.reportId, createdAt: Date.now(), reportId: report.reportId },
+.pi/extensions/goal/monitor.ts:149:function scheduleNextMonitorCycle(pi: ExtensionAPI, ctx: ExtensionContext, goalId: string): void {
+.pi/extensions/goal/monitor.ts:151:	if (!current || current.goalId !== goalId || current.status !== "active") {
+.pi/extensions/goal/monitor.ts:152:		cancelGoalMonitor(goalId, "inactive");
+.pi/extensions/goal/monitor.ts:155:	const timer = setTimeout(() => void safelyRun(() => runMonitorCycle(pi, ctx, goalId)), GOAL_MONITOR_REPORT_INTERVAL_SECONDS * 1000);
+.pi/extensions/goal/monitor.ts:156:	pendingMonitor = { goalId, timer };
+.pi/extensions/goal/monitor.ts:161:	return Boolean(current && current.goalId === report.goalId && current.status === "active");
+.pi/extensions/goal/monitor.ts:190:function monitorSessionPath(cwd: string, goalId: string): string {
+.pi/extensions/goal/monitor.ts:191:	return join(cwd, ".pi", "goal-monitor", "sessions", `pi-goal-monitor-${goalId}.jsonl`);
+.pi/extensions/goal/monitor.ts:199:		console.warn(`[pi-goal] monitor failed: ${message}`);
+.pi/extensions/goal/command.ts:4:import { canActivateGoal, budgetLimitReason } from "./budget";
+.pi/extensions/goal/command.ts:5:import { validateObjective, goalStatusLabel } from "./format";
+.pi/extensions/goal/command.ts:28:	{ name: "pause", description: "Pause the current goal" },
+.pi/extensions/goal/command.ts:29:	{ name: "resume", description: "Resume a paused goal" },
+.pi/extensions/goal/command.ts:30:	{ name: "clear", description: "Clear the current goal" },
+.pi/extensions/goal/command.ts:31:	{ name: "queue", description: "List queued goals or enqueue a new goal" },
+.pi/extensions/goal/command.ts:43:	pi.registerCommand("goal", {
+.pi/extensions/goal/command.ts:44:		description: "Set or view the goal for a long-running task",
+.pi/extensions/goal/command.ts:45:		getArgumentCompletions: goalArgumentCompletions,
+.pi/extensions/goal/command.ts:50:export function goalArgumentCompletions(argumentPrefix: string): AutocompleteItem[] | null {
+.pi/extensions/goal/command.ts:102:		const goal = getGoal();
+.pi/extensions/goal/command.ts:103:		if (goal) showGoalSummary(ctx, goal);
+.pi/extensions/goal/command.ts:187:				notifyInfo(ctx, `Queued goal: ${queued.queueId}`);
+.pi/extensions/goal/command.ts:193:		cancelContinuation(existing.goalId, "replace");
+.pi/extensions/goal/command.ts:194:		cancelMonitor(existing.goalId, "replace");
+.pi/extensions/goal/command.ts:197:	const goal = createGoalState({ objective: validation.objective });
+.pi/extensions/goal/command.ts:198:	const telemetry = createTelemetry(goal.goalId, goal.createdAt);
+.pi/extensions/goal/command.ts:199:	persistSetGoal(pi, goal, telemetry, "command");
+.pi/extensions/goal/command.ts:200:	syncGoalUi(ctx, goal);
+.pi/extensions/goal/command.ts:201:	notifyGoal(ctx, goal);
+.pi/extensions/goal/command.ts:209:	return `Goal already active. New resolved goal:\n\n${preview}\n\nChoose action:`;
+.pi/extensions/goal/command.ts:219:	const goal = getGoal();
+.pi/extensions/goal/command.ts:220:	if (!goal) {
+.pi/extensions/goal/command.ts:221:		notifyInfo(ctx, `${GOAL_USAGE}\nNo goal is currently set.`);
+.pi/extensions/goal/command.ts:224:	cancelContinuation(goal.goalId, "pause");
+.pi/extensions/goal/command.ts:225:	cancelMonitor(goal.goalId, "pause");
+.pi/extensions/goal/command.ts:226:	const paused: GoalState = { ...goal, status: "paused", updatedAt: Date.now() };
+.pi/extensions/goal/command.ts:232:		notifyWarning(ctx, "Goal paused. The active turn was interrupted; run /goal resume to continue.");
+.pi/extensions/goal/command.ts:237:	const goal = getGoal();
+.pi/extensions/goal/command.ts:239:	if (!goal) {
+.pi/extensions/goal/command.ts:241:			sendQueueSteering("goal-resume", { triggerTurn: true });
+.pi/extensions/goal/command.ts:242:			notifyInfo(ctx, `No active goal. Resuming queued goal processing for ${queue.length} queued goal${queue.length > 1 ? "s" : ""}.`);
+.pi/extensions/goal/command.ts:248:	if (goal.status === "complete") {
+.pi/extensions/goal/command.ts:250:			sendQueueSteering("goal-resume", { triggerTurn: true });
+.pi/extensions/goal/command.ts:251:			notifyInfo(ctx, `Goal is complete. Resuming queued goal processing for ${queue.length} queued goal${queue.length > 1 ? "s" : ""}.`);
+.pi/extensions/goal/command.ts:254:		notifyInfo(ctx, "Goal is complete. Use /goal clear before starting a new goal.");
+.pi/extensions/goal/command.ts:257:	if (!canActivateGoal(goal)) {
+.pi/extensions/goal/command.ts:258:		const reason = budgetLimitReason(goal);
+.pi/extensions/goal/command.ts:259:		const resource = reason === "tokenBudget" ? "token" : reason === "timeBudget" ? "time" : "budget";
+.pi/extensions/goal/command.ts:260:		notifyWarning(ctx, `Cannot resume: ${resource} budget is still exhausted. Raise the budget or use /goal clear before resuming.`);
+.pi/extensions/goal/command.ts:263:	const active: GoalState = { ...goal, status: "active", updatedAt: Date.now() };
+.pi/extensions/goal/command.ts:274:	const goal = getGoal();
+.pi/extensions/goal/command.ts:275:	const hadGoal = Boolean(goal);
+.pi/extensions/goal/command.ts:276:	cancelContinuation(goal?.goalId, "clear");
+.pi/extensions/goal/command.ts:277:	cancelMonitor(goal?.goalId, "clear");
+.pi/extensions/goal/command.ts:279:	syncGoalUi(ctx, result.goal);
+.pi/extensions/goal/command.ts:281:	if (queue.length > 0) sendQueueSteering("goal-clear");
+.pi/extensions/goal/command.ts:282:	const queueHint = queue.length > 0 ? `\n${queue.length} queued goal${queue.length > 1 ? "s" : ""} available. Queue steering was sent to the agent context.` : "";
+.pi/extensions/goal/command.ts:283:	notifyInfo(ctx, hadGoal ? `Goal cleared${queueHint}` : `No goal to clear\nThis session does not currently have a goal.${queueHint}`);
+.pi/extensions/goal/command.ts:291:			notifyInfo(ctx, "No queued goals.");
+.pi/extensions/goal/command.ts:295:		notifyInfo(ctx, `Queued goals (${queue.length}):\n${lines.join("\n")}`);
+.pi/extensions/goal/command.ts:304:			const goal = enqueueGoal(item.objective, "command", { template: item.template, templateFlags: item.templateFlags, templateArgs: item.templateArgs });
+.pi/extensions/goal/command.ts:305:			persistEnqueue(pi, goal);
+.pi/extensions/goal/command.ts:306:			return goal;
+.pi/extensions/goal/command.ts:309:		notifyInfo(ctx, `Queued ${queued.length} goals:\n${lines.join("\n")}`);
+.pi/extensions/goal/command.ts:322:	notifyInfo(ctx, `Queued goal: ${queued.queueId} \u2014 ${truncateObjective(validation.objective)}`);
+.pi/extensions/goal/command.ts:335:			notifyWarning(ctx, `Queue item ${i + 1} (${item.marker} on line ${item.lineIndex + 1}) could not be resolved. No goals were queued.`);
+.pi/extensions/goal/command.ts:341:			notifyWarning(ctx, `Queue item ${i + 1} (${item.marker} on line ${item.lineIndex + 1}) is invalid. No goals were queued.\n${message}`);
+.pi/extensions/goal/prompts.ts:7:export function buildContinuationPrompt(goal: GoalState, telemetry: GoalTelemetrySnapshot | null = null): { content: string; details: GoalSteeringDetails } {
+.pi/extensions/goal/prompts.ts:8:	const budget = budgetLines(goal, true);
+.pi/extensions/goal/prompts.ts:9:	const floorGuidance = floorContinuationSection(goal, telemetry);
+.pi/extensions/goal/prompts.ts:11:		content: `Continue working toward the active session goal.
+.pi/extensions/goal/prompts.ts:16:${escapeXml(goal.objective)}
+.pi/extensions/goal/prompts.ts:20:${budget}${floorGuidance}
+.pi/extensions/goal/prompts.ts:22:Avoid repeating work that is already done. Choose the next concrete action toward the objective. Do not reply with only a planning or status update; either take a concrete tool-backed step, ask the user for missing required input, or complete the goal if the audit proves it is achieved.
+.pi/extensions/goal/prompts.ts:24:Before doing substantive goal work, inspect the active goal state if needed. If get_goal reports this goal is paused, absent, complete, budget-limited, or has a different goal id, stop and wait for /goal resume instead of following this continuation text.
+.pi/extensions/goal/prompts.ts:26:Before deciding that the goal is achieved, perform a completion audit against the actual current state:
+.pi/extensions/goal/prompts.ts:35:Do not rely on intent, partial progress, elapsed effort, memory of earlier work, or a plausible final answer as proof of completion. Only mark the goal achieved when the audit shows that the objective has actually been achieved and no required work remains. If any requirement is missing, incomplete, or unverified, keep working instead of marking the goal complete. If the objective is achieved, call update_goal with status "complete" so usage accounting is preserved. Report the final elapsed time, and if the achieved goal has a token budget, report the final consumed token budget to the user after update_goal succeeds.
+.pi/extensions/goal/prompts.ts:37:Do not call update_goal unless the goal is complete. Do not mark a goal complete merely because the budget is nearly exhausted or because you are stopping work.`,
+.pi/extensions/goal/prompts.ts:38:		details: { goalId: goal.goalId, kind: "continuation", promptId: CONTINUATION_PROMPT_ID, createdAt: Date.now() },
+.pi/extensions/goal/prompts.ts:42:export function buildPausePrompt(goal: GoalState): { content: string; details: GoalSteeringDetails } {
+.pi/extensions/goal/prompts.ts:44:		content: `The user has paused the active pi-goal.
+.pi/extensions/goal/prompts.ts:49:${escapeXml(goal.objective)}
+.pi/extensions/goal/prompts.ts:52:Stop substantive work on this goal now. Briefly acknowledge that the goal is paused and wait for /goal resume before continuing goal pursuit. Do not call update_goal unless the goal is actually complete.`,
+.pi/extensions/goal/prompts.ts:53:		details: { goalId: goal.goalId, kind: "pause", promptId: PAUSE_PROMPT_ID, createdAt: Date.now(), reason: "pause" },
+.pi/extensions/goal/prompts.ts:57:export function buildBudgetLimitPrompt(goal: GoalState): { content: string; details: GoalSteeringDetails } {
+.pi/extensions/goal/prompts.ts:58:	const resource = exhaustedResource(goal);
+.pi/extensions/goal/prompts.ts:60:		content: `The active session goal has reached its ${resource} budget.
+.pi/extensions/goal/prompts.ts:65:${escapeXml(goal.objective)}
+.pi/extensions/goal/prompts.ts:69:${budgetLines(goal, false)}
+.pi/extensions/goal/prompts.ts:72:The system has marked the goal as budget_limited after a ${resource} budget limit, so do not start new substantive work for this goal. If get_goal reports this goal is paused, absent, complete, active, or has a different goal id, treat this wrap-up message as stale and do not continue goal work. Wrap up this turn soon: summarize useful progress, identify remaining work or blockers, and leave the user with a clear next step.
+.pi/extensions/goal/prompts.ts:74:Do not call update_goal unless the goal is actually complete.`,
+.pi/extensions/goal/prompts.ts:75:		details: { goalId: goal.goalId, kind: "budgetLimit", promptId: BUDGET_LIMIT_PROMPT_ID, createdAt: Date.now(), reason: "budget" },
+.pi/extensions/goal/prompts.ts:79:function floorContinuationSection(goal: GoalState, telemetry: GoalTelemetrySnapshot | null): string {
+.pi/extensions/goal/prompts.ts:80:	const floor = evaluateCompletionFloor(goal);
+.pi/extensions/goal/prompts.ts:82:	const card = selectFloorWorkCard({ goal, telemetry, floor });
+.pi/extensions/goal/prompts.ts:84:	return `\n\nCompletion floor:\n${buildFloorContinuationGuidance({ goal, telemetry, floor, card })}`;
+.pi/extensions/goal/prompts.ts:87:function budgetLines(goal: GoalState, includeRemaining: boolean): string {
+.pi/extensions/goal/prompts.ts:88:	const tokenBudget = goal.tokenBudget ?? "none";
+.pi/extensions/goal/prompts.ts:89:	const timeBudget = goal.timeBudgetSeconds === undefined ? "none" : `${goal.timeBudgetSeconds} seconds`;
+.pi/extensions/goal/prompts.ts:90:	const tokenFloor = goal.minTokensBeforeWrapUp === undefined ? "none" : `${goal.minTokensBeforeWrapUp} tokens`;
+.pi/extensions/goal/prompts.ts:91:	const timeFloor = goal.minTimeSecondsBeforeWrapUp === undefined ? "none" : `${goal.minTimeSecondsBeforeWrapUp} seconds`;
+.pi/extensions/goal/prompts.ts:93:		`- Time spent pursuing goal: ${goal.timeUsedSeconds} seconds`,
+.pi/extensions/goal/prompts.ts:94:		`- Time budget: ${timeBudget}`,
+.pi/extensions/goal/prompts.ts:95:		`- Tokens used: ${goal.tokensUsed}`,
+.pi/extensions/goal/prompts.ts:96:		`- Token budget: ${tokenBudget}`,
+.pi/extensions/goal/prompts.ts:101:		const tokensRemaining = goal.tokenBudget === undefined ? "unknown" : Math.max(0, goal.tokenBudget - goal.tokensUsed);
+.pi/extensions/goal/prompts.ts:102:		const timeRemaining = goal.timeBudgetSeconds === undefined ? "unknown" : Math.max(0, goal.timeBudgetSeconds - goal.timeUsedSeconds);
+.pi/extensions/goal/prompts.ts:109:function exhaustedResource(goal: GoalState): "token" | "time" | "resource" {
+.pi/extensions/goal/prompts.ts:110:	if (goal.tokenBudget !== undefined && goal.tokensUsed >= goal.tokenBudget) return "token";
+.pi/extensions/goal/prompts.ts:111:	if (goal.timeBudgetSeconds !== undefined && goal.timeUsedSeconds >= goal.timeBudgetSeconds) return "time";
+.pi/extensions/goal/monitor-state.ts:16:	for (const entry of next) lastReportSentAt.set(entry.goalId, entry.at);
+.pi/extensions/goal/monitor-state.ts:19:export function getRecentMonitorLogs(goalId: string, limit = GOAL_MONITOR_RECENT_LOG_LIMIT): GoalMonitorLogEntry[] {
+.pi/extensions/goal/monitor-state.ts:20:	return logEntries.filter((entry) => entry.goalId === goalId).slice(-Math.max(0, limit));
+.pi/extensions/goal/monitor-state.ts:23:export function getLastMonitorReportAt(goalId: string): number | undefined {
+.pi/extensions/goal/monitor-state.ts:24:	return lastReportSentAt.get(goalId);
+.pi/extensions/goal/monitor-state.ts:27:export function noteMonitorReportSent(goalId: string, sentAt: number): void {
+.pi/extensions/goal/monitor-state.ts:28:	lastReportSentAt.set(goalId, sentAt);
+.pi/extensions/goal/monitor-state.ts:33:	goalId: string,
+.pi/extensions/goal/monitor-state.ts:41:		goalId,
+.pi/extensions/goal/monitor-state.ts:72:	return v.version === 1 && typeof v.goalId === "string" && typeof v.reportId === "string" && typeof v.decisionId === "string" && typeof v.at === "number" && isAction(v.action);
+.pi/extensions/goal/monitor-report.ts:11:export function buildGoalMonitorReport(ctx: ExtensionContext, goal: GoalState, telemetry: GoalTelemetrySnapshot | null, now = Date.now()): GoalMonitorReport {
+.pi/extensions/goal/monitor-report.ts:12:	const lastSentAt = getLastMonitorReportAt(goal.goalId);
+.pi/extensions/goal/monitor-report.ts:14:	noteMonitorReportSent(goal.goalId, now);
+.pi/extensions/goal/monitor-report.ts:18:		goalId: goal.goalId,
+.pi/extensions/goal/monitor-report.ts:20:		elapsedSinceGoalStartSeconds: Math.max(0, Math.floor((now - goal.createdAt) / 1000)),
+.pi/extensions/goal/monitor-report.ts:22:		goal,
+.pi/extensions/goal/monitor-report.ts:30:		recentLogEntries: getRecentMonitorLogs(goal.goalId, GOAL_MONITOR_RECENT_LOG_LIMIT),
+.pi/extensions/goal/monitor-report.ts:31:		floor: buildFloorReport(goal, telemetry),
+.pi/extensions/goal/monitor-report.ts:35:function buildFloorReport(goal: GoalState, telemetry: GoalTelemetrySnapshot | null): GoalMonitorFloorReport {
+.pi/extensions/goal/monitor-report.ts:36:	const floor = evaluateCompletionFloor(goal);
+.pi/extensions/goal/state.ts:15:let runtimeState: GoalRuntimeState = { goal: null, telemetry: null };
+.pi/extensions/goal/state.ts:18:	return runtimeState.goal;
+.pi/extensions/goal/state.ts:26:	return { goal: runtimeState.goal, telemetry: runtimeState.telemetry };
+.pi/extensions/goal/state.ts:30:	let next: GoalRuntimeState = { goal: null, telemetry: null };
+.pi/extensions/goal/state.ts:47:		goalId: crypto.randomUUID(),
+.pi/extensions/goal/state.ts:57:		updatedAt: now,
+.pi/extensions/goal/state.ts:63:	goal: GoalState,
+.pi/extensions/goal/state.ts:67:	return persistEvent(pi, { kind: "set", goalId: goal.goalId, goal, telemetry, reason });
+.pi/extensions/goal/state.ts:72:	goal: GoalState,
+.pi/extensions/goal/state.ts:76:	if (runtimeState.goal && runtimeState.goal.goalId !== goal.goalId) {
+.pi/extensions/goal/state.ts:77:		return { ok: false, goal: runtimeState.goal, telemetry: runtimeState.telemetry, message: "Stale goal update ignored." };
+.pi/extensions/goal/state.ts:79:	return persistEvent(pi, { kind: "update", goalId: goal.goalId, goal, telemetry, reason });
+.pi/extensions/goal/state.ts:87:	const goal = runtimeState.goal;
+.pi/extensions/goal/state.ts:88:	if (!goal || !telemetry || telemetry.goalId !== goal.goalId) {
+.pi/extensions/goal/state.ts:89:		return { ok: false, goal, telemetry: runtimeState.telemetry, message: "Stale telemetry update ignored." };
+.pi/extensions/goal/state.ts:91:	return persistEvent(pi, { kind: "telemetry", goalId: goal.goalId, goal, telemetry, reason });
+.pi/extensions/goal/state.ts:96:	goalId: string,
+.pi/extensions/goal/state.ts:101:	const current = runtimeState.goal;
+.pi/extensions/goal/state.ts:102:	if (!current || current.goalId !== goalId) {
+.pi/extensions/goal/state.ts:103:		return { ok: false, goal: current, telemetry: runtimeState.telemetry, message: "Stale accounting ignored." };
+.pi/extensions/goal/state.ts:105:	const goal: GoalState = {
+.pi/extensions/goal/state.ts:109:		updatedAt: Date.now(),
+.pi/extensions/goal/state.ts:111:	return persistEvent(pi, { kind: "account", goalId, goal, telemetry, delta, reason });
+.pi/extensions/goal/state.ts:115:	return persistEvent(pi, { kind: "clear", goalId: runtimeState.goal?.goalId, goal: null, telemetry: null, reason });
+.pi/extensions/goal/state.ts:125:	return { ok: true, goal: runtimeState.goal, telemetry: runtimeState.telemetry };
+.pi/extensions/goal/state.ts:129:	if (event.kind === "clear") return { goal: null, telemetry: null };
+.pi/extensions/goal/state.ts:130:	if (event.goalId && state.goal && event.goalId !== state.goal.goalId && event.kind !== "set") return state;
+.pi/extensions/goal/state.ts:131:	const parsedGoal = toGoalState(event.goal);
+.pi/extensions/goal/state.ts:132:	const goal = parsedGoal ?? state.goal;
+.pi/extensions/goal/state.ts:134:	return { goal, telemetry };
+.pi/extensions/goal/state.ts:153:	if (typeof v.goalId !== "string" || typeof v.objective !== "string" || typeof v.status !== "string") return null;
+.pi/extensions/goal/queue-state.ts:32:	goal?: QueuedGoal | null;
+.pi/extensions/goal/queue-state.ts:42:	goal?: unknown;
+.pi/extensions/goal/queue-state.ts:67:	const goal: QueuedGoal = {
+.pi/extensions/goal/queue-state.ts:80:	runtimeQueue.push(goal);
+.pi/extensions/goal/queue-state.ts:81:	return goal;
+.pi/extensions/goal/queue-state.ts:109:export function persistEnqueue(pi: ExtensionAPI, goal: QueuedGoal): void {
+.pi/extensions/goal/queue-state.ts:110:	pi.appendEntry(STATE_ENTRY_TYPE, { version: 1, kind: "enqueue", queueId: goal.queueId, goal, reason: "enqueue", at: Date.now() } as GoalQueueEvent);
+.pi/extensions/goal/queue-state.ts:143:		goal: raw.goal,
+.pi/extensions/goal/queue-state.ts:152:	const goal = toQueuedGoal(raw.goal);
+.pi/extensions/goal/queue-state.ts:153:	if (!goal) return null;
+.pi/extensions/goal/queue-state.ts:154:	const queueId = toOptionalString(raw.queueId) ?? goal.queueId;
+.pi/extensions/goal/queue-state.ts:159:		goal,
+.pi/extensions/goal/queue-state.ts:263:		if (event.goal) next.push(event.goal);
+.pi/extensions/goal/queue-state.ts:284:	const index = queue.findIndex((goal) => goal.queueId === queueId);
+.pi/extensions/goal/types.ts:3:export type GoalStatus = "active" | "paused" | "budgetLimited" | "complete";
+.pi/extensions/goal/types.ts:6:	goalId: string;
+.pi/extensions/goal/types.ts:16:	updatedAt: number;
+.pi/extensions/goal/types.ts:19:export type TurnOrigin = "user" | "auto" | "budgetWrapUp";
+.pi/extensions/goal/types.ts:21:export type ContinuationSkipReason = "notIdle" | "pendingMessages" | "notActive" | "budgetLimited" | "safetyCap" | "noProgress" | "floorExhausted" | "budgetExhausted";
+.pi/extensions/goal/types.ts:41:export type NoMoreValuableWorkReason = "objective_fully_satisfied" | "no_safe_autonomous_work" | "max_budget_requires_wrap_up" | "user_requested_stop";
+.pi/extensions/goal/types.ts:61:	goalId: string;
+.pi/extensions/goal/types.ts:73:	budgetWrapUpSent?: boolean;
+.pi/extensions/goal/types.ts:87:	updatedAt: number;
+.pi/extensions/goal/types.ts:90:export type PiGoalEventKind = "set" | "update" | "account" | "telemetry" | "clear";
+.pi/extensions/goal/types.ts:95:	| "budget"
+.pi/extensions/goal/types.ts:106:	goalId?: string;
+.pi/extensions/goal/types.ts:107:	goal: GoalState | null;
+.pi/extensions/goal/types.ts:115:	goal: GoalState | null;
+.pi/extensions/goal/types.ts:120:	goalId: string;
+.pi/extensions/goal/types.ts:125:	progressCount: number;
+.pi/extensions/goal/types.ts:129:export type GoalSteeringKind = "continuation" | "budgetLimit" | "pause" | "monitorSteer";
+.pi/extensions/goal/types.ts:132:	goalId: string;
+.pi/extensions/goal/types.ts:136:	reason?: ContinuationReason | "budget" | "pause";
+.pi/extensions/goal/types.ts:142:export type GoalContinuationCanceller = (goalId?: string, reason?: string) => void;
+.pi/extensions/goal/types.ts:143:export type GoalPauseInterrupter = (ctx: ExtensionContext, goal: GoalState) => void;
+.pi/extensions/goal/types.ts:145:export type GoalMonitorCanceller = (goalId?: string, reason?: string) => void;
+.pi/extensions/goal/types.ts:146:export type GoalQueueSteeringReason = "goal-complete" | "goal-clear" | "goal-resume";
+.pi/extensions/goal/types.ts:164:	goalId: string;
+.pi/extensions/goal/types.ts:189:	goalId: string;
+.pi/extensions/goal/types.ts:193:	goal: GoalState;
+.pi/extensions/goal/types.ts:207:	goal: GoalState | null;
+.pi/extensions/goal/tool-results.ts:8:	goal: GoalState | null;
+.pi/extensions/goal/tool-results.ts:12:	completion_budget_report?: string;
+.pi/extensions/goal/tool-results.ts:25:	no_more_valuable_work_reason?: NoMoreValuableWorkReason | "max_budget_requires_wrap_up";
+.pi/extensions/goal/tool-results.ts:28:export function resultForGoal(goal: GoalState | null, telemetry: GoalTelemetrySnapshot | null, prefix?: string) {
+.pi/extensions/goal/tool-results.ts:29:	const details: ToolDetails = { goal, telemetry, remaining_tokens: remainingTokens(goal), remaining_time_seconds: remainingTime(goal), floor: goal ? evaluateCompletionFloor(goal) : undefined };
+.pi/extensions/goal/tool-results.ts:30:	if (goal?.status === "complete" && (goal.tokenBudget !== undefined || goal.timeBudgetSeconds !== undefined)) {
+.pi/extensions/goal/tool-results.ts:31:		details.completion_budget_report = `Goal achieved. Report final budget usage to the user: tokens used: ${goal.tokensUsed}${goal.tokenBudget === undefined ? "" : ` of ${goal.tokenBudget}`}; time used: ${goal.timeUsedSeconds}${goal.timeBudgetSeconds === undefined ? "" : ` of ${goal.timeBudgetSeconds}`} seconds.`;
+.pi/extensions/goal/tool-results.ts:33:	return { content: [{ type: "text" as const, text: `${prefix ? `${prefix}\n` : ""}${formatToolGoal(goal)}` }], details };
+.pi/extensions/goal/tool-results.ts:42:	return { content: [{ type: "text" as const, text: lines.length ? lines.join("\n") : "No reusable goal templates found." }], details: { goal: getGoal(), telemetry: getTelemetry(), templates } as ToolDetails };
+.pi/extensions/goal/tool-results.ts:46:	return { content: [{ type: "text" as const, text: `Error: ${error}` }], details: { goal: getGoal(), telemetry: getTelemetry(), error } as ToolDetails };
+.pi/extensions/goal/tool-results.ts:49:export function remainingTokens(goal: GoalState | null): number | undefined {
+.pi/extensions/goal/tool-results.ts:50:	return goal?.tokenBudget === undefined ? undefined : Math.max(0, goal.tokenBudget - goal.tokensUsed);
+.pi/extensions/goal/tool-results.ts:53:export function remainingTime(goal: GoalState | null): number | undefined {
+.pi/extensions/goal/tool-results.ts:54:	return goal?.timeBudgetSeconds === undefined ? undefined : Math.max(0, goal.timeBudgetSeconds - goal.timeUsedSeconds);
+.pi/extensions/goal/tool-results.ts:57:export function formatToolGoal(goal: GoalState | null): string {
+.pi/extensions/goal/tool-results.ts:58:	if (!goal) return "No goal is currently set.";
+.pi/extensions/goal/tool-results.ts:59:	const tokenBudget = goal.tokenBudget === undefined ? "none" : `${goal.tokenBudget} (${remainingTokens(goal)} remaining)`;
+.pi/extensions/goal/tool-results.ts:60:	const timeBudget = goal.timeBudgetSeconds === undefined ? "none" : `${formatElapsed(goal.timeBudgetSeconds)} (${remainingTime(goal)} seconds remaining)`;
+.pi/extensions/goal/tool-results.ts:61:	const floor = evaluateCompletionFloor(goal);
+.pi/extensions/goal/tool-results.ts:62:	const tokenFloor = floor.minTokensBeforeWrapUp === undefined ? undefined : `Token wrap-up floor: ${goal.tokensUsed} / ${floor.minTokensBeforeWrapUp}${floor.tokenFloorMet ? " (met)" : ` (${floor.tokensRemainingBeforeWrapUp} remaining)`}`;
+.pi/extensions/goal/tool-results.ts:63:	const timeFloor = floor.minTimeSecondsBeforeWrapUp === undefined ? undefined : `Time wrap-up floor: ${formatElapsed(goal.timeUsedSeconds)} / ${formatElapsed(floor.minTimeSecondsBeforeWrapUp)}${floor.timeFloorMet ? " (met)" : ` (${floor.timeSecondsRemainingBeforeWrapUp} seconds remaining)`}`;
+.pi/extensions/goal/tool-results.ts:65:		`Goal: ${goal.status}`,
+.pi/extensions/goal/tool-results.ts:66:		`Objective: ${goal.objective}`,
+.pi/extensions/goal/tool-results.ts:67:		`Time used: ${goal.timeUsedSeconds} seconds`,
+.pi/extensions/goal/tool-results.ts:68:		`Tokens used: ${goal.tokensUsed}`,
+.pi/extensions/goal/tool-results.ts:69:		`Token budget: ${tokenBudget}`,
+.pi/extensions/goal/tool-results.ts:70:		`Time budget: ${timeBudget}`,
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:1:# ISSUE-014 — Agent-estimated goal progress percentage
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:10:Next best session: implement optional advisory progress estimates for pi-goals
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:11:Next best session rationale: State ownership, update semantics, UI rendering, safety-counter behavior, and proof shape are now locked.
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:12:Target repo roots: `/Users/bryan/dev/personal/experiments/pi-goals`
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:13:Parent issue: `.ai/issues/fixed/ISSUE-001-pi-goal-extension.md`
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:14:Depends on: `.ai/issues/open/ISSUE-011-goal-widget-real-component-and-narrow-width.md`
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:15:Related: `.ai/issues/open/ISSUE-021-goal-completion-proofs.md`, `.ai/issues/open/ISSUE-024-goal-audit-command.md`
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:19:Add optional agent-updated progress estimates to persistent goals, with instant reactive UI when used and no UI clutter when unused.
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:21:The estimate is advisory metadata only. It must not complete a goal, satisfy completion proofs, bypass audit/proof gates, or reset no-progress safety counters by itself.
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:25:The runtime tracks objective, status, usage, budgets, completion floors, and internal telemetry, but it has no user-facing progress estimate. For long-running goals, users may ask the working agent to periodically estimate progress such as `35%` with a short rationale.
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:31:- `.ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/00-request.md`
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:32:- `.ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/01-protocol-read.md`
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:33:- `.ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/02-grounded-research.md`
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:34:- `.ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/03-design-lock.md`
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:35:- `.ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/04-proof-threat-model.md`
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:36:- `.ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/05-issue-writeback.md`
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:37:- `.ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/06-final-audit.md`
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:38:- `.ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/07-acceptance-traceability.md`
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:39:- `.ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/08-implementation-handoff.md`
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:40:- `.ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/09-stack-continuation-note.md`
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:44:- `.ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/pre-refinement-progress-invariant-probe-v2.log`
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:45:- `.ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/source-surface-inventory.log`
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:46:- `.ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/focused-source-excerpts.log`
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:47:- `.ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/sentrux-gate-pre.log`
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:51:- `GoalState` is the durable user-visible goal state replayed from branch-local custom events.
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:53:- `update_goal` already persists `GoalState` updates and calls `syncGoalUi()`, making it the right update surface for reactive progress UI.
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:54:- Current `update_goal` has no progress parameters.
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:55:- Current `lifecycle.ts` counts any successful `update_goal` result with a `goal` object as productive turn progress; this must be refined so progress-only updates do not defeat no-progress safety.
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:62:Add optional progress estimate fields to `GoalState`:
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:65:progressPercent?: number;
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:66:progressNote?: string;
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:67:progressUpdatedAt?: number;
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:70:Do not store first-pass progress estimates in telemetry or a separate event stream.
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:74:Add `update_goal` params:
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:76:- `progress_percent?: number | null`
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:77:- `progress_note?: string | null`
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:81:- `progress_percent` must be an integer `0..100` or `null`;
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:82:- `progress_note` must trim to at most 160 characters;
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:84:- `progress_percent: null` clears the whole estimate;
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:85:- note-only updates are rejected unless an estimate already exists;
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:86:- no-op progress updates are rejected.
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:90:- `progress_percent: 100` is allowed but remains `est 100%`.
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:91:- A progress estimate never changes goal status.
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:102:- `/goal`, `get_goal`, and `update_goal` output include `Progress estimate: <percent>%` plus note when present;
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:103:- framed widget mode adds one conditional progress row after the objective row;
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:104:- compact widget mode adds one conditional progress row after the status/objective row;
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:107:No stale/expired visual styling in first release. Store `progressUpdatedAt` for future use.
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:111:Progress-only `update_goal` calls must not count as productive work for no-progress safety counters.
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:113:Implementation should expose structured update metadata from `update_goal` so lifecycle can distinguish progress-only changes from substantive status/objective/budget/floor changes.
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:119:| Store in telemetry | User-facing estimate should replay with goal state and appear in goal details. |
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:120:| Add separate progress stream first | Current state events already provide branch-local persistence and reactive UI. |
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:121:| Require notes for every update | Too heavy for quick estimates; optional bounded note is enough. |
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:122:| Restrict active goals to `0..99` | `100` can be useful as a subjective estimate; completion gates remain authoritative. |
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:124:| Count progress-only updates as progress | Would let agents avoid no-progress safety by changing subjective estimates. |
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:130:issue{id,status,kind,goal}:
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:131:  "ISSUE-014",open,feature,"optional advisory goal progress estimates"
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:133:  "lr1","progress estimates are hidden until explicitly set"
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:134:  "lr2","progress persists branch-locally on GoalState and replays with the goal"
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:135:  "lr3","update_goal validates percent range, note length, clear semantics, and no-op cases"
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:136:  "lr4","progress_percent 100 never completes a goal or bypasses completion gates"
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:137:  "lr5","progress renders in footer, summaries, and widget without violating ISSUE-011 width rules"
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:138:  "lr6","progress-only updates do not count as productive work for no-progress safety"
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:142:  "inv3","unset progress produces no empty placeholder UI"
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:143:  "inv4","all rendered progress rows are visible-width safe"
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:144:  "inv5","agent-facing output labels progress as estimate/advisory"
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:146:  "s1",".pi/extensions/goal/types.ts","add optional progress fields and update result metadata types"
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:147:  "s2",".pi/extensions/goal/state.ts","replay/parse optional progress fields safely"
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:148:  "s3",".pi/extensions/goal/tools.ts","add update_goal params, validation, clear semantics, and update classification"
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:149:  "s4",".pi/extensions/goal/tool-results.ts","show progress estimate in tool output and details"
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:150:  "s5",".pi/extensions/goal/format.ts","render progress in footer and slash summary"
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:151:  "s6",".pi/extensions/goal/widget.ts","render conditional progress row using ISSUE-011 framed/compact rules"
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:152:  "s7",".pi/extensions/goal/lifecycle.ts","ignore progress-only updates for productive-turn accounting"
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:157:- [ ] Add optional `progressPercent`, `progressNote`, and `progressUpdatedAt` fields to `GoalState`.
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:158:- [ ] Add `progress_percent` and `progress_note` params to `UpdateGoalParams` and `UpdateGoalInput`.
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:160:- [ ] Ensure progress update persists through existing `persistUpdateGoal()` / replay path.
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:161:- [ ] Add structured result metadata so lifecycle can detect progress-only updates.
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:162:- [ ] Update lifecycle no-progress accounting so progress-only updates do not increment `progressCount`.
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:163:- [ ] Render progress in footer, tool output, slash summary, and widget only when set.
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:165:- [ ] Update README wording so progress metadata claim is true and advisory.
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:166:- [ ] Add validation probes for update, replay, completion boundary, safety, and rendering.
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:170:- [ ] Goals without a progress estimate show no progress placeholder in footer, widget, `/goal`, or tool output.
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:171:- [ ] `update_goal({ progress_percent: 35 })` persists and immediately updates UI/tool output.
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:172:- [ ] `update_goal({ progress_percent: 35, progress_note: "..." })` stores and renders the note within length bounds.
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:173:- [ ] Invalid progress values (`-1`, `101`, fractions, note-only without existing percent) are rejected.
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:174:- [ ] `progress_percent: null` clears the estimate and hides progress UI again.
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:175:- [ ] `progress_percent: 100` does not mark the goal complete or bypass completion floors/proofs.
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:176:- [ ] Progress-only updates do not reset no-progress safety counters.
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:177:- [ ] Widget rendering with progress passes ISSUE-011 width/status coverage.
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:178:- [ ] `npm run quality:goal` passes.
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:182:See `.ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/04-proof-threat-model.md`.
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:189:  "sentrux_gate_goal","sentrux gate --save .pi/extensions/goal","exit 0 and no structural degradation",".ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/sentrux-gate-impl.log","run before/after implementation as project protocol requires"
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:190:  "progress_update_validation_probe","node .ai/validation/goal-progress-estimate-probe.mjs validation","exit 0; rejects invalid range/fraction/note-only/no-op and accepts 0, 35, 100",".ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/progress-update-validation-probe.log","must fail if update_goal validation is too permissive"
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:191:  "progress_replay_probe","node .ai/validation/goal-progress-estimate-probe.mjs replay","exit 0; replay restores percent,note,updatedAt and clear removes them",".ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/progress-replay-probe.log","must prove branch-local persistence"
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:192:  "progress_completion_boundary_probe","node .ai/validation/goal-progress-estimate-probe.mjs completion","exit 0; progress_percent 100 does not set complete or bypass completion floors",".ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/progress-completion-boundary-probe.log","guards advisory-only invariant"
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:193:  "progress_safety_counter_probe","node .ai/validation/goal-progress-estimate-probe.mjs safety","exit 0; progress-only update does not count as productive turn progress",".ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/progress-safety-counter-probe.log","guards no-progress safety invariant"
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:194:  "progress_render_probe","node .ai/validation/goal-progress-render-probe.mjs","exit 0; unset hidden, set visible, all statuses and widths 8,12,20,31,32,33,72,100 visible-width safe",".ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/progress-render-probe.log","must incorporate ISSUE-011 framed/compact rules"
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:195:  "quality_goal","npm run quality:goal","exit 0",".ai/docs/issue-workflow/ISSUE-014-goal-progress-estimates/raw/quality-goal.log","required project quality gate"
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:200:Because this feature changes model-tool behavior and persistent UI rendering, implementation should normally validate on the live probe surface described by `.ai/docs/pi-goals-live-probe-testing.md`. A deterministic-only skip is acceptable only with a closeout explanation that exhaustive helper-level probes cover all changed seams.
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:202:## Non-goals
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:204:- Automatic model-judged progress without explicit user/agent update.
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:205:- Treating progress as objective completion proof.
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:206:- Multi-subgoal progress aggregation before subgoal runtime is implemented.
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:207:- Stale/expired progress display styling in the first release.
+.pi/extensions/goal/queue-steering.ts:29:function queueSteeringContent(goal: QueuedGoal): string {
+.pi/extensions/goal/queue-steering.ts:31:		"A queued item is ready to resolve. Do not start it blindly; first decide whether it should be handled by an existing reusable goal prompt or as a direct one-off goal.",
+.pi/extensions/goal/queue-steering.ts:33:		`Queue ID: ${goal.queueId}`,
+.pi/extensions/goal/queue-steering.ts:34:		budgetLine(goal),
+.pi/extensions/goal/queue-steering.ts:37:		preview(goal.objective),
+.pi/extensions/goal/queue-steering.ts:41:		"2. Reusable-prompt check: if the text names a prompt/template, uses a prompt-like slug, or describes a reusable workflow/task type, call list_goal_templates and compare the queue text with template names, aliases, descriptions, and required placeholders.",
+.pi/extensions/goal/queue-steering.ts:42:		"3. If exactly one reusable template fits and required values can be derived from the queue text or current context, use create_goal_from_template. Do NOT call start_queued_goal and do NOT make the prose itself the active goal.",
+.pi/extensions/goal/queue-steering.ts:44:		"5. Direct goal fallback: call start_queued_goal only when no reusable template fits, or when the text itself is clearly the concrete one-off goal to perform.",
+.pi/extensions/goal/queue-steering.ts:45:		"6. For orchestration/JIT work, use existing goal tools as appropriate: create_goal, create_goal_from_template, or enqueue_goal. Do not rely on extension-side prose parsing; you, the agent, resolve the intent from context.",
+.pi/extensions/goal/queue-steering.ts:46:		"7. One orchestration queue item may require one or more consecutive active goals before it is satisfied. Keep this queue item at the head while you execute those concrete goal(s).",
+.pi/extensions/goal/queue-steering.ts:47:		"8. After the concrete goal(s) requested by this orchestration item are complete/satisfied, call dequeue_goal exactly once to consume this queue item. If you see this same queue item again after satisfying it, dequeue it instead of recreating the same goal.",
+.pi/extensions/goal/queue-steering.ts:48:		"9. If needed context is missing or a non-complete active goal blocks the next action, leave this queue item in place and continue/resolve the blocker instead of dequeuing it.",
+.pi/extensions/goal/queue-steering.ts:50:	if (goal.template) {
+.pi/extensions/goal/queue-steering.ts:53:			`If classified as a direct goal, start_queued_goal will re-resolve template '${goal.template}' with flags=${JSON.stringify(goal.templateFlags ?? {})}, args=${JSON.stringify(goal.templateArgs ?? "")}.`,
+.pi/extensions/goal/queue-steering.ts:54:			"If you cannot use the direct path, use create_goal_from_template rather than create_goal, and dequeue only after successful direct creation or completed orchestration satisfaction.",
+.pi/extensions/goal/queue-steering.ts:58:			"Plain queue entry: use start_queued_goal only if you classified this item as a direct goal.",
+.pi/extensions/goal/queue-steering.ts:59:			"Example orchestration wording such as 'run/create/start the deslop-commit-range goal template' means use create_goal_from_template (or another existing goal tool), not start_queued_goal.",
+.pi/extensions/goal/queue-steering.ts:65:function budgetLine(goal: QueuedGoal): string {
+.pi/extensions/goal/queue-steering.ts:67:	if (goal.tokenBudget !== undefined) parts.push(`token_budget=${goal.tokenBudget}`);
+.pi/extensions/goal/queue-steering.ts:68:	if (goal.timeBudgetSeconds !== undefined) parts.push(`time_budget_seconds=${goal.timeBudgetSeconds}`);
+.pi/extensions/goal/monitor-prompts.ts:6:	return `You are the persistent third-party churn monitor for one active pi-goal.
+.pi/extensions/goal/monitor-prompts.ts:8:You are not the worker. Do not solve the task. Do not mark the goal complete.
+.pi/extensions/goal/monitor-prompts.ts:11:You are project-, goal-, and process-agnostic. Apply general reasoning.
+.pi/extensions/goal/monitor-prompts.ts:17:Check the goal objective for any user-provided custom or special churn-monitor instructions. Treat those objective-embedded monitor instructions as goal-specific guidance for your judgment standard and steering posture, while still requiring real identifiable churn before correction. For example, if the objective says to react aggressively when the worker gets stuck on old irrelevant repo helpers, incorporate that instruction when evaluating helper-fixation evidence.
+.pi/extensions/goal/monitor-prompts.ts:52:- suggest the single simplest concrete next action likely to unblock progress
+.pi/extensions/goal/monitor-prompts.ts:77:	return `Third-party pi-goal churn monitor steering for the active goal.
+.pi/extensions/goal/monitor-prompts.ts:79:Before following this steering, verify with get_goal if needed. If get_goal reports this goal is paused, absent, complete, budget-limited, or has a different goal id, treat this monitor steering as stale and ignore it.
+.pi/extensions/goal/monitor-prompts.ts:81:<goal_id>${escapeXml(report.goalId)}</goal_id>
+.pi/extensions/goal/monitor-prompts.ts:92:  <goal_id>${escapeXml(report.goalId)}</goal_id>
+.pi/extensions/goal/monitor-prompts.ts:94:  <elapsed_since_goal_start_seconds>${report.elapsedSinceGoalStartSeconds}</elapsed_since_goal_start_seconds>
+.pi/extensions/goal/monitor-prompts.ts:114:	const goal = report.goal;
+.pi/extensions/goal/monitor-prompts.ts:115:	return `<goal>
+.pi/extensions/goal/monitor-prompts.ts:116:    <objective>${escapeXml(goal.objective)}</objective>
+.pi/extensions/goal/monitor-prompts.ts:117:    <status>${goal.status}</status>
+.pi/extensions/goal/monitor-prompts.ts:118:    <token_budget>${goal.tokenBudget ?? "none"}</token_budget>
+.pi/extensions/goal/monitor-prompts.ts:119:    <time_budget_seconds>${goal.timeBudgetSeconds ?? "none"}</time_budget_seconds>
+.pi/extensions/goal/monitor-prompts.ts:120:    <tokens_used>${goal.tokensUsed}</tokens_used>
+.pi/extensions/goal/monitor-prompts.ts:121:    <time_used_seconds>${goal.timeUsedSeconds}</time_used_seconds>
+.pi/extensions/goal/monitor-prompts.ts:122:    <created_at>${goal.createdAt}</created_at>
+.pi/extensions/goal/monitor-prompts.ts:123:    <updated_at>${goal.updatedAt}</updated_at>
+.pi/extensions/goal/monitor-prompts.ts:124:  </goal>`;
+.pi/extensions/goal/monitor-prompts.ts:130:    <min_tokens_before_wrap_up>${floor.minTokensBeforeWrapUp ?? "none"}</min_tokens_before_wrap_up>
+.pi/extensions/goal/monitor-prompts.ts:131:    <min_time_seconds_before_wrap_up>${floor.minTimeSecondsBeforeWrapUp ?? "none"}</min_time_seconds_before_wrap_up>
+.pi/extensions/goal/monitor-prompts.ts:154:    <consecutive_no_progress_turns>${telemetry.consecutiveNoProgressTurns}</consecutive_no_progress_turns>
+.pi/extensions/goal/monitor-prompts.ts:160:    <last_turn_completed_goal>${telemetry.lastTurnCompletedGoal ?? false}</last_turn_completed_goal>
+.pi/extensions/goal/monitor-prompts.ts:161:    <budget_wrap_up_sent>${telemetry.budgetWrapUpSent ?? false}</budget_wrap_up_sent>
+.pi/extensions/goal/monitor-prompts.ts:162:    <last_progress_at>${telemetry.lastProgressAt ?? "unknown"}</last_progress_at>
+.pi/extensions/goal/monitor-prompts.ts:164:    <last_budget_limit_reason>${escapeXml(telemetry.lastBudgetLimitReason ?? "none")}</last_budget_limit_reason>
+.pi/extensions/goal/monitor-prompts.ts:165:    <last_budget_warning_reason>${escapeXml(telemetry.lastBudgetWarningReason ?? "none")}</last_budget_warning_reason>
+.pi/extensions/goal/monitor-prompts.ts:166:    <last_budget_hard_stop_reason>${escapeXml(telemetry.lastBudgetHardStopReason ?? "none")}</last_budget_hard_stop_reason>
+.pi/extensions/goal/monitor-prompts.ts:167:    <token_budget_warning_sent>${telemetry.tokenBudgetWarningSent ?? false}</token_budget_warning_sent>
+.pi/extensions/goal/monitor-prompts.ts:168:    <time_budget_warning_sent>${telemetry.timeBudgetWarningSent ?? false}</time_budget_warning_sent>
+.pi/extensions/goal/monitor-prompts.ts:175:    <updated_at>${telemetry.updatedAt}</updated_at>
+.pi/extensions/goal/ui.ts:3:import { footerStatusText, goalSummaryLines, goalUsageSummary, statusLabel } from "./format";
+.pi/extensions/goal/ui.ts:5:import { goalWidgetFactory } from "./widget";
+.pi/extensions/goal/ui.ts:7:export function syncGoalUi(ctx: ExtensionContext, goal: GoalState | null): void {
+.pi/extensions/goal/ui.ts:8:	if (!goal) {
+.pi/extensions/goal/ui.ts:13:	ctx.ui.setStatus(STATUS_UI_KEY, footerStatusText(goal));
+.pi/extensions/goal/ui.ts:14:	ctx.ui.setWidget(WIDGET_UI_KEY, goalWidgetFactory(goal), { placement: "aboveEditor" });
+.pi/extensions/goal/ui.ts:21:export function showGoalSummary(ctx: ExtensionContext, goal: GoalState): void {
+.pi/extensions/goal/ui.ts:22:	ctx.ui.notify(goalSummaryLines(goal).join("\n"), "info");
+.pi/extensions/goal/ui.ts:25:export function notifyGoal(ctx: ExtensionContext, goal: GoalState, prefix = "Goal"): void {
+.pi/extensions/goal/ui.ts:26:	ctx.ui.notify(`${prefix} ${statusLabel(goal.status)}\n${goalUsageSummary(goal)}`, "info");
+.pi/extensions/goal/ui.ts:37:export async function promptResumePausedGoal(ctx: ExtensionContext, goal: GoalState): Promise<boolean> {
+.pi/extensions/goal/ui.ts:38:	const choice = await ctx.ui.select("Resume paused goal?", ["Resume goal", "Leave paused"]);
+.pi/extensions/goal/ui.ts:39:	return choice === "Resume goal";
+.pi/extensions/goal/templates.ts:5:const TEMPLATE_DIR = ".pi-goals";
+.pi/extensions/goal/templates.ts:88:	if (matches.length > 1) return { ok: false, error: `Ambiguous goal template '${nameOrAlias}' matches: ${matches.map((template) => template.name).join(", ")}.` };
+README.md:1:# pi-goals
+README.md:3:Persistent goal tracking for [Pi](https://www.npmjs.com/package/@earendil-works/pi-coding-agent). Inspired by Codex CLI's `/goal`, `pi-goals` adds Pi-native UX, rewindable `/tree`-compatible goal state, time and token budgets, reusable token-aware prompts, automated churn monitoring, and more.
+README.md:5:> Early preview: `pi-goals` is usable, but install ergonomics and APIs may change before `1.0.0`.
+README.md:9:- `/goal` command for creating, pausing, resuming, replacing, and clearing a persistent objective.
+README.md:11:- Time and token budgets with goal-aware continuation and wrap-up behavior.
+README.md:12:- Optional completion floors that prevent premature wrap-up until minimum goal-directed work has happened.
+README.md:13:- Reusable token-aware prompt templates from `.pi-goals/` directories.
+README.md:14:- Durable FIFO goal queue for sequential goal work.
+README.md:15:- Queue-aware model tools for listing, enqueuing, starting, dequeuing, and removing queued goals.
+README.md:16:- Natural-language reusable prompt discovery via `list_goal_templates` and `create_goal_from_template`.
+README.md:17:- Model tools for inspecting and updating the active goal.
+README.md:18:- Automated churn monitoring and steering for long-running goals.
+README.md:26:pi install npm:pi-goals
+README.md:32:pi install -l npm:pi-goals
+README.md:35:## `/goal` command
+README.md:37:Use `/goal` to create and manage a persistent objective that survives across turns and is persisted into the Pi branch so `/tree` rewind/replay semantics stay coherent.
+README.md:40:/goal
+README.md:41:/goal <objective>
+README.md:42:/goal queue
+README.md:43:/goal queue <objective-or-template>
+README.md:44:/goal pause
+README.md:45:/goal resume
+README.md:46:/goal clear
+README.md:51:- `/goal` — show the current goal summary, status, budgets, and progress metadata.
+README.md:52:- `/goal <objective>` — create a new active goal. If a goal already exists, Pi asks before replacing it.
+README.md:53:- `/goal queue` — list queued goals.
+README.md:54:- `/goal queue <objective-or-template>` — enqueue a direct objective or reusable template invocation for later.
+README.md:55:- `/goal pause` — pause continuation and churn monitoring. If a goal-driven turn is active, Pi interrupts it.
+README.md:56:- `/goal resume` — resume a paused goal and schedule continuation/monitoring again.
+README.md:57:- `/goal clear` — remove the current goal from active state.
+README.md:59:The extension also exposes model tools so agents can inspect, create, update, pause, resume, complete, clear, or queue goals without string-parsing the slash command.
+README.md:63:`pi-goals` supports a durable FIFO queue for sequential work. Queued goals are persisted into the Pi branch alongside goal state, so replay and `/tree` semantics remain coherent.
+README.md:66:/goal queue
+README.md:67:/goal queue write the release notes
+README.md:68:/goal queue fix-issue --issue ISSUE-123 -- verify the fix
+README.md:73:- `list_goal_queue`
+README.md:74:- `enqueue_goal`
+README.md:75:- `start_queued_goal`
+README.md:76:- `dequeue_goal`
+README.md:77:- `remove_queued_goal`
+README.md:79:For queued prose that looks like a reusable workflow, agents can list templates with `list_goal_templates`, create a concrete goal with `create_goal_from_template`, then dequeue the original queue item after the concrete goal is satisfied.
+README.md:81:## Natural language goal management
+README.md:83:You do not have to use explicit `/goal` commands for every operation. Because `pi-goals` exposes goal management as Pi model tools, the Pi agent can manage goals from ordinary natural language instructions.
+README.md:88:Keep working toward shipping this release, but pause the persistent goal while I answer email.
+README.md:92:Set a goal to finish the README cleanup with a 30 minute budget, then keep going until it is done or blocked.
+README.md:96:Mark the current goal complete and summarize what changed.
+README.md:99:Use `/goal` when you want direct command control; use natural language when you want the agent to decide the right goal operation in context.
+README.md:101:When a goal reaches its time or token budget, `pi-goals` steers the agent into wrap-up instead of silently continuing. Exhausted goals cannot be resumed until the budget is raised or the goal is cleared.
+README.md:105:Model tools can set optional minimum work floors when creating or updating a goal:
+README.md:107:- `min_tokens_before_wrap_up`
+README.md:108:- `min_time_seconds_before_wrap_up`
+README.md:110:These are completion floors, not quota targets. If an agent calls `update_goal({ status: "complete" })` before configured floors are met, completion is deferred, the goal remains active, and the tool returns structured `completion_blocked_by_floor`, floor deltas, and a concrete `next_floor_pass` from the value-pass catalog. Steering asks for one objective-linked improvement pass such as requirement-gap audit, validation expansion, adversarial review, simplification/deslop, compatibility review, or docs/handoff evidence.
+README.md:112:Maximum budgets still win: budget-limited goals wrap up rather than working past a cap to satisfy a floor. Users can remove or lower a floor with `update_goal`, but floor edits and `status: "complete"` must be separate calls.
+README.md:114:## Reusable `.pi-goals` prompts
+README.md:116:`pi-goals` can turn project prompt templates into reusable goal objectives. Put Markdown, `.markdown`, or `.txt` templates under any `.pi-goals/` directory in your workspace:
+README.md:119:.pi-goals/
+README.md:124:Then invoke a template by name through `/goal`:
+README.md:127:/goal fix-issue --issue ISSUE-123 -- verify the fix and update docs
+README.md:128:/goal release/checklist --version 0.1.1
+README.md:152:Reusable templates are available to both slash commands and model tools. Agents can call `list_goal_templates` to discover templates and `create_goal_from_template` to create a concrete goal from one. Template invocations also work through `/goal queue`.
+README.md:156:Long-running goals can drift, loop, or stall. `pi-goals` runs a lightweight goal-scoped churn monitor that periodically reviews sparse session context, recent goal telemetry, recent completion-floor state, and recent monitor decisions.
+README.md:160:- detect no-progress loops and repeated automatic turns,
+README.md:166:Monitor state is goal-scoped and replayable, so branching and `/tree` operations stay aligned with the active goal history.
+README.md:172:npm run quality:goal
+README.md:175:`npm run quality:goal` runs the project quality gate for the extension, including [Sentrux](https://github.com/sentrux/sentrux) structure checks, TypeScript validation, and Pi extension load validation.
+.pi/extensions/goal/tools.ts:4:import { isBudgetExhausted, canActivateGoal } from "./budget";
+.pi/extensions/goal/tools.ts:19:	token_budget: Type.Optional(Type.Number({ description: "Optional positive token budget" })),
+.pi/extensions/goal/tools.ts:20:	time_budget_seconds: Type.Optional(Type.Number({ description: "Optional positive time budget in seconds" })),
+.pi/extensions/goal/tools.ts:21:	min_tokens_before_wrap_up: Type.Optional(Type.Number({ description: "Optional positive minimum tokens before normal wrap-up/completion is allowed" })),
+.pi/extensions/goal/tools.ts:22:	min_time_seconds_before_wrap_up: Type.Optional(Type.Number({ description: "Optional positive minimum time seconds before normal wrap-up/completion is allowed" })),
+.pi/extensions/goal/tools.ts:26:	template: Type.String({ description: "Reusable goal template name or alias explicitly requested by the user" }),
+.pi/extensions/goal/tools.ts:28:	args: Type.Optional(Type.String({ description: "Template invocation arguments parsed like `/goal <template> ...`: use `--flag value` and `-- trailing args`." })),
+.pi/extensions/goal/tools.ts:29:	token_budget: Type.Optional(Type.Number({ description: "Optional positive token budget" })),
+.pi/extensions/goal/tools.ts:30:	time_budget_seconds: Type.Optional(Type.Number({ description: "Optional positive time budget in seconds" })),
+.pi/extensions/goal/tools.ts:31:	min_tokens_before_wrap_up: Type.Optional(Type.Number({ description: "Optional positive minimum tokens before normal wrap-up/completion is allowed" })),
+.pi/extensions/goal/tools.ts:32:	min_time_seconds_before_wrap_up: Type.Optional(Type.Number({ description: "Optional positive minimum time seconds before normal wrap-up/completion is allowed" })),
+.pi/extensions/goal/tools.ts:36:	status: Type.Optional(Type.String({ description: "Optional status update: active, paused, or complete" })),
+.pi/extensions/goal/tools.ts:38:	token_budget: Type.Optional(NullableNumber),
+.pi/extensions/goal/tools.ts:39:	time_budget_seconds: Type.Optional(NullableNumber),
+.pi/extensions/goal/tools.ts:40:	min_tokens_before_wrap_up: Type.Optional(NullableNumber),
+.pi/extensions/goal/tools.ts:41:	min_time_seconds_before_wrap_up: Type.Optional(NullableNumber),
+.pi/extensions/goal/tools.ts:49:	scheduleBudgetLimitWrapUp?: (ctx: ExtensionContext, goal: GoalState) => void;
+.pi/extensions/goal/tools.ts:51:	sendQueueSteering?: (reason: "goal-clear") => boolean;
+.pi/extensions/goal/tools.ts:60:	scheduleBudgetLimitWrapUp?: (ctx: ExtensionContext, goal: GoalState) => void,
+.pi/extensions/goal/tools.ts:62:	sendQueueSteering?: (reason: "goal-clear") => boolean,
+.pi/extensions/goal/tools.ts:76:		name: "get_goal",
+.pi/extensions/goal/tools.ts:78:		description: "Get the current pi-goal state, including status, budget, token usage, and time usage.",
+.pi/extensions/goal/tools.ts:79:		promptSnippet: "Inspect the active pi-goal objective and progress state.",
+.pi/extensions/goal/tools.ts:80:		promptGuidelines: ["Use get_goal to inspect an explicit active goal before deciding whether it is complete."],
+.pi/extensions/goal/tools.ts:90:		name: "list_goal_templates",
+.pi/extensions/goal/tools.ts:92:		description: "List reusable .pi-goals templates for explicit natural-language goal creation requests.",
+.pi/extensions/goal/tools.ts:93:		promptSnippet: "Discover available reusable goal templates and their required inputs.",
+.pi/extensions/goal/tools.ts:95:			"Use when the user explicitly asks to create or start a persistent goal from a reusable prompt/template.",
+.pi/extensions/goal/tools.ts:96:			"Use when queue steering asks you to resolve an abstract or prompt-like queued item against reusable goal templates before deciding whether to call start_queued_goal.",
+.pi/extensions/goal/tools.ts:97:			"Use the returned names, aliases, descriptions, and placeholders to decide whether a queued request semantically matches exactly one template and whether enough structured values are available before creating a goal from a template.",
+.pi/extensions/goal/tools.ts:109:		name: "create_goal",
+.pi/extensions/goal/tools.ts:111:		description: "Create a new pi-goal only when the user explicitly asks for a persistent goal.",
+.pi/extensions/goal/tools.ts:112:		promptSnippet: "Create an explicit persistent pi-goal when requested.",
+.pi/extensions/goal/tools.ts:114:			"Use create_goal only when the user explicitly asks to create or pursue a persistent goal.",
+.pi/extensions/goal/tools.ts:115:			"Do not infer goals from ordinary tasks; normal user requests are not automatically pi-goals.",
+.pi/extensions/goal/tools.ts:126:		name: "create_goal_from_template",
+.pi/extensions/goal/tools.ts:128:		description: "Resolve a reusable .pi-goals template from structured parameters and create the resulting persistent goal.",
+.pi/extensions/goal/tools.ts:129:		promptSnippet: "Create a persistent goal from an explicitly requested reusable goal template.",
+.pi/extensions/goal/tools.ts:131:			"Use when the user explicitly asks to create or start a persistent goal from a reusable prompt/template.",
+.pi/extensions/goal/tools.ts:132:			"Use when queue steering and list_goal_templates identify exactly one reusable template that fits a queued orchestration item.",
+.pi/extensions/goal/tools.ts:134:			"Do not use this for ordinary non-goal task requests.",
+.pi/extensions/goal/tools.ts:145:		name: "update_goal",
+.pi/extensions/goal/tools.ts:147:		description: "Update the current pi-goal when the user explicitly asks to edit, pause, resume, or complete it.",
+.pi/extensions/goal/tools.ts:148:		promptSnippet: "Update an explicit pi-goal field or status when requested by the user.",
+.pi/extensions/goal/tools.ts:149:		promptGuidelines: updateGoalGuidelines(),
+.pi/extensions/goal/tools.ts:152:			return updateGoalFromTool(pi, runtime, params, ctx);
+.pi/extensions/goal/tools.ts:159:		name: "clear_goal",
+.pi/extensions/goal/tools.ts:161:		description: "Clear the current pi-goal when the user explicitly asks to remove the persistent goal or hide the goal widget.",
+.pi/extensions/goal/tools.ts:162:		promptSnippet: "Clear the explicit persistent pi-goal when requested by the user.",
+.pi/extensions/goal/tools.ts:164:			"Use clear_goal only when the user explicitly asks to clear, remove, delete, or dismiss the current goal.",
+.pi/extensions/goal/tools.ts:165:			"Do not clear a goal merely because it is complete unless the user asks to clear it.",
+.pi/extensions/goal/tools.ts:169:			const goal = getGoal();
+.pi/extensions/goal/tools.ts:170:			runtime.cancelContinuation?.(goal?.goalId, "tool-clear");
+.pi/extensions/goal/tools.ts:171:			runtime.cancelMonitor?.(goal?.goalId, "tool-clear");
+.pi/extensions/goal/tools.ts:175:			if (queueSize > 0) runtime.sendQueueSteering?.("goal-clear");
+.pi/extensions/goal/tools.ts:176:			const queueHint = queueSize > 0 ? ` ${queueSize} queued goal${queueSize > 1 ? "s" : ""} available. Queue steering was sent to the agent context.` : "";
+.pi/extensions/goal/tools.ts:177:			return resultForGoal(null, getTelemetry(), goal ? `Goal cleared.${queueHint}` : `No goal was set.${queueHint}`);
+.pi/extensions/goal/tools.ts:182:function updateGoalGuidelines(): string[] {
+.pi/extensions/goal/tools.ts:184:		"Use update_goal with status complete only after verifying the goal objective is actually achieved.",
+.pi/extensions/goal/tools.ts:185:		"Use update_goal for objective or budget edits only when the user explicitly asks to modify the persistent goal.",
+.pi/extensions/goal/tools.ts:186:		"Use status paused or active only when the user explicitly asks to pause or resume the goal.",
+.pi/extensions/goal/tools.ts:187:		"Do not infer goal edits from ordinary task discussion.",
+.pi/extensions/goal/tools.ts:188:		"Use clear_goal, not update_goal, when the user asks to clear/remove the current goal.",
+.pi/extensions/goal/tools.ts:194:	token_budget?: number;
+.pi/extensions/goal/tools.ts:195:	time_budget_seconds?: number;
+.pi/extensions/goal/tools.ts:196:	min_tokens_before_wrap_up?: number;
+.pi/extensions/goal/tools.ts:197:	min_time_seconds_before_wrap_up?: number;
+.pi/extensions/goal/tools.ts:204:	token_budget?: number;
+.pi/extensions/goal/tools.ts:205:	time_budget_seconds?: number;
+.pi/extensions/goal/tools.ts:206:	min_tokens_before_wrap_up?: number;
+.pi/extensions/goal/tools.ts:207:	min_time_seconds_before_wrap_up?: number;
+.pi/extensions/goal/tools.ts:213:	token_budget?: number | null;
+.pi/extensions/goal/tools.ts:214:	time_budget_seconds?: number | null;
+.pi/extensions/goal/tools.ts:215:	min_tokens_before_wrap_up?: number | null;
+.pi/extensions/goal/tools.ts:216:	min_time_seconds_before_wrap_up?: number | null;
+.pi/extensions/goal/tools.ts:219:type GoalUpdateResult = { ok: true; goal: GoalState; prefix: string; budgetChanged?: boolean } | { ok: false; error: string };
+.pi/extensions/goal/tools.ts:227:	if (!resolved.ok) return "notTemplate" in resolved ? errorResult(`Unknown goal template '${params.template}'.`) : errorResult(resolved.error);
+.pi/extensions/goal/tools.ts:228:	const created = createGoalWithPolicy(pi, runtime, { objective: resolved.template.objective, token_budget: params.token_budget, time_budget_seconds: params.time_budget_seconds, min_tokens_before_wrap_up: params.min_tokens_before_wrap_up, min_time_seconds_before_wrap_up: params.min_time_seconds_before_wrap_up }, ctx, { replaceCompleted: true });
+.pi/extensions/goal/tools.ts:242:		return errorResult("A goal already exists. Use clear_goal or ask the user before replacing it.");
+.pi/extensions/goal/tools.ts:246:	const budgetError = validateBudgets(params.token_budget, params.time_budget_seconds);
+.pi/extensions/goal/tools.ts:247:	if (budgetError) return errorResult(budgetError);
+.pi/extensions/goal/tools.ts:248:	const floorError = validateFloorConfig({ tokenBudget: params.token_budget, timeBudgetSeconds: params.time_budget_seconds, minTokensBeforeWrapUp: params.min_tokens_before_wrap_up, minTimeSecondsBeforeWrapUp: params.min_time_seconds_before_wrap_up });
+.pi/extensions/goal/tools.ts:250:	const goal = createGoalState({ objective: validation.objective, tokenBudget: params.token_budget, timeBudgetSeconds: params.time_budget_seconds, minTokensBeforeWrapUp: params.min_tokens_before_wrap_up, minTimeSecondsBeforeWrapUp: params.min_time_seconds_before_wrap_up });
+.pi/extensions/goal/tools.ts:251:	const telemetry = createTelemetry(goal.goalId, goal.createdAt);
+.pi/extensions/goal/tools.ts:252:	persistSetGoal(pi, goal, telemetry, "tool");
+.pi/extensions/goal/tools.ts:253:	syncGoalUi(ctx, goal);
+.pi/extensions/goal/tools.ts:255:	return resultForGoal(goal, telemetry, current?.status === "complete" ? "Goal created; replaced completed goal." : "Goal created.");
+.pi/extensions/goal/tools.ts:258:function updateGoalFromTool(pi: ExtensionAPI, runtime: GoalToolRuntime, params: UpdateGoalInput, ctx: ExtensionContext) {
+.pi/extensions/goal/tools.ts:259:	const goal = getGoal();
+.pi/extensions/goal/tools.ts:260:	if (!goal) return errorResult("No goal exists to update.");
+.pi/extensions/goal/tools.ts:261:	const update = buildGoalUpdate(goal, params);
+.pi/extensions/goal/tools.ts:262:	if (!update.ok) return errorResult(update.error);
+.pi/extensions/goal/tools.ts:263:	// Refuse to reactivate a goal whose budgets are still exhausted.
+.pi/extensions/goal/tools.ts:264:	if (update.goal.status === "active" && !canActivateGoal(update.goal)) {
+.pi/extensions/goal/tools.ts:265:		const reason = isBudgetExhausted(update.goal);
+.pi/extensions/goal/tools.ts:266:		const resource = reason === "tokenBudget" ? "token" : reason === "timeBudget" ? "time" : "budget";
+.pi/extensions/goal/tools.ts:267:		return errorResult(`Cannot resume: ${resource} budget is still exhausted. Raise the budget or use clear_goal before resuming.`);
+.pi/extensions/goal/tools.ts:270:		currentGoal: goal,
+.pi/extensions/goal/tools.ts:271:		candidateGoal: update.goal,
+.pi/extensions/goal/tools.ts:273:		recentMonitorPatterns: getRecentMonitorLogs(goal.goalId).map((entry) => entry.pattern ?? "").filter(Boolean),
+.pi/extensions/goal/tools.ts:275:	if (completionDecision.kind === "defer_and_steer") return floorCompletionDeferredResult(pi, ctx, goal, completionDecision);
+.pi/extensions/goal/tools.ts:276:	if (update.goal.status !== "active") {
+.pi/extensions/goal/tools.ts:277:		runtime.cancelContinuation?.(goal.goalId, "tool-status");
+.pi/extensions/goal/tools.ts:278:		runtime.cancelMonitor?.(goal.goalId, "tool-status");
+.pi/extensions/goal/tools.ts:280:	// When a budget edit transitions active -> budgetLimited, schedule budget-limit wrap-up once.
+.pi/extensions/goal/tools.ts:281:	budgetEditWrapUpIfNeeded(pi, ctx, runtime, goal, update.goal);
+.pi/extensions/goal/tools.ts:282:	persistUpdateGoal(pi, update.goal, telemetryForUpdate(update.goal, completionDecision), "tool");
+.pi/extensions/goal/tools.ts:283:	syncGoalUi(ctx, update.goal);
+.pi/extensions/goal/tools.ts:284:	if (goal.status !== "active" && update.goal.status === "active") {
+.pi/extensions/goal/tools.ts:288:	return resultForGoal(update.goal, getTelemetry(), update.prefix);
+.pi/extensions/goal/tools.ts:294:	goal: GoalState,
+.pi/extensions/goal/tools.ts:299:	syncGoalUi(ctx, goal);
+.pi/extensions/goal/tools.ts:302:${formatToolGoal(goal)}` }],
+.pi/extensions/goal/tools.ts:304:			goal,
+.pi/extensions/goal/tools.ts:320:	if (tokenBudget !== undefined && (!Number.isInteger(tokenBudget) || tokenBudget <= 0)) return "token_budget must be a positive integer when provided.";
+.pi/extensions/goal/tools.ts:322:		return "time_budget_seconds must be a positive integer when provided.";
+.pi/extensions/goal/tools.ts:327:function buildGoalUpdate(goal: GoalState, params: UpdateGoalInput): GoalUpdateResult {
+.pi/extensions/goal/tools.ts:328:	let next: GoalState = { ...goal };
+.pi/extensions/goal/tools.ts:332:	next = objectiveResult.goal;
+.pi/extensions/goal/tools.ts:333:	const budgetResult = applyBudgetUpdates(next, params, changes);
+.pi/extensions/goal/tools.ts:334:	if (!budgetResult.ok) return budgetResult;
+.pi/extensions/goal/tools.ts:335:	next = budgetResult.goal;
+.pi/extensions/goal/tools.ts:338:	next = floorResult.floorChanged && params.status === "complete" ? floorResult.goal : floorResult.goal;
+.pi/extensions/goal/tools.ts:341:	if (floorResult.floorChanged && params.status === "complete") return { ok: false, error: "Floor edits and status complete must be separate update_goal calls." };
+.pi/extensions/goal/tools.ts:342:	next = budgetResult.budgetChanged && params.status === undefined ? recomputeStatusAfterBudgetEdit(next) : next;
+.pi/extensions/goal/tools.ts:349:	if (changes.length === 0) return { ok: false, error: "No goal updates were provided." };
+.pi/extensions/goal/tools.ts:350:	return { ok: true, goal: { ...next, updatedAt: Date.now() }, prefix: next.status === "complete" ? "Goal achieved." : `Goal updated: ${changes.join(", ")}.` };
+.pi/extensions/goal/tools.ts:353:function applyObjectiveUpdate(goal: GoalState, objective: string | undefined, changes: string[]): GoalUpdateResult {
+.pi/extensions/goal/tools.ts:354:	if (objective === undefined) return { ok: true, goal, prefix: "" };
+.pi/extensions/goal/tools.ts:358:	return { ok: true, goal: { ...goal, objective: validation.objective }, prefix: "" };
+.pi/extensions/goal/tools.ts:361:function applyBudgetUpdates(goal: GoalState, params: UpdateGoalInput, changes: string[]): GoalUpdateResult {
+.pi/extensions/goal/tools.ts:362:	let next = goal;
+.pi/extensions/goal/tools.ts:363:	let budgetChanged = false;
+.pi/extensions/goal/tools.ts:364:	if (params.token_budget !== undefined) {
+.pi/extensions/goal/tools.ts:365:		if (params.token_budget !== null && (!Number.isInteger(params.token_budget) || params.token_budget <= 0)) return { ok: false, error: "token_budget must be a positive integer or null when provided." };
+.pi/extensions/goal/tools.ts:366:		next = { ...next, tokenBudget: params.token_budget === null ? undefined : params.token_budget };
+.pi/extensions/goal/tools.ts:367:		changes.push("token budget");
+.pi/extensions/goal/tools.ts:368:		budgetChanged = true;
+.pi/extensions/goal/tools.ts:370:	if (params.time_budget_seconds !== undefined) {
+.pi/extensions/goal/tools.ts:371:		if (params.time_budget_seconds !== null && (!Number.isInteger(params.time_budget_seconds) || params.time_budget_seconds <= 0)) return { ok: false, error: "time_budget_seconds must be a positive integer or null when provided." };
+.pi/extensions/goal/tools.ts:372:		next = { ...next, timeBudgetSeconds: params.time_budget_seconds === null ? undefined : params.time_budget_seconds };
+.pi/extensions/goal/tools.ts:373:		changes.push("time budget");
+.pi/extensions/goal/tools.ts:374:		budgetChanged = true;
+.pi/extensions/goal/tools.ts:376:	return { ok: true, goal: next, prefix: "", budgetChanged };
+.pi/extensions/goal/tools.ts:379:function applyFloorUpdates(goal: GoalState, params: UpdateGoalInput, changes: string[]): GoalUpdateResult & { floorChanged?: boolean } {
+.pi/extensions/goal/tools.ts:380:	let next = goal;
+.pi/extensions/goal/tools.ts:382:	if (params.min_tokens_before_wrap_up !== undefined) {
+.pi/extensions/goal/tools.ts:383:		if (params.min_tokens_before_wrap_up !== null && (!Number.isInteger(params.min_tokens_before_wrap_up) || params.min_tokens_before_wrap_up <= 0)) return { ok: false, error: "min_tokens_before_wrap_up must be a positive integer or null when provided." };
+.pi/extensions/goal/tools.ts:384:		next = { ...next, minTokensBeforeWrapUp: params.min_tokens_before_wrap_up === null ? undefined : params.min_tokens_before_wrap_up };
+.pi/extensions/goal/tools.ts:388:	if (params.min_time_seconds_before_wrap_up !== undefined) {
+.pi/extensions/goal/tools.ts:389:		if (params.min_time_seconds_before_wrap_up !== null && (!Number.isInteger(params.min_time_seconds_before_wrap_up) || params.min_time_seconds_before_wrap_up <= 0)) return { ok: false, error: "min_time_seconds_before_wrap_up must be a positive integer or null when provided." };
+.pi/extensions/goal/tools.ts:390:		next = { ...next, minTimeSecondsBeforeWrapUp: params.min_time_seconds_before_wrap_up === null ? undefined : params.min_time_seconds_before_wrap_up };
+.pi/extensions/goal/tools.ts:394:	return { ok: true, goal: next, prefix: "", floorChanged };
+.pi/extensions/goal/tools.ts:397:function budgetEditWrapUpIfNeeded(pi: ExtensionAPI, ctx: ExtensionContext, runtime: GoalToolRuntime, previousGoal: GoalState, updatedGoal: GoalState) {
+.pi/extensions/goal/tools.ts:398:	// Only schedule wrap-up when an active goal transitions to budgetLimited due to a budget edit.
+.pi/extensions/goal/tools.ts:399:	if (previousGoal.status === "active" && updatedGoal.status === "budgetLimited" && isBudgetExhausted(updatedGoal)) {
+.pi/extensions/goal/tools.ts:400:		runtime.scheduleBudgetLimitWrapUp?.(ctx, updatedGoal);
+.pi/extensions/goal/tools.ts:404:function recomputeStatusAfterBudgetEdit(goal: GoalState): GoalState {
+.pi/extensions/goal/tools.ts:405:	if (goal.status !== "active" && goal.status !== "budgetLimited") return goal;
+.pi/extensions/goal/tools.ts:406:	return isBudgetExhausted(goal) ? { ...goal, status: "budgetLimited" } : { ...goal, status: "active" };
+.pi/extensions/goal/tools.ts:409:function telemetryForUpdate(goal: GoalState, completionDecision: CompletionDecision): GoalTelemetrySnapshot | null {
+.pi/extensions/goal/tools.ts:410:	const reason = isBudgetExhausted(goal);
+.pi/extensions/goal/tools.ts:411:	if (goal.status === "budgetLimited" && reason) return noteBudgetLimit(getTelemetry(), reason);
+.pi/extensions/goal/tools.ts:414:		return telemetry ? { ...telemetry, noMoreValuableWorkReason: completionDecision.reason === "max_budget_requires_wrap_up" ? "max_budget_requires_wrap_up" : completionDecision.reason, floorQualityState: completionDecision.reason === "max_budget_requires_wrap_up" ? "overriddenByMaxBudget" : telemetry.floorQualityState, updatedAt: Date.now() } : telemetry;
+.pi/extensions/goal/telemetry.ts:28:export function createTelemetry(goalId: string, now = Date.now()): GoalTelemetrySnapshot {
+.pi/extensions/goal/telemetry.ts:31:		goalId,
+.pi/extensions/goal/telemetry.ts:37:		updatedAt: now,
+.pi/extensions/goal/telemetry.ts:44:	return v.version === TELEMETRY_SCHEMA_VERSION && typeof v.goalId === "string";
+.pi/extensions/goal/telemetry.ts:53:	return { ...telemetry, lastContinuationReason: reason, lastSkipReason: undefined, updatedAt: now };
+.pi/extensions/goal/telemetry.ts:62:	return { ...telemetry, lastSkipReason: reason, updatedAt: now };
+.pi/extensions/goal/telemetry.ts:70:	return { ...telemetry, budgetWrapUpSent: true, updatedAt: now };
+.pi/extensions/goal/telemetry.ts:79:	return { ...telemetry, lastBudgetLimitReason: reason, updatedAt: now };
+.pi/extensions/goal/telemetry.ts:93:		updatedAt: now,
+.pi/extensions/goal/telemetry.ts:103:	return { ...telemetry, lastBudgetHardStopReason: reason, updatedAt: now };
+.pi/extensions/goal/telemetry.ts:112:	return { ...telemetry, lastSafetyPauseReason: reason, updatedAt: now };
+.pi/extensions/goal/telemetry.ts:125:		updatedAt: now,
+.pi/extensions/goal/telemetry.ts:135:	if (!telemetry || telemetry.goalId !== turn.goalId) return telemetry;
+.pi/extensions/goal/telemetry.ts:136:	const auto = turn.origin === "auto" || turn.origin === "budgetWrapUp";
+.pi/extensions/goal/telemetry.ts:149:		updatedAt: now,
+.pi/extensions/goal/telemetry.ts:164:		updatedAt: now,
+.pi/extensions/goal/telemetry.ts:178:		updatedAt: now,
+.pi/extensions/goal/telemetry.ts:191:		updatedAt: now,
+.pi/extensions/goal/telemetry.ts:204:		updatedAt: now,
+.pi/extensions/goal/telemetry.ts:227:export function makeTurnSnapshot(goalId: string, origin: TurnOrigin, startedAt = Date.now()): TurnAccountingSnapshot {
+.pi/extensions/goal/telemetry.ts:228:	return { goalId, origin, startedAt, toolCallCount: 0, toolResultCount: 0, progressCount: 0, completedGoal: false };
+.pi/extensions/goal/widget.ts:3:import { commandHint, formatElapsed, formatTokensCompact, goalStatusLabel, objectiveExcerpt } from "./format";
+.pi/extensions/goal/widget.ts:28:	budget?: number;
+.pi/extensions/goal/widget.ts:37:export function goalWidgetFactory(goal: GoalState): (_tui: unknown, theme: GoalWidgetTheme) => GoalWidgetComponent {
+.pi/extensions/goal/widget.ts:38:	return (_tui, theme) => new GoalWidget(goal, theme);
+.pi/extensions/goal/widget.ts:41:export function renderGoalWidget(goal: GoalState, theme: GoalWidgetTheme, width: number): string[] {
+.pi/extensions/goal/widget.ts:42:	if (width < MIN_CARD_WIDTH) return compactLines(goal, theme, width);
+.pi/extensions/goal/widget.ts:45:	const style = statusStyle(goal);
+.pi/extensions/goal/widget.ts:48:		contentLine(theme.fg("dim", objectiveExcerpt(goal.objective, contentWidth)), contentWidth, theme),
+.pi/extensions/goal/widget.ts:49:		contentLine(resourceLine(timeResource(goal), theme), contentWidth, theme),
+.pi/extensions/goal/widget.ts:50:		contentLine(resourceLine(tokenResource(goal), theme), contentWidth, theme),
+.pi/extensions/goal/widget.ts:51:		contentLine(floorLine(goal, theme), contentWidth, theme),
+.pi/extensions/goal/widget.ts:52:		contentLine(commandLine(goal.status, theme), contentWidth, theme),
+.pi/extensions/goal/widget.ts:59:	constructor(private readonly goal: GoalState, private readonly theme: GoalWidgetTheme) {}
+.pi/extensions/goal/widget.ts:62:		return renderGoalWidget(this.goal, this.theme, width);
+.pi/extensions/goal/widget.ts:68:function compactLines(goal: GoalState, theme: GoalWidgetTheme, width: number): string[] {
+.pi/extensions/goal/widget.ts:69:	const style = statusStyle(goal);
+.pi/extensions/goal/widget.ts:72:		truncateToWidth(`${status} ${objectiveExcerpt(goal.objective, Math.max(6, width - 10))}`, width),
+.pi/extensions/goal/widget.ts:73:		truncateToWidth(`${timeValue(goal)}  ${tokenValue(goal)}`, width),
+.pi/extensions/goal/widget.ts:74:		truncateToWidth(compactFloorValue(goal), width),
+.pi/extensions/goal/widget.ts:75:		truncateToWidth(commandHint(goal.status).replace(/^Commands: /, ""), width),
+.pi/extensions/goal/widget.ts:80:	const title = theme.bold(theme.fg(style.color, `${style.icon} pi-goal`));
+.pi/extensions/goal/widget.ts:103:	if (spec.budget === undefined) return `${spec.icon} ${theme.fg("muted", spec.label)}  ${resourceValue(spec.used, spec.format, spec.suffix)}`;
+.pi/extensions/goal/widget.ts:104:	const percent = percentage(spec.used, spec.budget);
+.pi/extensions/goal/widget.ts:107:		progressBar(percent, theme),
+.pi/extensions/goal/widget.ts:108:		`${spec.format(spec.used)} / ${spec.format(spec.budget)}`,
+.pi/extensions/goal/widget.ts:113:function progressBar(percent: number, theme: GoalWidgetTheme): string {
+.pi/extensions/goal/widget.ts:118:function timeResource(goal: GoalState): ResourceSpec {
+.pi/extensions/goal/widget.ts:119:	return { icon: "⏱", label: "Time", used: goal.timeUsedSeconds, budget: goal.timeBudgetSeconds, format: formatElapsed };
+.pi/extensions/goal/widget.ts:122:function tokenResource(goal: GoalState): ResourceSpec {
+.pi/extensions/goal/widget.ts:123:	return { icon: "◈", label: "Tokens", used: goal.tokensUsed, budget: goal.tokenBudget, format: formatTokensCompact, suffix: "tokens" };
+.pi/extensions/goal/widget.ts:126:function floorLine(goal: GoalState, theme: GoalWidgetTheme): string {
+.pi/extensions/goal/widget.ts:127:	const floor = evaluateCompletionFloor(goal);
+.pi/extensions/goal/widget.ts:130:	if (goal.minTimeSecondsBeforeWrapUp !== undefined) parts.push(`time ${formatElapsed(goal.timeUsedSeconds)} / ${formatElapsed(goal.minTimeSecondsBeforeWrapUp)}`);
+.pi/extensions/goal/widget.ts:131:	if (goal.minTokensBeforeWrapUp !== undefined) parts.push(`tokens ${formatTokensCompact(goal.tokensUsed)} / ${formatTokensCompact(goal.minTokensBeforeWrapUp)}`);
+.pi/extensions/goal/widget.ts:136:function timeValue(goal: GoalState): string {
+.pi/extensions/goal/widget.ts:137:	return goal.timeBudgetSeconds === undefined ? `⏱ ${formatElapsed(goal.timeUsedSeconds)}` : `⏱ ${formatElapsed(goal.timeUsedSeconds)} / ${formatElapsed(goal.timeBudgetSeconds)}`;
+.pi/extensions/goal/widget.ts:140:function tokenValue(goal: GoalState): string {
+.pi/extensions/goal/widget.ts:141:	return goal.tokenBudget === undefined ? `◈ ${formatTokensCompact(goal.tokensUsed)} tokens` : `◈ ${formatTokensCompact(goal.tokensUsed)} / ${formatTokensCompact(goal.tokenBudget)}`;
+.pi/extensions/goal/widget.ts:144:function compactFloorValue(goal: GoalState): string {
+.pi/extensions/goal/widget.ts:145:	const floor = evaluateCompletionFloor(goal);
+.pi/extensions/goal/widget.ts:147:	if (goal.minTimeSecondsBeforeWrapUp !== undefined) return `floor ⏱ ${formatElapsed(goal.timeUsedSeconds)} / ${formatElapsed(goal.minTimeSecondsBeforeWrapUp)}`;
+.pi/extensions/goal/widget.ts:148:	return `floor ◈ ${formatTokensCompact(goal.tokensUsed)} / ${formatTokensCompact(goal.minTokensBeforeWrapUp ?? 0)}`;
+.pi/extensions/goal/widget.ts:156:function percentage(used: number, budget: number): number {
+.pi/extensions/goal/widget.ts:157:	return clamp(Math.round((Math.max(0, used) / Math.max(1, budget)) * 100), 0, 100);
+.pi/extensions/goal/widget.ts:168:function statusStyle(goal: GoalState): StatusStyle {
+.pi/extensions/goal/widget.ts:169:	switch (goal.status) {
+.pi/extensions/goal/widget.ts:174:		case "budgetLimited":
+.pi/extensions/goal/widget.ts:175:			return { icon: "⚠", label: goalStatusLabel(goal), color: "warning" };

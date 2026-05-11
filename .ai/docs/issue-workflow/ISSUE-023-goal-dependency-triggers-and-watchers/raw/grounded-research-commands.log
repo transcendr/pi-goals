@@ -1,0 +1,323 @@
+
+## grounded research commands
+$ git status --short --untracked-files=all | head -120
+ M .ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/01-open-promotion-addendum.md
+ M .ai/docs/issue-workflow/refine-issue-leverage-order-2026-05-10/final-order.md
+ M .ai/issues/fixed/ISSUE-027-goal-queue.md
+ M .ai/issues/open/ISSUE-015-goal-subgoals.md
+ M .ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md
+ D .ai/issues/refine/ISSUE-018-goal-start-in-worktree.md
+ D .ai/issues/refine/ISSUE-019-parallel-multiple-goals.md
+ M .pi/extensions/goal/.sentrux/baseline.json
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/raw/commands.log
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/raw/final-validation.log
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/raw/issue018-invariant-probe.log
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/raw/quality-goal-open-promotion.log
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/raw/sentrux-gate.log
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/raw/stale-018-references-before.log
+?? .ai/docs/issue-workflow/ISSUE-018-goal-start-in-worktree/raw/stale-reference-audit.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/07-acceptance-traceability.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/08-implementation-handoff.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/09-completion-audit.md
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/commands.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/comprehensive-completion-probe.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/final-validation.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/issue019-invariant-probe.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/protocol-coverage-probe.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/quality-goal-open-promotion.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/sentrux-gate.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/stale-019-references-before.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/stale-reference-audit.log
+?? .ai/docs/issue-workflow/ISSUE-019-parallel-multiple-goals/raw/validation-expansion-final.log
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/commands.log
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/grounded-research-commands.log
+?? .ai/docs/issue-workflow/ISSUE-023-goal-dependency-triggers-and-watchers/raw/pre-refinement-invariant-gap.log
+?? .ai/issues/open/ISSUE-018-goal-start-in-worktree.md
+?? .ai/issues/open/ISSUE-019-parallel-multiple-goals.md
+$ rg watcher/dependency/idle/worktree/multi surfaces
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:8:Next best session: focused implementation/validation pass for multi-goal collection, focus/switch, and external-handle tracking
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:9:Next best session rationale: The major architecture forks are locked: first pass introduces a multi-goal collection with one local-active goal in the current session, explicit focus/switch semantics, per-goal budgets/proofs/worktree metadata, and metadata-only external parallel handles. It does not silently spawn background model sessions or implement a full team runtime inside `pi-goal`.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:15:- `.ai/issues/open/ISSUE-018-goal-start-in-worktree.md`
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:18:- `.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md`
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:22:- `.ai/issues/refine/ISSUE-023-goal-dependency-triggers-and-watchers.md`
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:23:- `.ai/issues/fixed/ISSUE-027-goal-queue.md`
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:27:Add first-class support for multiple top-level `pi-goal` records so users/agents can maintain named independent goals, focus/switch among them, run sequential multi-goal plans safely, and track explicitly launched external parallel work without cross-goal steering, budget, proof, or worktree leakage.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:29:First release target: a bounded multi-goal collection with one `local_active` goal per Pi session, explicit focus/switch/list/add/update surfaces, external-session/worktree handles for user-mediated parallel work, and no automatic background model spawning.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:33:The current extension intentionally supports one branch-local goal. Larger workflows need multiple independent top-level goals: release checklist items, parallel investigation paths, implementation shards, or external worktree sessions. This cannot be bolted onto the single `GoalState` casually because state, UI, continuation, budgets, proofs, and worktree/session ownership become multi-tenant.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:38:- ISSUE-018 worktree starts provide safe one-goal worktree preparation/adoption and explicitly defer automatic multi-agent orchestration.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:39:- ISSUE-027 queue is durable FIFO future work, not a visible set of active named goals.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:40:- ISSUE-023 dependency triggers/watchers should later consume multi-goal status but should not define the first multi-goal state model.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:74:  - `localActiveGoalId` for the one goal that current-session continuation/monitor/budget-wrap-up may control;
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:77:- Existing sessions without collection state behave exactly as they do today.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:83:- `local_active`: the one goal in this Pi session eligible for normal auto-continuation, churn monitoring, turn accounting, and budget wrap-up.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:84:- `external_active`: a goal whose work is occurring in another explicit session/worktree/process and is only tracked/synchronized by explicit commands/tools in this controller session.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:86:- At most one goal may be `local_active` in one Pi session in the first pass.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:91:- `/goal list` and `list_goals` show aggregate state and compact rows.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:93:- `/goal switch <goal-id>` makes a pending/paused local goal the local active goal only after canceling/pausing the previous local-active owner.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:95:- Existing queue behavior remains unchanged for simple FIFO future work.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:99:- First pass supports explicit external parallel goal handles, not silent model/session spawning.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:101:  - `executionOwner: "external_session" | "external_process"`;
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:102:  - worktree metadata from ISSUE-018;
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:103:  - session path/id when known;
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:106:- The current session lists and audits external metadata but does not auto-continue, monitor, budget-wrap-up, or complete external goals without explicit synchronization.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:107:- Any real process/session launch beyond metadata adoption requires explicit user/agent action, concurrency caps, and live proof/cleanup evidence.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:111:- Continuation, monitor, pause steering, budget wrap-up, and completion gates operate only on `localActiveGoalId`.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:114:- Proof, checkpoint/history, audit, subgoal, and worktree metadata are partitioned per goal.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:115:- External goals never receive current-session follow-up messages by accident.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:120:- `list_goals` uses a small AXI-friendly schema: id/name/status/owner/focus/local-active/worktree-or-session summary/budget summary.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:122:- Detailed multi-goal tables live in `/goal list` and `list_goals`, not in the narrow widget.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:136:- `continuation.ts`, `lifecycle.ts`, monitor reports, UI, and widget rendering are all single-local-goal oriented today.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:137:- Pi docs expose replacement sessions and explicit `sendUserMessage`, but ISSUE-018 found no cwd override for safe automatic worktree session replacement.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:146:- Existing single-goal sessions remain backward compatible and are treated as implicit one-goal collections only when needed.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:147:- First pass permits exactly one `local_active` goal in the current Pi session.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:148:- Parallel first pass means explicit external-session/worktree handles, not automatic background model spawning.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:149:- Focus and local active are separate: focus is for detail/inspection; local active is for continuation/monitor/turn side effects.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:150:- Budgets, floors, telemetry, proofs, subgoals, checkpoints, and worktree metadata are per goal.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:152:- UI is aggregate/list-first and compact in the widget/footer.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:156:- Multiple local-active goals in one Pi session.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:157:- Reusing queue items as active named goals.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:159:- Silent automatic spawning of Pi/model sessions.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:164:## Implementation checklist
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:168:- [ ] Add collection adapter helpers that expose focused/local-active goal to existing `get_goal`/completion/continuation paths without losing aggregate metadata.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:169:- [ ] Add `/goal list`, `/goal focus <goal-id>`, `/goal switch <goal-id>`, and `/goal add ... -- <objective>` command paths without changing `/goal <objective>` default behavior.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:170:- [ ] Add model tools such as `list_goals`, `create_multi_goal`, `focus_goal`, `switch_active_goal`, and `update_multi_goal` with explicit `goal_id` requirements for non-focused mutations.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:171:- [ ] Ensure focus changes do not schedule continuation and switch cancels/pauses the previous local-active owner before activating another.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:172:- [ ] Extend continuation, lifecycle turn accounting, monitor scheduling, pause/resume, budget wrap-up, and completion gates to target only `localActiveGoalId`.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:173:- [ ] Ensure external goal handles cannot receive current-session continuation/monitor/budget-wrap-up.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:174:- [ ] Keep queue and subgoal storage/tool paths distinct from multi-goal top-level records.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:176:- [ ] Update README with multi-goal list/focus/switch/add behavior, external-handle boundary, and no-silent-spawn guarantee.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:179:- [ ] Run a live probe if real external session/process launch is implemented; otherwise create an explicit deterministic-coverage skip closeout.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:183:- Existing single-goal sessions and `/goal <objective>` behavior remain backward compatible.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:185:- `/goal list`/`list_goals` shows all goal records with focus/local-active/external ownership state.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:187:- Switch activates exactly one local goal and cancels/pauses the previous local-active owner safely.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:188:- Continuation, monitor, pause steering, budget wrap-up, and completion operate only on the local-active goal.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:189:- External goal records can be tracked with session/worktree metadata but are never auto-driven by the current session.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:192:- Per-goal proof/budget/worktree/checkpoint metadata cannot satisfy or affect another goal.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:201:Primary invariant: a multi-goal collection must preserve independent goal identity, budgets, proofs, worktree/session ownership, and steering context so that only the selected local-active goal receives local continuation/monitor/budget side effects, while other local/external goals remain inspectable and cannot be accidentally mutated or completed.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:205:- `get_goal`/completion/continuation silently operate on the wrong goal after focus or switch.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:206:- Multiple local goals receive continuation or monitor steering in the same session.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:211:- Implementation silently spawns paid/background Pi sessions.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:212:- Existing single-goal sessions regress.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:218:issue{id,status,target_session,goal}:
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:222:  "lr2","existing single-goal sessions remain backward compatible"
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:223:  "lr3","only one local_active goal per Pi session receives continuation, monitor, turn accounting, and budget wrap-up"
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:225:  "lr5","external parallel goals are explicit metadata/session/worktree handles, not silently spawned model sessions"
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:226:  "lr6","budgets, floors, telemetry, proofs, subgoals, checkpoints, and worktree metadata are partitioned per goal"
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:227:  "lr7","queue items and subgoals remain distinct from top-level multi-goal records"
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:228:  "lr8","list/tool/UI surfaces show aggregate ownership/status without crowding the narrow widget"
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:230:  "inv1","no more than one local_active goal exists in one session"
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:231:  "inv2","non-local and external goals never receive current-session follow-up steering"
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:241:  "s4",".pi/extensions/goal/command.ts","add list/focus/switch/add command paths"
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:242:  "s5",".pi/extensions/goal/multi-tools.ts","add structured list/create/focus/switch/update tools"
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:243:  "s6",".pi/extensions/goal/continuation.ts","target only localActiveGoalId and block external handles"
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:244:  "s7",".pi/extensions/goal/lifecycle.ts","partition turn accounting/monitor/budget side effects by local-active goal"
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:249:  "v3","only local-active receives continuation/monitor/budget side effects","continuation isolation probe"
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:251:  "v5","queue items and subgoals are not treated as top-level parallel goals","boundary probe"
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:252:  "v6","list/tool/widget output exposes aggregate ownership/status and preserves no-collection rendering","render probe"
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:263:  "focus_switch_probe","ISSUE-019","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-multi-focus-switch-probe.mjs","exit 0 and output includes PASS focus_switch_isolated","run","must fail if focus schedules continuation or switch leaves two local-active goals"
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:264:  "continuation_isolation_probe","ISSUE-019","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-multi-continuation-isolation-probe.mjs","exit 0 and output includes PASS only_local_active_continues","run","must fail if paused, focused-only, or external goals receive local continuation/monitor/budget side effects"
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:266:  "queue_subgoal_boundary_probe","ISSUE-019","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-multi-queue-subgoal-boundary-probe.mjs","exit 0 and output includes PASS queue_subgoal_multi_goal_boundaries","run","must fail if queue items or ISSUE-015 subgoals are treated as parallel top-level goals"
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:267:  "multi_goal_render_probe","ISSUE-019","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-multi-render-probe.mjs","exit 0 and output includes PASS multi_goal_compact_rendering","run","must fail if list/tool/widget summaries hide ownership/status counts or break single-goal rendering"
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:268:  "live_parallel_probe_or_skip","ISSUE-019","cd /Users/bryan/dev/personal/experiments/pi-goals && test -s .ai/validation/goal-multi-live-probe-closeout.md","exit 0","run","record live external-session/process evidence if implemented, or an explicit deterministic-coverage skip rationale when first pass has metadata-only external handles"
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:273:- Silent automatic spawning of paid/background model sessions.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:275:- Multiple local-active goals in one Pi session.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:276:- Cross-goal dependency solving or watcher triggers; see ISSUE-023.
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md:278:- Replacing the existing FIFO queue.
+.ai/issues/refine/ISSUE-023-goal-dependency-triggers-and-watchers.md:1:# ISSUE-023 — Refine goal dependency triggers and external watchers
+.ai/issues/refine/ISSUE-023-goal-dependency-triggers-and-watchers.md:7:Next best session: design refinement pass for wait-condition watchers
+.ai/issues/refine/ISSUE-023-goal-dependency-triggers-and-watchers.md:8:Next best session rationale: Watcher types, execution safety, persistence, and stale-guard behavior need design locking.
+.ai/issues/refine/ISSUE-023-goal-dependency-triggers-and-watchers.md:11:Depends on: `.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md`
+.ai/issues/refine/ISSUE-023-goal-dependency-triggers-and-watchers.md:13:Goal: Design optional external dependency triggers so an idle-tolerant goal can resume when a watched command, file, process, or agent signal changes.
+.ai/issues/refine/ISSUE-023-goal-dependency-triggers-and-watchers.md:17:Idle-tolerant goals allow an agent to wait, but a time-based nudge alone may be inefficient. Some waits have concrete external conditions: a command exits, a log contains a string, a file appears, a test server becomes reachable, or another agent posts a completion signal.
+.ai/issues/refine/ISSUE-023-goal-dependency-triggers-and-watchers.md:25:  - process/session signal arrives.
+.ai/issues/refine/ISSUE-023-goal-dependency-triggers-and-watchers.md:26:- When a condition is satisfied, `pi-goal` nudges or resumes the goal if it is still active and waiting.
+.ai/issues/refine/ISSUE-023-goal-dependency-triggers-and-watchers.md:27:- Watchers are visible, cancelable, stale-guarded by goal id, and timeout-limited.
+.ai/issues/refine/ISSUE-023-goal-dependency-triggers-and-watchers.md:31:1. Which watcher types are safe for a first version?
+.ai/issues/refine/ISSUE-023-goal-dependency-triggers-and-watchers.md:32:2. Are watchers executed by the extension, the agent, or an external helper CLI?
+.ai/issues/refine/ISSUE-023-goal-dependency-triggers-and-watchers.md:34:4. How are watcher registrations persisted and restored after reload?
+.ai/issues/refine/ISSUE-023-goal-dependency-triggers-and-watchers.md:35:5. How does this interact with worktrees and multiple parallel goals?
+.ai/issues/refine/ISSUE-023-goal-dependency-triggers-and-watchers.md:40:- Watcher satisfaction triggers at most one stale-guarded nudge/resume event per registration.
+.ai/issues/refine/ISSUE-023-goal-dependency-triggers-and-watchers.md:41:- User can list/cancel active wait conditions.
+.ai/issues/refine/ISSUE-023-goal-dependency-triggers-and-watchers.md:53:- [ ] Choose first watcher types.
+.ai/issues/refine/ISSUE-023-goal-dependency-triggers-and-watchers.md:54:- [ ] Define watcher schema and persistence.
+.ai/issues/refine/ISSUE-023-goal-dependency-triggers-and-watchers.md:56:- [ ] Define UI/list/cancel command surface.
+.ai/issues/refine/ISSUE-023-goal-dependency-triggers-and-watchers.md:57:- [ ] Coordinate with idle-tolerant mode and completion proofs.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:1:# ISSUE-016 — Idle-tolerant goals with delayed nudges
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:3:Status: open — execution-ready for first idle-nudge implementation pass
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:8:Next best session: implement and validate idle-nudge continuation policy
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:9:Next best session rationale: The policy schema, default behavior, timer semantics, update surface, UI wording, and proof strategy are now locked for a bounded first pass.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:15:- `.ai/issues/fixed/ISSUE-003-paused-goal-continuation-guard.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:18:- `.ai/issues/open/ISSUE-018-goal-start-in-worktree.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:19:- `.ai/issues/refine/ISSUE-023-goal-dependency-triggers-and-watchers.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:20:- `.ai/issues/open/ISSUE-037-goal-queue-auto-continuation-after-complete.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:25:Add an optional per-goal auto-continuation policy that lets an active goal intentionally go idle without being paused, while still allowing a delayed nudge to reassess whether the agent should continue.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:29:Current goal continuation is optimized for immediate persistence: when an active goal reaches `agent_end`, `scheduleMaybeContinueGoal()` schedules a short follow-up if the context is idle and safe. That is useful for autonomous work, but awkward for goals waiting on an external process, another agent, CI, a user, or a long terminal command.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:31:The system needs a first-class active-but-waiting mode that does not overload `paused`. Paused means user requested no work. Idle-tolerant active goals mean work is still active, but immediate self-continuation is temporarily counterproductive.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:35:- Request intake: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/00-request.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:36:- Protocol read: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/01-protocol-read.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:37:- Grounded research: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/02-grounded-research.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:38:- Design lock: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/03-design-lock.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:39:- Proof threat model: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/04-proof-threat-model.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:40:- Issue writeback: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/05-issue-writeback.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:41:- Final audit: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/06-final-audit.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:42:- Raw command log: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/commands.log`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:43:- Sentrux planning sensor: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/sentrux-gate.log`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:44:- Downstream reference update: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/07-downstream-reference-update.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:45:- Implementation handoff: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/08-implementation-handoff.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:46:- State and telemetry plan: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/09-state-and-telemetry-plan.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:47:- Validation probe plan: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/10-validation-probe-plan.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:48:- UI wording plan: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/11-ui-wording-plan.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:49:- Non-implementation boundary: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/12-non-implementation-boundary.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:50:- Queue continuation note: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/13-queue-continuation-note.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:51:- Package script proof check: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/14-package-script-proof-check.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:52:- Final promotion invariant: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/15-final-promotion-invariant.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:53:- Closeout summary: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/16-closeout-summary.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:54:- Final inventories: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/open-inventory-final.log`, `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/refine-inventory-final.log`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:55:- Quality gate log: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/raw/quality-goal-open-promotion.log`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:56:- Telemetry source recheck: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/17-telemetry-source-recheck.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:57:- Command source recheck: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/18-command-source-recheck.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:58:- Tool output source recheck: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/19-tool-output-source-recheck.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:59:- Template source recheck: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/20-template-source-recheck.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:60:- Monitor prompt recheck: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/21-monitor-prompt-recheck.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:61:- Queue steering recheck: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/22-queue-steering-recheck.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:62:- Floor source recheck: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/23-floor-source-recheck.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:63:- README update plan: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/24-readme-update-plan.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:64:- Validation script plan: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/25-validation-script-plan.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:65:- Proof command normalization: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/26-proof-command-normalization.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:66:- Entrypoint and schema recheck: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/27-entrypoint-and-schema-recheck.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:67:- State replay source recheck: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/28-state-replay-source-recheck.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:68:- UI/widget/format source recheck: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/29-ui-widget-format-recheck.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:69:- Final readback: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/30-final-readback.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:70:- Monitor report source recheck: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/31-monitor-report-source-recheck.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:71:- Downstream stale reference fix: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/32-downstream-stale-reference-fix.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:72:- Stack inventory after promotion: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/33-stack-inventory-after-promotion.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:73:- Goal completion readiness: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/34-goal-completion-readiness.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:74:- Final diff snapshot: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/35-final-diff-snapshot.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:75:- Non-implementation final audit: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/36-nonimplementation-final-audit.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:76:- Artifact link check: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/37-artifact-link-check.md`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:80:- Default behavior remains current immediate auto-continuation.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:81:- A goal can set `autoContinueMode` to `"idle_nudge"` with an optional `idleNudgeAfterSeconds` delay and optional `idleWaitReason`.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:82:- `idle_nudge` suppresses the immediate 25ms `agent_end` follow-up and schedules a delayed stale-guarded nudge instead.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:83:- The delayed nudge uses follow-up delivery and asks the agent to inspect whether the wait is still appropriate before doing substantive work.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:84:- `manual` disables automatic follow-up and delayed nudge until the policy is changed or the user resumes/updates the goal.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:90:Source artifact: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/02-grounded-research.md`.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:94:- `GoalState` has no idle/auto-continuation policy fields today.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:95:- `continuation.ts` centralizes immediate auto-continuation scheduling and uses a 25ms timer.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:96:- `maybeContinueGoal()` already stale-guards by goal id/status, idle state, pending messages, and safety counters.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:97:- `constants.ts` already has a 90-second monitor interval, but delayed idle nudges should be a separate runtime timer/prompt from churn monitoring.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:104:  - `autoContinueMode?: "immediate" | "idle_nudge" | "manual"`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:105:  - `idleNudgeAfterSeconds?: number`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:106:  - `idleWaitReason?: string`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:107:  - `idleWaitingSince?: number`
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:109:- `idle_nudge` default delay is 90 seconds.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:112:- Delayed nudge timer is separate from churn monitor timer.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:114:## Implementation checklist
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:116:- [ ] Add idle policy types and bounded parsing helpers in `.pi/extensions/goal/types.ts` / state helpers.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:117:- [ ] Extend `create_goal`, `create_goal_from_template`, and `update_goal` params to accept idle policy fields.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:118:- [ ] Normalize policy fields during replay in `.pi/extensions/goal/state.ts`; do not rely on broad spread for idle policy fields.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:119:- [ ] Extend `.pi/extensions/goal/continuation.ts` with delayed idle-nudge timer management and cancellation.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:120:- [ ] Suppress immediate `agent_end` continuation for `idle_nudge` and `manual` modes.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:121:- [ ] Add stale guards for delayed nudges: goal id, status active, unchanged policy, idle context, no pending messages.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:124:- [ ] Ensure safety/no-progress telemetry does not punish intentionally idle waits.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:132:- Existing goals without policy fields behave exactly like current immediate continuation goals.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:133:- An `idle_nudge` goal does not schedule the immediate 25ms follow-up at `agent_end`.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:134:- An `idle_nudge` goal schedules one delayed nudge after the configured/default interval.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:135:- Delayed nudges are stale-guarded and do not fire after pause, completion, clear, replacement, pending messages, or non-idle context.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:136:- `manual` mode schedules no automatic continuation and no delayed nudge.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:139:- Safety counters/no-progress handling does not classify intentional idle waiting as a no-progress loop.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:144:Source artifact: `.ai/docs/issue-workflow/ISSUE-016-goal-idle-tolerant-mode/04-proof-threat-model.md`.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:146:Primary invariant: an active goal configured for `idle_nudge` may intentionally go idle without immediate auto-continuation, while still receiving a stale-guarded delayed nudge that asks the agent to reassess the wait.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:150:- Immediate continuation still fires for idle-nudge goals.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:151:- Delayed nudge fires repeatedly or after state changed.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:152:- Manual mode accidentally schedules a nudge.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:160:issue{id,status,target_session,goal}:
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:161:  "ISSUE-016","execution-ready-first-pass","implement idle-nudge continuation policy","active goals can intentionally wait without immediate continuation and receive delayed reassessment nudges"
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:163:  "lr1","default missing policy remains immediate auto-continuation"
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:164:  "lr2","idle_nudge suppresses immediate agent_end follow-up and schedules one delayed stale-guarded nudge"
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:165:  "lr3","manual disables automatic follow-up and delayed nudges"
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:170:  "s1",".pi/extensions/goal/types.ts","add idle policy fields and types"
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:173:  "s4",".pi/extensions/goal/continuation.ts","add delayed nudge timers and suppress immediate continuation by policy"
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:184:  "idle_nudge_suppresses_immediate","ISSUE-016","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-idle-nudge-suppresses-immediate-probe.mjs","exit 0 and output includes PASS suppresses_immediate_continuation","run","must fail if 25ms follow-up still schedules for idle_nudge"
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:185:  "idle_nudge_stale_guard","ISSUE-016","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-idle-nudge-stale-guard-probe.mjs","exit 0 and output includes PASS stale_guard_blocks_invalid_nudge","run","must cover pause/complete/replace/pending-message stale cases"
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:186:  "manual_mode_probe","ISSUE-016","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-manual-mode-no-auto-probe.mjs","exit 0 and output includes PASS manual_schedules_no_auto_followup","run","must fail if manual mode schedules any automatic continuation"
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:187:  "idle_policy_replay_probe","ISSUE-016","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-idle-policy-replay-probe.mjs","exit 0 and output includes PASS idle_policy_replay_defaults","run","must prove older goals default to immediate and configured fields survive replay"
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:188:  "live_probe_or_skip","ISSUE-016","cd /Users/bryan/dev/personal/experiments/pi-goals && test -s .ai/validation/goal-idle-nudge-live-probe-closeout.md","exit 0","run","record live probe evidence or explicit deterministic-coverage skip rationale"
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:193:- Full external process monitoring; see watcher/dependency issue.
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:197:- Replacing churn monitor behavior.
+.pi/extensions/goal/command.ts:17:import { parseQueueBlockItems, type QueueBlockItem } from "./queue-block-parser";
+.pi/extensions/goal/command.ts:18:import { getQueue, enqueueGoal, persistEnqueue } from "./queue-state";
+.pi/extensions/goal/command.ts:23:	name: "pause" | "resume" | "clear" | "queue";
+.pi/extensions/goal/command.ts:31:	{ name: "queue", description: "List queued goals or enqueue a new goal" },
+.pi/extensions/goal/command.ts:37:	cancelContinuation: GoalContinuationCanceller,
+.pi/extensions/goal/command.ts:40:	cancelMonitor: GoalMonitorCanceller,
+.pi/extensions/goal/command.ts:46:		handler: async (args, ctx) => handleGoalCommand(pi, args, ctx, scheduleContinuation, cancelContinuation, interruptActiveTurn, scheduleMonitor, cancelMonitor, sendQueueSteering),
+.pi/extensions/goal/command.ts:52:	if (/^queue\s/.test(query)) return templateCompletions(query.slice("queue".length).trimStart(), "queue ");
+.pi/extensions/goal/command.ts:94:	cancelContinuation: GoalContinuationCanceller,
+.pi/extensions/goal/command.ts:97:	cancelMonitor: GoalMonitorCanceller,
+.pi/extensions/goal/command.ts:108:	const handled = handleGoalControlCommand(pi, trimmed, ctx, scheduleContinuation, cancelContinuation, interruptActiveTurn, scheduleMonitor, cancelMonitor, sendQueueSteering);
+.pi/extensions/goal/command.ts:111:	await setGoalObjective(pi, resolveTemplateOrObjective(trimmed, ctx), ctx, scheduleContinuation, cancelContinuation, scheduleMonitor, cancelMonitor);
+.pi/extensions/goal/command.ts:119:	cancelContinuation: GoalContinuationCanceller,
+.pi/extensions/goal/command.ts:122:	cancelMonitor: GoalMonitorCanceller,
+.pi/extensions/goal/command.ts:126:	if (firstToken === "queue") {
+.pi/extensions/goal/command.ts:130:	if (trimmed === "pause") pauseGoal(pi, ctx, cancelContinuation, interruptActiveTurn, cancelMonitor);
+.pi/extensions/goal/command.ts:132:	else if (trimmed === "clear") clearGoal(pi, ctx, cancelContinuation, cancelMonitor, sendQueueSteering);
+.pi/extensions/goal/command.ts:168:	cancelContinuation: GoalContinuationCanceller,
+.pi/extensions/goal/command.ts:170:	cancelMonitor: GoalMonitorCanceller,
+.pi/extensions/goal/command.ts:185:				const queued = enqueueGoal(validation.objective, "command");
+.pi/extensions/goal/command.ts:186:				persistEnqueue(pi, queued);
+.pi/extensions/goal/command.ts:187:				notifyInfo(ctx, `Queued goal: ${queued.queueId}`);
+.pi/extensions/goal/command.ts:189:				notifyInfo(ctx, "Goal creation cancelled.");
+.pi/extensions/goal/command.ts:193:		cancelContinuation(existing.goalId, "replace");
+.pi/extensions/goal/command.ts:194:		cancelMonitor(existing.goalId, "replace");
+.pi/extensions/goal/command.ts:198:	const telemetry = createTelemetry(goal.goalId, goal.createdAt);
+.pi/extensions/goal/command.ts:215:	cancelContinuation: GoalContinuationCanceller,
+.pi/extensions/goal/command.ts:217:	cancelMonitor: GoalMonitorCanceller,
+.pi/extensions/goal/command.ts:224:	cancelContinuation(goal.goalId, "pause");
+.pi/extensions/goal/command.ts:225:	cancelMonitor(goal.goalId, "pause");
+.pi/extensions/goal/command.ts:238:	const queue = getQueue();
+.pi/extensions/goal/command.ts:240:		if (queue.length > 0) {
+.pi/extensions/goal/command.ts:242:			notifyInfo(ctx, `No active goal. Resuming queued goal processing for ${queue.length} queued goal${queue.length > 1 ? "s" : ""}.`);
+.pi/extensions/goal/command.ts:249:		if (queue.length > 0) {
+.pi/extensions/goal/command.ts:251:			notifyInfo(ctx, `Goal is complete. Resuming queued goal processing for ${queue.length} queued goal${queue.length > 1 ? "s" : ""}.`);
+.pi/extensions/goal/command.ts:273:function clearGoal(pi: ExtensionAPI, ctx: ExtensionCommandContext, cancelContinuation: GoalContinuationCanceller, cancelMonitor: GoalMonitorCanceller, sendQueueSteering: GoalQueueSteeringSender): void {
+.pi/extensions/goal/command.ts:276:	cancelContinuation(goal?.goalId, "clear");
+.pi/extensions/goal/command.ts:277:	cancelMonitor(goal?.goalId, "clear");
+.pi/extensions/goal/command.ts:280:	const queue = getQueue();
+.pi/extensions/goal/command.ts:281:	if (queue.length > 0) sendQueueSteering("goal-clear");
+.pi/extensions/goal/command.ts:282:	const queueHint = queue.length > 0 ? `\n${queue.length} queued goal${queue.length > 1 ? "s" : ""} available. Queue steering was sent to the agent context.` : "";
+.pi/extensions/goal/command.ts:283:	notifyInfo(ctx, hadGoal ? `Goal cleared${queueHint}` : `No goal to clear\nThis session does not currently have a goal.${queueHint}`);
+.pi/extensions/goal/command.ts:287:	const rest = input.slice("queue".length).trim();
+.pi/extensions/goal/command.ts:289:		const queue = getQueue();
+.pi/extensions/goal/command.ts:290:		if (queue.length === 0) {
+.pi/extensions/goal/command.ts:291:			notifyInfo(ctx, "No queued goals.");
+.pi/extensions/goal/command.ts:294:		const lines = queue.map((g, i) => `${i + 1}. [${g.queueId}] ${truncateObjective(g.objective)}`);
+.pi/extensions/goal/command.ts:295:		notifyInfo(ctx, `Queued goals (${queue.length}):\n${lines.join("\n")}`);
+.pi/extensions/goal/command.ts:303:		const queued = validatedItems.map((item) => {
+.pi/extensions/goal/command.ts:304:			const goal = enqueueGoal(item.objective, "command", { template: item.template, templateFlags: item.templateFlags, templateArgs: item.templateArgs });
+.pi/extensions/goal/command.ts:305:			persistEnqueue(pi, goal);
+$ sentrux gate --save .pi/extensions/goal
+Scanning .pi/extensions/goal...
+[build_project_map] 30 files, 2 unique dirs, 2 cache misses, 0.1ms
+[resolve] 112 resolved, 22 unresolved (of 134 total specs)
+[resolve_imports] project_map 0.1ms, suffix_idx 0.1ms, suffix_resolve 1.1ms, total 1.3ms
+[build_graphs] 30 files | maps 0.0ms, imports 1.3ms, calls+inherit 0.4ms, total 1.8ms | 111 import, 591 call, 0 inherit edges
+Baseline saved to .pi/extensions/goal/.sentrux/baseline.json
+Quality: 6241
+
+Run `sentrux gate` after making changes to compare.
