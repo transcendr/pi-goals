@@ -125,13 +125,12 @@ print("  set_worker_id_after_spawn: export DESLOP_WORKER_ID=<id from spawn_worke
 print("  send_model_switch: " + f"solo-mcp --instance {quote(instance)} process send \"$DESLOP_WORKER_ID\" --project {quote(project_id)} --input {quote('/model opencode-go/glm-5.1')} --allow-recent-spawn --wait-ms 2000")
 print("  verify_model_switch_output: " + f"solo-mcp --instance {quote(instance)} process output \"$DESLOP_WORKER_ID\" --project {quote(project_id)} --lines 40")
 print("  send_deslop_boomerang: " + f"solo-mcp --instance {quote(instance)} process send \"$DESLOP_WORKER_ID\" --project {quote(project_id)} --input {quote(boomerang)}")
-print("  arm_timer_pair_60s: " + f"solo-mcp --instance {quote(instance)} tlo timer-pair arm --project {quote(project_id)} --worker \"$DESLOP_WORKER_ID\" --label deslop-pipeline --check-ms 60000")
-print("  rearm_timer_pair_60s: " + f"solo-mcp --instance {quote(instance)} tlo timer-pair arm --project {quote(project_id)} --worker \"$DESLOP_WORKER_ID\" --label deslop-pipeline --check-ms 60000")
-print("  timer_pop_on_wake: " + f"solo-mcp --instance {quote(instance)} tlo timer-pair pop --project {quote(project_id)} --from-body \"<injected timer body>\" --tail-if never")
-print("  bounded_tail_if_suspect: " + f"solo-mcp --instance {quote(instance)} process output \"$DESLOP_WORKER_ID\" --project {quote(project_id)} --lines 80")
+print("  sparse_poll_status: " + f"sleep 90 && solo-mcp --instance {quote(instance)} process status \"$DESLOP_WORKER_ID\" --project {quote(project_id)}")
+print("  sparse_poll_small_output: " + f"solo-mcp --instance {quote(instance)} process output \"$DESLOP_WORKER_ID\" --project {quote(project_id)} --lines 40")
+print("  diagnostic_or_final_output: " + f"solo-mcp --instance {quote(instance)} process output \"$DESLOP_WORKER_ID\" --project {quote(project_id)} --lines 120 --full")
+print("  capture_final_output: " + f"solo-mcp --instance {quote(instance)} process output \"$DESLOP_WORKER_ID\" --project {quote(project_id)} --lines 160 --full > {quote(artifact_dir + '/deslop-final-output.txt')}")
 print("  sentrux_post_deslop_gate: " + f"bash -o pipefail -c {quote('sentrux gate .pi/extensions/goal 2>&1 | tee ' + quote(post_log))}")
 print("  verify_review_issue_trackable: git status --short --untracked-files=all && git check-ignore -v .ai/issues/review/<created-issue-file>.md || true")
-print("  cancel_timer_pair_if_active: " + f"solo-mcp --instance {quote(instance)} tlo timer-pair cancel --project {quote(project_id)} --pair <active_pair_id>")
 PY`
 ```
 
@@ -156,7 +155,7 @@ Record the current measurement as the baseline for later comparison, including a
 - full command output path under `/tmp`;
 - copied `/tmp/.../sentrux-baseline.json` path.
 
-You will need this `/tmp` baseline evidence in step 5 when checking whether the deslop work caused Sentrux degradation.
+You will need this `/tmp` baseline evidence in step 4 when checking whether the deslop work caused Sentrux degradation.
 
 ### 1. Spawn the Solo Pi deslop worker and switch model
 
@@ -182,38 +181,30 @@ Send this exact boomerang command to the worker after the model switch. Prefer t
 
 Do not replace this with a direct prompt, direct `/goal`, direct tool call, or a different template. The spawned agent must receive the boomerang command above.
 
-### 3. Arm a 60-second Solo timer pair
+### 3. Sparse polling loop
 
-Start a `solo-mcp` timer pair for the worker with a 60-second check cadence. The timer pair automatically creates the idle-process sibling timer; do not add a separate ad hoc sleep/poll loop.
+Monitor the deslop worker with sparse polling only: basic `sleep 90`, then a token-efficient Solo process status check. Do not use Solo timer helpers, timer-pair commands, continuous polling, or large routine output reads.
 
-Use the rendered `arm_timer_pair_60s` command from the resolved context. If you are carrying a TLO run id, add `--run <run_id>` to that concrete command. Confirm the command output shows `check.delay_ms: 60000`; the longer idle sibling timer is expected and does not replace the 60-second check cadence.
-
-### 4. Timer-pop monitoring loop
-
-When the time-based timer wakes this session, do a token-efficient status check to ensure the worker is still progressing normally.
-
-Use the rendered `timer_pop_on_wake` command and replace `<injected timer body>` with the actual timer body. The rendered command must include the concrete `--project <project_id>` argument; do not rely on `project=<id>` inside the timer body for CLI parsing. Keep routine checks status-first and output-light with `--tail-if never` so a healthy wake does not pull process output:
+Use the rendered `sparse_poll_status` command:
 
 ```bash
-solo-mcp --instance <resolved_instance> tlo timer-pair pop \
-  --project <resolved_project_id> \
-  --from-body "<injected timer body>" \
-  --tail-if never
+sleep 90
+solo-mcp --instance <resolved_instance> process status "$DESLOP_WORKER_ID" --project <resolved_project_id>
 ```
 
-Only perform a process-output tail when an issue is suspect, for example stalled state, failed command, unclear completion, repeated identical status, or explicit worker error. If a tail is needed, keep it bounded with the rendered `bounded_tail_if_suspect` command or an equivalent `tlo worker snapshot --tail-if active --tail-lines 40`.
+If the status suggests the worker is still active and healthy, continue the same 90-second cadence. Do not request recap text from a healthy active worker.
 
-If the worker is active and progressing normally, rearm with the rendered `rearm_timer_pair_60s` command, not a shortened `recommended_next` command that may omit `--check-ms 60000`. Confirm every rearm output shows `check.delay_ms: 60000`, then go idle until the next wake-up. Repeat until the deslop operation is done, the worker has reported, and the worker has gone idle.
+If the status suggests idle/completion/error/blocker, or if there is a suspect condition such as stalled state, failed command, unclear completion, repeated identical status, or explicit worker error, run the rendered `sparse_poll_small_output` command. Use the rendered `diagnostic_or_final_output` command only when the bounded tail is insufficient for diagnosis or final report capture. When the worker report is final, prefer the rendered `capture_final_output` command so the report is preserved under the `/tmp` artifact directory.
 
-Do not substitute continuous polling, manual sleep loops, or large output reads for the timer-pair loop.
+Repeat until the deslop operation is done, the worker has reported, and the worker has gone idle.
 
-### 5. Review and verify the deslop report/work yourself
+### 4. Review and verify the deslop report/work yourself
 
 After the worker reports completion and goes idle, review the agent report and the actual deslop work/commits yourself. Do not rely on the worker's report as proof.
 
 Minimum review actions:
 
-1. Inspect the worker's final report/output.
+1. Inspect the worker's final report/output. Prefer the preserved `/tmp/.../deslop-final-output.txt` from `capture_final_output` when available.
 2. Inspect the commits and working tree changes produced by the worker.
 3. Rerun the Sentrux gate with the rendered `sentrux_post_deslop_gate` command and compare against the step-0 `/tmp` baseline evidence, specifically checking quality score and coupling measurement for degradation:
 
@@ -230,7 +221,7 @@ If you identify any issues in the worker's work, including bad assumptions, wron
 
 Fix all issues immediately when severity is medium or higher and confidence is medium or higher. Place the list / context of the lower-severity or lower-confidence issues together in single follow-up issue docs under `.ai/issues/review/`.
 
-### 6. Convert non-deslop follow-ups into review issues and/or queued issue-doc goals
+### 5. Convert non-deslop follow-ups into review issues and/or queued issue-doc goals
 
 Review the deslop agent report for potential follow-up issues that are not deslop fixes, such as bugs, correctness concerns, architectural questions beyond deslop scope, or other items the worker identified but explicitly did not fix.
 
@@ -247,11 +238,11 @@ For each such follow-up:
 
 At this point, you should have either created a `.ai/issues/review/` issue doc directly, queued one or more orchestration-type goals (goals where the goal is to create another goal(s)) which would now be present in the `/goal queue` output list, or both. For every review issue doc created directly, run the rendered `verify_review_issue_trackable` command with `<created-issue-file>` replaced by the actual filename so git visibility is verified.
 
-### 6b. No follow-ups case
+### 5b. No follow-ups case
 
-If the deslop agent identifies no potential follow-up issues, stop after step 5 review/validation and report what was done. In this case the goal is satisfied as complete.
+If the deslop agent identifies no potential follow-up issues, stop after step 4 review/validation and report what was done. In this case the goal is satisfied as complete.
 
-### 7. Execute queued issue-doc goals when present
+### 6. Execute queued issue-doc goals when present
 
 If this process queued one or more `create-issue-doc` orchestration goals, begin executing them now. Work until the queue is finished and all immediate follow-up docs are completed and execution-ready.
 
@@ -267,7 +258,7 @@ When the queue is finished and all follow-up docs are complete/execution-ready, 
 
 This deslop pipeline goal is complete only after either:
 
-- step 6b applies: no follow-up issues were identified, and step 5 review/validation completed; or
-- step 7 applies: all queued follow-up issue-doc goals from this process have been executed, the queue is finished, and all follow-up docs are execution-ready.
+- step 5b applies: no follow-up issues were identified, and step 4 review/validation completed; or
+- step 6 applies: all queued follow-up issue-doc goals from this process have been executed, the queue is finished, and all follow-up docs are execution-ready.
 
-Before marking complete, perform a completion audit that maps every step above to concrete evidence: commands run, preflight dirty-worktree status, timer-pair events, worker process id, final worker report, Sentrux baseline and post-deslop comparison, validation results, commits reviewed, issues fixed, review-bucket docs created, review-doc trackability checks, queue items created/executed, timer pair cleanup/resolution, and remaining blockers if any and output as table(s) in chat. If any timer pair remains active at closeout, use the rendered `cancel_timer_pair_if_active` command with the actual pair id or otherwise prove the pair is already resolved/cancelled.
+Before marking complete, perform a completion audit that maps every step above to concrete evidence: commands run, preflight dirty-worktree status, sparse polling status checks, any bounded output reads and why they were needed, worker process id, final worker report capture path, Sentrux baseline and post-deslop comparison, validation results, commits reviewed, issues fixed, review-bucket docs created, review-doc trackability checks, queue items created/executed, and remaining blockers if any and output as table(s) in chat.
