@@ -22,6 +22,7 @@ import {
 } from "./constants";
 import { evaluateBudgetPressure, isBudgetHardStop, isBudgetReached, isBudgetWarning } from "./budget";
 import { beginGoalCompaction, cancelGoalContinuation, finishGoalCompaction, interruptActiveGoalTurn, scheduleBudgetLimitWrapUp, scheduleMaybeContinueGoal } from "./continuation";
+import { logCompactionDebugWithContext } from "./debug-log";
 import { buildBudgetLimitPrompt } from "./prompts";
 import { getGoal, getTelemetry, persistAccountGoal, persistTelemetry, persistUpdateGoal, replayGoalState } from "./state";
 import { cancelGoalMonitor, replayGoalMonitorState, scheduleGoalMonitor } from "./monitor";
@@ -44,13 +45,22 @@ export function registerGoalLifecycle(pi: ExtensionAPI): void {
 		if (state.goal?.status === "active") scheduleGoalMonitor(pi, ctx);
 		else cancelGoalMonitor(state.goal?.goalId, "session-tree");
 	});
-	pi.on("session_before_compact", (_event, ctx) => { beginGoalCompaction(pi, ctx); });
-	pi.on("session_compact", async (_event, ctx) => handleSessionCompact(pi, ctx));
+	pi.on("session_before_compact", (_event, ctx) => {
+		logCompactionDebugWithContext("lifecycle.session_before_compact", ctx);
+		beginGoalCompaction(pi, ctx);
+	});
+	pi.on("session_compact", async (_event, ctx) => {
+		logCompactionDebugWithContext("lifecycle.session_compact", ctx);
+		handleSessionCompact(pi, ctx);
+	});
 	pi.on("turn_start", (event) => { handleTurnStart(event); streamBudgetSignalsSent.clear(); });
 	pi.on("tool_call", (event) => handleToolCall(event));
 	pi.on("tool_result", (event) => handleToolResult(event));
 	pi.on("turn_end", async (event, ctx) => handleTurnEnd(pi, event, ctx));
-	pi.on("agent_end", async (_event, ctx) => scheduleMaybeContinueGoal(pi, ctx, "agentEnd"));
+	pi.on("agent_end", async (_event, ctx) => {
+		logCompactionDebugWithContext("lifecycle.agent_end", ctx);
+		scheduleMaybeContinueGoal(pi, ctx, "agentEnd");
+	});
 	pi.on("message_update", (event, ctx) => handleMessageUpdate(pi, event, ctx));
 	pi.on("context", (event) => filterGoalContext(event));
 }
@@ -75,13 +85,16 @@ async function handleSessionStart(pi: ExtensionAPI, event: SessionStartEvent, ct
 }
 
 function handleSessionCompact(pi: ExtensionAPI, ctx: ExtensionContext): void {
+	logCompactionDebugWithContext("lifecycle.handleSessionCompact.start", ctx);
 	const state = replayGoalState(ctx);
 	replayGoalMonitorState(ctx);
 	replayQueueState(ctx);
 	syncGoalUi(ctx, state.goal);
 	if (state.goal?.status === "active") scheduleGoalMonitor(pi, ctx);
 	else cancelGoalMonitor(state.goal?.goalId, "session-compact");
+	logCompactionDebugWithContext("lifecycle.handleSessionCompact.beforeFinish", ctx);
 	finishGoalCompaction(pi, ctx);
+	logCompactionDebugWithContext("lifecycle.handleSessionCompact.end", ctx);
 }
 
 function handleTurnStart(event: TurnStartEvent): void {

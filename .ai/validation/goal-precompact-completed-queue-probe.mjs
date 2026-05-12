@@ -4,7 +4,7 @@ import path from 'node:path';
 
 const jiti = createJiti(path.join(process.cwd(), 'probe.cjs'), { interopDefault: true });
 const { QUEUE_MESSAGE_TYPE } = jiti('./.pi/extensions/goal/constants.ts');
-const { beginGoalCompaction, finishGoalCompaction, resetContinuationRuntime } = jiti('./.pi/extensions/goal/continuation.ts');
+const { beginGoalCompaction, finishGoalCompaction, resetContinuationRuntime, setCompactionFallbackRetryDelaysForTests } = jiti('./.pi/extensions/goal/continuation.ts');
 const { setRuntimeStateForTests } = jiti('./.pi/extensions/goal/state.ts');
 const { createTelemetry } = jiti('./.pi/extensions/goal/telemetry.ts');
 const { setQueueForTests } = jiti('./.pi/extensions/goal/queue-state.ts');
@@ -56,6 +56,20 @@ assert('completed goal sends queue steering message type', sent?.message.customT
 assert('completed goal queues current queue head', sent?.message.details?.queueId === queued.queueId);
 assert('completed goal uses followUp delivery for compaction survival', sent?.options.deliverAs === 'followUp');
 assert('completed goal does not trigger immediate non-streaming turn', sent?.options.triggerTurn !== true);
+
+resetContinuationRuntime();
+setCompactionFallbackRetryDelaysForTests([0]);
+setRuntimeStateForTests({ goal: completeGoal, telemetry: createTelemetry(completeGoal.goalId, 1) });
+setQueueForTests({ queue: [queued] });
+const idlePi = makePi();
+const idleCtx = { isIdle: () => true, hasPendingMessages: () => false };
+beginGoalCompaction(idlePi, idleCtx);
+assert('completed goal with queue does not fake-prequeue while idle', idlePi.messages.length === 0);
+finishGoalCompaction(idlePi, idleCtx);
+await new Promise((resolve) => setTimeout(resolve, 20));
+assert('completed goal with queue fallback sends after idle compaction', idlePi.messages.length === 1);
+assert('idle fallback triggers post-compaction turn', idlePi.messages[0]?.options.triggerTurn === true);
+assert('idle fallback carries queue steering message', idlePi.messages[0]?.message.customType === QUEUE_MESSAGE_TYPE);
 
 resetContinuationRuntime();
 const pausedGoal = makeGoal('paused');

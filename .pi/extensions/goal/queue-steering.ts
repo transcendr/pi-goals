@@ -1,27 +1,40 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { QUEUE_MESSAGE_TYPE, QUEUE_PROMPT_ID } from "./constants";
+import { logCompactionDebug } from "./debug-log";
 import { getQueue, type QueuedGoal } from "./queue-state";
 import type { GoalQueueSteeringReason } from "./types";
 
 const OBJECTIVE_PREVIEW_CHARS = 4_000;
 
-export type QueueHandoffOptions = { triggerTurn?: boolean; goalId?: string; deliverAs?: "steer" | "followUp" };
+export type QueueHandoffOptions = { triggerTurn?: boolean; goalId?: string; deliverAs?: "steer" | "followUp"; force?: boolean };
 
 let lastQueueHandoffKey: string | undefined;
 
 export function sendQueueHandoff(pi: ExtensionAPI, reason: GoalQueueSteeringReason, opts: QueueHandoffOptions = {}): boolean {
 	const next = getQueue()[0];
-	if (!next) return false;
+	if (!next) {
+		logCompactionDebug("queueHandoff.skip.noQueue", { reason, requestedGoalId: opts.goalId, deliverAs: opts.deliverAs, triggerTurn: opts.triggerTurn });
+		return false;
+	}
 	const key = `${reason}:${opts.goalId ?? "none"}:${next.queueId}`;
-	if (lastQueueHandoffKey === key) return false;
+	if (!opts.force && lastQueueHandoffKey === key) {
+		logCompactionDebug("queueHandoff.skip.duplicate", { reason, key, requestedGoalId: opts.goalId, deliverAs: opts.deliverAs, triggerTurn: opts.triggerTurn });
+		return false;
+	}
+	logCompactionDebug("queueHandoff.send.start", { reason, key, requestedGoalId: opts.goalId, deliverAs: opts.deliverAs, triggerTurn: opts.triggerTurn ?? true, force: opts.force });
 	const sent = sendQueueSteering(pi, reason, { deliverAs: opts.deliverAs, triggerTurn: opts.triggerTurn ?? true });
 	if (sent) lastQueueHandoffKey = key;
+	logCompactionDebug("queueHandoff.send.end", { reason, key, sent, lastQueueHandoffKey });
 	return sent;
 }
 
 export function sendQueueSteering(pi: ExtensionAPI, reason: GoalQueueSteeringReason, opts: { triggerTurn?: boolean; deliverAs?: "steer" | "followUp" } = {}): boolean {
 	const next = getQueue()[0];
-	if (!next) return false;
+	if (!next) {
+		logCompactionDebug("queueSteering.skip.noQueue", { reason, deliverAs: opts.deliverAs, triggerTurn: opts.triggerTurn });
+		return false;
+	}
+	logCompactionDebug("queueSteering.send", { reason, queueId: next.queueId, deliverAs: opts.deliverAs ?? "steer", triggerTurn: opts.triggerTurn });
 	pi.sendMessage(
 		{
 			customType: QUEUE_MESSAGE_TYPE,

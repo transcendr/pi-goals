@@ -150,7 +150,7 @@ export type GoalPauseInterrupter = (ctx: ExtensionContext, goal: GoalState) => v
 export type GoalMonitorScheduler = (ctx: ExtensionContext) => void;
 export type GoalMonitorCanceller = (goalId?: string, reason?: string) => void;
 export type GoalQueueSteeringReason = "goal-complete" | "goal-clear" | "goal-resume" | "goal-budget-limited";
-export type GoalQueueSteeringSender = (reason: GoalQueueSteeringReason, opts?: { triggerTurn?: boolean; goalId?: string; deliverAs?: "steer" | "followUp" }) => boolean;
+export type GoalQueueSteeringSender = (reason: GoalQueueSteeringReason, opts?: { triggerTurn?: boolean; goalId?: string; deliverAs?: "steer" | "followUp"; force?: boolean }) => boolean;
 
 export type GoalMonitorAction = "watch" | "steer" | "escalate";
 export type GoalMonitorConfidence = "low" | "medium" | "high";
