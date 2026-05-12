@@ -8,8 +8,8 @@ Create an execution-ready issue doc in `.ai/issues/open/` for remediation after 
 
 ```toon
 toon.version: 1
-request{id,bucket,kind,title,issue_number,issue_path,artifact_dir}:
-  "REQ-041","open","remediation","Harden acceptance verification pipeline workflow","ISSUE-041",".ai/issues/open/ISSUE-041-harden-acceptance-verification-pipeline-workflow.md",".ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow"
+request[1]{id,bucket,kind,title,issue_number,issue_path,artifact_dir}:
+  "REQ-041","open","remediation","Harden acceptance verification pipeline workflow","ISSUE-041",".ai/issues/open/ISSUE-041-harden-acceptance-verification-pipeline-workflow.md",".ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/execution-readiness"
 remediation_points[4]{id,summary}:
   "P1","Acceptance worker created first per-criterion goal with arbitrary 20K token ceiling; when hit, queue processing stopped idle instead of continuing to next queue item."
   "P2","Worker enqueued item goals but then substituted one big all-items check and emitted false-green TOON, violating head-to-tail item-goal workflow."
