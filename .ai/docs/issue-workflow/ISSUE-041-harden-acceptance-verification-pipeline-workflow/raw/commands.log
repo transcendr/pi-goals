@@ -1,0 +1,908 @@
+$ git status --short --untracked-files=all
+?? .ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/raw/commands.log
+
+$ find .ai/issues -maxdepth 2 -type d | sort
+.ai/issues
+.ai/issues/closed
+.ai/issues/defer
+.ai/issues/fixed
+.ai/issues/open
+
+$ find .ai/issues -type f -name ISSUE-*.md | sed next number
+ISSUE-041
+
+$ rg -n "token_budget|time_budget|20K|20000|20,000|budget" .ai/.pi-goals/verify-acceptance-*.md .pi/extensions/goal -g "*.ts"
+.pi/extensions/goal/command.ts:4:import { canActivateGoal, budgetLimitReason } from "./budget";
+.pi/extensions/goal/command.ts:258:		const reason = budgetLimitReason(goal);
+.pi/extensions/goal/command.ts:259:		const resource = reason === "tokenBudget" ? "token" : reason === "timeBudget" ? "time" : "budget";
+.pi/extensions/goal/command.ts:260:		notifyWarning(ctx, `Cannot resume: ${resource} budget is still exhausted. Raise the budget or use /goal clear before resuming.`);
+.pi/extensions/goal/widget.ts:28:	budget?: number;
+.pi/extensions/goal/widget.ts:103:	if (spec.budget === undefined) return `${spec.icon} ${theme.fg("muted", spec.label)}  ${resourceValue(spec.used, spec.format, spec.suffix)}`;
+.pi/extensions/goal/widget.ts:104:	const percent = percentage(spec.used, spec.budget);
+.pi/extensions/goal/widget.ts:108:		`${spec.format(spec.used)} / ${spec.format(spec.budget)}`,
+.pi/extensions/goal/widget.ts:119:	return { icon: "⏱", label: "Time", used: goal.timeUsedSeconds, budget: goal.timeBudgetSeconds, format: formatElapsed };
+.pi/extensions/goal/widget.ts:123:	return { icon: "◈", label: "Tokens", used: goal.tokensUsed, budget: goal.tokenBudget, format: formatTokensCompact, suffix: "tokens" };
+.pi/extensions/goal/widget.ts:156:function percentage(used: number, budget: number): number {
+.pi/extensions/goal/widget.ts:157:	return clamp(Math.round((Math.max(0, used) / Math.max(1, budget)) * 100), 0, 100);
+.pi/extensions/goal/widget.ts:174:		case "budgetLimited":
+.pi/extensions/goal/budget.ts:10:export function budgetLimitReason(goal: GoalState): BudgetLimitReason | undefined {
+.pi/extensions/goal/budget.ts:59:function hardStopBudget(budget: number): number {
+.pi/extensions/goal/budget.ts:60:	return Math.ceil((budget * Math.round(BUDGET_HARD_STOP_MULTIPLIER * 10)) / 10);
+.pi/extensions/goal/tools.ts:4:import { isBudgetExhausted, canActivateGoal } from "./budget";
+.pi/extensions/goal/tools.ts:19:	token_budget: Type.Optional(Type.Number({ description: "Optional positive token budget" })),
+.pi/extensions/goal/tools.ts:20:	time_budget_seconds: Type.Optional(Type.Number({ description: "Optional positive time budget in seconds" })),
+.pi/extensions/goal/tools.ts:29:	token_budget: Type.Optional(Type.Number({ description: "Optional positive token budget" })),
+.pi/extensions/goal/tools.ts:30:	time_budget_seconds: Type.Optional(Type.Number({ description: "Optional positive time budget in seconds" })),
+.pi/extensions/goal/tools.ts:38:	token_budget: Type.Optional(NullableNumber),
+.pi/extensions/goal/tools.ts:39:	time_budget_seconds: Type.Optional(NullableNumber),
+.pi/extensions/goal/tools.ts:78:		description: "Get the current pi-goal state, including status, budget, token usage, and time usage.",
+.pi/extensions/goal/tools.ts:185:		"Use update_goal for objective or budget edits only when the user explicitly asks to modify the persistent goal.",
+.pi/extensions/goal/tools.ts:194:	token_budget?: number;
+.pi/extensions/goal/tools.ts:195:	time_budget_seconds?: number;
+.pi/extensions/goal/tools.ts:204:	token_budget?: number;
+.pi/extensions/goal/tools.ts:205:	time_budget_seconds?: number;
+.pi/extensions/goal/tools.ts:213:	token_budget?: number | null;
+.pi/extensions/goal/tools.ts:214:	time_budget_seconds?: number | null;
+.pi/extensions/goal/tools.ts:219:type GoalUpdateResult = { ok: true; goal: GoalState; prefix: string; budgetChanged?: boolean } | { ok: false; error: string };
+.pi/extensions/goal/tools.ts:228:	const created = createGoalWithPolicy(pi, runtime, { objective: resolved.template.objective, token_budget: params.token_budget, time_budget_seconds: params.time_budget_seconds, min_tokens_before_wrap_up: params.min_tokens_before_wrap_up, min_time_seconds_before_wrap_up: params.min_time_seconds_before_wrap_up }, ctx, { replaceCompleted: true });
+.pi/extensions/goal/tools.ts:246:	const budgetError = validateBudgets(params.token_budget, params.time_budget_seconds);
+.pi/extensions/goal/tools.ts:247:	if (budgetError) return errorResult(budgetError);
+.pi/extensions/goal/tools.ts:248:	const floorError = validateFloorConfig({ tokenBudget: params.token_budget, timeBudgetSeconds: params.time_budget_seconds, minTokensBeforeWrapUp: params.min_tokens_before_wrap_up, minTimeSecondsBeforeWrapUp: params.min_time_seconds_before_wrap_up });
+.pi/extensions/goal/tools.ts:250:	const goal = createGoalState({ objective: validation.objective, tokenBudget: params.token_budget, timeBudgetSeconds: params.time_budget_seconds, minTokensBeforeWrapUp: params.min_tokens_before_wrap_up, minTimeSecondsBeforeWrapUp: params.min_time_seconds_before_wrap_up });
+.pi/extensions/goal/tools.ts:263:	// Refuse to reactivate a goal whose budgets are still exhausted.
+.pi/extensions/goal/tools.ts:266:		const resource = reason === "tokenBudget" ? "token" : reason === "timeBudget" ? "time" : "budget";
+.pi/extensions/goal/tools.ts:267:		return errorResult(`Cannot resume: ${resource} budget is still exhausted. Raise the budget or use clear_goal before resuming.`);
+.pi/extensions/goal/tools.ts:280:	// When a budget edit transitions active -> budgetLimited, schedule budget-limit wrap-up once.
+.pi/extensions/goal/tools.ts:281:	budgetEditWrapUpIfNeeded(pi, ctx, runtime, goal, update.goal);
+.pi/extensions/goal/tools.ts:320:	if (tokenBudget !== undefined && (!Number.isInteger(tokenBudget) || tokenBudget <= 0)) return "token_budget must be a positive integer when provided.";
+.pi/extensions/goal/tools.ts:322:		return "time_budget_seconds must be a positive integer when provided.";
+.pi/extensions/goal/tools.ts:333:	const budgetResult = applyBudgetUpdates(next, params, changes);
+.pi/extensions/goal/tools.ts:334:	if (!budgetResult.ok) return budgetResult;
+.pi/extensions/goal/tools.ts:335:	next = budgetResult.goal;
+.pi/extensions/goal/tools.ts:342:	next = budgetResult.budgetChanged && params.status === undefined ? recomputeStatusAfterBudgetEdit(next) : next;
+.pi/extensions/goal/tools.ts:363:	let budgetChanged = false;
+.pi/extensions/goal/tools.ts:364:	if (params.token_budget !== undefined) {
+.pi/extensions/goal/tools.ts:365:		if (params.token_budget !== null && (!Number.isInteger(params.token_budget) || params.token_budget <= 0)) return { ok: false, error: "token_budget must be a positive integer or null when provided." };
+.pi/extensions/goal/tools.ts:366:		next = { ...next, tokenBudget: params.token_budget === null ? undefined : params.token_budget };
+.pi/extensions/goal/tools.ts:367:		changes.push("token budget");
+.pi/extensions/goal/tools.ts:368:		budgetChanged = true;
+.pi/extensions/goal/tools.ts:370:	if (params.time_budget_seconds !== undefined) {
+.pi/extensions/goal/tools.ts:371:		if (params.time_budget_seconds !== null && (!Number.isInteger(params.time_budget_seconds) || params.time_budget_seconds <= 0)) return { ok: false, error: "time_budget_seconds must be a positive integer or null when provided." };
+.pi/extensions/goal/tools.ts:372:		next = { ...next, timeBudgetSeconds: params.time_budget_seconds === null ? undefined : params.time_budget_seconds };
+.pi/extensions/goal/tools.ts:373:		changes.push("time budget");
+.pi/extensions/goal/tools.ts:374:		budgetChanged = true;
+.pi/extensions/goal/tools.ts:376:	return { ok: true, goal: next, prefix: "", budgetChanged };
+.pi/extensions/goal/tools.ts:397:function budgetEditWrapUpIfNeeded(pi: ExtensionAPI, ctx: ExtensionContext, runtime: GoalToolRuntime, previousGoal: GoalState, updatedGoal: GoalState) {
+.pi/extensions/goal/tools.ts:398:	// Only schedule wrap-up when an active goal transitions to budgetLimited due to a budget edit.
+.pi/extensions/goal/tools.ts:399:	if (previousGoal.status === "active" && updatedGoal.status === "budgetLimited" && isBudgetExhausted(updatedGoal)) {
+.pi/extensions/goal/tools.ts:405:	if (goal.status !== "active" && goal.status !== "budgetLimited") return goal;
+.pi/extensions/goal/tools.ts:406:	return isBudgetExhausted(goal) ? { ...goal, status: "budgetLimited" } : { ...goal, status: "active" };
+.pi/extensions/goal/tools.ts:411:	if (goal.status === "budgetLimited" && reason) return noteBudgetLimit(getTelemetry(), reason);
+.pi/extensions/goal/tools.ts:414:		return telemetry ? { ...telemetry, noMoreValuableWorkReason: completionDecision.reason === "max_budget_requires_wrap_up" ? "max_budget_requires_wrap_up" : completionDecision.reason, floorQualityState: completionDecision.reason === "max_budget_requires_wrap_up" ? "overriddenByMaxBudget" : telemetry.floorQualityState, updatedAt: Date.now() } : telemetry;
+.pi/extensions/goal/queue-tools.ts:15:	token_budget: Type.Optional(Type.Number({ description: "Optional positive token budget" })),
+.pi/extensions/goal/queue-tools.ts:16:	time_budget_seconds: Type.Optional(Type.Number({ description: "Optional positive time budget in seconds" })),
+.pi/extensions/goal/queue-tools.ts:73:			const floorError = validateFloorConfig({ tokenBudget: params.token_budget, timeBudgetSeconds: params.time_budget_seconds, minTokensBeforeWrapUp: params.min_tokens_before_wrap_up, minTimeSecondsBeforeWrapUp: params.min_time_seconds_before_wrap_up });
+.pi/extensions/goal/queue-tools.ts:75:			const queued = enqueueGoal(validation.objective, "tool", { tokenBudget: params.token_budget, timeBudgetSeconds: params.time_budget_seconds, minTokensBeforeWrapUp: params.min_tokens_before_wrap_up, minTimeSecondsBeforeWrapUp: params.min_time_seconds_before_wrap_up });
+.pi/extensions/goal/constants.ts:3:export const BUDGET_LIMIT_MESSAGE_TYPE = "pi-goal-budget-limit";
+.pi/extensions/goal/constants.ts:34:export const BUDGET_LIMIT_PROMPT_ID = "pi-goal-budget-limit-v1";
+.pi/extensions/goal/constants.ts:35:export const BUDGET_WARNING_PROMPT_ID = "pi-goal-budget-warning-v1";
+.pi/extensions/goal/floor.ts:46:			return "min_tokens_before_wrap_up must be less than or equal to token_budget.";
+.pi/extensions/goal/floor.ts:53:			return "min_time_seconds_before_wrap_up must be less than or equal to time_budget_seconds.";
+.pi/extensions/goal/telemetry.ts:70:	return { ...telemetry, budgetWrapUpSent: true, updatedAt: now };
+.pi/extensions/goal/telemetry.ts:136:	const auto = turn.origin === "auto" || turn.origin === "budgetWrapUp";
+.pi/extensions/goal/format.ts:1:import { budgetLimitReason } from "./budget";
+.pi/extensions/goal/format.ts:62:		case "budgetLimited":
+.pi/extensions/goal/format.ts:63:			return "limited by budget";
+.pi/extensions/goal/format.ts:70:	if (goal.status !== "budgetLimited") return statusLabel(goal.status);
+.pi/extensions/goal/format.ts:71:	const reason = budgetLimitReason(goal);
+.pi/extensions/goal/format.ts:72:	if (reason === "tokenBudget") return "token budget reached";
+.pi/extensions/goal/format.ts:73:	if (reason === "timeBudget") return "time budget reached";
+.pi/extensions/goal/format.ts:74:	return "budget reached";
+.pi/extensions/goal/format.ts:83:		case "budgetLimited":
+.pi/extensions/goal/format.ts:84:			return "Commands: /goal clear (budget still exhausted; raise budget to resume)";
+.pi/extensions/goal/format.ts:132:		case "budgetLimited":
+.pi/extensions/goal/format.ts:143:		const budget = formatTokensCompact(goal.tokenBudget);
+.pi/extensions/goal/format.ts:144:		if (goal.status === "active") return `${used} / ${budget}`;
+.pi/extensions/goal/format.ts:145:		if (goal.status === "budgetLimited") return `${used} / ${budget} tokens`;
+.pi/extensions/goal/format.ts:150:		const budget = formatElapsed(goal.timeBudgetSeconds);
+.pi/extensions/goal/format.ts:151:		return goal.status === "complete" ? used : `${used} / ${budget}`;
+.pi/extensions/goal/format.ts:169:	if (goal.tokenBudget !== undefined) lines.push(`Token budget: ${formatTokensCompact(goal.tokenBudget)}`);
+.pi/extensions/goal/format.ts:170:	if (goal.timeBudgetSeconds !== undefined) lines.push(`Time budget: ${formatElapsed(goal.timeBudgetSeconds)}`);
+.pi/extensions/goal/tool-results.ts:12:	completion_budget_report?: string;
+.pi/extensions/goal/tool-results.ts:25:	no_more_valuable_work_reason?: NoMoreValuableWorkReason | "max_budget_requires_wrap_up";
+.pi/extensions/goal/tool-results.ts:31:		details.completion_budget_report = `Goal achieved. Report final budget usage to the user: tokens used: ${goal.tokensUsed}${goal.tokenBudget === undefined ? "" : ` of ${goal.tokenBudget}`}; time used: ${goal.timeUsedSeconds}${goal.timeBudgetSeconds === undefined ? "" : ` of ${goal.timeBudgetSeconds}`} seconds.`;
+.pi/extensions/goal/tool-results.ts:69:		`Token budget: ${tokenBudget}`,
+.pi/extensions/goal/tool-results.ts:70:		`Time budget: ${timeBudget}`,
+.pi/extensions/goal/queue-steering.ts:34:		budgetLine(goal),
+.pi/extensions/goal/queue-steering.ts:65:function budgetLine(goal: QueuedGoal): string {
+.pi/extensions/goal/queue-steering.ts:67:	if (goal.tokenBudget !== undefined) parts.push(`token_budget=${goal.tokenBudget}`);
+.pi/extensions/goal/queue-steering.ts:68:	if (goal.timeBudgetSeconds !== undefined) parts.push(`time_budget_seconds=${goal.timeBudgetSeconds}`);
+.pi/extensions/goal/completion-gate.ts:1:import { isBudgetExhausted } from "./budget";
+.pi/extensions/goal/completion-gate.ts:9:	| { kind: "allow_with_reason"; reason: NoMoreValuableWorkReason | "max_budget_requires_wrap_up"; floor: CompletionFloorEvaluation };
+.pi/extensions/goal/completion-gate.ts:22:	if (isBudgetExhausted(input.currentGoal)) return { kind: "allow_with_reason", reason: "max_budget_requires_wrap_up", floor };
+.pi/extensions/goal/prompts.ts:8:	const budget = budgetLines(goal, true);
+.pi/extensions/goal/prompts.ts:20:${budget}${floorGuidance}
+.pi/extensions/goal/prompts.ts:24:Before doing substantive goal work, inspect the active goal state if needed. If get_goal reports this goal is paused, absent, complete, budget-limited, or has a different goal id, stop and wait for /goal resume instead of following this continuation text.
+.pi/extensions/goal/prompts.ts:35:Do not rely on intent, partial progress, elapsed effort, memory of earlier work, or a plausible final answer as proof of completion. Only mark the goal achieved when the audit shows that the objective has actually been achieved and no required work remains. If any requirement is missing, incomplete, or unverified, keep working instead of marking the goal complete. If the objective is achieved, call update_goal with status "complete" so usage accounting is preserved. Report the final elapsed time, and if the achieved goal has a token budget, report the final consumed token budget to the user after update_goal succeeds.
+.pi/extensions/goal/prompts.ts:37:Do not call update_goal unless the goal is complete. Do not mark a goal complete merely because the budget is nearly exhausted or because you are stopping work.`,
+.pi/extensions/goal/prompts.ts:60:		content: `The active session goal has reached its ${resource} budget.
+.pi/extensions/goal/prompts.ts:69:${budgetLines(goal, false)}
+.pi/extensions/goal/prompts.ts:72:The system has marked the goal as budget_limited after a ${resource} budget limit, so do not start new substantive work for this goal. If get_goal reports this goal is paused, absent, complete, active, or has a different goal id, treat this wrap-up message as stale and do not continue goal work. Wrap up this turn soon: summarize useful progress, identify remaining work or blockers, and leave the user with a clear next step.
+.pi/extensions/goal/prompts.ts:75:		details: { goalId: goal.goalId, kind: "budgetLimit", promptId: BUDGET_LIMIT_PROMPT_ID, createdAt: Date.now(), reason: "budget" },
+.pi/extensions/goal/prompts.ts:87:function budgetLines(goal: GoalState, includeRemaining: boolean): string {
+.pi/extensions/goal/prompts.ts:94:		`- Time budget: ${timeBudget}`,
+.pi/extensions/goal/prompts.ts:96:		`- Token budget: ${tokenBudget}`,
+.pi/extensions/goal/floor-steering.ts:75:		chooseWhen: "Change may affect replay, queue, budgets, UI, safety, security, performance, or accessibility.",
+.pi/extensions/goal/floor-steering.ts:150:	if (/compat|replay|queue|budget|ui|security|performance|accessibility/.test(lower)) ordered.push("compatibility_review");
+.pi/extensions/goal/continuation.ts:9:import { isBudgetExhausted } from "./budget";
+.pi/extensions/goal/continuation.ts:28:let budgetWrapUps = new Map<string, PendingBudgetWrapUp>();
+.pi/extensions/goal/continuation.ts:70:	if (budgetWrapUps.has(goal.goalId)) return;
+.pi/extensions/goal/continuation.ts:72:		budgetWrapUps.delete(goal.goalId);
+.pi/extensions/goal/continuation.ts:75:	budgetWrapUps.set(goal.goalId, { goalId: goal.goalId, timer });
+.pi/extensions/goal/continuation.ts:83:	for (const [pendingGoalId, pending] of budgetWrapUps) {
+.pi/extensions/goal/continuation.ts:86:			budgetWrapUps.delete(pendingGoalId);
+.pi/extensions/goal/continuation.ts:130:	if (!goal || goal.goalId !== goalId || goal.status !== "budgetLimited") return;
+.pi/extensions/goal/continuation.ts:134:	setNextTurnOrigin("budgetWrapUp");
+.pi/extensions/goal/continuation.ts:140:	if (telemetry) persistTelemetry(pi, telemetry, "budget");
+.pi/extensions/goal/monitor-prompts.ts:79:Before following this steering, verify with get_goal if needed. If get_goal reports this goal is paused, absent, complete, budget-limited, or has a different goal id, treat this monitor steering as stale and ignore it.
+.pi/extensions/goal/monitor-prompts.ts:118:    <token_budget>${goal.tokenBudget ?? "none"}</token_budget>
+.pi/extensions/goal/monitor-prompts.ts:119:    <time_budget_seconds>${goal.timeBudgetSeconds ?? "none"}</time_budget_seconds>
+.pi/extensions/goal/monitor-prompts.ts:161:    <budget_wrap_up_sent>${telemetry.budgetWrapUpSent ?? false}</budget_wrap_up_sent>
+.pi/extensions/goal/monitor-prompts.ts:164:    <last_budget_limit_reason>${escapeXml(telemetry.lastBudgetLimitReason ?? "none")}</last_budget_limit_reason>
+.pi/extensions/goal/monitor-prompts.ts:165:    <last_budget_warning_reason>${escapeXml(telemetry.lastBudgetWarningReason ?? "none")}</last_budget_warning_reason>
+.pi/extensions/goal/monitor-prompts.ts:166:    <last_budget_hard_stop_reason>${escapeXml(telemetry.lastBudgetHardStopReason ?? "none")}</last_budget_hard_stop_reason>
+.pi/extensions/goal/monitor-prompts.ts:167:    <token_budget_warning_sent>${telemetry.tokenBudgetWarningSent ?? false}</token_budget_warning_sent>
+.pi/extensions/goal/monitor-prompts.ts:168:    <time_budget_warning_sent>${telemetry.timeBudgetWarningSent ?? false}</time_budget_warning_sent>
+.pi/extensions/goal/types.ts:3:export type GoalStatus = "active" | "paused" | "budgetLimited" | "complete";
+.pi/extensions/goal/types.ts:19:export type TurnOrigin = "user" | "auto" | "budgetWrapUp";
+.pi/extensions/goal/types.ts:21:export type ContinuationSkipReason = "notIdle" | "pendingMessages" | "notActive" | "budgetLimited" | "safetyCap" | "noProgress" | "floorExhausted" | "budgetExhausted" | "compacting";
+.pi/extensions/goal/types.ts:41:export type NoMoreValuableWorkReason = "objective_fully_satisfied" | "no_safe_autonomous_work" | "max_budget_requires_wrap_up" | "user_requested_stop";
+.pi/extensions/goal/types.ts:73:	budgetWrapUpSent?: boolean;
+.pi/extensions/goal/types.ts:95:	| "budget"
+.pi/extensions/goal/types.ts:129:export type GoalSteeringKind = "continuation" | "budgetLimit" | "pause" | "monitorSteer";
+.pi/extensions/goal/types.ts:136:	reason?: ContinuationReason | "budget" | "pause";
+.pi/extensions/goal/lifecycle.ts:23:import { evaluateBudgetPressure, isBudgetHardStop, isBudgetReached, isBudgetWarning } from "./budget";
+.pi/extensions/goal/lifecycle.ts:93:	// Track turns for active and budget-limited goals so budget hard-stop detection
+.pi/extensions/goal/lifecycle.ts:94:	// still works during the budget wrap-up turn. Paused and completed goals are
+.pi/extensions/goal/lifecycle.ts:96:	if (goal.status !== "active" && goal.status !== "budgetLimited") {
+.pi/extensions/goal/lifecycle.ts:124:		const stopped: GoalState = { ...goal, status: "budgetLimited", updatedAt: Date.now() };
+.pi/extensions/goal/lifecycle.ts:125:		const nextTelemetry = noteBudgetHardStop(noteBudgetLimit(getTelemetry(), pressureBudgetLimitReason(pressure)), budgetHardStopReason(pressure));
+.pi/extensions/goal/lifecycle.ts:126:		persistUpdateGoal(pi, stopped, nextTelemetry, "budget");
+.pi/extensions/goal/lifecycle.ts:127:		cancelGoalMonitor(goal.goalId, "budget-hard-stop");
+.pi/extensions/goal/lifecycle.ts:129:		notifyWarning(ctx, `${budgetResourceText(pressure)} budget hard stop enforced. Goal work stopped.`);
+.pi/extensions/goal/lifecycle.ts:135:		cancelGoalContinuation(goal.goalId, "budget-hard-stop");
+.pi/extensions/goal/lifecycle.ts:140:	// Reached (100%): Send a steering message so the agent sees budget context
+.pi/extensions/goal/lifecycle.ts:141:	// mid-stream. State transition to budgetLimited happens at turn_end, not here,
+.pi/extensions/goal/lifecycle.ts:167:			{ customType: BUDGET_LIMIT_MESSAGE_TYPE, content: `${resource} budget warning: ${remaining} ${unit} remaining before target. Start wrapping up.`, display: false, details: { goalId: goal.goalId, kind: "budgetLimit", promptId: BUDGET_WARNING_PROMPT_ID, createdAt: Date.now() } },
+.pi/extensions/goal/lifecycle.ts:221:	// Check for budget hard stop on budget-limited goals — the wrap-up turn or an
+.pi/extensions/goal/lifecycle.ts:223:	if (updated?.status === "budgetLimited") {
+.pi/extensions/goal/lifecycle.ts:287:	// the goal to budgetLimited, persisted telemetry, and aborted.
+.pi/extensions/goal/lifecycle.ts:292:	cancelGoalContinuation(goal.goalId, "budget-hard-stop");
+.pi/extensions/goal/lifecycle.ts:293:	cancelGoalMonitor(goal.goalId, "budget-hard-stop");
+.pi/extensions/goal/lifecycle.ts:294:	const stopped: GoalState = { ...goal, status: "budgetLimited", updatedAt: Date.now() };
+.pi/extensions/goal/lifecycle.ts:295:	const nextTelemetry = noteBudgetHardStop(noteBudgetLimit(telemetry, pressureBudgetLimitReason(pressure)), budgetHardStopReason(pressure));
+.pi/extensions/goal/lifecycle.ts:296:	const result = persistUpdateGoal(pi, stopped, nextTelemetry, "budget");
+.pi/extensions/goal/lifecycle.ts:298:	notifyWarning(ctx, `${budgetResourceText(pressure)} budget hard stop enforced. Goal work stopped.`);
+.pi/extensions/goal/lifecycle.ts:304:	cancelGoalContinuation(goal.goalId, "budget-reached");
+.pi/extensions/goal/lifecycle.ts:305:	cancelGoalMonitor(goal.goalId, "budget-reached");
+.pi/extensions/goal/lifecycle.ts:306:	const limited: GoalState = { ...goal, status: "budgetLimited", updatedAt: Date.now() };
+.pi/extensions/goal/lifecycle.ts:307:	const result = persistUpdateGoal(pi, limited, noteBudgetLimit(telemetry, pressureBudgetLimitReason(pressure)), "budget");
+.pi/extensions/goal/lifecycle.ts:315:	if (nextTelemetry) persistTelemetry(pi, nextTelemetry, "budget");
+.pi/extensions/goal/lifecycle.ts:316:	notifyWarning(ctx, `${budgetResourceText(pressure)} budget warning: ${budgetRemainingText(pressure)} remaining before target. Start wrapping up.`);
+.pi/extensions/goal/lifecycle.ts:329:function budgetHardStopReason(pressure: BudgetPressure): BudgetHardStopReason {
+.pi/extensions/goal/lifecycle.ts:333:function budgetResourceText(pressure: BudgetPressure): "Token" | "Time" {
+.pi/extensions/goal/lifecycle.ts:337:function budgetRemainingText(pressure: BudgetPressure): string {
+.pi/extensions/goal/lifecycle.ts:393:	if (customType === BUDGET_LIMIT_MESSAGE_TYPE) return status === "budgetLimited" && kind === "budgetLimit";
+
+$ rg -n "queue-steer|queued item|budget_limited|budgetLimit|startNext|queue" .pi/extensions/goal -g "*.ts"
+.pi/extensions/goal/command.ts:4:import { canActivateGoal, budgetLimitReason } from "./budget";
+.pi/extensions/goal/command.ts:17:import { parseQueueBlockItems, type QueueBlockItem } from "./queue-block-parser";
+.pi/extensions/goal/command.ts:18:import { getQueue, enqueueGoal, persistEnqueue } from "./queue-state";
+.pi/extensions/goal/command.ts:23:	name: "pause" | "resume" | "clear" | "queue";
+.pi/extensions/goal/command.ts:31:	{ name: "queue", description: "List queued goals or enqueue a new goal" },
+.pi/extensions/goal/command.ts:52:	if (/^queue\s/.test(query)) return templateCompletions(query.slice("queue".length).trimStart(), "queue ");
+.pi/extensions/goal/command.ts:126:	if (firstToken === "queue") {
+.pi/extensions/goal/command.ts:185:				const queued = enqueueGoal(validation.objective, "command");
+.pi/extensions/goal/command.ts:186:				persistEnqueue(pi, queued);
+.pi/extensions/goal/command.ts:187:				notifyInfo(ctx, `Queued goal: ${queued.queueId}`);
+.pi/extensions/goal/command.ts:238:	const queue = getQueue();
+.pi/extensions/goal/command.ts:240:		if (queue.length > 0) {
+.pi/extensions/goal/command.ts:242:			notifyInfo(ctx, `No active goal. Resuming queued goal processing for ${queue.length} queued goal${queue.length > 1 ? "s" : ""}.`);
+.pi/extensions/goal/command.ts:249:		if (queue.length > 0) {
+.pi/extensions/goal/command.ts:251:			notifyInfo(ctx, `Goal is complete. Resuming queued goal processing for ${queue.length} queued goal${queue.length > 1 ? "s" : ""}.`);
+.pi/extensions/goal/command.ts:258:		const reason = budgetLimitReason(goal);
+.pi/extensions/goal/command.ts:280:	const queue = getQueue();
+.pi/extensions/goal/command.ts:281:	if (queue.length > 0) sendQueueSteering("goal-clear");
+.pi/extensions/goal/command.ts:282:	const queueHint = queue.length > 0 ? `\n${queue.length} queued goal${queue.length > 1 ? "s" : ""} available. Queue steering was sent to the agent context.` : "";
+.pi/extensions/goal/command.ts:283:	notifyInfo(ctx, hadGoal ? `Goal cleared${queueHint}` : `No goal to clear\nThis session does not currently have a goal.${queueHint}`);
+.pi/extensions/goal/command.ts:287:	const rest = input.slice("queue".length).trim();
+.pi/extensions/goal/command.ts:289:		const queue = getQueue();
+.pi/extensions/goal/command.ts:290:		if (queue.length === 0) {
+.pi/extensions/goal/command.ts:291:			notifyInfo(ctx, "No queued goals.");
+.pi/extensions/goal/command.ts:294:		const lines = queue.map((g, i) => `${i + 1}. [${g.queueId}] ${truncateObjective(g.objective)}`);
+.pi/extensions/goal/command.ts:295:		notifyInfo(ctx, `Queued goals (${queue.length}):\n${lines.join("\n")}`);
+.pi/extensions/goal/command.ts:303:		const queued = validatedItems.map((item) => {
+.pi/extensions/goal/command.ts:304:			const goal = enqueueGoal(item.objective, "command", { template: item.template, templateFlags: item.templateFlags, templateArgs: item.templateArgs });
+.pi/extensions/goal/command.ts:305:			persistEnqueue(pi, goal);
+.pi/extensions/goal/command.ts:308:		const lines = queued.map((g, i) => `${i + 1}. [${g.queueId}] ${truncateObjective(g.objective)}`);
+.pi/extensions/goal/command.ts:309:		notifyInfo(ctx, `Queued ${queued.length} goals:\n${lines.join("\n")}`);
+.pi/extensions/goal/command.ts:320:	const queued = enqueueGoal(validation.objective, "command", { template: resolved.template, templateFlags: resolved.templateFlags, templateArgs: resolved.templateArgs });
+.pi/extensions/goal/command.ts:321:	persistEnqueue(pi, queued);
+.pi/extensions/goal/command.ts:322:	notifyInfo(ctx, `Queued goal: ${queued.queueId} \u2014 ${truncateObjective(validation.objective)}`);
+.pi/extensions/goal/command.ts:335:			notifyWarning(ctx, `Queue item ${i + 1} (${item.marker} on line ${item.lineIndex + 1}) could not be resolved. No goals were queued.`);
+.pi/extensions/goal/command.ts:341:			notifyWarning(ctx, `Queue item ${i + 1} (${item.marker} on line ${item.lineIndex + 1}) is invalid. No goals were queued.\n${message}`);
+.pi/extensions/goal/widget.ts:174:		case "budgetLimited":
+.pi/extensions/goal/index.ts:7:import { getQueue } from "./queue-state";
+.pi/extensions/goal/index.ts:8:import { sendQueueSteering } from "./queue-steering";
+.pi/extensions/goal/budget.ts:10:export function budgetLimitReason(goal: GoalState): BudgetLimitReason | undefined {
+.pi/extensions/goal/tools.ts:10:import { registerGoalQueueTools } from "./queue-tools";
+.pi/extensions/goal/tools.ts:96:			"Use when queue steering asks you to resolve an abstract or prompt-like queued item against reusable goal templates before deciding whether to call start_queued_goal.",
+.pi/extensions/goal/tools.ts:97:			"Use the returned names, aliases, descriptions, and placeholders to decide whether a queued request semantically matches exactly one template and whether enough structured values are available before creating a goal from a template.",
+.pi/extensions/goal/tools.ts:132:			"Use when queue steering and list_goal_templates identify exactly one reusable template that fits a queued orchestration item.",
+.pi/extensions/goal/tools.ts:174:			const queueSize = runtime.getQueueSize?.() ?? 0;
+.pi/extensions/goal/tools.ts:175:			if (queueSize > 0) runtime.sendQueueSteering?.("goal-clear");
+.pi/extensions/goal/tools.ts:176:			const queueHint = queueSize > 0 ? ` ${queueSize} queued goal${queueSize > 1 ? "s" : ""} available. Queue steering was sent to the agent context.` : "";
+.pi/extensions/goal/tools.ts:177:			return resultForGoal(null, getTelemetry(), goal ? `Goal cleared.${queueHint}` : `No goal was set.${queueHint}`);
+.pi/extensions/goal/tools.ts:280:	// When a budget edit transitions active -> budgetLimited, schedule budget-limit wrap-up once.
+.pi/extensions/goal/tools.ts:398:	// Only schedule wrap-up when an active goal transitions to budgetLimited due to a budget edit.
+.pi/extensions/goal/tools.ts:399:	if (previousGoal.status === "active" && updatedGoal.status === "budgetLimited" && isBudgetExhausted(updatedGoal)) {
+.pi/extensions/goal/tools.ts:405:	if (goal.status !== "active" && goal.status !== "budgetLimited") return goal;
+.pi/extensions/goal/tools.ts:406:	return isBudgetExhausted(goal) ? { ...goal, status: "budgetLimited" } : { ...goal, status: "active" };
+.pi/extensions/goal/tools.ts:411:	if (goal.status === "budgetLimited" && reason) return noteBudgetLimit(getTelemetry(), reason);
+.pi/extensions/goal/queue-tools.ts:8:import { enqueueGoal, dequeueGoal, removeGoal, persistEnqueue, persistDequeue, persistRemove, getQueue, type DequeueAudit, type QueuedGoal } from "./queue-state";
+.pi/extensions/goal/queue-tools.ts:20:const DequeueGoalParams = Type.Object({
+.pi/extensions/goal/queue-tools.ts:21:	rationale: Type.String({ description: "Why this queue head is being dequeued now" }),
+.pi/extensions/goal/queue-tools.ts:28:	queue?: QueuedGoal[];
+.pi/extensions/goal/queue-tools.ts:29:	queued?: QueuedGoal;
+.pi/extensions/goal/queue-tools.ts:30:	dequeued?: QueuedGoal;
+.pi/extensions/goal/queue-tools.ts:32:	dequeue_audit?: DequeueAudit;
+.pi/extensions/goal/queue-tools.ts:42:	registerEnqueueGoalTool(pi);
+.pi/extensions/goal/queue-tools.ts:44:	registerDequeueGoalTool(pi);
+.pi/extensions/goal/queue-tools.ts:50:		name: "list_goal_queue",
+.pi/extensions/goal/queue-tools.ts:52:		description: "List queued goal objectives that will be started after the current goal completes or clears.",
+.pi/extensions/goal/queue-tools.ts:53:		promptSnippet: "Discover queued goals waiting to start after the current goal.",
+.pi/extensions/goal/queue-tools.ts:54:		promptGuidelines: ["Use only when the user explicitly asks to see or review the goal queue.", "Do not infer queue listing from ordinary task requests."],
+.pi/extensions/goal/queue-tools.ts:62:function registerEnqueueGoalTool(pi: ExtensionAPI): void {
+.pi/extensions/goal/queue-tools.ts:64:		name: "enqueue_goal",
+.pi/extensions/goal/queue-tools.ts:65:		label: "Enqueue Goal",
+.pi/extensions/goal/queue-tools.ts:66:		description: "Add a goal to the queue to be started after the current goal completes or clears. Use only when the user explicitly asks to queue a goal for later.",
+.pi/extensions/goal/queue-tools.ts:68:		promptGuidelines: ["Use only when the user explicitly asks to queue a goal for later, not for ordinary task requests.", "Fill flags and args from the user's prose, but ask for missing required values instead of guessing."],
+.pi/extensions/goal/queue-tools.ts:75:			const queued = enqueueGoal(validation.objective, "tool", { tokenBudget: params.token_budget, timeBudgetSeconds: params.time_budget_seconds, minTokensBeforeWrapUp: params.min_tokens_before_wrap_up, minTimeSecondsBeforeWrapUp: params.min_time_seconds_before_wrap_up });
+.pi/extensions/goal/queue-tools.ts:76:			persistEnqueue(pi, queued);
+.pi/extensions/goal/queue-tools.ts:78:			return resultForQueuedGoal(queued);
+.pi/extensions/goal/queue-tools.ts:85:		name: "start_queued_goal",
+.pi/extensions/goal/queue-tools.ts:87:		description: "Start the next queued item only after deciding the queue head is a direct concrete goal. The queue item is removed only after goal creation succeeds.",
+.pi/extensions/goal/queue-tools.ts:88:		promptSnippet: "Start the queue head only when semantic classification says it is a direct goal.",
+.pi/extensions/goal/queue-tools.ts:90:			"Use this only after reading the queue head and deciding the queued text itself is the concrete goal to perform.",
+.pi/extensions/goal/queue-tools.ts:91:			"Before using this, verify the queue head is not better handled by an existing reusable goal template; if uncertain, call list_goal_templates first.",
+.pi/extensions/goal/queue-tools.ts:92:			"Do not use this when the queued text asks you to run/create/start another goal or goal template, names a prompt-like workflow, or semantically matches a reusable template; use create_goal, create_goal_from_template, or enqueue_goal for that orchestration, then dequeue_goal after it is satisfied.",
+.pi/extensions/goal/queue-tools.ts:93:			"This tool handles completed-goal replacement and safe dequeue for direct queue items only.",
+.pi/extensions/goal/queue-tools.ts:94:			"If this reports an active non-complete goal, leave the queued goal in place and continue the active goal.",
+.pi/extensions/goal/queue-tools.ts:103:function registerDequeueGoalTool(pi: ExtensionAPI): void {
+.pi/extensions/goal/queue-tools.ts:105:		name: "dequeue_goal",
+.pi/extensions/goal/queue-tools.ts:106:		label: "Dequeue Goal",
+.pi/extensions/goal/queue-tools.ts:107:		description: "Remove the first goal from the queue and return it. Prefer start_queued_goal for direct queued goals; use this after a prose/JIT orchestration item is fully satisfied.",
+.pi/extensions/goal/queue-tools.ts:108:		promptSnippet: "Remove the queue head after manual handling or completed prose/JIT orchestration.",
+.pi/extensions/goal/queue-tools.ts:110:			"Use start_queued_goal for direct queued goals.",
+.pi/extensions/goal/queue-tools.ts:111:			"Use dequeue_goal after you have separately satisfied a prose/JIT orchestration queue item, including any one-or-more consecutive active goals it required.",
+.pi/extensions/goal/queue-tools.ts:112:			"Never discard unfinished queued work. Do not call this unless the queue head is actually satisfied or the user explicitly authorized removing that specific queued item.",
+.pi/extensions/goal/queue-tools.ts:115:		parameters: DequeueGoalParams,
+.pi/extensions/goal/queue-tools.ts:117:			const audit = validateDequeueAudit(params.rationale, params.authority);
+.pi/extensions/goal/queue-tools.ts:119:			const dequeued = dequeueGoal();
+.pi/extensions/goal/queue-tools.ts:120:			if (!dequeued) return { content: [{ type: "text" as const, text: "No queued goals." }], details: { goal: getGoal(), telemetry: getTelemetry() } as QueueToolDetails };
+.pi/extensions/goal/queue-tools.ts:121:			persistDequeue(pi, "dequeued", { queueId: dequeued.queueId, audit: audit.value });
+.pi/extensions/goal/queue-tools.ts:122:			return { content: [{ type: "text" as const, text: `Dequeued goal: ${dequeued.queueId}\nObjective: ${dequeued.objective}\nRationale: ${audit.value.rationale}\nAuthority: ${audit.value.authority}` }], details: { goal: getGoal(), telemetry: getTelemetry(), dequeued, dequeue_audit: audit.value } as QueueToolDetails };
+.pi/extensions/goal/queue-tools.ts:129:		name: "remove_queued_goal",
+.pi/extensions/goal/queue-tools.ts:131:		description: "Remove a specific goal from the queue by its queue ID.",
+.pi/extensions/goal/queue-tools.ts:132:		promptSnippet: "Remove a specific queued goal by ID.",
+.pi/extensions/goal/queue-tools.ts:133:		promptGuidelines: ["Use only when the user explicitly asks to remove a specific queued goal."],
+.pi/extensions/goal/queue-tools.ts:134:		parameters: Type.Object({ queueId: Type.String({ description: "Queue ID of the goal to remove" }) }),
+.pi/extensions/goal/queue-tools.ts:136:			const removed = removeGoal(params.queueId);
+.pi/extensions/goal/queue-tools.ts:137:			if (!removed) return errorResult(`No queued goal found with id ${params.queueId}.`);
+.pi/extensions/goal/queue-tools.ts:138:			persistRemove(pi, params.queueId, "tool_remove");
+.pi/extensions/goal/queue-tools.ts:139:			return { content: [{ type: "text" as const, text: `Removed queued goal: ${removed.queueId}` }], details: { goal: getGoal(), telemetry: getTelemetry() } as QueueToolDetails };
+.pi/extensions/goal/queue-tools.ts:146:	if (current && current.status !== "complete") return errorResult("A non-complete goal is already active. The queued goal was left in the queue.");
+.pi/extensions/goal/queue-tools.ts:148:	if (!next) return { content: [{ type: "text" as const, text: "No queued goals." }], details: { goal: current, telemetry: getTelemetry(), queue: getQueue() } as QueueToolDetails };
+.pi/extensions/goal/queue-tools.ts:153:	return createAndDequeueQueuedGoal(pi, runtime, ctx, next, validation.objective);
+.pi/extensions/goal/queue-tools.ts:156:function createAndDequeueQueuedGoal(pi: ExtensionAPI, runtime: GoalQueueToolRuntime, ctx: ExtensionContext, next: QueuedGoal, objective: string) {
+.pi/extensions/goal/queue-tools.ts:162:	const dequeued = dequeueGoal();
+.pi/extensions/goal/queue-tools.ts:163:	const started = dequeued ?? next;
+.pi/extensions/goal/queue-tools.ts:164:	persistDequeue(pi, "start_queued_goal", { queueId: started.queueId, audit: { rationale: "Started queued goal as a direct concrete goal after successful goal creation.", authority: "start_queued_goal atomic create-then-dequeue path" } });
+.pi/extensions/goal/queue-tools.ts:167:	return { content: [{ type: "text" as const, text: `Started queued goal: ${started.queueId}\nObjective: ${goal.objective}` }], details: { goal, telemetry, started, queue: getQueue() } as QueueToolDetails };
+.pi/extensions/goal/queue-tools.ts:179:type DequeueAuditResult = { ok: true; value: DequeueAudit } | { ok: false; error: string };
+.pi/extensions/goal/queue-tools.ts:181:function validateDequeueAudit(rationale: string | undefined, authority: string | undefined): DequeueAuditResult {
+.pi/extensions/goal/queue-tools.ts:184:	if (!trimmedRationale) return { ok: false, error: "rationale is required to dequeue a queued goal." };
+.pi/extensions/goal/queue-tools.ts:185:	if (!trimmedAuthority) return { ok: false, error: "authority is required to dequeue a queued goal." };
+.pi/extensions/goal/queue-tools.ts:190:	const queue = getQueue();
+.pi/extensions/goal/queue-tools.ts:191:	if (queue.length === 0) return { content: [{ type: "text" as const, text: "No queued goals." }], details: { goal: getGoal(), telemetry: getTelemetry(), queue } as QueueToolDetails };
+.pi/extensions/goal/queue-tools.ts:192:	const lines = queue.map((g, i) => `${i + 1}. [${g.queueId}] ${g.objective.length > 120 ? `${g.objective.slice(0, 117)}…` : g.objective}`);
+.pi/extensions/goal/queue-tools.ts:193:	return { content: [{ type: "text" as const, text: `Queued goals (${queue.length}):\n${lines.join("\n")}` }], details: { goal: getGoal(), telemetry: getTelemetry(), queue } as QueueToolDetails };
+.pi/extensions/goal/queue-tools.ts:196:function resultForQueuedGoal(queued: QueuedGoal) {
+.pi/extensions/goal/queue-tools.ts:197:	const objective = queued.objective.length > 120 ? `${queued.objective.slice(0, 117)}…` : queued.objective;
+.pi/extensions/goal/queue-tools.ts:198:	return { content: [{ type: "text" as const, text: `Queued goal: ${queued.queueId}\nObjective: ${objective}` }], details: { goal: getGoal(), telemetry: getTelemetry(), queued } as QueueToolDetails };
+.pi/extensions/goal/constants.ts:6:export const QUEUE_MESSAGE_TYPE = "pi-goal-queue-steer";
+.pi/extensions/goal/constants.ts:38:export const QUEUE_PROMPT_ID = "pi-goal-queue-v1";
+.pi/extensions/goal/format.ts:1:import { budgetLimitReason } from "./budget";
+.pi/extensions/goal/format.ts:62:		case "budgetLimited":
+.pi/extensions/goal/format.ts:70:	if (goal.status !== "budgetLimited") return statusLabel(goal.status);
+.pi/extensions/goal/format.ts:71:	const reason = budgetLimitReason(goal);
+.pi/extensions/goal/format.ts:83:		case "budgetLimited":
+.pi/extensions/goal/format.ts:132:		case "budgetLimited":
+.pi/extensions/goal/format.ts:145:		if (goal.status === "budgetLimited") return `${used} / ${budget} tokens`;
+.pi/extensions/goal/types.ts:3:export type GoalStatus = "active" | "paused" | "budgetLimited" | "complete";
+.pi/extensions/goal/types.ts:21:export type ContinuationSkipReason = "notIdle" | "pendingMessages" | "notActive" | "budgetLimited" | "safetyCap" | "noProgress" | "floorExhausted" | "budgetExhausted" | "compacting";
+.pi/extensions/goal/types.ts:129:export type GoalSteeringKind = "continuation" | "budgetLimit" | "pause" | "monitorSteer";
+.pi/extensions/goal/prompts.ts:72:The system has marked the goal as budget_limited after a ${resource} budget limit, so do not start new substantive work for this goal. If get_goal reports this goal is paused, absent, complete, active, or has a different goal id, treat this wrap-up message as stale and do not continue goal work. Wrap up this turn soon: summarize useful progress, identify remaining work or blockers, and leave the user with a clear next step.
+.pi/extensions/goal/prompts.ts:75:		details: { goalId: goal.goalId, kind: "budgetLimit", promptId: BUDGET_LIMIT_PROMPT_ID, createdAt: Date.now(), reason: "budget" },
+.pi/extensions/goal/continuation.ts:130:	if (!goal || goal.goalId !== goalId || goal.status !== "budgetLimited") return;
+.pi/extensions/goal/floor-steering.ts:75:		chooseWhen: "Change may affect replay, queue, budgets, UI, safety, security, performance, or accessibility.",
+.pi/extensions/goal/floor-steering.ts:150:	if (/compat|replay|queue|budget|ui|security|performance|accessibility/.test(lower)) ordered.push("compatibility_review");
+.pi/extensions/goal/lifecycle.ts:28:import { replayQueueState } from "./queue-state";
+.pi/extensions/goal/lifecycle.ts:29:import { queueSteeringStillValid, sendQueueSteering } from "./queue-steering";
+.pi/extensions/goal/lifecycle.ts:96:	if (goal.status !== "active" && goal.status !== "budgetLimited") {
+.pi/extensions/goal/lifecycle.ts:124:		const stopped: GoalState = { ...goal, status: "budgetLimited", updatedAt: Date.now() };
+.pi/extensions/goal/lifecycle.ts:141:	// mid-stream. State transition to budgetLimited happens at turn_end, not here,
+.pi/extensions/goal/lifecycle.ts:167:			{ customType: BUDGET_LIMIT_MESSAGE_TYPE, content: `${resource} budget warning: ${remaining} ${unit} remaining before target. Start wrapping up.`, display: false, details: { goalId: goal.goalId, kind: "budgetLimit", promptId: BUDGET_WARNING_PROMPT_ID, createdAt: Date.now() } },
+.pi/extensions/goal/lifecycle.ts:223:	if (updated?.status === "budgetLimited") {
+.pi/extensions/goal/lifecycle.ts:287:	// the goal to budgetLimited, persisted telemetry, and aborted.
+.pi/extensions/goal/lifecycle.ts:294:	const stopped: GoalState = { ...goal, status: "budgetLimited", updatedAt: Date.now() };
+.pi/extensions/goal/lifecycle.ts:306:	const limited: GoalState = { ...goal, status: "budgetLimited", updatedAt: Date.now() };
+.pi/extensions/goal/lifecycle.ts:377:	return queueSteeringStillValid(message) ? "valid" : "invalid";
+.pi/extensions/goal/lifecycle.ts:393:	if (customType === BUDGET_LIMIT_MESSAGE_TYPE) return status === "budgetLimited" && kind === "budgetLimit";
+.pi/extensions/goal/queue-state.ts:5:	queueId: string;
+.pi/extensions/goal/queue-state.ts:18:export type DequeueAudit = {
+.pi/extensions/goal/queue-state.ts:23:type DequeuePersistMetadata = {
+.pi/extensions/goal/queue-state.ts:24:	queueId?: string;
+.pi/extensions/goal/queue-state.ts:25:	audit?: DequeueAudit;
+.pi/extensions/goal/queue-state.ts:30:	kind: "enqueue" | "dequeue" | "remove";
+.pi/extensions/goal/queue-state.ts:31:	queueId?: string;
+.pi/extensions/goal/queue-state.ts:41:	queueId?: unknown;
+.pi/extensions/goal/queue-state.ts:52:	queue: QueuedGoal[];
+.pi/extensions/goal/queue-state.ts:55:let queueCounter = 0;
+.pi/extensions/goal/queue-state.ts:59:	return `q-${Date.now()}-${++queueCounter}`;
+.pi/extensions/goal/queue-state.ts:66:export function enqueueGoal(objective: string, source: "command" | "tool", opts?: { tokenBudget?: number; timeBudgetSeconds?: number; minTokensBeforeWrapUp?: number; minTimeSecondsBeforeWrapUp?: number; template?: string; templateFlags?: Record<string, string>; templateArgs?: string }): QueuedGoal {
+.pi/extensions/goal/queue-state.ts:68:		queueId: generateQueueId(),
+.pi/extensions/goal/queue-state.ts:84:export function dequeueGoal(): QueuedGoal | undefined {
+.pi/extensions/goal/queue-state.ts:88:export function removeGoal(queueId: string): QueuedGoal | undefined {
+.pi/extensions/goal/queue-state.ts:89:	const index = runtimeQueue.findIndex((g) => g.queueId === queueId);
+.pi/extensions/goal/queue-state.ts:95:	let queue: QueuedGoal[] = [];
+.pi/extensions/goal/queue-state.ts:99:		queue = applyQueueEvent(queue, event);
+.pi/extensions/goal/queue-state.ts:101:	runtimeQueue = queue;
+.pi/extensions/goal/queue-state.ts:102:	return { queue };
+.pi/extensions/goal/queue-state.ts:106:	runtimeQueue = state.queue;
+.pi/extensions/goal/queue-state.ts:109:export function persistEnqueue(pi: ExtensionAPI, goal: QueuedGoal): void {
+.pi/extensions/goal/queue-state.ts:110:	pi.appendEntry(STATE_ENTRY_TYPE, { version: 1, kind: "enqueue", queueId: goal.queueId, goal, reason: "enqueue", at: Date.now() } as GoalQueueEvent);
+.pi/extensions/goal/queue-state.ts:113:export function persistDequeue(pi: ExtensionAPI, reason: string, metadata: DequeuePersistMetadata = {}): void {
+.pi/extensions/goal/queue-state.ts:114:	pi.appendEntry(STATE_ENTRY_TYPE, { version: 1, kind: "dequeue", queueId: metadata.queueId, reason, rationale: metadata.audit?.rationale, authority: metadata.audit?.authority, at: Date.now() } as GoalQueueEvent);
+.pi/extensions/goal/queue-state.ts:117:export function persistRemove(pi: ExtensionAPI, queueId: string, reason: string): void {
+.pi/extensions/goal/queue-state.ts:118:	pi.appendEntry(STATE_ENTRY_TYPE, { version: 1, kind: "remove", queueId, reason, at: Date.now() } as GoalQueueEvent);
+.pi/extensions/goal/queue-state.ts:124:	if (raw.kind === "enqueue") return parseEnqueueEvent(raw);
+.pi/extensions/goal/queue-state.ts:125:	if (raw.kind === "dequeue" || raw.kind === "remove") return parseQueueOpEvent(raw);
+.pi/extensions/goal/queue-state.ts:142:		queueId: raw.queueId,
+.pi/extensions/goal/queue-state.ts:151:function parseEnqueueEvent(raw: QueueEventRecord): GoalQueueEvent | null {
+.pi/extensions/goal/queue-state.ts:154:	const queueId = toOptionalString(raw.queueId) ?? goal.queueId;
+.pi/extensions/goal/queue-state.ts:157:		kind: "enqueue",
+.pi/extensions/goal/queue-state.ts:158:		queueId,
+.pi/extensions/goal/queue-state.ts:168:	if (raw.kind !== "dequeue" && raw.kind !== "remove") return null;
+.pi/extensions/goal/queue-state.ts:172:		queueId: toOptionalString(raw.queueId),
+.pi/extensions/goal/queue-state.ts:183:	const queueId = toRequiredString(raw.queueId);
+.pi/extensions/goal/queue-state.ts:187:	if (!queueId || !objective || !source || createdAt === undefined) return null;
+.pi/extensions/goal/queue-state.ts:205:		queueId,
+.pi/extensions/goal/queue-state.ts:260:function applyQueueEvent(queue: QueuedGoal[], event: GoalQueueEvent): QueuedGoal[] {
+.pi/extensions/goal/queue-state.ts:261:	const next = [...queue];
+.pi/extensions/goal/queue-state.ts:262:	if (event.kind === "enqueue") {
+.pi/extensions/goal/queue-state.ts:266:	if (event.kind === "dequeue") {
+.pi/extensions/goal/queue-state.ts:267:		dequeueByEvent(next, event.queueId);
+.pi/extensions/goal/queue-state.ts:270:	if (event.kind === "remove") removeByQueueId(next, event.queueId);
+.pi/extensions/goal/queue-state.ts:274:function dequeueByEvent(queue: QueuedGoal[], queueId: string | undefined): void {
+.pi/extensions/goal/queue-state.ts:275:	if (!queueId || queue[0]?.queueId === queueId) {
+.pi/extensions/goal/queue-state.ts:276:		queue.shift();
+.pi/extensions/goal/queue-state.ts:279:	removeByQueueId(queue, queueId);
+.pi/extensions/goal/queue-state.ts:282:function removeByQueueId(queue: QueuedGoal[], queueId: string | undefined): void {
+.pi/extensions/goal/queue-state.ts:283:	if (!queueId) return;
+.pi/extensions/goal/queue-state.ts:284:	const index = queue.findIndex((goal) => goal.queueId === queueId);
+.pi/extensions/goal/queue-state.ts:285:	if (index !== -1) queue.splice(index, 1);
+.pi/extensions/goal/queue-steering.ts:3:import { getQueue, type QueuedGoal } from "./queue-state";
+.pi/extensions/goal/queue-steering.ts:14:			content: queueSteeringContent(next),
+.pi/extensions/goal/queue-steering.ts:16:			details: { kind: "queueNext", promptId: QUEUE_PROMPT_ID, queueId: next.queueId, reason, createdAt: Date.now() },
+.pi/extensions/goal/queue-steering.ts:23:export function queueSteeringStillValid(message: Record<string, unknown>): boolean {
+.pi/extensions/goal/queue-steering.ts:25:	const queueId = details?.queueId;
+.pi/extensions/goal/queue-steering.ts:26:	return typeof queueId === "string" && getQueue()[0]?.queueId === queueId;
+.pi/extensions/goal/queue-steering.ts:29:function queueSteeringContent(goal: QueuedGoal): string {
+.pi/extensions/goal/queue-steering.ts:31:		"A queued item is ready to resolve. Do not start it blindly; first decide whether it should be handled by an existing reusable goal prompt or as a direct one-off goal.",
+.pi/extensions/goal/queue-steering.ts:33:		`Queue ID: ${goal.queueId}`,
+.pi/extensions/goal/queue-steering.ts:36:		"Next queued item/objective:",
+.pi/extensions/goal/queue-steering.ts:40:		"1. Classify the queue head semantically using current context before calling any queue-start tool.",
+.pi/extensions/goal/queue-steering.ts:41:		"2. Reusable-prompt check: if the text names a prompt/template, uses a prompt-like slug, or describes a reusable workflow/task type, call list_goal_templates and compare the queue text with template names, aliases, descriptions, and required placeholders.",
+.pi/extensions/goal/queue-steering.ts:42:		"3. If exactly one reusable template fits and required values can be derived from the queue text or current context, use create_goal_from_template. Do NOT call start_queued_goal and do NOT make the prose itself the active goal.",
+.pi/extensions/goal/queue-steering.ts:43:		"4. If a likely template fits but required values are missing, ask for or gather the missing context. Leave this queue item in place until resolved.",
+.pi/extensions/goal/queue-steering.ts:44:		"5. Direct goal fallback: call start_queued_goal only when no reusable template fits, or when the text itself is clearly the concrete one-off goal to perform.",
+.pi/extensions/goal/queue-steering.ts:45:		"6. For orchestration/JIT work, use existing goal tools as appropriate: create_goal, create_goal_from_template, or enqueue_goal. Do not rely on extension-side prose parsing; you, the agent, resolve the intent from context.",
+.pi/extensions/goal/queue-steering.ts:46:		"7. One orchestration queue item may require one or more consecutive active goals before it is satisfied. Keep this queue item at the head while you execute those concrete goal(s).",
+.pi/extensions/goal/queue-steering.ts:47:		"8. After the concrete goal(s) requested by this orchestration item are complete/satisfied, call dequeue_goal exactly once to consume this queue item. If you see this same queue item again after satisfying it, dequeue it instead of recreating the same goal.",
+.pi/extensions/goal/queue-steering.ts:48:		"9. If needed context is missing or a non-complete active goal blocks the next action, leave this queue item in place and continue/resolve the blocker instead of dequeuing it.",
+.pi/extensions/goal/queue-steering.ts:52:			"Structured template metadata: this queue item already stores a reusable template reference.",
+.pi/extensions/goal/queue-steering.ts:53:			`If classified as a direct goal, start_queued_goal will re-resolve template '${goal.template}' with flags=${JSON.stringify(goal.templateFlags ?? {})}, args=${JSON.stringify(goal.templateArgs ?? "")}.`,
+.pi/extensions/goal/queue-steering.ts:54:			"If you cannot use the direct path, use create_goal_from_template rather than create_goal, and dequeue only after successful direct creation or completed orchestration satisfaction.",
+.pi/extensions/goal/queue-steering.ts:58:			"Plain queue entry: use start_queued_goal only if you classified this item as a direct goal.",
+.pi/extensions/goal/queue-steering.ts:59:			"Example orchestration wording such as 'run/create/start the deslop-commit-range goal template' means use create_goal_from_template (or another existing goal tool), not start_queued_goal.",
+
+$ rg -n "one big|enqueue all|dequeue|create_goal_from_template|update_goal|acceptance_summary|false-green|surface" .ai/.pi-goals/verify-acceptance-*.md
+.ai/.pi-goals/verify-acceptance-item.md:2:description: Verify one issue acceptance criterion against implementation evidence with adversarial false-green checks
+.ai/.pi-goals/verify-acceptance-item.md:97:### 2. Map criterion to implementation and proof surfaces
+.ai/.pi-goals/verify-acceptance-item.md:112:### 3. Attack false-green paths
+.ai/.pi-goals/verify-acceptance-item.md:114:Before deciding `green`, actively check for false-green risks:
+.ai/.pi-goals/verify-acceptance-item.md:125:If a false-green risk is plausible and you cannot rule it out with available read-only evidence, return `red` or `blocked`, not `green`.
+.ai/.pi-goals/verify-acceptance-item.md:131:- `green`: the criterion is independently verified with concrete evidence that would likely fail if the criterion were false. A green result must name at least one direct evidence source and at least one false-green risk you ruled out.
+.ai/.pi-goals/verify-acceptance-item.md:151:Keep `evidence`, `gap`, and `next_action` concise but specific. Include command names and paths, not vague statements such as `looked good`. For `green`, include both the decisive evidence and the false-green risk ruled out, for example `evidence: rg/template resolver proved discovery; ruled out docs-only false green`. If the exact criterion text is too long or contains complex punctuation, preserve its meaning while keeping the TOON row valid and single-line.
+.ai/.pi-goals/verify-acceptance-item.md:155:This item goal is complete only when the final `acceptance_item_result` row honestly reflects the criterion status after issue-doc reading, targeted evidence inspection, and false-green review. Do not mark the item complete merely because the criterion sounds plausible or because the main implementation agent claimed it was done.
+.ai/.pi-goals/verify-acceptance-pipeline.md:208:7. For every queued orchestration item, call `list_goal_templates`, match `verify-acceptance-item`, create the concrete goal with `create_goal_from_template`, complete that concrete goal, then dequeue the orchestration item only after the item result is captured.
+.ai/.pi-goals/verify-acceptance-pipeline.md:210:9. Final report must include a TOON block with `acceptance_summary` and `acceptance_results` rows. Keep every row single-line, quote string cells, and escape embedded double quotes in criterion/evidence/gap text. The `total` field must equal the extracted acceptance-row count and the number of `acceptance_results` rows.
+.ai/.pi-goals/verify-acceptance-pipeline.md:220:acceptance_summary{issue,status,total,green,red,blocked,iteration}:
+.ai/.pi-goals/verify-acceptance-pipeline.md:253:When the acceptance agent returns `acceptance_summary` / `acceptance_results`:
+.ai/.pi-goals/verify-acceptance-pipeline.md:256:2. Check report completeness before remediation: `acceptance_summary.total` must equal the number of `acceptance_results` rows and the issue doc's extracted acceptance-row count. If counts differ, treat the report as incomplete and ask the same acceptance agent to correct the extraction/report before trusting item statuses.
+.ai/.pi-goals/verify-acceptance-pipeline.md:276:Re-read the issue doc and relevant changed files. Enqueue the listed corrected acceptance items first using `verify-acceptance-item`, execute the queue head-to-tail, and produce a fresh `acceptance_summary` / `acceptance_results` report for this iteration. Do not modify repository files.
+
+$ rg -n "ISSUE-040|acceptance|verify-acceptance|pipeline" .ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md .ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/*.md
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/08-qualitative-review.md:1:# ISSUE-040 qualitative review after initial implementation
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/08-qualitative-review.md:3:This review was performed after the first working version of `verify-acceptance-pipeline` and `verify-acceptance-item` existed. It was driven by the user's 11-minute time-floor instruction: do not idle, use remaining time for material qualitative review/improvement, and only touch adjacent templates if fully understood and justified.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/08-qualitative-review.md:10:| Independence | Pipeline clearly spawns a separate Solo/Pi acceptance agent and forbids main-agent self-review as replacement. | Kept and validated by static contract check. |
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/08-qualitative-review.md:16:| Report validity | Initial report rows did not explicitly warn about quotes/punctuation in TOON cells. | Added quote/escape/single-line guidance to pipeline and item outputs. |
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/08-qualitative-review.md:18:## Section-by-section review: `verify-acceptance-pipeline`
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/08-qualitative-review.md:25:| Direct prompt | Prompt instructs issue read, acceptance extraction, item enqueue, template routing, queue execution, and structured report. | Added TOON quote/escape/single-line guidance plus extraction/count completeness rules so criteria cannot be silently skipped. |
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/08-qualitative-review.md:27:| Remediation loop | Main agent remediates red/blocked rows and sends corrected acceptance items. | No further change needed. |
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/08-qualitative-review.md:30:## Section-by-section review: `verify-acceptance-item`
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/08-qualitative-review.md:35:| Initial context | Inline command is read-only and validates `--issue`, `--item-id`, and criterion text. | Simplified acceptance-section helper to a compact `rg -n -A 80` command. |
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/08-qualitative-review.md:46:- `.ai/.pi-goals/deslop-pipeline.md`
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/08-qualitative-review.md:54:Reasoning: the improvements found were specific to the new acceptance templates. Existing adjacent templates encode distinct workflows and some intentionally use patterns that are wrong for ISSUE-040 but correct for their own domain, such as `deslop-pipeline` using a different delegation mechanism and monitoring strategy. Changing adjacent templates would require separate issue-level review of their workflow semantics.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/08-qualitative-review.md:58:After monitor steering, I stopped closeout/status checking and re-reviewed the `verify-acceptance-pipeline` direct acceptance-agent prompt against ISSUE-040 acceptance criteria 267-273. Finding: the section covered extraction, queueing, item-template routing, report output, and remediation, but it did not explicitly force cardinality/completeness between extracted criteria, queued objectives, and final report rows. That was a real false-green risk: an acceptance agent could skip a criterion while still returning a plausible all-green report.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/08-qualitative-review.md:65:- Required final `acceptance_summary.total` to equal both the extracted row count and the number of `acceptance_results` rows.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/08-qualitative-review.md:66:- Required the main agent to reject incomplete acceptance reports before trusting item statuses.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/08-qualitative-review.md:70:- `raw/implementation-proofs.log` contains the monitor-steered recheck for `Count the extracted rows`, `extracted acceptance-row count`, and `report completeness`.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/08-qualitative-review.md:71:- The pipeline template resolver still passes after the improvement.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/08-qualitative-review.md:74:A second item-template section review inspected the `verify-acceptance-item` status decision/final result section. Finding: the template already required concrete evidence, but green results could still be terse. Concrete improvement: green now requires naming both one direct evidence source and one false-green risk ruled out, and final-row evidence guidance gives an example. Resolver smoke still passes after this edit.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/08-qualitative-review.md:76:A third pipeline section review inspected spawn/prompt delivery. Finding: the rendered commands spawned an agent and sent with `--allow-recent-spawn`, but did not require a status check between spawn and prompt. Concrete improvement: added `verify_worker_status_after_spawn` and instructions to confirm the worker exists and is an agent before sending, with bounded recovery if not. Resolver smoke still passes after this edit.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/08-qualitative-review.md:78:Final frontmatter/discovery section check found no gap: both new templates include description, aliases, usage, examples, `allow_commands: true`, and bounded command timeout/output limits, matching ISSUE-040 metadata and the prompt-template authoring guide. Evidence is appended to `raw/implementation-proofs.log`.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/08-qualitative-review.md:82:The templates now satisfy the issue's core workflow contract and are stronger than the initial implementation in collision avoidance, final-output auditability, rendered-command simplicity, spawn-readiness safety, TOON result validity, acceptance-row cardinality/completeness, and item-level anti-false-green evidence quality. Remaining risk is explicitly documented: the full nested acceptance pipeline has not been run live end-to-end against a disposable issue.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/00-request.md:1:# ISSUE-040 request intake — Verify acceptance pipeline goal templates
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/00-request.md:7:- Requested title: `Verify acceptance pipeline goal templates`
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/00-request.md:8:- Chosen issue id: `ISSUE-040`
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/00-request.md:9:- Chosen issue path: `.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md`
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/00-request.md:10:- Transcript directory: `.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/`
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/00-request.md:16:1. `verify-acceptance-pipeline` — higher-order workflow for the main agent.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/00-request.md:18:   - Spawns an independent Solo/Pi acceptance agent.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/00-request.md:21:   - Reviews the acceptance agent report, remediates misses/gaps, sends corrected acceptance items back to the same worker, and loops until all green.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/00-request.md:23:2. `verify-acceptance-item` — inner-loop validation workflow for one acceptance criterion.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/00-request.md:24:   - Used by the acceptance agent for each queued acceptance-item goal.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/00-request.md:26:   - Produces structured item-level results that roll up into the acceptance agent's final report.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/00-request.md:31:- Review `.ai/docs/prompt-template-authoring.md` and `.ai/.pi-goals/deslop-pipeline.md` as references.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/00-request.md:32:- Do not copy deslop-pipeline's timer-pair monitoring pattern.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/00-request.md:34:- Design a direct prompt that the main agent sends to the acceptance agent after spawn.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/00-request.md:44:- Next issue selected: `ISSUE-040`.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/05-issue-writeback.md:1:# ISSUE-040 issue writeback
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/05-issue-writeback.md:7:- `.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md`
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/05-issue-writeback.md:24:- Direct acceptance-agent prompt design
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/05-issue-writeback.md:38:  - `.ai/.pi-goals/verify-acceptance-pipeline.md`
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/05-issue-writeback.md:39:  - `.ai/.pi-goals/verify-acceptance-item.md`
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/05-issue-writeback.md:40:- `verify-acceptance-pipeline` accepts `{{args}}` as an issue selector and resolves it to an issue doc path.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/05-issue-writeback.md:41:- The pipeline spawns an independent Solo/Pi acceptance agent and sends a direct prompt.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/05-issue-writeback.md:42:- The pipeline explicitly avoids `/boomerang` and Solo timer pairs.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/05-issue-writeback.md:44:- The acceptance agent must enqueue every acceptance criterion first, then execute the queue head-to-tail.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/05-issue-writeback.md:45:- Each item queue objective is orchestration prose that must route through `verify-acceptance-item` via `create_goal_from_template`.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/05-issue-writeback.md:46:- The inner template verifies one criterion adversarially and emits structured `acceptance_item_result` output.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/05-issue-writeback.md:47:- The main agent remediates red/blocked gaps and reuses the same acceptance agent to re-run corrected items until all green or blocked.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/05-issue-writeback.md:66:- read-only acceptance worker with main-agent remediation;
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/06-final-audit.md:1:# ISSUE-040 final audit
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/06-final-audit.md:9:| Create transcript artifact directory | `.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/` | pass |
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/06-final-audit.md:17:| Create canonical issue doc | `.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md` | pass |
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/06-final-audit.md:28:- `.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/00-request.md`
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/06-final-audit.md:29:- `.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/01-protocol-read.md`
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/06-final-audit.md:30:- `.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/02-grounded-research.md`
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/06-final-audit.md:31:- `.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md`
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/06-final-audit.md:32:- `.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/04-proof-threat-model.md`
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/06-final-audit.md:33:- `.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/05-issue-writeback.md`
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/06-final-audit.md:34:- `.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/06-final-audit.md`
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/06-final-audit.md:35:- `.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/07-implementation-closeout.md`
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/06-final-audit.md:36:- `.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/08-qualitative-review.md`
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/06-final-audit.md:37:- `.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/raw/commands.log`
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/06-final-audit.md:38:- `.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/raw/implementation-proofs.log`
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/06-final-audit.md:42:- `.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md`
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md:1:# ISSUE-040 design lock — Verify acceptance pipeline goal templates
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md:7:1. `verify-acceptance-pipeline.md` — higher-order main-agent workflow that spawns, prompts, monitors, and iterates with an independent acceptance agent.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md:8:2. `verify-acceptance-item.md` — inner acceptance-item workflow used by the acceptance agent for one criterion at a time.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md:14:### `verify-acceptance-pipeline`
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md:20:description: Spawn and supervise an independent acceptance agent until an implemented issue doc's acceptance criteria all verify green
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md:21:aliases: acceptance-pipeline,acceptance-verify,verify-acceptance
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md:22:usage: /goal verify-acceptance-pipeline -- ISSUE-040
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md:23:examples: /goal verify-acceptance-pipeline -- ISSUE-038; /goal acceptance-pipeline -- .ai/issues/fixed/ISSUE-036-minimum-goal-spend-floors.md
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md:32:- `{{args}}` — issue selector. It may be an issue number (`40`), issue id (`ISSUE-040`), or concrete issue doc path.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md:34:### `verify-acceptance-item`
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md:40:description: Verify one issue acceptance criterion against implementation evidence with adversarial false-green checks
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md:41:aliases: acceptance-item,verify-acceptance-criterion,acceptance-check
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md:42:usage: /goal verify-acceptance-item --issue .ai/issues/open/ISSUE-040-example.md --item-id AC-1 -- acceptance criterion text
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md:43:examples: /goal acceptance-item --issue .ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md --item-id AC-1 -- /goal autocomplete does not recursively scan arbitrary descendants
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md:52:- `{{issue}}` — issue doc path resolved by the acceptance pipeline.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md:53:- `{{item-id}}` — stable item id assigned by the acceptance agent, usually `AC-1`, `AC-2`, etc.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md:54:- `{{args}}` — exact acceptance criterion text.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md:60:Chosen: the pipeline spawns one independent Solo Pi acceptance agent, sends it a direct prompt, and supervises it through sparse polling.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md:64:- Main agent self-verifies all acceptance criteria: insufficient independence and weaker false-green resistance.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md:65:- `/boomerang`: explicitly not relevant to this workflow, and it hides the direct acceptance-agent prompt that the user wants designed.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md:73:Required monitoring shape in `verify-acceptance-pipeline`:
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md:90:Chosen: pipeline template includes a direct prompt body for the main agent to write/send to the worker.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md:92:The prompt must instruct the acceptance agent to:
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md:97:4. Enqueue every acceptance criterion first using orchestration objectives shaped exactly like:
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md:100:   create a goal from template `verify-acceptance-item` with args `--issue "<issue-doc-path>" --item-id "AC-N" -- <criterion text>`
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md:104:6. For each queued orchestration item, call `list_goal_templates`, match `verify-acceptance-item`, use `create_goal_from_template`, complete the concrete item goal, then dequeue the orchestration queue item only after the item result exists.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md:106:8. Produce a final report with one row per acceptance criterion and an all-green/red/blocked summary.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md:111:Chosen: same acceptance agent remains the verifier across iterations.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md:115:1. Main agent receives final acceptance report.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md:119:5. Main agent sends a correction prompt to the same acceptance agent with:
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md:121:   - corrected acceptance item ids;
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md:123:   - instruction to enqueue and re-run those items through `verify-acceptance-item` again.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md:124:6. Repeat until acceptance agent returns all green or a genuine blocker remains.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md:128:- If the acceptance worker crashes or its goal queue is corrupted, spawn a fresh acceptance agent and send a restart prompt including the prior report and corrected item list.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md:133:`verify-acceptance-item` should instruct the acceptance agent to perform a real validation loop:
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md:135:1. Restate the acceptance criterion and identify the user-visible invariant it implies.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md:153:   - issue status marked fixed but acceptance item still unproven.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md:163:`verify-acceptance-item` final response should include a parseable block like:
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md:167:acceptance_item_result{id,status,criterion,confidence,evidence,gap,next_action}:
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md:179:The acceptance agent final response should include:
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md:183:acceptance_summary{issue,status,total,green,red,blocked,iteration}:
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md:184:  ".ai/issues/open/ISSUE-040-example.md","red",5,4,1,0,1
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md:185:acceptance_results[5]{id,status,criterion,confidence,evidence,gap,next_action}:
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md:198:- One template only: rejected because it would make the acceptance agent's queue items broad, less auditable, and harder to rerun individually.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md:199:- A separate parser script for issue acceptance criteria: rejected for first pass because a direct prompt plus markdown extraction rules are sufficient; add a script only if implementation finds the inline prompt too brittle.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md:200:- Automatic mutation by acceptance agent: rejected because acceptance worker should be independent verifier; main agent owns remediation.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md:201:- Re-running every acceptance item every iteration: rejected as default because it wastes work. Re-run failed/corrected items, but allow all-item rerun when shared changes could invalidate green rows.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md:212:- acceptance agent enqueues all item goals first;
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md:213:- `verify-acceptance-item` handles item-level proof;
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/07-implementation-closeout.md:1:# ISSUE-040 implementation closeout
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/07-implementation-closeout.md:5:- `.ai/.pi-goals/verify-acceptance-pipeline.md`
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/07-implementation-closeout.md:6:- `.ai/.pi-goals/verify-acceptance-item.md`
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/07-implementation-closeout.md:12:### `verify-acceptance-pipeline`
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/07-implementation-closeout.md:20:  - independent Solo/Pi acceptance-agent spawn;
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/07-implementation-closeout.md:24:  - corrected acceptance item rerun prompts.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/07-implementation-closeout.md:25:- Includes a direct acceptance-agent prompt instructing the worker to read the issue doc, extract `## Acceptance criteria`, enqueue all item-review orchestration goals first, route each through `verify-acceptance-item`, execute head-to-tail, and produce `acceptance_summary` / `acceptance_results` TOON output.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/07-implementation-closeout.md:28:### `verify-acceptance-item`
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/07-implementation-closeout.md:38:  - return exactly one structured `acceptance_item_result` row.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/07-implementation-closeout.md:42:The initial implementation was reviewed holistically and section-by-section against ISSUE-040 and `.ai/docs/prompt-template-authoring.md`. Material improvements made during the review pass:
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/07-implementation-closeout.md:44:- Replaced a same-name acceptance-worker process name with a timestamped worker name to avoid process-name collisions across repeated runs.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/07-implementation-closeout.md:45:- Added `capture_final_output` so the pipeline can preserve final acceptance output under the `/tmp` artifact directory instead of relying only on terminal tail history.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/07-implementation-closeout.md:46:- Simplified the item template's rendered acceptance-section helper from a multiline nested heredoc into a compact `rg -n -A 80` command, reducing quoting risk and making rendered context easier for agents to execute.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/07-implementation-closeout.md:49:- Added TOON validity guidance to both final report contracts so acceptance criteria/evidence containing punctuation are quoted/escaped and kept single-line.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/07-implementation-closeout.md:50:- Added acceptance-row cardinality/completeness checks so the worker cannot silently skip criteria while returning a plausible all-green report.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/07-implementation-closeout.md:61:- `test -f .ai/.pi-goals/verify-acceptance-pipeline.md && test -f .ai/.pi-goals/verify-acceptance-item.md`
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/07-implementation-closeout.md:62:- `! rg -n '/boomerang|timer-pair|tlo timer|timer_pair|check-ms|send-seam' .ai/.pi-goals/verify-acceptance-pipeline.md`
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/07-implementation-closeout.md:63:- `rg -n 'verify-acceptance-item|sleep 90|process status|process output|process send|ACCEPTANCE_WORKER_ID|acceptance_summary|corrected acceptance' .ai/.pi-goals/verify-acceptance-pipeline.md`
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/07-implementation-closeout.md:64:- `rg -n 'acceptance_item_result|false-green|green|red|blocked|targeted|proof|implementation' .ai/.pi-goals/verify-acceptance-item.md`
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/07-implementation-closeout.md:65:- `rg -nF '{{issue}}' .ai/.pi-goals/verify-acceptance-item.md`
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/07-implementation-closeout.md:66:- `rg -nF '{{item-id}}' .ai/.pi-goals/verify-acceptance-item.md`
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/07-implementation-closeout.md:67:- `rg -nF '{{args}}' .ai/.pi-goals/verify-acceptance-item.md`
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/07-implementation-closeout.md:69:  - `verify-acceptance-pipeline -- ISSUE-040`
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/07-implementation-closeout.md:70:  - `verify-acceptance-item --issue .ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md --item-id AC-1 -- test criterion`
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/07-implementation-closeout.md:77:A full nested `verify-acceptance-pipeline` live probe was intentionally skipped for this implementation pass.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/07-implementation-closeout.md:83:- A resolver smoke test executed both templates' inline read-only commands and proved the rendered objectives are syntactically resolvable for ISSUE-040 and an item invocation.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/07-implementation-closeout.md:84:- Running the full pipeline live would spawn another independent Pi agent and ask it to enqueue and execute item goals over a disposable issue. That would be materially more expensive and risk leaving nested process/goal state behind, while adding limited evidence beyond the validated prompt contract for this template-authoring issue.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/07-implementation-closeout.md:89:- The full end-to-end acceptance-agent loop has not yet been exercised against a disposable issue in a live Pi process.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/07-implementation-closeout.md:90:- The pipeline's direct prompt depends on normal agent compliance with queue steering and `create_goal_from_template`; this is consistent with existing project queue semantics but remains a workflow contract rather than extension-enforced behavior.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/07-implementation-closeout.md:94:ISSUE-040 is implemented as a project-local goal-template workflow. Static proofs, template discovery, template resolution smoke checks, and the project quality gate passed.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/04-proof-threat-model.md:1:# ISSUE-040 proof threat model — Verify acceptance pipeline goal templates
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/04-proof-threat-model.md:5:An implemented issue can be independently acceptance-verified criterion-by-criterion by a spawned Solo/Pi acceptance agent, where each criterion is routed through the `verify-acceptance-item` reusable goal template, all item results are reported structurally, and the main agent remediates/rechecks gaps until every acceptance row is green.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/04-proof-threat-model.md:10:   - A shallow template could tell the main agent to review acceptance criteria itself.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/04-proof-threat-model.md:15:   - Required proof must inspect the acceptance-agent prompt for all-items-first enqueue rules and head-to-tail queue execution.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/04-proof-threat-model.md:18:   - The queue might start literal objectives and bypass `verify-acceptance-item`.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/04-proof-threat-model.md:19:   - Required proof must verify the objective shape uses `create a goal from template verify-acceptance-item with args ...`.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/04-proof-threat-model.md:21:4. **Deslop-pipeline patterns sneak back in.**
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/04-proof-threat-model.md:23:   - Required proof must search for forbidden `/boomerang`, `timer-pair`, and timer-helper commands in `verify-acceptance-pipeline.md`.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/04-proof-threat-model.md:31:   - Required proof must inspect the item template for issue-doc reading, implementation/proof inspection, targeted checks, false-green risks, and structured `acceptance_item_result` output.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/04-proof-threat-model.md:34:   - The pipeline must require the main agent to inspect red/blocked evidence, fix gaps, run validation, and send corrected items back.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/04-proof-threat-model.md:53:3. A prompt-contract check proves the acceptance-agent direct prompt includes all-items-first queue creation, template orchestration shape, head-to-tail execution, item result capture, and final report format.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/04-proof-threat-model.md:54:4. A sparse-monitoring check proves the pipeline encodes `sleep 90`, `process status`, and small bounded `process output` reads while avoiding timer pairs.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/04-proof-threat-model.md:62:  "template_files_exist","issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && test -f .ai/.pi-goals/verify-acceptance-pipeline.md && test -f .ai/.pi-goals/verify-acceptance-item.md","exit 0",run,"both reusable goal templates exist under the bounded .ai/.pi-goals root"
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/04-proof-threat-model.md:63:  "forbidden_patterns_absent","issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && ! rg -n '/boomerang|timer-pair|tlo timer|timer_pair|check-ms|send-seam' .ai/.pi-goals/verify-acceptance-pipeline.md","exit 0 and no forbidden boomerang/timer-assisted patterns are present",run,"the template may say not to use timers in prose only if this grep remains clean for concrete timer commands"
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/04-proof-threat-model.md:64:  "pipeline_contract_static","issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && rg -n 'verify-acceptance-item|sleep 90|process status|process output|process send|ACCEPTANCE_WORKER_ID|acceptance_summary|corrected acceptance' .ai/.pi-goals/verify-acceptance-pipeline.md","exit 0 with matches for item-template routing sparse polling direct send worker id final report and retry loop",run,"guards the higher-order workflow contract"
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/04-proof-threat-model.md:65:  "item_contract_static","issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && rg -n 'acceptance_item_result|false-green|green|red|blocked|targeted|proof|implementation' .ai/.pi-goals/verify-acceptance-item.md && rg -nF '{{issue}}' .ai/.pi-goals/verify-acceptance-item.md && rg -nF '{{item-id}}' .ai/.pi-goals/verify-acceptance-item.md && rg -nF '{{args}}' .ai/.pi-goals/verify-acceptance-item.md","exit 0 with matches for placeholders adversarial verification and structured item result",run,"guards inner-loop validation rigor"
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/04-proof-threat-model.md:66:  "template_discovery","issue doc","Use the pi-goal list_goal_templates tool from /Users/bryan/dev/personal/experiments/pi-goals","output lists verify-acceptance-pipeline and verify-acceptance-item with aliases and required placeholders args for pipeline and args issue item-id for item",live,"tool-level proof because template discovery is exposed through the extension rather than a package script"
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/04-proof-threat-model.md:68:  "acceptance_pipeline_live_probe","issue doc","Follow .ai/docs/pi-goals-live-probe-testing.md with a disposable synthetic issue doc containing two trivial acceptance criteria, run verify-acceptance-pipeline against it in a real Pi/Solo session, then clean up","transcript shows an acceptance agent is spawned, item goals are queued through verify-acceptance-item, final report is all green, and no disposable goal/queue residue remains; if skipped, closeout records explicit rationale",live,"validates real queue steering and direct process input behavior"
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/02-grounded-research.md:1:# ISSUE-040 grounded research — Verify acceptance pipeline goal templates
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/02-grounded-research.md:16:- `.ai/.pi-goals/deslop-pipeline.md`
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/02-grounded-research.md:50:  - `.ai/.pi-goals/verify-acceptance-pipeline.md`
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/02-grounded-research.md:51:  - `.ai/.pi-goals/verify-acceptance-item.md`
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/02-grounded-research.md:60:- `deslop-pipeline.md` is the closest higher-order workflow reference:
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/02-grounded-research.md:65:- The requested new workflow should reuse the resolved-context and explicit command style, but not these `deslop-pipeline` features:
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/02-grounded-research.md:69:- `enqueue-goal-stack.md` encodes the desired queue principle: enqueue all listed goals first, then execute head-to-tail without pausing. The acceptance-agent prompt should use this same principle.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/02-grounded-research.md:76:- Therefore the acceptance agent should enqueue one objective per acceptance criterion using this concrete orchestration shape:
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/02-grounded-research.md:79:  create a goal from template `verify-acceptance-item` with args `--issue "<issue-doc-path>" --item-id "AC-N" -- <acceptance criterion text>`
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/02-grounded-research.md:82:- The acceptance agent must enqueue all item objectives first, then process the queue head-to-tail, not interleave extraction and validation in an ad hoc loop.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/02-grounded-research.md:90:- `solo-mcp --instance solo-pi_goals tlo preflight --project 2` reports this current session as timer-capable, but the user explicitly wants this template to avoid timers. That user requirement overrides copying `deslop-pipeline`'s timer-pair pattern.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/02-grounded-research.md:94:- True Solo agent behavior is needed because the acceptance worker must run its own Pi session with its own goal queue. Terminal fallback would reduce confidence and should be treated as a blocker or explicit user-approved recovery.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/02-grounded-research.md:105:  - `.ai/.pi-goals/verify-acceptance-pipeline.md`
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/02-grounded-research.md:106:  - `.ai/.pi-goals/verify-acceptance-item.md`
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/02-grounded-research.md:108:- The pipeline template should use `allow_commands: true` for read-only context resolution:
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/02-grounded-research.md:114:- Because acceptance verification is adversarial, final report shape should distinguish:
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/02-grounded-research.md:123:- Need to lock the initial direct prompt content the main agent sends to the acceptance agent.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/02-grounded-research.md:125:- Need to lock iteration behavior: same acceptance worker re-runs failed/corrected items after main-agent remediation until all green or a real blocker remains.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/02-grounded-research.md:126:- Need to include static and live validation proofs that fail if `/boomerang` or timer-pair patterns sneak back into the new pipeline.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/01-protocol-read.md:1:# ISSUE-040 protocol read
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/01-protocol-read.md:5:The active goal is a `create-issue-doc` reusable goal. The governing protocol is `$feature-workflow-pipelines` issue-first canonical-doc workflow.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/01-protocol-read.md:13:- `/Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/SKILL.md` — issue-first canonical-doc pipeline and execution-ready standard.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/01-protocol-read.md:14:- `/Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/references/canonical-issue-docs-and-toon-synthesis.md` — canonical issue structure, TOON synthesis, and execution-readiness gate.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/01-protocol-read.md:15:- `/Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/references/research-pass.md` — grounded research pass requirements.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/01-protocol-read.md:16:- `/Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/references/design-landscape-exploration-and-choice-locking.md` — design fork locking requirements.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/01-protocol-read.md:17:- `/Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/references/toon-for-issues-and-execution-planning.md` — practical TOON planning shape and anti-fake-green guidance.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/01-protocol-read.md:25:- `.ai/.pi-goals/deslop-pipeline.md` — reference higher-order Solo-supervised pipeline template requested by the user, with explicit decision to reject its timer-pair and `/boomerang` parts for this issue.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/01-protocol-read.md:39:- `.ai/issues/open/ISSUE-021-goal-completion-proofs.md` — acceptance criteria, proof threat model, required proof rows, and anti-false-green issue shape.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/01-protocol-read.md:40:- `.ai/issues/fixed/ISSUE-036-minimum-goal-spend-floors.md` — rich execution-ready issue shape, acceptance criteria, TOON synthesis, and required proofs.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/01-protocol-read.md:41:- `.ai/issues/fixed/ISSUE-035-multi-item-goal-queue-block.md` — queue semantics and acceptance-criteria/proof structure.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/01-protocol-read.md:46:- Create visible artifacts under `.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/` before final writeback.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/01-protocol-read.md:66:  - because the pipeline depends on real queue steering and Solo process input delivery, a bounded live probe is expected unless explicitly skipped with a visible rationale.
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/01-protocol-read.md:67:- User-specific deltas from `deslop-pipeline`:
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/01-protocol-read.md:68:  - do not use Solo timer pairs in the new pipeline;
+.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/01-protocol-read.md:70:  - use a direct acceptance-agent prompt;
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:1:# ISSUE-040 — Verify acceptance pipeline goal templates
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:16:- `.ai/.pi-goals/deslop-pipeline.md`
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:26:Create two reusable `.ai/.pi-goals/` templates for independent acceptance verification of implemented issue docs:
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:28:1. `verify-acceptance-pipeline` — a higher-order main-agent workflow that spawns and supervises an independent Solo/Pi acceptance agent, monitors it with 90-second sparse polling, receives structured acceptance results, remediates gaps, and loops until all acceptance criteria are green.
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:29:2. `verify-acceptance-item` — an inner-loop workflow the acceptance agent uses to verify one acceptance criterion rigorously against the issue doc, implementation evidence, proofs, and false-green risks.
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:35:Implemented issues can still false-green when the main implementer verifies its own work. The existing `deslop-pipeline` template shows a useful higher-order pattern for spawning and supervising a separate agent, but its mechanics are not appropriate here:
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:39:- the acceptance agent needs a direct prompt that teaches it to read an issue doc, enqueue one acceptance-item goal per criterion, run the queue head-to-tail, and report structured results.
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:45:- Request intake: `.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/00-request.md`
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:46:- Protocol read: `.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/01-protocol-read.md`
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:47:- Grounded research: `.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/02-grounded-research.md`
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:48:- Design lock: `.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md`
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:49:- Proof threat model: `.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/04-proof-threat-model.md`
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:50:- Issue writeback: `.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/05-issue-writeback.md`
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:51:- Final audit: `.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/06-final-audit.md`
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:52:- Implementation closeout: `.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/07-implementation-closeout.md`
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:53:- Qualitative review: `.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/08-qualitative-review.md`
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:54:- Raw command log: `.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/raw/commands.log`
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:55:- Implementation proof log: `.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/raw/implementation-proofs.log`
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:59:### Main pipeline behavior
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:64:/goal verify-acceptance-pipeline -- ISSUE-040
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:70:/goal acceptance-pipeline -- .ai/issues/fixed/ISSUE-036-minimum-goal-spend-floors.md
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:77:3. Spawn one independent Solo/Pi acceptance agent with true agent semantics.
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:78:4. Send the acceptance agent a direct prompt, not `/boomerang`.
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:83:6. Review the acceptance report and independently inspect evidence for any red/blocked item.
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:85:8. Send corrected acceptance item ids and remediation evidence back to the same acceptance agent.
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:86:9. Repeat until the acceptance agent returns all green or a real blocker remains.
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:90:The acceptance agent must:
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:95:4. Enqueue every acceptance criterion first, before executing any of them.
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:99:   create a goal from template `verify-acceptance-item` with args `--issue "<issue-doc-path>" --item-id "AC-N" -- <acceptance criterion text>`
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:104:8. Dequeue an orchestration item only after the corresponding concrete `verify-acceptance-item` goal has completed and produced a result.
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:109:For each acceptance criterion, `verify-acceptance-item` must instruct the acceptance agent to:
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:120:Full design lock: `.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/03-design-lock.md`.
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:126:- `.ai/.pi-goals/verify-acceptance-pipeline.md`
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:127:- `.ai/.pi-goals/verify-acceptance-item.md`
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:131:### `verify-acceptance-pipeline` frontmatter
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:135:description: Spawn and supervise an independent acceptance agent until an implemented issue doc's acceptance criteria all verify green
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:136:aliases: acceptance-pipeline,acceptance-verify,verify-acceptance
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:137:usage: /goal verify-acceptance-pipeline -- ISSUE-040
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:138:examples: /goal verify-acceptance-pipeline -- ISSUE-038; /goal acceptance-pipeline -- .ai/issues/fixed/ISSUE-036-minimum-goal-spend-floors.md
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:149:### `verify-acceptance-item` frontmatter
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:153:description: Verify one issue acceptance criterion against implementation evidence with adversarial false-green checks
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:154:aliases: acceptance-item,verify-acceptance-criterion,acceptance-check
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:155:usage: /goal verify-acceptance-item --issue .ai/issues/open/ISSUE-040-example.md --item-id AC-1 -- acceptance criterion text
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:156:examples: /goal acceptance-item --issue .ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md --item-id AC-1 -- /goal autocomplete does not recursively scan arbitrary descendants
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:169:### Direct acceptance-agent prompt design
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:171:`verify-acceptance-pipeline` should include a ready prompt body for the main agent to write to `/tmp` and send with `solo-mcp process send --input`. The prompt must be direct and self-contained. Use this as the minimum content contract:
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:174:You are an independent acceptance verification agent for pi-goals.
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:185:4. Enqueue all acceptance items first, before executing any item. For each item, enqueue this orchestration objective exactly:
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:186:   create a goal from template `verify-acceptance-item` with args `--issue "<resolved_issue_path>" --item-id "AC-N" -- <criterion text>`
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:188:6. For every queued orchestration item, call `list_goal_templates`, match `verify-acceptance-item`, create the concrete goal with `create_goal_from_template`, complete that concrete goal, then dequeue the orchestration item only after the item result is captured.
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:189:7. Treat `verify-acceptance-item` results as evidence, but still compile a final acceptance report yourself.
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:190:8. Final report must include a TOON block with `acceptance_summary` and `acceptance_results` rows.
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:200:acceptance_summary{issue,status,total,green,red,blocked,iteration}:
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:202:acceptance_results[0]{id,status,criterion,confidence,evidence,gap,next_action}:
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:215:The main agent remediated these acceptance items: AC-2, AC-4.
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:220:Re-read the issue doc and relevant changed files. Enqueue the listed corrected acceptance items first using `verify-acceptance-item`, execute the queue head-to-tail, and produce a fresh `acceptance_summary` / `acceptance_results` report for this iteration. Do not modify repository files.
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:225:The pipeline template should render ready-to-run commands with concrete Solo instance/project values. The workflow must include this cadence and must not use timers:
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:237:- [ ] Re-read `.ai/docs/prompt-template-authoring.md`, `.ai/.pi-goals/deslop-pipeline.md`, `AGENTS.md`, and relevant Solo docs before editing templates.
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:238:- [ ] Create `.ai/.pi-goals/verify-acceptance-pipeline.md` with the locked metadata, read-only inline context resolution, issue selector resolution, ready Solo commands, direct acceptance-agent prompt, sparse polling loop, remediation loop, and completion audit.
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:239:- [ ] Create `.ai/.pi-goals/verify-acceptance-item.md` with the locked metadata, read-only snapshots, rigorous item verification workflow, false-green checklist, status decision rules, and structured result format.
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:240:- [ ] Ensure the pipeline template does not include `/boomerang`, `timer-pair`, `tlo timer`, `send-seam`, or `check-ms` command patterns.
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:252:- `.ai/.pi-goals/verify-acceptance-pipeline.md`
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:253:- `.ai/.pi-goals/verify-acceptance-item.md`
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:255:Proofs and review notes are recorded in `.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/07-implementation-closeout.md`, `.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/08-qualitative-review.md`, and `raw/implementation-proofs.log`.
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:259:- `.ai/.pi-goals/verify-acceptance-pipeline.md` exists.
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:260:- `.ai/.pi-goals/verify-acceptance-item.md` exists.
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:262:- `verify-acceptance-pipeline` accepts a simple issue selector through `{{args}}` and resolves it to a concrete issue doc path or stops with a clear blocker.
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:263:- `verify-acceptance-pipeline` resolves Solo instance/project with read-only inline commands and emits concrete ready-to-run commands.
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:264:- The pipeline spawns an independent Solo/Pi acceptance agent with true agent semantics.
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:265:- The pipeline sends a direct prompt to the acceptance agent and never uses `/boomerang`.
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:266:- The pipeline uses 90-second sparse polling with `process status` and small bounded `process output` reads; it does not use Solo timer pairs or timer-assisted TLO commands.
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:267:- The acceptance-agent prompt instructs all acceptance criteria to be enqueued before execution begins.
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:268:- Each queued acceptance item uses an orchestration objective that routes through `verify-acceptance-item` with `--issue`, `--item-id`, and criterion text.
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:269:- The acceptance agent executes its queue head-to-tail and does not dequeue orchestration items before concrete item verification is satisfied.
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:270:- `verify-acceptance-item` performs read-only, adversarial, evidence-based validation for one criterion.
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:271:- `verify-acceptance-item` distinguishes `green`, `red`, and `blocked` with concrete evidence and next actions.
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:272:- Acceptance-agent final output includes `acceptance_summary` and `acceptance_results` rows.
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:273:- Main-agent pipeline instructions require remediation of red rows, rerun of corrected items through the same acceptance agent, and looping until all green or a true blocker remains.
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:280:Full proof threat model: `.ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/04-proof-threat-model.md`.
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:282:Primary invariant: an implemented issue can be independently acceptance-verified criterion-by-criterion by a spawned Solo/Pi acceptance agent, where each criterion is routed through the `verify-acceptance-item` reusable goal template, all item results are reported structurally, and the main agent remediates/rechecks gaps until every acceptance row is green.
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:286:- Templates exist but the pipeline self-verifies instead of spawning an independent agent.
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:288:- Queue items bypass `verify-acceptance-item`.
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:289:- `/boomerang` or Solo timer pairs are copied from `deslop-pipeline`.
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:301:  "ISSUE-040","Verify acceptance pipeline goal templates","open — execution-ready","add two reusable templates for independent acceptance verification of implemented issue docs"
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:303:  "lr1","create verify-acceptance-pipeline and verify-acceptance-item under .ai/.pi-goals"
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:304:  "lr2","pipeline accepts issue selector through args and resolves a concrete issue doc path"
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:305:  "lr3","pipeline spawns an independent Solo/Pi acceptance agent and sends a direct prompt"
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:306:  "lr4","pipeline uses sleep 90 sparse status-first process monitoring and no boomerang or timer-pair commands"
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:307:  "lr5","acceptance agent enqueues every acceptance criterion first as verify-acceptance-item orchestration goals"
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:308:  "lr6","acceptance agent executes the queue head-to-tail and reports structured per-item results"
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:312:  "s1",".ai/.pi-goals/verify-acceptance-pipeline.md","higher-order Solo acceptance-worker supervisor template"
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:313:  "s2",".ai/.pi-goals/verify-acceptance-item.md","inner acceptance-criterion verification template"
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:314:  "s3",".ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates/","implementation closeout and live/static proof artifacts if added"
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:317:  "inv1","independent acceptance agent verifies instead of main implementer self-verifying"
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:318:  "inv2","all acceptance criteria are enqueued before item execution starts"
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:319:  "inv3","each item routes through verify-acceptance-item via create_goal_from_template semantics"
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:320:  "inv4","acceptance worker remains read-only; main agent owns remediation"
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:327:  "v3","pipeline contract includes direct send sparse polling item routing and retry loop","static rg check"
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:338:  "template_files_exist","issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && test -f .ai/.pi-goals/verify-acceptance-pipeline.md && test -f .ai/.pi-goals/verify-acceptance-item.md","exit 0",run,"both reusable goal templates exist under the bounded .ai/.pi-goals root"
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:339:  "forbidden_patterns_absent","issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && ! rg -n '/boomerang|timer-pair|tlo timer|timer_pair|check-ms|send-seam' .ai/.pi-goals/verify-acceptance-pipeline.md","exit 0 and no forbidden boomerang/timer-assisted patterns are present",run,"the template may say not to use timers in prose only if this grep remains clean for concrete timer commands"
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:340:  "pipeline_contract_static","issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && rg -n 'verify-acceptance-item|sleep 90|process status|process output|process send|ACCEPTANCE_WORKER_ID|acceptance_summary|corrected acceptance' .ai/.pi-goals/verify-acceptance-pipeline.md","exit 0 with matches for item-template routing sparse polling direct send worker id final report and retry loop",run,"guards the higher-order workflow contract"
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:341:  "item_contract_static","issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && rg -n 'acceptance_item_result|false-green|green|red|blocked|targeted|proof|implementation' .ai/.pi-goals/verify-acceptance-item.md && rg -nF '{{issue}}' .ai/.pi-goals/verify-acceptance-item.md && rg -nF '{{item-id}}' .ai/.pi-goals/verify-acceptance-item.md && rg -nF '{{args}}' .ai/.pi-goals/verify-acceptance-item.md","exit 0 with matches for placeholders adversarial verification and structured item result",run,"guards inner-loop validation rigor"
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:342:  "template_discovery","issue doc","Use the pi-goal list_goal_templates tool from /Users/bryan/dev/personal/experiments/pi-goals","output lists verify-acceptance-pipeline and verify-acceptance-item with aliases and required placeholders args for pipeline and args issue item-id for item",live,"tool-level proof because template discovery is exposed through the extension rather than a package script"
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:344:  "acceptance_pipeline_live_probe","issue doc","Follow .ai/docs/pi-goals-live-probe-testing.md with a disposable synthetic issue doc containing two trivial acceptance criteria, run verify-acceptance-pipeline against it in a real Pi/Solo session, then clean up","transcript shows an acceptance agent is spawned, item goals are queued through verify-acceptance-item, final report is all green, and no disposable goal/queue residue remains; if skipped, closeout records explicit rationale",live,"validates real queue steering and direct process input behavior"
+.ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md:353:- Do not make the acceptance agent remediate code.
+
+$ rg -n "20K|20000|token_budget|time_budget_seconds" .ai/.pi-goals/verify-acceptance-pipeline.md .ai/.pi-goals/verify-acceptance-item.md .ai/docs/issue-workflow/ISSUE-040-verify-acceptance-pipeline-goal-templates .ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md
+
+$ rg -n "sendQueueSteering|QUEUE_MESSAGE_TYPE|budgetLimited|start_queued_goal|replaceCompleted|getQueueSize" .pi/extensions/goal -g "*.ts"
+.pi/extensions/goal/command.ts:41:	sendQueueSteering: GoalQueueSteeringSender,
+.pi/extensions/goal/command.ts:46:		handler: async (args, ctx) => handleGoalCommand(pi, args, ctx, scheduleContinuation, cancelContinuation, interruptActiveTurn, scheduleMonitor, cancelMonitor, sendQueueSteering),
+.pi/extensions/goal/command.ts:98:	sendQueueSteering: GoalQueueSteeringSender,
+.pi/extensions/goal/command.ts:108:	const handled = handleGoalControlCommand(pi, trimmed, ctx, scheduleContinuation, cancelContinuation, interruptActiveTurn, scheduleMonitor, cancelMonitor, sendQueueSteering);
+.pi/extensions/goal/command.ts:123:	sendQueueSteering: GoalQueueSteeringSender,
+.pi/extensions/goal/command.ts:131:	else if (trimmed === "resume") resumeGoal(pi, ctx, scheduleContinuation, scheduleMonitor, sendQueueSteering);
+.pi/extensions/goal/command.ts:132:	else if (trimmed === "clear") clearGoal(pi, ctx, cancelContinuation, cancelMonitor, sendQueueSteering);
+.pi/extensions/goal/command.ts:236:function resumeGoal(pi: ExtensionAPI, ctx: ExtensionCommandContext, scheduleContinuation: GoalCommandScheduler, scheduleMonitor: GoalMonitorScheduler, sendQueueSteering: GoalQueueSteeringSender): void {
+.pi/extensions/goal/command.ts:241:			sendQueueSteering("goal-resume", { triggerTurn: true });
+.pi/extensions/goal/command.ts:250:			sendQueueSteering("goal-resume", { triggerTurn: true });
+.pi/extensions/goal/command.ts:273:function clearGoal(pi: ExtensionAPI, ctx: ExtensionCommandContext, cancelContinuation: GoalContinuationCanceller, cancelMonitor: GoalMonitorCanceller, sendQueueSteering: GoalQueueSteeringSender): void {
+.pi/extensions/goal/command.ts:281:	if (queue.length > 0) sendQueueSteering("goal-clear");
+.pi/extensions/goal/widget.ts:174:		case "budgetLimited":
+.pi/extensions/goal/index.ts:8:import { sendQueueSteering } from "./queue-steering";
+.pi/extensions/goal/index.ts:18:		(reason, opts) => sendQueueSteering(pi, reason, opts),
+.pi/extensions/goal/index.ts:20:	registerGoalTools(pi, (ctx, reason) => scheduleMaybeContinueGoal(pi, ctx, reason), cancelGoalContinuation, (ctx) => scheduleGoalMonitor(pi, ctx), cancelGoalMonitor, (ctx, goal) => scheduleBudgetLimitWrapUp(pi, ctx, goal), () => getQueue().length, (reason) => sendQueueSteering(pi, reason));
+.pi/extensions/goal/tools.ts:50:	getQueueSize?: () => number;
+.pi/extensions/goal/tools.ts:51:	sendQueueSteering?: (reason: "goal-clear") => boolean;
+.pi/extensions/goal/tools.ts:61:	getQueueSize?: () => number,
+.pi/extensions/goal/tools.ts:62:	sendQueueSteering?: (reason: "goal-clear") => boolean,
+.pi/extensions/goal/tools.ts:64:	const runtime: GoalToolRuntime = { scheduleContinuation, cancelContinuation, scheduleMonitor, cancelMonitor, scheduleBudgetLimitWrapUp, getQueueSize, sendQueueSteering };
+.pi/extensions/goal/tools.ts:96:			"Use when queue steering asks you to resolve an abstract or prompt-like queued item against reusable goal templates before deciding whether to call start_queued_goal.",
+.pi/extensions/goal/tools.ts:174:			const queueSize = runtime.getQueueSize?.() ?? 0;
+.pi/extensions/goal/tools.ts:175:			if (queueSize > 0) runtime.sendQueueSteering?.("goal-clear");
+.pi/extensions/goal/tools.ts:222:	return createGoalWithPolicy(pi, runtime, params, ctx, { replaceCompleted: false });
+.pi/extensions/goal/tools.ts:228:	const created = createGoalWithPolicy(pi, runtime, { objective: resolved.template.objective, token_budget: params.token_budget, time_budget_seconds: params.time_budget_seconds, min_tokens_before_wrap_up: params.min_tokens_before_wrap_up, min_time_seconds_before_wrap_up: params.min_time_seconds_before_wrap_up }, ctx, { replaceCompleted: true });
+.pi/extensions/goal/tools.ts:238:	policy: { replaceCompleted: boolean },
+.pi/extensions/goal/tools.ts:241:	if (current && (!policy.replaceCompleted || current.status !== "complete")) {
+.pi/extensions/goal/tools.ts:280:	// When a budget edit transitions active -> budgetLimited, schedule budget-limit wrap-up once.
+.pi/extensions/goal/tools.ts:398:	// Only schedule wrap-up when an active goal transitions to budgetLimited due to a budget edit.
+.pi/extensions/goal/tools.ts:399:	if (previousGoal.status === "active" && updatedGoal.status === "budgetLimited" && isBudgetExhausted(updatedGoal)) {
+.pi/extensions/goal/tools.ts:405:	if (goal.status !== "active" && goal.status !== "budgetLimited") return goal;
+.pi/extensions/goal/tools.ts:406:	return isBudgetExhausted(goal) ? { ...goal, status: "budgetLimited" } : { ...goal, status: "active" };
+.pi/extensions/goal/tools.ts:411:	if (goal.status === "budgetLimited" && reason) return noteBudgetLimit(getTelemetry(), reason);
+.pi/extensions/goal/queue-tools.ts:85:		name: "start_queued_goal",
+.pi/extensions/goal/queue-tools.ts:107:		description: "Remove the first goal from the queue and return it. Prefer start_queued_goal for direct queued goals; use this after a prose/JIT orchestration item is fully satisfied.",
+.pi/extensions/goal/queue-tools.ts:110:			"Use start_queued_goal for direct queued goals.",
+.pi/extensions/goal/queue-tools.ts:164:	persistDequeue(pi, "start_queued_goal", { queueId: started.queueId, audit: { rationale: "Started queued goal as a direct concrete goal after successful goal creation.", authority: "start_queued_goal atomic create-then-dequeue path" } });
+.pi/extensions/goal/constants.ts:6:export const QUEUE_MESSAGE_TYPE = "pi-goal-queue-steer";
+.pi/extensions/goal/format.ts:62:		case "budgetLimited":
+.pi/extensions/goal/format.ts:70:	if (goal.status !== "budgetLimited") return statusLabel(goal.status);
+.pi/extensions/goal/format.ts:83:		case "budgetLimited":
+.pi/extensions/goal/format.ts:132:		case "budgetLimited":
+.pi/extensions/goal/format.ts:145:		if (goal.status === "budgetLimited") return `${used} / ${budget} tokens`;
+.pi/extensions/goal/types.ts:3:export type GoalStatus = "active" | "paused" | "budgetLimited" | "complete";
+.pi/extensions/goal/types.ts:21:export type ContinuationSkipReason = "notIdle" | "pendingMessages" | "notActive" | "budgetLimited" | "safetyCap" | "noProgress" | "floorExhausted" | "budgetExhausted" | "compacting";
+.pi/extensions/goal/continuation.ts:130:	if (!goal || goal.goalId !== goalId || goal.status !== "budgetLimited") return;
+.pi/extensions/goal/lifecycle.ts:21:	QUEUE_MESSAGE_TYPE,
+.pi/extensions/goal/lifecycle.ts:29:import { queueSteeringStillValid, sendQueueSteering } from "./queue-steering";
+.pi/extensions/goal/lifecycle.ts:96:	if (goal.status !== "active" && goal.status !== "budgetLimited") {
+.pi/extensions/goal/lifecycle.ts:124:		const stopped: GoalState = { ...goal, status: "budgetLimited", updatedAt: Date.now() };
+.pi/extensions/goal/lifecycle.ts:141:	// mid-stream. State transition to budgetLimited happens at turn_end, not here,
+.pi/extensions/goal/lifecycle.ts:223:	if (updated?.status === "budgetLimited") {
+.pi/extensions/goal/lifecycle.ts:251:	if (goal?.status === "complete" && completedThisTurn) sendQueueSteering(pi, "goal-complete");
+.pi/extensions/goal/lifecycle.ts:287:	// the goal to budgetLimited, persisted telemetry, and aborted.
+.pi/extensions/goal/lifecycle.ts:294:	const stopped: GoalState = { ...goal, status: "budgetLimited", updatedAt: Date.now() };
+.pi/extensions/goal/lifecycle.ts:306:	const limited: GoalState = { ...goal, status: "budgetLimited", updatedAt: Date.now() };
+.pi/extensions/goal/lifecycle.ts:373:	return candidate.customType === QUEUE_MESSAGE_TYPE ? classifyQueueSteering(candidate) : classifyStatusGoalSteering(candidate);
+.pi/extensions/goal/lifecycle.ts:388:	return [CONTINUATION_MESSAGE_TYPE, BUDGET_LIMIT_MESSAGE_TYPE, PAUSE_MESSAGE_TYPE, GOAL_MONITOR_MESSAGE_TYPE, QUEUE_MESSAGE_TYPE].includes(String(customType));
+.pi/extensions/goal/lifecycle.ts:393:	if (customType === BUDGET_LIMIT_MESSAGE_TYPE) return status === "budgetLimited" && kind === "budgetLimit";
+.pi/extensions/goal/queue-steering.ts:2:import { QUEUE_MESSAGE_TYPE, QUEUE_PROMPT_ID } from "./constants";
+.pi/extensions/goal/queue-steering.ts:8:export function sendQueueSteering(pi: ExtensionAPI, reason: GoalQueueSteeringReason, opts: { triggerTurn?: boolean } = {}): boolean {
+.pi/extensions/goal/queue-steering.ts:13:			customType: QUEUE_MESSAGE_TYPE,
+.pi/extensions/goal/queue-steering.ts:42:		"3. If exactly one reusable template fits and required values can be derived from the queue text or current context, use create_goal_from_template. Do NOT call start_queued_goal and do NOT make the prose itself the active goal.",
+.pi/extensions/goal/queue-steering.ts:44:		"5. Direct goal fallback: call start_queued_goal only when no reusable template fits, or when the text itself is clearly the concrete one-off goal to perform.",
+.pi/extensions/goal/queue-steering.ts:53:			`If classified as a direct goal, start_queued_goal will re-resolve template '${goal.template}' with flags=${JSON.stringify(goal.templateFlags ?? {})}, args=${JSON.stringify(goal.templateArgs ?? "")}.`,
+.pi/extensions/goal/queue-steering.ts:58:			"Plain queue entry: use start_queued_goal only if you classified this item as a direct goal.",
+.pi/extensions/goal/queue-steering.ts:59:			"Example orchestration wording such as 'run/create/start the deslop-commit-range goal template' means use create_goal_from_template (or another existing goal tool), not start_queued_goal.",
+
+$ rg -n "After all item goals are queued|Treat verify-acceptance-item results|do one big|one aggregate|final report" .ai/.pi-goals/verify-acceptance-pipeline.md .ai/.pi-goals/verify-acceptance-item.md
+.ai/.pi-goals/verify-acceptance-pipeline.md:207:6. After all item goals are queued, execute the queue head-to-tail. Do not pause between items unless blocked by safety, missing authority, missing environment, or explicit user instruction.
+.ai/.pi-goals/verify-acceptance-pipeline.md:247:Use the rendered `diagnostic_or_final_output` command only when the bounded tail is insufficient for diagnosis or final report capture. When the report is final, prefer the rendered `capture_final_output` command so the report is preserved under the `/tmp` artifact directory.
+
+$ git status --short --untracked-files=all
+?? .ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/raw/commands.log
+?? .ai/issues/open/ISSUE-041-harden-acceptance-verification-pipeline-workflow.md
+
+$ git check-ignore -v .ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/00-request.md || true
+.gitignore:11:!.ai/docs/issue-workflow/**	.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/00-request.md
+
+$ git check-ignore -v .ai/issues/open/ISSUE-041-harden-acceptance-verification-pipeline-workflow.md || true
+
+$ rg -n "required_proofs\[7\]|point_resolution\[4\]|acceptance_template_contract_probe|budget_limited_queue_handoff_probe" .ai/issues/open/ISSUE-041-harden-acceptance-verification-pipeline-workflow.md
+93:point_resolution[4]{point,classification,fix_strategy}:
+199:required_proofs[7]{name,source,command,pass_condition,scope,notes}:
+200:  "acceptance_template_contract_probe","issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-acceptance-template-contract-probe.mjs","exit 0 and asserts no invented budgets, ledger-gated final report, no aggregate-substitution rule, per-item evidence sufficiency, and rerun ledger behavior",run,"must fail if templates allow the observed aggregate shortcut or ceremonial item greens"
+201:  "budget_limited_queue_handoff_probe","issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-budget-limited-queue-handoff-probe.mjs","exit 0 and asserts budgetLimited with non-empty queue sends effective queue steering and permits next queue item resolution without marking prior goal complete",run,"covers P1 budget ceiling stop with queue remaining"
+
+$ rg -n "07-followup|solo-researcher-strong|glm-5.1|NO BATCH|mid-run|required_proofs\[8\]|acceptance_worker_profile_probe" .ai/issues/open/ISSUE-041-harden-acceptance-verification-pipeline-workflow.md .ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/*.md
+.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/05-issue-writeback.md:26:  "s15","follow-up rerun context: no-batch prompt, mid-run drift, strong worker profile/model","written"
+.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/05-issue-writeback.md:39:  "pf7","Explicit no-batch wording improved a rerun but batching recurred around AC-11 of 23, so proofs must catch mid-run drift.","07-followup-rerun-observation.md"
+.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/05-issue-writeback.md:40:  "pf8","Acceptance worker should launch with solo-researcher-strong and switch to opencode-go/glm-5.1 before the prompt.","07-followup-rerun-observation.md"
+.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/07-followup-rerun-observation.md:12:IMPORTANT: NO BATCH CHECKS. Enqueue each goal, create the first goal, follow the workflow to check the point INDIVIDUALLY. Review all relevant files and mark it RED or GREEN.
+.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/07-followup-rerun-observation.md:24:IMPORTANT: NO BATCH CHECKS. Enqueue each goal, create the first goal, follow the workflow to check the point INDIVIDUALLY. Review all relevant files and mark it RED or GREEN.
+.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/07-followup-rerun-observation.md:35:- `--profile solo-researcher-strong`
+.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/07-followup-rerun-observation.md:36:- then sending `/model opencode-go/glm-5.1` to the agent process before the initial acceptance prompt.
+.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/07-followup-rerun-observation.md:43:  "fu1","Explicit NO BATCH CHECKS wording improves behavior but is not durable for long queues by itself.","Add stronger prompt language and ledger checkpoints that must be repeated per item, not only stated once."
+.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/07-followup-rerun-observation.md:44:  "fu2","Batch behavior can reappear halfway through a queue even after initial compliance.","Live proof must use enough criteria to catch mid-run batching; at least 12 criteria or a fixture that asserts no AC-N..AC-M batch proof segment appears."
+.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/07-followup-rerun-observation.md:46:  "fu4","Strong model/profile may materially improve acceptance quality.","Pipeline should launch acceptance workers with solo-researcher-strong and switch model to opencode-go/glm-5.1 before the prompt."
+.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/07-followup-rerun-observation.md:56:- live proof with enough criteria to detect mid-run efficiency batching;
+.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/07-followup-rerun-observation.md:57:- acceptance-worker launch requirements for `--profile solo-researcher-strong` and `/model opencode-go/glm-5.1` before the initial prompt;
+.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/07-followup-rerun-observation.md:58:- acceptance criteria and required proofs for model/profile setup and mid-run no-batch behavior.
+.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/06-final-audit.md:32:  "a8",".ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/07-followup-rerun-observation.md","created"
+.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/06-final-audit.md:53:- Follow-up update added `07-followup-rerun-observation.md` and updated ISSUE-041 with no-batch mid-run drift plus strong worker profile/model requirements.
+.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/03-design-lock.md:80:Chosen: the pipeline should spawn the acceptance worker with `--profile solo-researcher-strong`, send `/model opencode-go/glm-5.1` before the initial acceptance prompt, and verify the process remains alive before continuing. The prompt should also include mandatory no-batch loop language and repeated per-item checkpoints, not only a single instruction near the top.
+.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/03-design-lock.md:82:Rationale: the follow-up rerun showed two important facts: explicit `NO BATCH CHECKS` language improved initial behavior, but batching still recurred around AC-11 of 23; and the stronger `glm 5.1` high-reasoning runtime produced more useful individual review than the earlier low-reasoning worker. Therefore remediation should address both the worker runtime and mid-run instruction drift.
+.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/04-proof-threat-model.md:20:  "fg9","Worker follows no-batch instructions at first but drifts into AC-N..AC-M batch proof collection mid-run.","live probe must use a long enough fixture and assert no mid-run batch segment appears"
+.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/04-proof-threat-model.md:21:  "fg10","Live proof accidentally uses a weaker/default worker model and misses the required strong acceptance-agent runtime setup.","template/static and live proofs must verify --profile solo-researcher-strong and /model opencode-go/glm-5.1 before prompt send"
+.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/04-proof-threat-model.md:29:- a worker profile/model probe for `--profile solo-researcher-strong` and `/model opencode-go/glm-5.1` before prompt send;
+.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/04-proof-threat-model.md:38:- create a disposable synthetic issue with at least twelve acceptance criteria so mid-run batching drift can be observed;
+.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/04-proof-threat-model.md:39:- run `verify-acceptance-pipeline` through a real Pi/Solo worker launched with `--profile solo-researcher-strong` and switched to `/model opencode-go/glm-5.1` before the acceptance prompt;
+.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/04-proof-threat-model.md:51:required_proofs[8]{name,source,command,pass_condition,scope,notes}:
+.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/04-proof-threat-model.md:52:  "acceptance_template_contract_probe","issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-acceptance-template-contract-probe.mjs","exit 0 and asserts no invented budgets, mandatory no-batch wording, per-item ledger checkpoints, ledger-gated final report, no aggregate-substitution rule, per-item evidence sufficiency, and rerun ledger behavior",run,"must fail if templates allow the observed aggregate shortcut, mid-run batching, or ceremonial item greens"
+.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/04-proof-threat-model.md:53:  "acceptance_worker_profile_probe","issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && rg -n -- '--profile solo-researcher-strong|/model opencode-go/glm-5.1|send_model_selection' .ai/.pi-goals/verify-acceptance-pipeline.md","exit 0 with worker spawn/profile and model-switch instructions before acceptance prompt send",run,"guards accidental default weak worker runtime"
+.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/04-proof-threat-model.md:58:  "acceptance_pipeline_live_probe","issue doc","Follow .ai/docs/pi-goals-live-probe-testing.md using a disposable synthetic issue with at least twelve acceptance criteria, then run verify-acceptance-pipeline in a real Pi/Solo worker launched with --profile solo-researcher-strong and switched to /model opencode-go/glm-5.1 before the prompt","transcript shows all criteria enqueued first, exactly one verify-acceptance-item concrete goal/result per criterion before final summary, no invented budgets, no manual continuation prompt, no AC-N..AC-M batch proof segment halfway through, and cleanup leaves no disposable queue/goal residue",live,"directly covers P1-P4 plus follow-up mid-run batching and worker-model observations"
+.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/04-proof-threat-model.md:65:- The live probe should be bounded but large enough to catch mid-run drift; skipping it would repeat the exact remaining risk documented in ISSUE-040 closeout.
+.ai/issues/open/ISSUE-041-harden-acceptance-verification-pipeline-workflow.md:36:A later user rerun added explicit `NO BATCH CHECKS` / `REPEAT FOR ALL QUEUED GOALS END TO END` language. That improved the beginning of the run, and the individual checks were materially better. However, around AC-11 of 23 the worker again attempted to batch AC-11 through AC-23 for efficiency until the user interrupted with a mandatory stop/restart instruction. That follow-up shows the fix must guard against mid-run drift, not only initial prompt misunderstanding.
+.ai/issues/open/ISSUE-041-harden-acceptance-verification-pipeline-workflow.md:38:The later rerun also used `glm 5.1` with high reasoning, while the earlier run used `gpt 5.5` with low reasoning. The acceptance-worker runtime should therefore be launched with `--profile solo-researcher-strong` and switched to `/model opencode-go/glm-5.1` before the initial acceptance prompt.
+.ai/issues/open/ISSUE-041-harden-acceptance-verification-pipeline-workflow.md:49:- Follow-up rerun observation: `.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/07-followup-rerun-observation.md`
+.ai/issues/open/ISSUE-041-harden-acceptance-verification-pipeline-workflow.md:59:- The prompt must explicitly say `NO BATCH CHECKS` and define processing AC-N..AC-M together as a workflow violation. The worker must create, verify, report, complete, and dequeue one item at a time before moving to the next queued item.
+.ai/issues/open/ISSUE-041-harden-acceptance-verification-pipeline-workflow.md:62:- The acceptance worker should be spawned with `--profile solo-researcher-strong`, then sent `/model opencode-go/glm-5.1` before the initial acceptance prompt.
+.ai/issues/open/ISSUE-041-harden-acceptance-verification-pipeline-workflow.md:91:5. Launch the acceptance worker with `--profile solo-researcher-strong`, then send `/model opencode-go/glm-5.1` and verify/allow enough startup/model-switch readiness before sending the acceptance prompt.
+.ai/issues/open/ISSUE-041-harden-acceptance-verification-pipeline-workflow.md:99:- Relying on a single up-front no-batch instruction without checkpointing, because the follow-up rerun showed batching can recur mid-run around AC-11 after initial compliance.
+.ai/issues/open/ISSUE-041-harden-acceptance-verification-pipeline-workflow.md:124:- [ ] Update `.ai/.pi-goals/verify-acceptance-pipeline.md` spawn command to launch the worker with `--profile solo-researcher-strong`.
+.ai/issues/open/ISSUE-041-harden-acceptance-verification-pipeline-workflow.md:125:- [ ] Add a ready command and workflow step that sends `/model opencode-go/glm-5.1` to the worker before the initial acceptance prompt.
+.ai/issues/open/ISSUE-041-harden-acceptance-verification-pipeline-workflow.md:135:- [ ] Add a mid-run anti-drift instruction: if the worker catches itself batching AC-N..AC-M, it must stop, discard that batch shortcut as evidence, return to the first unprocessed item, and resume one-by-one processing.
+.ai/issues/open/ISSUE-041-harden-acceptance-verification-pipeline-workflow.md:145:- [ ] Run a bounded live acceptance-pipeline probe using `.ai/docs/pi-goals-live-probe-testing.md` and clean up all disposable artifacts/state. The fixture must be large enough to catch mid-run batching drift; use at least 12 acceptance criteria or otherwise prove the transcript has no AC-N..AC-M batch processing segment.
+.ai/issues/open/ISSUE-041-harden-acceptance-verification-pipeline-workflow.md:159:- Acceptance worker is launched with `--profile solo-researcher-strong`, switched to `/model opencode-go/glm-5.1`, and only then receives the acceptance prompt.
+.ai/issues/open/ISSUE-041-harden-acceptance-verification-pipeline-workflow.md:160:- Live probe transcript shows item goals are created/executed/dequeued one by one, no arbitrary budget is passed, no manual continuation prompt is needed, no mid-run AC-N..AC-M batch shortcut occurs, and final summary is produced only after item rows exist.
+.ai/issues/open/ISSUE-041-harden-acceptance-verification-pipeline-workflow.md:193:  "fm7","follow-up rerun showed explicit NO BATCH CHECKS wording improved behavior but batching recurred around AC-11 of 23"
+.ai/issues/open/ISSUE-041-harden-acceptance-verification-pipeline-workflow.md:204:  "lr8","acceptance worker must run under solo-researcher-strong and opencode-go/glm-5.1 before receiving the prompt"
+.ai/issues/open/ISSUE-041-harden-acceptance-verification-pipeline-workflow.md:219:  "v4","full acceptance pipeline behaves correctly in live Pi/Solo worker without mid-run batching","bounded live probe transcript with at least 12 criteria"
+.ai/issues/open/ISSUE-041-harden-acceptance-verification-pipeline-workflow.md:220:  "v5","worker launch uses solo-researcher-strong and opencode-go/glm-5.1 before prompt","template contract probe and live transcript"
+.ai/issues/open/ISSUE-041-harden-acceptance-verification-pipeline-workflow.md:228:required_proofs[8]{name,source,command,pass_condition,scope,notes}:
+.ai/issues/open/ISSUE-041-harden-acceptance-verification-pipeline-workflow.md:229:  "acceptance_template_contract_probe","issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-acceptance-template-contract-probe.mjs","exit 0 and asserts no invented budgets, mandatory no-batch wording, per-item ledger checkpoints, ledger-gated final report, no aggregate-substitution rule, per-item evidence sufficiency, and rerun ledger behavior",run,"must fail if templates allow the observed aggregate shortcut, mid-run batching, or ceremonial item greens"
+.ai/issues/open/ISSUE-041-harden-acceptance-verification-pipeline-workflow.md:230:  "acceptance_worker_profile_probe","issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && rg -n -- '--profile solo-researcher-strong|/model opencode-go/glm-5.1|send_model_selection' .ai/.pi-goals/verify-acceptance-pipeline.md","exit 0 with worker spawn/profile and model-switch instructions before acceptance prompt send",run,"guards accidental default weak worker runtime"
+.ai/issues/open/ISSUE-041-harden-acceptance-verification-pipeline-workflow.md:235:  "acceptance_pipeline_live_probe","issue doc","Follow .ai/docs/pi-goals-live-probe-testing.md using a disposable synthetic issue with at least twelve acceptance criteria, then run verify-acceptance-pipeline in a real Pi/Solo worker launched with --profile solo-researcher-strong and switched to /model opencode-go/glm-5.1 before the prompt","transcript shows all criteria enqueued first, exactly one verify-acceptance-item concrete goal/result per criterion before final summary, no invented budgets, no manual continuation prompt, no AC-N..AC-M batch proof segment halfway through, and cleanup leaves no disposable queue/goal residue",live,"directly covers P1-P4 plus follow-up mid-run batching and worker-model observations"
+
+$ git status --short --untracked-files=all
+?? .ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/07-followup-rerun-observation.md
+?? .ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/raw/commands.log
+?? .ai/issues/open/ISSUE-041-harden-acceptance-verification-pipeline-workflow.md
+
+$ git check-ignore -v .ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/07-followup-rerun-observation.md || true
+.gitignore:11:!.ai/docs/issue-workflow/**	.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/07-followup-rerun-observation.md
