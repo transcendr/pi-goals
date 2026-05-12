@@ -6,12 +6,13 @@ Persistent goal tracking for [Pi](https://www.npmjs.com/package/@earendil-works/
 
 ## What's new
 
-Bounded reusable prompt discovery keeps `/goal` autocomplete responsive in large workspaces, and active goals now resume safely after Pi compaction. See the [changelog](CHANGELOG.md) for details.
+Bounded reusable prompt discovery keeps `/goal` autocomplete responsive in large workspaces, and active goals or queued handoffs now recover safely after Pi compaction and context-overflow recovery. See the [changelog](CHANGELOG.md) for details.
 
 ## Features
 
 - `/goal` command for creating, pausing, resuming, replacing, and clearing a persistent objective.
-- Goal state that survives reloads, compaction, and `/tree` navigation.
+- Goal state that survives reloads, compaction, context-overflow recovery, and `/tree` navigation.
+- Compaction-aware continuation and queue handoff recovery, so completed goals with queued work do not strand the queue after summarization.
 - Time and token budgets with goal-aware continuation and wrap-up behavior.
 - Optional completion floors that prevent premature wrap-up until minimum goal-directed work has happened.
 - Reusable token-aware prompt templates from bounded `.pi-goals/` and `.ai/.pi-goals/` directories.
@@ -199,7 +200,7 @@ Reusable templates are available to both slash commands and natural-language age
 
 This repository is both the source for the `pi-goals` Pi extension and a working reference for how the maintainer uses `pi-goals` in real project work. The source repo intentionally includes:
 
-- reusable goal templates in [`.ai/.pi-goals/`](.ai/.pi-goals/), including release review, issue workflow, queue-stack, and deslop examples;
+- reusable goal templates in [`.ai/.pi-goals/`](.ai/.pi-goals/), including release review, issue workflow, queue-stack, acceptance-verification, and deslop examples;
 - issue docs in [`.ai/issues/`](.ai/issues/) that show how larger goal-driven changes are planned;
 - issue workflow artifacts in [`.ai/docs/issue-workflow/`](.ai/docs/issue-workflow/) that show the evidence, design choices, and handoffs produced while working those goals;
 - a [prompt template authoring guide](.ai/docs/prompt-template-authoring.md) for creating strong project-local goal templates.
