@@ -78,6 +78,47 @@ Guidelines:
 - Missing placeholders block template resolution, which is preferable to silently guessing.
 - Prefer placeholders for user intent, not deterministic context. For example, commit range and rethrow count are user intent; Solo project id is derivable context.
 
+## Dynamic issue selector arguments
+
+When issue docs are the primary input to a reusable goal workflow, prefer dynamic issue resolution from the main trailing `{{args}}` value instead of requiring a single `--issue <path>` flag.
+
+Good pattern:
+
+```sh
+/goal issue-stack -- issue 026 through 028 and 035
+/goal implementation-ready -- ISSUE-001,ISSUE-004
+/goal implementation-ready -- 1-4
+```
+
+Why:
+
+- users naturally refer to issues by number, lists, and ranges;
+- multi-issue workflows need cardinality checks and ordered processing;
+- focused resolver scripts can resolve numbers to exact `.ai/issues/**/ISSUE-NNN-*.md` paths before the agent starts work;
+- missing or ambiguous issue selectors can render an explicit blocker with nearby available issue numbers instead of letting an agent guess.
+
+Recommended implementation:
+
+- Keep the issue selector in trailing `{{args}}`.
+- Use `allow_commands: true` with a read-only generic resolver script when selector parsing is non-trivial; prefer a reusable helper such as `.ai/.pi-goals/scripts/resolve_issue_docs.py` over workflow-specific resolver copies.
+- Pass `{{args}}` through a quoted heredoc such as `ISSUE_SELECTOR=$(cat <<'PI_GOAL_ISSUE_SELECTOR' ... )`.
+- Resolve issue docs by scanning the repo's issue buckets, not by hard-coding paths.
+- Support common forms: `ISSUE-026`, `issue 026`, `26`, `26-28`, `026..028`, `issue 026 through 028`, and comma-separated lists.
+- Preserve selector order and de-duplicate repeated issue numbers.
+- Render only compact resolved context, such as a `resolution[]` / `issues[]` block with exact issue paths and parameterized artifact/workflow directories.
+- Keep the actual workflow instructions as normal, directly editable Markdown in the template body.
+- If any requested issue is missing, render an unresolved blocker and ask one focused clarification; do not create artifacts or invent issue docs.
+- For multi-issue workflows, require cardinality checks: resolved issue count, processed issue count, writeback count, and report row count should match.
+
+Reference and boundary:
+
+- `.ai/.pi-goals/execute-issue-stack.md` passes `{{args}}` to `.ai/.pi-goals/scripts/render_issue_stack_prompt.py` and renders a whole prompt.
+- Treat that as an exceptional legacy/special-case pattern, not the default.
+- Prefer focused generic resolver scripts with one responsibility, interleaved into normal Markdown templates through inline command blocks.
+- Let templates pass workflow-specific parameters to the generic resolver through environment variables, such as artifact root, artifact field name, stack prefix, bucket list, or available-issue limit.
+
+Do not use dynamic issue resolution for unrelated user intent flags. Named flags remain better when the value is a mode, output bucket, commit range, or other non-issue parameter.
+
 ## Using inline command execution to reduce cognitive load
 
 Goal templates should avoid pushing deterministic discovery work onto the executing agent with placeholders like `<instance>`, `<project_id>`, or `<repo_path>` when those values can be derived safely.
