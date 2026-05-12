@@ -32,10 +32,13 @@ assert('pipeline defines ledger schema', pipeline.includes('acceptance_item_ledg
 assert('pipeline ledger gates final report', pipeline.includes('final report is invalid until every extracted criterion has a complete ledger row'));
 assert('pipeline rejects aggregate substitution', pipeline.includes('Aggregate all-items inspection may be used only for orientation') && pipeline.includes('must never be the source of green rows'));
 assert('pipeline rerun repeats no-batch ledger discipline', pipeline.includes('execute the queue head-to-tail with IMPORTANT: NO BATCH CHECKS') && pipeline.includes('maintain the same `acceptance_item_ledger` fields'));
+assert('pipeline rejects green with material gap', pipeline.includes('Reject green-with-real-gap rows') && pipeline.includes('Do not aggregate such a row as green'));
+assert('pipeline statuses make unresolved false-green red or blocked', pipeline.includes('plausible false-green risk remains unresolved') && pipeline.includes('required evidence that cannot currently be obtained safely'));
 assert('item requires proof plan', item.includes('write a concise proof plan') && item.includes('Do not treat the proof plan itself as evidence'));
 assert('item requires sufficiency rationale', item.includes('sufficiency rationale') && item.includes('would fail if the criterion were false'));
 assert('item rejects weak string presence', item.includes('string-presence-only') && item.includes('return `red` or `blocked`'));
 assert('item green requires false-green risk ruling', item.includes('false-green risk you ruled out'));
+assert('item green forbids material gap', item.includes('A `green` result must not carry an unresolved material gap') && item.includes('gap` to `none'));
 
 const pipelineResolved = templates.resolveGoalTemplateInvocationArgs('verify-acceptance-pipeline', ' -- ISSUE-041');
 assert('resolver smoke: verify-acceptance-pipeline resolves', pipelineResolved.ok && pipelineResolved.template.objective.includes('IMPORTANT: NO BATCH CHECKS'));

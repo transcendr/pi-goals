@@ -127,11 +127,13 @@ Before deciding `green`, actively check for false-green risks:
 
 If a false-green risk is plausible and you cannot rule it out with available read-only evidence, return `red` or `blocked`, not `green`. If your only evidence is weak string presence while stronger evidence is available, return `red` or `blocked` and name the stronger evidence needed.
 
+A `green` result must not carry an unresolved material gap or required next action. For `green`, set `gap` to `none`, and set `next_action` to `none` unless the action is explicitly optional follow-up that is not needed to satisfy this criterion. If your honest result would require a material `gap` or required `next_action`, the status is `red` or `blocked`, not `green`.
+
 ### 4. Decide status
 
 Use exactly one status:
 
-- `green`: the criterion is independently verified with concrete evidence that would likely fail if the criterion were false. A green result must name at least one direct evidence source, a sufficiency rationale explaining why the evidence would fail if the criterion were false, and at least one false-green risk you ruled out.
+- `green`: the criterion is independently verified with concrete evidence that would likely fail if the criterion were false. A green result must name at least one direct evidence source, a sufficiency rationale explaining why the evidence would fail if the criterion were false, and at least one false-green risk you ruled out. A green row must not contain an unresolved material gap or required next action.
 - `red`: the criterion is not met, is contradicted by evidence, or has only weak/vague evidence when stronger evidence is available.
 - `blocked`: verification cannot be completed because required authority, environment, credentials, live service, or safety permission is missing.
 

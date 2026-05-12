@@ -218,12 +218,13 @@ acceptance_item_ledger[0]{id,enqueued,template_matched,concrete_goal_created,ite
 8. For every queued orchestration item, use this only valid loop: call `list_goal_templates`, match `verify-acceptance-item`, create exactly one concrete goal with `create_goal_from_template`, review that criterion individually, capture exactly one `acceptance_item_result`, complete that concrete item goal, then dequeue that orchestration item only after the item result is captured. Update the ledger row, then move to the next queue head.
 9. If you catch yourself batching AC-N..AC-M, stop immediately, discard that batch shortcut as final evidence, return to the first unprocessed item, and resume one-by-one processing.
 10. Treat `verify-acceptance-item` results as evidence, but still compile a final acceptance report yourself. Aggregate all-items inspection may be used only for orientation before per-item execution; it must never be the source of green rows.
-11. Final report must include a TOON block with `acceptance_summary` and `acceptance_results` rows. Keep every row single-line, quote string cells, and escape embedded double quotes in criterion/evidence/gap text. The `total` field must equal the extracted acceptance-row count and the number of `acceptance_results` rows. The final report is invalid until every extracted criterion has a complete ledger row with all booleans true and every result row is sourced from the matching captured `acceptance_item_result`.
+11. Reject green-with-real-gap rows before final aggregation. A `green` item or final result row must have `gap` = `none`, and `next_action` = `none` unless the next action is explicitly optional follow-up that is not required for acceptance. If a captured item result says `green` while naming an unresolved material gap, required next action, unruled-out false-green risk, missing stronger proof, or medium/low confidence caused by absent required evidence, treat that item as invalid and rerun/correct it as `red` or `blocked`. Do not aggregate such a row as green.
+12. Final report must include a TOON block with `acceptance_summary` and `acceptance_results` rows. Keep every row single-line, quote string cells, and escape embedded double quotes in criterion/evidence/gap text. The `total` field must equal the extracted acceptance-row count and the number of `acceptance_results` rows. The final report is invalid until every extracted criterion has a complete ledger row with all booleans true and every result row is sourced from the matching captured `acceptance_item_result`.
 
 Result statuses:
-- green: criterion is independently verified with concrete evidence.
-- red: criterion is not met or evidence contradicts it.
-- blocked: verification needs missing authority, environment, or unsafe action.
+- green: criterion is independently verified with concrete evidence and has no unresolved material gap or required next action.
+- red: criterion is not met, evidence contradicts it, or a plausible false-green risk remains unresolved.
+- blocked: verification needs missing authority, environment, unsafe action, or required evidence that cannot currently be obtained safely.
 
 Final report contract:
 ```toon
@@ -286,7 +287,7 @@ Changed files/evidence:
 - <file or command output path>
 - <summary>
 
-Re-read the issue doc and relevant changed files. Enqueue the listed corrected acceptance items first using `verify-acceptance-item`, execute the queue head-to-tail with IMPORTANT: NO BATCH CHECKS, maintain the same `acceptance_item_ledger` fields for corrected items, and produce a fresh `acceptance_summary` / `acceptance_results` report for this iteration only after every corrected item ledger row is complete. Do not modify repository files. Do not invent budget or floor params.
+Re-read the issue doc and relevant changed files. Enqueue the listed corrected acceptance items first using `verify-acceptance-item`, execute the queue head-to-tail with IMPORTANT: NO BATCH CHECKS, maintain the same `acceptance_item_ledger` fields for corrected items, and reject green-with-real-gap rows before final aggregation: `green` requires `gap=none` and `next_action=none` unless the next action is explicitly optional follow-up that is not required for acceptance. If a plausible false-green risk remains unresolved, or if the row names a material gap/required next action/missing stronger proof, report `red` or `blocked`, not `green`. Produce a fresh `acceptance_summary` / `acceptance_results` report for this iteration only after every corrected item ledger row is complete. Do not modify repository files. Do not invent budget or floor params.
 ```
 
 Repeat sparse polling, report review, remediation, and rerun until the acceptance agent reports all green or a true blocker remains.
