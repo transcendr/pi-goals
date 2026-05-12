@@ -36,6 +36,8 @@ type ContinuationAttemptResult =
 	| { kind: "transientSkip"; reason: "notIdle" | "pendingMessages" }
 	| { kind: "terminalSkip"; reason: ContinuationSkipReason | "queueMissing" | "queueChanged" | "retryExhausted" };
 
+const DEFAULT_RETRY_DELAYS_MS = [100, 250, 500, 1_000, 2_000];
+
 let pendingContinuation: PendingContinuation | undefined;
 let budgetWrapUps = new Map<string, PendingBudgetWrapUp>();
 let compactionActive = false;
@@ -43,7 +45,7 @@ let compactionWork: CompactionContinuationWork | undefined;
 let prequeuedCompactionKey: string | undefined;
 let fallbackTimer: ReturnType<typeof setTimeout> | undefined;
 let fallbackAttempts = 0;
-let fallbackRetryDelaysMs = [100, 250, 500, 1_000, 2_000];
+let fallbackRetryDelaysMs = [...DEFAULT_RETRY_DELAYS_MS];
 
 export function beginGoalCompaction(pi: ExtensionAPI, ctx: ExtensionContext): void {
 	logRuntime("beginGoalCompaction.start");
@@ -109,7 +111,7 @@ export function scheduleMaybeContinueGoal(pi: ExtensionAPI, ctx: ExtensionContex
 	const goalId = goal.goalId;
 	const timer = setTimeout(() => {
 		if (pendingContinuation?.goalId === goalId) pendingContinuation = undefined;
-		void safelyRun(() => maybeContinueGoal(pi, ctx, reason, goalId));
+		void safelyRun(async () => { attemptContinueGoal(pi, ctx, reason, goalId); });
 	}, 25);
 	pendingContinuation = { goalId, reason, timer };
 	logRuntime("scheduleMaybeContinueGoal.scheduled", { reason, goalId });
@@ -154,15 +156,12 @@ export function resetContinuationRuntime(): void {
 	compactionWork = undefined;
 	prequeuedCompactionKey = undefined;
 	fallbackAttempts = 0;
-	fallbackRetryDelaysMs = [100, 250, 500, 1_000, 2_000];
+	fallbackRetryDelaysMs = [...DEFAULT_RETRY_DELAYS_MS];
 }
 
 export function setCompactionFallbackRetryDelaysForTests(delaysMs: number[]): void {
 	fallbackRetryDelaysMs = delaysMs.filter((delay) => Number.isFinite(delay) && delay >= 0);
-}
-
-async function maybeContinueGoal(pi: ExtensionAPI, ctx: ExtensionContext, reason: ContinuationReason, goalId: string): Promise<void> {
-	attemptContinueGoal(pi, ctx, reason, goalId);
+	if (fallbackRetryDelaysMs.length === 0) fallbackRetryDelaysMs = [...DEFAULT_RETRY_DELAYS_MS];
 }
 
 function attemptContinueGoal(pi: ExtensionAPI, ctx: ExtensionContext, reason: ContinuationReason, goalId: string): ContinuationAttemptResult {

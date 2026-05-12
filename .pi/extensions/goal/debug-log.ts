@@ -7,7 +7,7 @@ import { getGoal, getTelemetry } from "./state";
 const DEFAULT_LOG_PATH = "/tmp/pi-goals-compaction-debug.log";
 const ENABLED_VALUES = new Set(["1", "true", "yes", "on"]);
 
-export type DebugFields = Record<string, string | number | boolean | null | undefined>;
+type DebugFields = Record<string, string | number | boolean | null | undefined>;
 
 export function logCompactionDebug(event: string, fields: DebugFields = {}): void {
 	if (!isCompactionDebugEnabled()) return;
