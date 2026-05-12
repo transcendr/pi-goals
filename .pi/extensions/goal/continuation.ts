@@ -6,6 +6,8 @@ import {
 	MAX_CONSECUTIVE_AUTO_TURNS,
 	MAX_NO_PROGRESS_AUTO_TURNS,
 } from "./constants";
+import { isBudgetExhausted } from "./budget";
+import { evaluateCompletionFloor } from "./floor";
 import { buildBudgetLimitPrompt, buildContinuationPrompt, buildPausePrompt } from "./prompts";
 import { getGoal, getTelemetry, persistTelemetry } from "./state";
 import { noteBudgetWrapUpSent, noteContinuationScheduled, noteContinuationSkipped, setNextTurnOrigin } from "./telemetry";
@@ -141,7 +143,13 @@ async function maybeSendBudgetWrapUp(pi: ExtensionAPI, ctx: ExtensionContext, go
 function shouldSuppressAgentEndContinuation(reason: ContinuationReason): boolean {
 	if (reason !== "agentEnd") return false;
 	const telemetry = getTelemetry();
-	return telemetry?.lastTurnOrigin === "auto" && telemetry.lastTurnToolCallCount === 0 && telemetry.lastTurnToolResultCount === 0 && !telemetry.lastTurnCompletedGoal;
+	const noProgressAutoTurn = telemetry?.lastTurnOrigin === "auto" && telemetry.lastTurnToolCallCount === 0 && telemetry.lastTurnToolResultCount === 0 && !telemetry.lastTurnCompletedGoal;
+	if (!noProgressAutoTurn) return false;
+	const goal = getGoal();
+	if (!goal || goal.status !== "active") return true;
+	const floor = evaluateCompletionFloor(goal);
+	if (floor.anyFloorConfigured && !floor.allFloorsMet && !isBudgetExhausted(goal) && telemetry.floorQualityState !== "exhausted") return false;
+	return true;
 }
 
 function skip(pi: ExtensionAPI, reason: ContinuationSkipReason): void {

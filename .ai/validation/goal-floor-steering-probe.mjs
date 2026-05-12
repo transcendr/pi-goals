@@ -36,6 +36,7 @@ assert('selector avoids immediate repeat', /card\.id !== last/.test(steering));
 assert('selector avoids completed cards', /!completed\.has\(card\.id\)/.test(steering));
 assert('completion refusal starts with required phrase', /Completion deferred by goal floor\. The goal remains active\./.test(steering));
 assert('continuation asks for next_floor_pass', /choose exactly one next_floor_pass/.test(steering));
+assert('prompt surfaces include autonomous fallback ladder', /Autonomous fallback ladder/.test(steering) && /requirement\/gap audit/.test(steering) && /validation\/proof expansion/.test(steering) && /documentation, handoff, and evidence hardening/.test(steering));
 assert('autonomous rule forbids asking user merely for floor', /Do not ask the user what else to do/.test(steering));
 assert('explicit user fallback helper is conservative', /objectiveAllowsUserFloorFallback/.test(steering) && /ask me/.test(steering) && !/discuss/.test(steering));
 assert('continuation prompt includes floor guidance only via helper', /floorContinuationSection/.test(prompts) && /buildFloorContinuationGuidance/.test(prompts));
