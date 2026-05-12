@@ -36,6 +36,18 @@ Install project-locally:
 pi install -l npm:pi-goals
 ```
 
+## Suggested AGENTS.md
+
+Without previous context, sometimes the agent won't automatically route natural language to goal templates.  This little blurb fixes that. Everything else should work out of the box and is driven by "just in time" internal agent instructions.
+
+```
+## Goal queue prompt routing
+
+When handling queued pi-goal prose, treat `.ai/.pi-goals/*` as reusable workflows. Before `start_queued_goal` for an abstract/task-type queue item, call `list_goal_templates` and match by name, aliases, description, and placeholders. If exactly one template fits and inputs are available, use `create_goal_from_template`; dequeue the prose item only after that concrete goal is satisfied. Use `start_queued_goal` only for direct one-off goals.
+
+Never discard queued work. Do not call `dequeue_goal` unless the queue head is actually satisfied or the user explicitly authorizes removing that specific queued item. If uncertain, leave it queued and report the blocker.
+```
+
 ## `/goal` command
 
 Use `/goal` to create and manage a persistent objective that survives across turns, reloads, compaction, and `/tree` navigation.
@@ -62,22 +74,6 @@ Subcommands:
 
 Agents can also inspect, create, update, pause, resume, complete, clear, or queue goals from natural-language instructions without requiring users to type slash commands for every operation.
 
-## Goal queue
-
-`pi-goals` supports a durable FIFO queue for sequential work. Queued goals survive reloads and stay aligned with the rest of the session history.
-
-```text
-/goal queue
-/goal queue write the release notes
-/goal queue fix-issue --issue ISSUE-123 -- verify the fix
-```
-
-For larger batches, `/goal queue` also accepts multi-item queue blocks, so agents can enqueue an ordered stack before executing it head-to-tail.
-
-Agents can also manage the queue from natural language: list queued work, add items, start the next direct goal, or remove a queue item after it is satisfied.
-
-For queued prose that looks like a reusable workflow, agents can resolve it through your reusable prompt templates, work the resulting concrete goal, then dequeue the original queue item after it is satisfied. Manual dequeues require a rationale and authority so queue history remains auditable.
-
 ## Natural language goal management
 
 You do not have to use explicit `/goal` commands for every operation. The Pi agent can manage goals from ordinary natural language instructions.
@@ -100,13 +96,60 @@ Use `/goal` when you want direct command control; use natural language when you 
 
 When a goal reaches its time or token budget, `pi-goals` steers the agent into wrap-up instead of silently continuing. Exhausted goals cannot be resumed until the budget is raised or the goal is cleared.
 
-## Completion floors
+## Goal queue
 
-Completion floors let you ask an agent to do at least a certain amount of goal-directed work before normal wrap-up. For example, you can ask it to keep working for at least 10 minutes, or to spend a meaningful token budget, before deciding the goal is complete.
+`pi-goals` supports a durable FIFO queue for sequential work. Queued goals survive reloads and stay aligned with the rest of the session history.
 
-These are floors, not quota targets. If an agent tries to mark a goal complete too early, completion is deferred, the goal stays active, and `pi-goals` nudges the agent toward a useful next pass such as checking requirement gaps, adding validation evidence, reviewing edge cases, simplifying the work, or improving handoff notes.
+```text
+/goal queue
+/goal queue write the release notes
+/goal queue fix-issue --issue ISSUE-123 -- verify the fix
+```
 
-Budgets remain a safety stop. If the agent runs out of the time or tokens you allowed, `pi-goals` prioritizes a clear wrap-up over forcing more work just to satisfy a floor. That gives you both controls: floors reduce premature "done" claims, while budgets keep runaway sessions bounded.
+For larger batches, `/goal queue` also accepts multi-item queue blocks, so agents can enqueue an ordered stack before executing it head-to-tail.
+
+You can do it like: 
+
+```md
+/goal queue --start -- [1] do thing one
+[2] do thing two
+[3] do thing 3
+```
+
+> IMPORTANT: the goal queue list pattern is any line starting with `[N]` will be parsed as a new a goal to enqueue immediately.
+
+Or in natural language is even easier. Here's a realer-world example:
+
+```md
+queue up this goal stack pls:
+1. run execute-issue-stack goal for those two issues
+2. run `deslop-pipeline` on the full commit range since the last release 0.3.0.
+3. begin prepare pi-goals for release: run `release-readme-review` goal
+4. bump version to appropriate next version based on changes
+5. run `dirty-worktree-cleanup` goal
+6. read and execute everything here `solo://proj/2/scratchpad/pi-goals-release-cyc--10`
+7. report on the full goal stack and release readiness status (ready to push, ready to publish) when done
+```
+
+> NOTE: when I mention tags like `deslop-pipeline` those are reference to dynamic goal templates.  You can create a `.pi-goals` directory in your project and place your goal templates inside.  See [these examples](.ai/.pi-goals) for a good starting point for how pi-goals goal templates work. Point your agent at this repo and these examples to have your agent create its owns.
+
+Agents can manage the queue just like individual goals from natural language: list queued work, add items, start the next direct goal, or remove a queue item after it is satisfied.
+
+For queued prose that looks like a reusable workflow, agents can resolve it through your reusable prompt templates, work the resulting concrete goal, then dequeue the original queue item after it is satisfied. Manual dequeues require a rationale and authority so queue history remains auditable.
+
+## Minimum / Maximum effort goals 
+
+Minimum effort (completion floor) goals let you ask an agent to do at least a certain amount of goal-directed work for a specified time or number of tokens before normal wrap-up. For example, you can ask it to keep working for at least 10 minutes, or to spend 10 million tokens, at a minimum before considering the goal complete.
+
+These are internally enfored. If an agent tries to mark a goal complete or stop working too early, those actions are deferred, the goal stays active, and the agent is sent a steering message to keep working. But `pi-goals` nudges the agent toward a quality, useful next pass such as checking requirement gaps, adding validation evidence, reviewing edge cases, simplifying the work and does not allow the agent to fall into a pattern of churning just to fill quota.
+
+Max time/token budgets remain a safety stop even when a floor is set and supercedes an y floor. If a max budgeit is set cannot go past it, period. Maximum time/token budgets are have a trigger on 10% of either side of the target.  At 10% before the total max budget target, it sends a warning message to the agent to start wrapping up. If by 10% over the stated max target budget the agent it still running, there's a hard kill switch. 
+
+Combining max with minimum time/token budgets gives you both controls: floors reduce premature "done" claims, while budgets keep runaway sessions bounded.
+
+> NOTE: there is currently no `/goal` command argument to set these max or min budgets.  You can ask your agent in natural language to do so, even when the current goal is running. For example: "Start working on the goal, and when you finish the initial implementation, set a time floor for 8 minutes more than the current elapsed time." or simply, "create a goal for xyz and work on it for a minimum of 10 minutes."
+
+These ergonomics will improve soon!
 
 ## Reusable `.pi-goals` prompts
 
@@ -176,6 +219,8 @@ The monitor can:
 - distinguish useful follow-up work from busywork done only to satisfy a floor.
 
 Monitor history stays tied to the active goal, so reloads and `/tree` navigation keep the right context.
+
+> NOTE: the churn monitor agent runs in the background as an invisible (headless) pi agent session. This is still experimental and needs work, but does do a pretty good job at present.  If you see messages appear in the pi chat window in yellow while a goal is running, these are notices of what the churn monitor is doing. These are only visible to you and not your agent.  Separate steering messages that are sent directly to and visible by the agent can be seen by looking at `/tree`.
 
 ## Roadmap
 
