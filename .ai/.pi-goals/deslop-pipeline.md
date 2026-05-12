@@ -176,7 +176,7 @@ Use the rendered `send_model_switch` command for delivery, preserving the slash 
 Send this exact boomerang command to the worker after the model switch. Prefer the rendered `send_deslop_boomerang` command from the resolved context:
 
 ```text
-/boomerang --rethrow {{rethrow}} create a goal from template deslop-commit-range for the following commit range {{args}}
+/boomerang --rethrow {{rethrow}} create a goal from template deslop-commit-range for the following commit range {{args}}.  Execute the goal immediately after creating it, do not pause or report goal creation to the user.
 ```
 
 Do not replace this with a direct prompt, direct `/goal`, direct tool call, or a different template. The spawned agent must receive the boomerang command above.
