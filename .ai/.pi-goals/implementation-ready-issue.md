@@ -19,7 +19,7 @@ Implementation-ready means each issue has direction **and** implementation detai
 !`ISSUE_SELECTOR=$(cat <<'PI_GOAL_ISSUE_SELECTOR'
 {{args}}
 PI_GOAL_ISSUE_SELECTOR
-) ISSUE_ARTIFACT_ROOT=.ai/docs/implementation-readiness ISSUE_ARTIFACT_FIELD=readiness_dir ISSUE_STACK_PREFIX=implementation-ready python3 .ai/.pi-goals/scripts/resolve_issue_docs.py`
+) ISSUE_ARTIFACT_ROOT=.ai/docs/issue-workflow ISSUE_ARTIFACT_SUBDIR=implementation-readiness ISSUE_ARTIFACT_FIELD=readiness_dir ISSUE_STACK_PREFIX=implementation-ready python3 .ai/.pi-goals/scripts/resolve_issue_docs.py`
 </resolved_issue_context>
 
 Use the resolved issue context above as the issue stack source of truth.
@@ -58,7 +58,7 @@ Record the exact files/resources read in each issue's `01-protocol-read.md` arti
 
 ## Per-issue artifact requirements
 
-For each resolved issue row, create durable transcript artifacts under the rendered `readiness_dir` path.
+For each resolved issue row, create durable transcript artifacts under the rendered `readiness_dir` path. The path must be nested under the issue workflow directory as `.ai/docs/issue-workflow/ISSUE-NNN-<slug>/implementation-readiness/`, not under a top-level `.ai/docs/implementation-readiness/` directory.
 
 Required artifacts per issue:
 
@@ -156,14 +156,14 @@ Status decision: implementation-ready | blocked-before-implementation-ready
 
 Transcript artifacts:
 
-- `.ai/docs/implementation-readiness/<ISSUE-NNN-slug>/00-intake.md`
-- `.ai/docs/implementation-readiness/<ISSUE-NNN-slug>/01-protocol-read.md`
-- `.ai/docs/implementation-readiness/<ISSUE-NNN-slug>/02-live-surface-research.md`
-- `.ai/docs/implementation-readiness/<ISSUE-NNN-slug>/03-implementation-design-lock.md`
-- `.ai/docs/implementation-readiness/<ISSUE-NNN-slug>/04-patch-sequence.md`
-- `.ai/docs/implementation-readiness/<ISSUE-NNN-slug>/05-proof-plan.md`
-- `.ai/docs/implementation-readiness/<ISSUE-NNN-slug>/06-issue-writeback.md`
-- `.ai/docs/implementation-readiness/<ISSUE-NNN-slug>/07-final-audit.md`
+- `.ai/docs/issue-workflow/<ISSUE-NNN-slug>/implementation-readiness/00-intake.md`
+- `.ai/docs/issue-workflow/<ISSUE-NNN-slug>/implementation-readiness/01-protocol-read.md`
+- `.ai/docs/issue-workflow/<ISSUE-NNN-slug>/implementation-readiness/02-live-surface-research.md`
+- `.ai/docs/issue-workflow/<ISSUE-NNN-slug>/implementation-readiness/03-implementation-design-lock.md`
+- `.ai/docs/issue-workflow/<ISSUE-NNN-slug>/implementation-readiness/04-patch-sequence.md`
+- `.ai/docs/issue-workflow/<ISSUE-NNN-slug>/implementation-readiness/05-proof-plan.md`
+- `.ai/docs/issue-workflow/<ISSUE-NNN-slug>/implementation-readiness/06-issue-writeback.md`
+- `.ai/docs/issue-workflow/<ISSUE-NNN-slug>/implementation-readiness/07-final-audit.md`
 
 Exact implementation surfaces:
 

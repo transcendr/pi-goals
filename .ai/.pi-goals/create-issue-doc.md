@@ -52,8 +52,8 @@ Workflow requirements:
 1. Read `AGENTS.md`, the full `$feature-workflow-pipelines` `SKILL.md`, and the relevant feature-workflow reference docs before drafting, unless those exact full contents are freshly present in current context. This is mandatory, not discretionary.
 2. Choose the correct issue bucket from `--bucket`; create the directory if missing.
 3. Determine the next issue number unless the arguments explicitly name an existing issue file.
-4. Create a transcript artifact directory under `.ai/docs/issue-workflow/ISSUE-NNN-<slug>/`.
-5. Before writing the final issue doc, run each workflow loop for real and write its transcript artifact immediately. Do not batch-create generic artifacts after the fact. Minimum required artifacts:
+4. Create a transcript artifact directory under `.ai/docs/issue-workflow/ISSUE-NNN-<slug>/execution-readiness/`. Keep workflow phases scoped under the issue directory; do not create top-level phase directories such as `.ai/docs/implementation-readiness/`.
+5. Before writing the final issue doc, run each workflow loop for real and write its transcript artifact immediately. Do not batch-create generic artifacts after the fact. Minimum required execution-readiness artifacts:
    - `00-request.md`: parsed request, inputs, assumptions, issue number/path choice, and clarification result if any.
    - `01-protocol-read.md`: exact workflow/project docs read, confirmation that the full skill/reference docs were read or freshly present in context, and the requirements extracted from them.
    - `02-grounded-research.md`: live code/docs/repo/screenshot research with commands/files inspected, findings, and root-cause or planning facts.
@@ -67,7 +67,7 @@ Workflow requirements:
 8. Include links to every transcript artifact inside the issue doc.
 9. Include a TOON-style `required_proofs[]` block when the issue is intended for Solo/TLO or proof-driven execution.
 10. Do not invent implementation facts. Ground claims in inspected files, commands, screenshots, or explicitly marked assumptions.
-11. Verify artifact visibility before completion with `git status --short --untracked-files=all` and `git check-ignore -v <one artifact path> || true`. If `.ai/docs/issue-workflow/**` is ignored, update ignore rules so these workflow artifacts are trackable.
+11. Verify artifact visibility before completion with `git status --short --untracked-files=all` and `git check-ignore -v <one artifact path> || true`. If `.ai/docs/issue-workflow/**` is ignored, update ignore rules so these workflow artifacts are trackable; do not add a separate top-level exception for phase-specific workflow directories.
 
 Issue doc structure:
 - Title: `# ISSUE-NNN — <title>`
@@ -86,7 +86,7 @@ Issue doc structure:
 
 Completion standard:
 - The requested issue doc exists in the requested bucket.
-- Transcript artifacts exist for request intake, protocol read, grounded research, design lock, proof threat model, issue writeback, final audit, and raw command output.
+- Transcript artifacts exist under `.ai/docs/issue-workflow/ISSUE-NNN-<slug>/execution-readiness/` for request intake, protocol read, grounded research, design lock, proof threat model, issue writeback, final audit, and raw command output.
 - Transcript artifacts visibly correspond to actual sub-steps, not generic boilerplate or simulated claims.
 - Transcript artifacts are visible to git/status review and not hidden by `.gitignore`.
 - The issue doc links to every transcript artifact.

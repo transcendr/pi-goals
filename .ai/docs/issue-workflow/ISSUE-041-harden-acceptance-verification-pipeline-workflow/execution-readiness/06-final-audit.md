@@ -22,15 +22,15 @@ compliance[11]{id,requirement,status,evidence}:
 
 ```toon
 artifacts[9]{id,path,status}:
-  "a1",".ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/00-request.md","created"
-  "a2",".ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/01-protocol-read.md","created"
-  "a3",".ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/02-grounded-research.md","created"
-  "a4",".ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/03-design-lock.md","created"
-  "a5",".ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/04-proof-threat-model.md","created"
-  "a6",".ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/05-issue-writeback.md","created"
-  "a7",".ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/06-final-audit.md","created"
-  "a8",".ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/07-followup-rerun-observation.md","created"
-  "a9",".ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/raw/commands.log","created"
+  "a1",".ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/execution-readiness/00-request.md","created"
+  "a2",".ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/execution-readiness/01-protocol-read.md","created"
+  "a3",".ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/execution-readiness/02-grounded-research.md","created"
+  "a4",".ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/execution-readiness/03-design-lock.md","created"
+  "a5",".ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/execution-readiness/04-proof-threat-model.md","created"
+  "a6",".ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/execution-readiness/05-issue-writeback.md","created"
+  "a7",".ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/execution-readiness/06-final-audit.md","created"
+  "a8",".ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/execution-readiness/07-followup-rerun-observation.md","created"
+  "a9",".ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/execution-readiness/raw/commands.log","created"
 ```
 
 ## Visibility check
@@ -39,7 +39,7 @@ Commands run and appended to `raw/commands.log`:
 
 ```bash
 git status --short --untracked-files=all
-git check-ignore -v .ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/00-request.md || true
+git check-ignore -v .ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/execution-readiness/00-request.md || true
 git check-ignore -v .ai/issues/open/ISSUE-041-harden-acceptance-verification-pipeline-workflow.md || true
 rg -n "required_proofs\[7\]|point_resolution\[4\]|acceptance_template_contract_probe|budget_limited_queue_handoff_probe" .ai/issues/open/ISSUE-041-harden-acceptance-verification-pipeline-workflow.md
 ```

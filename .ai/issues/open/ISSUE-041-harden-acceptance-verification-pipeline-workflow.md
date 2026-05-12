@@ -1,6 +1,6 @@
 # ISSUE-041 — Harden acceptance verification pipeline workflow
 
-Status: open — execution-ready
+Status: open — implementation-ready
 Priority: P1
 Owner: pi-goal automation
 Created: 2026-05-11
@@ -39,15 +39,15 @@ The later rerun also used `glm 5.1` with high reasoning, while the earlier run u
 
 ## Transcript artifacts
 
-- Request intake: `.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/00-request.md`
-- Protocol read: `.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/01-protocol-read.md`
-- Grounded research: `.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/02-grounded-research.md`
-- Design lock: `.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/03-design-lock.md`
-- Proof threat model: `.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/04-proof-threat-model.md`
-- Issue writeback: `.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/05-issue-writeback.md`
-- Final audit: `.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/06-final-audit.md`
-- Follow-up rerun observation: `.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/07-followup-rerun-observation.md`
-- Raw command log: `.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/raw/commands.log`
+- Request intake: `.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/execution-readiness/00-request.md`
+- Protocol read: `.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/execution-readiness/01-protocol-read.md`
+- Grounded research: `.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/execution-readiness/02-grounded-research.md`
+- Design lock: `.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/execution-readiness/03-design-lock.md`
+- Proof threat model: `.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/execution-readiness/04-proof-threat-model.md`
+- Issue writeback: `.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/execution-readiness/05-issue-writeback.md`
+- Final audit: `.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/execution-readiness/06-final-audit.md`
+- Follow-up rerun observation: `.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/execution-readiness/07-followup-rerun-observation.md`
+- Raw command log: `.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/execution-readiness/raw/commands.log`
 
 ## Desired behavior
 
@@ -63,7 +63,7 @@ The later rerun also used `glm 5.1` with high reasoning, while the earlier run u
 
 ## Grounded research findings
 
-Full research is in `.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/02-grounded-research.md`.
+Full research is in `.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/execution-readiness/02-grounded-research.md`.
 
 Key facts:
 
@@ -80,7 +80,7 @@ Key facts:
 
 ## Locked design choices
 
-Full design lock is in `.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/03-design-lock.md`.
+Full design lock is in `.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/execution-readiness/03-design-lock.md`.
 
 Chosen:
 
@@ -162,7 +162,7 @@ point_resolution[4]{point,classification,fix_strategy}:
 
 ## Proof threat model
 
-Full proof threat model is in `.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/04-proof-threat-model.md`.
+Full proof threat model is in `.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/execution-readiness/04-proof-threat-model.md`.
 
 Primary invariant: an acceptance-pipeline worker must process acceptance criteria as durable per-item goals and continue its queue after terminal goal states. It must not invent budgets, stop with queued work remaining, substitute one aggregate check for item goals, or mark per-item goals green without sufficient evidence.
 
@@ -180,9 +180,8 @@ High-risk false greens:
 
 ```toon
 toon.version: 1
-issue{id,status,kind,goal}:
-  "ISSUE-041","open — execution-ready","remediation","harden acceptance pipeline against invented budgets queue idling aggregate shortcuts and weak per-item greens"
-
+issue[1]{id,status,kind,goal}:
+  "ISSUE-041","open — implementation-ready","remediation","harden acceptance pipeline against invented budgets queue idling aggregate shortcuts and weak per-item greens"
 feature_memory[8]{id,fact}:
   "fm1","ISSUE-040 added verify-acceptance-pipeline and verify-acceptance-item templates"
   "fm2","first live run against ISSUE-036 exposed behavior not caught by static/template resolver checks"
@@ -192,7 +191,6 @@ feature_memory[8]{id,fact}:
   "fm6","ISSUE-037 already tracks complete-status queue auto-continuation"
   "fm7","follow-up rerun showed explicit NO BATCH CHECKS wording improved behavior but batching recurred around AC-11 of 23"
   "fm8","follow-up rerun used glm 5.1 high reasoning and produced better individual review than the earlier gpt 5.5 low-reasoning worker"
-
 locked_requirements[8]{id,requirement}:
   "lr1","agents must not invent budget or floor params for queued/template goals"
   "lr2","budgetLimited with non-empty queue must hand off effectively to queue processing"
@@ -202,7 +200,6 @@ locked_requirements[8]{id,requirement}:
   "lr6","green item results require sufficient direct evidence and false-green risk ruling"
   "lr7","acceptance prompt must mandate create-review-result-complete-dequeue one item at a time and forbid AC-N..AC-M batch shortcuts"
   "lr8","acceptance worker must run under solo-researcher-strong and opencode-go/glm-5.1 before receiving the prompt"
-
 implementation_surfaces[7]{id,path,reason}:
   "s1",".ai/.pi-goals/verify-acceptance-pipeline.md","acceptance worker spawn/profile/model setup, prompt, ledger, no aggregate substitution, no invented budgets"
   "s2",".ai/.pi-goals/verify-acceptance-item.md","per-item evidence sufficiency and proof-plan rules"
@@ -211,7 +208,6 @@ implementation_surfaces[7]{id,path,reason}:
   "s5",".pi/extensions/goal/tools.ts","template goal replacement policy and optional budgets"
   "s6",".pi/extensions/goal/queue-tools.ts","start_queued_goal active-status gate"
   "s7","solo-mcp process spawn/send workflow","acceptance worker profile selection and model-switch delivery"
-
 verification_checks[6]{id,check,evidence}:
   "v1","template contract forbids aggregate substitution and invented budgets","goal-acceptance-template-contract-probe"
   "v2","budgetLimited with queued work continues to next queue item","budget-limited queue handoff probe"
@@ -233,8 +229,80 @@ required_proofs[8]{name,source,command,pass_condition,scope,notes}:
   "no_arbitrary_budget_probe","issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && rg -n 'Do not pass token_budget|Do not invent.*budget|Budgets: none' .ai/.pi-goals/verify-acceptance-pipeline.md .pi/extensions/goal/queue-steering.ts","exit 0 with explicit guidance in acceptance prompt and queue steering",run,"guards recurrence of the 20K invented token ceiling"
   "quality_gate","AGENTS.md","cd /Users/bryan/dev/personal/experiments/pi-goals && npm run quality:goal","exit 0",run,"required after runtime/template validation changes"
   "acceptance_pipeline_live_probe","issue doc","Follow .ai/docs/pi-goals-live-probe-testing.md using a disposable synthetic issue with at least twelve acceptance criteria, then run verify-acceptance-pipeline in a real Pi/Solo worker launched with --profile solo-researcher-strong and switched to /model opencode-go/glm-5.1 before the prompt","transcript shows all criteria enqueued first, exactly one verify-acceptance-item concrete goal/result per criterion before final summary, no invented budgets, no manual continuation prompt, no AC-N..AC-M batch proof segment halfway through, and cleanup leaves no disposable queue/goal residue",live,"directly covers P1-P4 plus follow-up mid-run batching and worker-model observations"
-  "artifact_visibility","create-issue-doc protocol","cd /Users/bryan/dev/personal/experiments/pi-goals && git status --short --untracked-files=all && git check-ignore -v .ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/00-request.md || true","status shows issue/artifacts visible and check-ignore does not hide workflow artifacts",run,"planning artifact visibility check"
+  "artifact_visibility","create-issue-doc protocol","cd /Users/bryan/dev/personal/experiments/pi-goals && git status --short --untracked-files=all && git check-ignore -v .ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/execution-readiness/00-request.md || true","status shows issue/artifacts visible and check-ignore does not hide workflow artifacts",run,"planning artifact visibility check"
 ```
+
+## Implementation-ready plan
+
+Status decision: implementation-ready.
+
+Transcript artifacts:
+
+- `.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/implementation-readiness/00-intake.md`
+- `.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/implementation-readiness/01-protocol-read.md`
+- `.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/implementation-readiness/02-live-surface-research.md`
+- `.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/implementation-readiness/03-implementation-design-lock.md`
+- `.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/implementation-readiness/04-patch-sequence.md`
+- `.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/implementation-readiness/05-proof-plan.md`
+- `.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/implementation-readiness/06-issue-writeback.md`
+- `.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/implementation-readiness/07-final-audit.md`
+- `.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/implementation-readiness/raw/commands.log`
+
+Exact implementation surfaces:
+
+- `.ai/.pi-goals/verify-acceptance-pipeline.md` — edit — materialized `--profile solo-researcher-strong` worker spawn, `/model opencode-go/glm-5.1` send before prompt, no invented budget/floor rule, mandatory no-batch loop, per-item ledger, rerun ledger, final report precondition.
+- `.ai/.pi-goals/verify-acceptance-item.md` — edit — proof-plan step, evidence sufficiency rationale, weak string-presence rejection, green-result false-green ruling.
+- `.pi/extensions/goal/types.ts` — edit — add `goal-budget-limited` queue steering reason.
+- `.pi/extensions/goal/queue-steering.ts` — edit — add deduped `sendQueueHandoff` helper and budget/floor no-invention queue guidance.
+- `.pi/extensions/goal/lifecycle.ts` — edit — use triggered/deduped queue handoff on complete and budget-limited terminal paths; schedule budget wrap-up only when no queue handoff is sent.
+- `.pi/extensions/goal/tools.ts` — edit — allow `create_goal_from_template` to replace a budget-limited current goal only for queued work; trigger/dedupe queue handoff after tool completion or budget edit to budget-limited.
+- `.pi/extensions/goal/queue-tools.ts` — edit — allow `start_queued_goal` over `complete` or `budgetLimited`, while preserving `active`/`paused` blocking.
+- `.pi/extensions/goal/index.ts` — edit — pass raw queue steering to slash commands and deduped queue handoff to model-tool terminal paths.
+- `.ai/validation/goal-acceptance-template-contract-probe.mjs` — create — template/profile/no-batch/ledger/evidence/resolver contract probe.
+- `.ai/validation/goal-budget-limited-queue-handoff-probe.mjs` — create — budget-limited queue handoff and replacement-gate contract probe.
+- `.ai/validation/goal-complete-queue-handoff-probe.mjs` — create — ISSUE-037-compatible complete queue handoff regression probe.
+- `.ai/validation/goal-complete-queue-dedupe-probe.mjs` — create — duplicate terminal observation handoff-dedupe probe.
+- `.ai/docs/pi-goals-live-probe-testing.md` — read-only validation dependency — use for final live probe process discipline.
+- `package.json` — validation dependency — keep `npm run quality:goal` unchanged unless validation proves script drift.
+
+Patch sequence summary:
+
+1. Run `sentrux gate --save .pi/extensions/goal` before runtime edits.
+2. Add queue reason type, queue handoff helper, and no-invented-budget queue steering guidance.
+3. Wire lifecycle complete and budget-limited terminal paths to triggered/deduped queue handoff.
+4. Update tool and queue-start replacement gates so queued work can continue over a budget-limited prior goal without marking it complete.
+5. Update acceptance pipeline template for strong worker profile/model setup, mandatory no-batch loop, per-item ledger, final-report gating, and no invented budgets.
+6. Update acceptance item template for proof-plan and evidence-sufficiency requirements.
+7. Add deterministic validation probes.
+8. Run targeted probes and `npm run quality:goal`.
+9. Run bounded live acceptance pipeline probe with at least twelve disposable criteria, strong worker profile/model, sparse polling, no manual continuation prompt, and cleanup.
+
+Validation/proof sequence:
+
+1. `node .ai/validation/goal-acceptance-template-contract-probe.mjs` — template/profile/no-batch/ledger/evidence/resolver contract passes.
+2. `node .ai/validation/goal-budget-limited-queue-handoff-probe.mjs` — budget-limited queue handoff and replacement gates pass.
+3. `node .ai/validation/goal-complete-queue-handoff-probe.mjs` — complete queue handoff regression passes.
+4. `node .ai/validation/goal-complete-queue-dedupe-probe.mjs` — duplicate queue handoff suppression passes.
+5. `node .ai/validation/goal-min-spend-floors-probe.mjs` — existing floor/budget behavior remains green.
+6. `npm run quality:goal` — required extension quality gate passes.
+7. TOON decode checks for changed issue/proof blocks pass with `npx -y @toon-format/cli --decode`.
+8. Live acceptance-pipeline probe transcript proves all item goals are processed one by one, no invented budgets, no manual `DO NOT STOP`, no AC-N..AC-M mid-run batch shortcut, and cleanup leaves no disposable residue.
+
+Blocker/fallback policy:
+
+- If `solo-mcp process spawn` cannot materialize Pi with `--profile solo-researcher-strong`, stop and fix/route the worker launch path; do not silently use a weaker default profile.
+- If `/model opencode-go/glm-5.1` is rejected, stop with exact status/output evidence unless the user explicitly authorizes an equivalent model.
+- If budget-limited queue replacement requires changing Pi core APIs outside `.pi/extensions/goal`, stop and update the issue before widening scope.
+- If the live probe is ambiguous about batching, treat it as not green and rerun with clearer transcript capture rather than accepting static proofs.
+
+Handoff notes:
+
+- Start implementation in `.pi/extensions/goal/queue-steering.ts` and `.pi/extensions/goal/types.ts`, then lifecycle/tools, then templates, then probes.
+- Preserve queue safety: never dequeue unfinished queue work; never mark budget-limited goals complete just to advance the queue.
+- Preserve acceptance-worker read-only behavior; main agent owns remediation.
+- Do not add Solo timer helpers or `/boomerang` to the acceptance pipeline.
+- Keep template inline commands read-only; spawn/send/model-selection commands must remain rendered ready commands executed later by the main agent.
+- Use exact command shapes and validation order from `.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/implementation-readiness/04-patch-sequence.md` and `05-proof-plan.md`.
 
 ## Notes
 

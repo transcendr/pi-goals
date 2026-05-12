@@ -1,0 +1,403 @@
+$ pwd
+/Users/bryan/dev/personal/experiments/pi-goals
+
+$ git status --short --untracked-files=all
+
+$ wc -l ISSUE and relevant files
+     241 .ai/issues/open/ISSUE-041-harden-acceptance-verification-pipeline-workflow.md
+     297 .ai/.pi-goals/verify-acceptance-pipeline.md
+     155 .ai/.pi-goals/verify-acceptance-item.md
+      74 .pi/extensions/goal/queue-steering.ts
+     396 .pi/extensions/goal/lifecycle.ts
+     422 .pi/extensions/goal/tools.ts
+     203 .pi/extensions/goal/queue-tools.ts
+     210 .pi/extensions/goal/types.ts
+    1998 total
+
+$ rg implementation surfaces
+.ai/.pi-goals/verify-acceptance-item.md:147:acceptance_item_result{id,status,criterion,confidence,evidence,gap,next_action}:
+.ai/.pi-goals/verify-acceptance-item.md:155:This item goal is complete only when the final `acceptance_item_result` row honestly reflects the criterion status after issue-doc reading, targeted evidence inspection, and false-green review. Do not mark the item complete merely because the criterion sounds plausible or because the main implementation agent claimed it was done.
+.ai/.pi-goals/verify-acceptance-pipeline.md:169:print("  send_acceptance_prompt: " + f"solo-mcp --instance {quote(instance)} process send \"$ACCEPTANCE_WORKER_ID\" --project {quote(project_id)} --input \"$(cat {quote(prompt_file)})\" --allow-recent-spawn")
+.ai/.pi-goals/verify-acceptance-pipeline.md:174:print("  send_corrected_acceptance_items: " + f"solo-mcp --instance {quote(instance)} process send \"$ACCEPTANCE_WORKER_ID\" --project {quote(project_id)} --input \"$(cat {quote(rerun_file)})\"")
+.ai/.pi-goals/verify-acceptance-pipeline.md:207:6. After all item goals are queued, execute the queue head-to-tail. Do not pause between items unless blocked by safety, missing authority, missing environment, or explicit user instruction.
+.ai/.pi-goals/verify-acceptance-pipeline.md:208:7. For every queued orchestration item, call `list_goal_templates`, match `verify-acceptance-item`, create the concrete goal with `create_goal_from_template`, complete that concrete goal, then dequeue the orchestration item only after the item result is captured.
+.ai/.pi-goals/verify-acceptance-pipeline.md:210:9. Final report must include a TOON block with `acceptance_summary` and `acceptance_results` rows. Keep every row single-line, quote string cells, and escape embedded double quotes in criterion/evidence/gap text. The `total` field must equal the extracted acceptance-row count and the number of `acceptance_results` rows.
+.ai/.pi-goals/verify-acceptance-pipeline.md:217:Final report contract:
+.ai/.pi-goals/verify-acceptance-pipeline.md:220:acceptance_summary{issue,status,total,green,red,blocked,iteration}:
+.ai/.pi-goals/verify-acceptance-pipeline.md:253:When the acceptance agent returns `acceptance_summary` / `acceptance_results`:
+.ai/.pi-goals/verify-acceptance-pipeline.md:256:2. Check report completeness before remediation: `acceptance_summary.total` must equal the number of `acceptance_results` rows and the issue doc's extracted acceptance-row count. If counts differ, treat the report as incomplete and ask the same acceptance agent to correct the extraction/report before trusting item statuses.
+.ai/.pi-goals/verify-acceptance-pipeline.md:276:Re-read the issue doc and relevant changed files. Enqueue the listed corrected acceptance items first using `verify-acceptance-item`, execute the queue head-to-tail, and produce a fresh `acceptance_summary` / `acceptance_results` report for this iteration. Do not modify repository files.
+.pi/extensions/goal/queue-tools.ts:15:	token_budget: Type.Optional(Type.Number({ description: "Optional positive token budget" })),
+.pi/extensions/goal/queue-tools.ts:16:	time_budget_seconds: Type.Optional(Type.Number({ description: "Optional positive time budget in seconds" })),
+.pi/extensions/goal/queue-tools.ts:73:			const floorError = validateFloorConfig({ tokenBudget: params.token_budget, timeBudgetSeconds: params.time_budget_seconds, minTokensBeforeWrapUp: params.min_tokens_before_wrap_up, minTimeSecondsBeforeWrapUp: params.min_time_seconds_before_wrap_up });
+.pi/extensions/goal/queue-tools.ts:75:			const queued = enqueueGoal(validation.objective, "tool", { tokenBudget: params.token_budget, timeBudgetSeconds: params.time_budget_seconds, minTokensBeforeWrapUp: params.min_tokens_before_wrap_up, minTimeSecondsBeforeWrapUp: params.min_time_seconds_before_wrap_up });
+.pi/extensions/goal/queue-tools.ts:85:		name: "start_queued_goal",
+.pi/extensions/goal/queue-tools.ts:92:			"Do not use this when the queued text asks you to run/create/start another goal or goal template, names a prompt-like workflow, or semantically matches a reusable template; use create_goal, create_goal_from_template, or enqueue_goal for that orchestration, then dequeue_goal after it is satisfied.",
+.pi/extensions/goal/queue-tools.ts:107:		description: "Remove the first goal from the queue and return it. Prefer start_queued_goal for direct queued goals; use this after a prose/JIT orchestration item is fully satisfied.",
+.pi/extensions/goal/queue-tools.ts:110:			"Use start_queued_goal for direct queued goals.",
+.pi/extensions/goal/queue-tools.ts:164:	persistDequeue(pi, "start_queued_goal", { queueId: started.queueId, audit: { rationale: "Started queued goal as a direct concrete goal after successful goal creation.", authority: "start_queued_goal atomic create-then-dequeue path" } });
+.pi/extensions/goal/command.ts:41:	sendQueueSteering: GoalQueueSteeringSender,
+.pi/extensions/goal/command.ts:46:		handler: async (args, ctx) => handleGoalCommand(pi, args, ctx, scheduleContinuation, cancelContinuation, interruptActiveTurn, scheduleMonitor, cancelMonitor, sendQueueSteering),
+.pi/extensions/goal/command.ts:98:	sendQueueSteering: GoalQueueSteeringSender,
+.pi/extensions/goal/command.ts:108:	const handled = handleGoalControlCommand(pi, trimmed, ctx, scheduleContinuation, cancelContinuation, interruptActiveTurn, scheduleMonitor, cancelMonitor, sendQueueSteering);
+.pi/extensions/goal/command.ts:123:	sendQueueSteering: GoalQueueSteeringSender,
+.pi/extensions/goal/command.ts:131:	else if (trimmed === "resume") resumeGoal(pi, ctx, scheduleContinuation, scheduleMonitor, sendQueueSteering);
+.pi/extensions/goal/command.ts:132:	else if (trimmed === "clear") clearGoal(pi, ctx, cancelContinuation, cancelMonitor, sendQueueSteering);
+.pi/extensions/goal/command.ts:236:function resumeGoal(pi: ExtensionAPI, ctx: ExtensionCommandContext, scheduleContinuation: GoalCommandScheduler, scheduleMonitor: GoalMonitorScheduler, sendQueueSteering: GoalQueueSteeringSender): void {
+.pi/extensions/goal/command.ts:241:			sendQueueSteering("goal-resume", { triggerTurn: true });
+.pi/extensions/goal/command.ts:250:			sendQueueSteering("goal-resume", { triggerTurn: true });
+.pi/extensions/goal/command.ts:273:function clearGoal(pi: ExtensionAPI, ctx: ExtensionCommandContext, cancelContinuation: GoalContinuationCanceller, cancelMonitor: GoalMonitorCanceller, sendQueueSteering: GoalQueueSteeringSender): void {
+.pi/extensions/goal/command.ts:281:	if (queue.length > 0) sendQueueSteering("goal-clear");
+.pi/extensions/goal/index.ts:8:import { sendQueueSteering } from "./queue-steering";
+.pi/extensions/goal/index.ts:18:		(reason, opts) => sendQueueSteering(pi, reason, opts),
+.pi/extensions/goal/index.ts:20:	registerGoalTools(pi, (ctx, reason) => scheduleMaybeContinueGoal(pi, ctx, reason), cancelGoalContinuation, (ctx) => scheduleGoalMonitor(pi, ctx), cancelGoalMonitor, (ctx, goal) => scheduleBudgetLimitWrapUp(pi, ctx, goal), () => getQueue().length, (reason) => sendQueueSteering(pi, reason));
+.pi/extensions/goal/lifecycle.ts:29:import { queueSteeringStillValid, sendQueueSteering } from "./queue-steering";
+.pi/extensions/goal/lifecycle.ts:96:	if (goal.status !== "active" && goal.status !== "budgetLimited") {
+.pi/extensions/goal/lifecycle.ts:124:		const stopped: GoalState = { ...goal, status: "budgetLimited", updatedAt: Date.now() };
+.pi/extensions/goal/lifecycle.ts:141:	// mid-stream. State transition to budgetLimited happens at turn_end, not here,
+.pi/extensions/goal/lifecycle.ts:223:	if (updated?.status === "budgetLimited") {
+.pi/extensions/goal/lifecycle.ts:251:	if (goal?.status === "complete" && completedThisTurn) sendQueueSteering(pi, "goal-complete");
+.pi/extensions/goal/lifecycle.ts:287:	// the goal to budgetLimited, persisted telemetry, and aborted.
+.pi/extensions/goal/lifecycle.ts:294:	const stopped: GoalState = { ...goal, status: "budgetLimited", updatedAt: Date.now() };
+.pi/extensions/goal/lifecycle.ts:306:	const limited: GoalState = { ...goal, status: "budgetLimited", updatedAt: Date.now() };
+.pi/extensions/goal/lifecycle.ts:393:	if (customType === BUDGET_LIMIT_MESSAGE_TYPE) return status === "budgetLimited" && kind === "budgetLimit";
+.pi/extensions/goal/widget.ts:174:		case "budgetLimited":
+.pi/extensions/goal/types.ts:3:export type GoalStatus = "active" | "paused" | "budgetLimited" | "complete";
+.pi/extensions/goal/types.ts:21:export type ContinuationSkipReason = "notIdle" | "pendingMessages" | "notActive" | "budgetLimited" | "safetyCap" | "noProgress" | "floorExhausted" | "budgetExhausted" | "compacting";
+.pi/extensions/goal/types.ts:146:export type GoalQueueSteeringReason = "goal-complete" | "goal-clear" | "goal-resume";
+.pi/extensions/goal/types.ts:147:export type GoalQueueSteeringSender = (reason: GoalQueueSteeringReason, opts?: { triggerTurn?: boolean }) => boolean;
+.pi/extensions/goal/format.ts:62:		case "budgetLimited":
+.pi/extensions/goal/format.ts:70:	if (goal.status !== "budgetLimited") return statusLabel(goal.status);
+.pi/extensions/goal/format.ts:83:		case "budgetLimited":
+.pi/extensions/goal/format.ts:132:		case "budgetLimited":
+.pi/extensions/goal/format.ts:145:		if (goal.status === "budgetLimited") return `${used} / ${budget} tokens`;
+.pi/extensions/goal/queue-steering.ts:8:export function sendQueueSteering(pi: ExtensionAPI, reason: GoalQueueSteeringReason, opts: { triggerTurn?: boolean } = {}): boolean {
+.pi/extensions/goal/queue-steering.ts:18:		{ deliverAs: "steer", triggerTurn: opts.triggerTurn },
+.pi/extensions/goal/queue-steering.ts:42:		"3. If exactly one reusable template fits and required values can be derived from the queue text or current context, use create_goal_from_template. Do NOT call start_queued_goal and do NOT make the prose itself the active goal.",
+.pi/extensions/goal/queue-steering.ts:44:		"5. Direct goal fallback: call start_queued_goal only when no reusable template fits, or when the text itself is clearly the concrete one-off goal to perform.",
+.pi/extensions/goal/queue-steering.ts:45:		"6. For orchestration/JIT work, use existing goal tools as appropriate: create_goal, create_goal_from_template, or enqueue_goal. Do not rely on extension-side prose parsing; you, the agent, resolve the intent from context.",
+.pi/extensions/goal/queue-steering.ts:53:			`If classified as a direct goal, start_queued_goal will re-resolve template '${goal.template}' with flags=${JSON.stringify(goal.templateFlags ?? {})}, args=${JSON.stringify(goal.templateArgs ?? "")}.`,
+.pi/extensions/goal/queue-steering.ts:54:			"If you cannot use the direct path, use create_goal_from_template rather than create_goal, and dequeue only after successful direct creation or completed orchestration satisfaction.",
+.pi/extensions/goal/queue-steering.ts:58:			"Plain queue entry: use start_queued_goal only if you classified this item as a direct goal.",
+.pi/extensions/goal/queue-steering.ts:59:			"Example orchestration wording such as 'run/create/start the deslop-commit-range goal template' means use create_goal_from_template (or another existing goal tool), not start_queued_goal.",
+.pi/extensions/goal/queue-steering.ts:67:	if (goal.tokenBudget !== undefined) parts.push(`token_budget=${goal.tokenBudget}`);
+.pi/extensions/goal/queue-steering.ts:68:	if (goal.timeBudgetSeconds !== undefined) parts.push(`time_budget_seconds=${goal.timeBudgetSeconds}`);
+.pi/extensions/goal/monitor-prompts.ts:118:    <token_budget>${goal.tokenBudget ?? "none"}</token_budget>
+.pi/extensions/goal/monitor-prompts.ts:119:    <time_budget_seconds>${goal.timeBudgetSeconds ?? "none"}</time_budget_seconds>
+.pi/extensions/goal/monitor-prompts.ts:167:    <token_budget_warning_sent>${telemetry.tokenBudgetWarningSent ?? false}</token_budget_warning_sent>
+.pi/extensions/goal/tools.ts:19:	token_budget: Type.Optional(Type.Number({ description: "Optional positive token budget" })),
+.pi/extensions/goal/tools.ts:20:	time_budget_seconds: Type.Optional(Type.Number({ description: "Optional positive time budget in seconds" })),
+.pi/extensions/goal/tools.ts:29:	token_budget: Type.Optional(Type.Number({ description: "Optional positive token budget" })),
+.pi/extensions/goal/tools.ts:30:	time_budget_seconds: Type.Optional(Type.Number({ description: "Optional positive time budget in seconds" })),
+.pi/extensions/goal/tools.ts:38:	token_budget: Type.Optional(NullableNumber),
+.pi/extensions/goal/tools.ts:39:	time_budget_seconds: Type.Optional(NullableNumber),
+.pi/extensions/goal/tools.ts:51:	sendQueueSteering?: (reason: "goal-clear") => boolean;
+.pi/extensions/goal/tools.ts:62:	sendQueueSteering?: (reason: "goal-clear") => boolean,
+.pi/extensions/goal/tools.ts:64:	const runtime: GoalToolRuntime = { scheduleContinuation, cancelContinuation, scheduleMonitor, cancelMonitor, scheduleBudgetLimitWrapUp, getQueueSize, sendQueueSteering };
+.pi/extensions/goal/tools.ts:96:			"Use when queue steering asks you to resolve an abstract or prompt-like queued item against reusable goal templates before deciding whether to call start_queued_goal.",
+.pi/extensions/goal/tools.ts:126:		name: "create_goal_from_template",
+.pi/extensions/goal/tools.ts:175:			if (queueSize > 0) runtime.sendQueueSteering?.("goal-clear");
+.pi/extensions/goal/tools.ts:194:	token_budget?: number;
+.pi/extensions/goal/tools.ts:195:	time_budget_seconds?: number;
+.pi/extensions/goal/tools.ts:204:	token_budget?: number;
+.pi/extensions/goal/tools.ts:205:	time_budget_seconds?: number;
+.pi/extensions/goal/tools.ts:213:	token_budget?: number | null;
+.pi/extensions/goal/tools.ts:214:	time_budget_seconds?: number | null;
+.pi/extensions/goal/tools.ts:222:	return createGoalWithPolicy(pi, runtime, params, ctx, { replaceCompleted: false });
+.pi/extensions/goal/tools.ts:228:	const created = createGoalWithPolicy(pi, runtime, { objective: resolved.template.objective, token_budget: params.token_budget, time_budget_seconds: params.time_budget_seconds, min_tokens_before_wrap_up: params.min_tokens_before_wrap_up, min_time_seconds_before_wrap_up: params.min_time_seconds_before_wrap_up }, ctx, { replaceCompleted: true });
+.pi/extensions/goal/tools.ts:238:	policy: { replaceCompleted: boolean },
+.pi/extensions/goal/tools.ts:241:	if (current && (!policy.replaceCompleted || current.status !== "complete")) {
+.pi/extensions/goal/tools.ts:246:	const budgetError = validateBudgets(params.token_budget, params.time_budget_seconds);
+.pi/extensions/goal/tools.ts:248:	const floorError = validateFloorConfig({ tokenBudget: params.token_budget, timeBudgetSeconds: params.time_budget_seconds, minTokensBeforeWrapUp: params.min_tokens_before_wrap_up, minTimeSecondsBeforeWrapUp: params.min_time_seconds_before_wrap_up });
+.pi/extensions/goal/tools.ts:250:	const goal = createGoalState({ objective: validation.objective, tokenBudget: params.token_budget, timeBudgetSeconds: params.time_budget_seconds, minTokensBeforeWrapUp: params.min_tokens_before_wrap_up, minTimeSecondsBeforeWrapUp: params.min_time_seconds_before_wrap_up });
+.pi/extensions/goal/tools.ts:280:	// When a budget edit transitions active -> budgetLimited, schedule budget-limit wrap-up once.
+.pi/extensions/goal/tools.ts:320:	if (tokenBudget !== undefined && (!Number.isInteger(tokenBudget) || tokenBudget <= 0)) return "token_budget must be a positive integer when provided.";
+.pi/extensions/goal/tools.ts:322:		return "time_budget_seconds must be a positive integer when provided.";
+.pi/extensions/goal/tools.ts:364:	if (params.token_budget !== undefined) {
+.pi/extensions/goal/tools.ts:365:		if (params.token_budget !== null && (!Number.isInteger(params.token_budget) || params.token_budget <= 0)) return { ok: false, error: "token_budget must be a positive integer or null when provided." };
+.pi/extensions/goal/tools.ts:366:		next = { ...next, tokenBudget: params.token_budget === null ? undefined : params.token_budget };
+.pi/extensions/goal/tools.ts:370:	if (params.time_budget_seconds !== undefined) {
+.pi/extensions/goal/tools.ts:371:		if (params.time_budget_seconds !== null && (!Number.isInteger(params.time_budget_seconds) || params.time_budget_seconds <= 0)) return { ok: false, error: "time_budget_seconds must be a positive integer or null when provided." };
+.pi/extensions/goal/tools.ts:372:		next = { ...next, timeBudgetSeconds: params.time_budget_seconds === null ? undefined : params.time_budget_seconds };
+.pi/extensions/goal/tools.ts:398:	// Only schedule wrap-up when an active goal transitions to budgetLimited due to a budget edit.
+.pi/extensions/goal/tools.ts:399:	if (previousGoal.status === "active" && updatedGoal.status === "budgetLimited" && isBudgetExhausted(updatedGoal)) {
+.pi/extensions/goal/tools.ts:405:	if (goal.status !== "active" && goal.status !== "budgetLimited") return goal;
+.pi/extensions/goal/tools.ts:406:	return isBudgetExhausted(goal) ? { ...goal, status: "budgetLimited" } : { ...goal, status: "active" };
+.pi/extensions/goal/tools.ts:411:	if (goal.status === "budgetLimited" && reason) return noteBudgetLimit(getTelemetry(), reason);
+.pi/extensions/goal/continuation.ts:124:		{ triggerTurn: true, deliverAs: "followUp" },
+.pi/extensions/goal/continuation.ts:130:	if (!goal || goal.goalId !== goalId || goal.status !== "budgetLimited") return;
+.pi/extensions/goal/continuation.ts:137:		{ triggerTurn: true, deliverAs: "followUp" },
+.pi/extensions/goal/floor.ts:46:			return "min_tokens_before_wrap_up must be less than or equal to token_budget.";
+.pi/extensions/goal/floor.ts:53:			return "min_time_seconds_before_wrap_up must be less than or equal to time_budget_seconds.";
+
+$ find validation probes
+.ai/validation/goal-compaction-continuation-probe.mjs
+.ai/validation/goal-compaction-dedupe-telemetry-probe.mjs
+.ai/validation/goal-compaction-live-probe-closeout.md
+.ai/validation/goal-compaction-suppression-probe.mjs
+.ai/validation/goal-floor-steering-probe.mjs
+.ai/validation/goal-min-spend-floors-probe.mjs
+.ai/validation/goal-template-discovery-bounds-probe.cjs
+
+$ solo-mcp process spawn help
+bin: ~/.local/bin/solo-mcp
+description: AXI/TOON CLI for Solo MCP
+topic: process spawn
+commands[10]{cmd,purpose}:
+  solo-mcp,live dashboard
+  solo-mcp coverage,backend + route coverage
+  solo-mcp scratchpads --project <id>,compact scratchpad list
+  "solo-mcp scratchpad read <id> --project <id> [--full]",read scratchpad
+  solo-mcp todos --project <id> --status open,compact todo list
+  solo-mcp todo comment add <todo_id> --project <id> --body <text> | --file <path>,add todo comment from inline body or UTF-8 file
+  solo-mcp process output <id-or-name> --lines 80,terminal output preview
+  solo-mcp process last-response <id-or-name> --project <id>,latest clean agent response
+  solo-mcp sd fd-watch <fd> --project <id> --ticket <ticket> --action <action>,schedule SD_FD_IDLE_WAKE idle-any timer
+  solo-mcp pi profile set <process> --project <id> --profile solo-fd-prepare,set Pi profile with canonical helper
+help[2]: solo-mcp tools --search <query>,solo-mcp instances
+
+$ solo-mcp process send help
+bin: ~/.local/bin/solo-mcp
+description: Send direct input to a process
+command: solo-mcp --instance solo process send <id-or-name> --project <id> --input <text>
+options[8]: "--input <text>","--bytes 3,13","--submit true|false","--no-submit","--wait-ms <ms>","--tail-lines <n>","--tail-chars <n>","--allow-recent-spawn"
+semantics:
+  canonical_input_flag: "--input"
+  wait_ms: bounded truncated output preview only
+  not_receipt_evidence: true
+  not_readiness_evidence: true
+  not_absence_evidence: true
+  recent_spawn_warning: advisory recent_spawn_send for newly started processes
+  allow_recent_spawn: suppresses the advisory warning when startup-readiness risk is intentional
+
+$ solo-mcp tools --search process spawn
+instance: solo-pi_goals
+count: 80
+tools[0]:
+
+$ solo-mcp pi profile set help
+bin: ~/.local/bin/solo-mcp
+description: AXI/TOON CLI for Solo MCP
+topic: pi profile set
+commands[10]{cmd,purpose}:
+  solo-mcp,live dashboard
+  solo-mcp coverage,backend + route coverage
+  solo-mcp scratchpads --project <id>,compact scratchpad list
+  "solo-mcp scratchpad read <id> --project <id> [--full]",read scratchpad
+  solo-mcp todos --project <id> --status open,compact todo list
+  solo-mcp todo comment add <todo_id> --project <id> --body <text> | --file <path>,add todo comment from inline body or UTF-8 file
+  solo-mcp process output <id-or-name> --lines 80,terminal output preview
+  solo-mcp process last-response <id-or-name> --project <id>,latest clean agent response
+  solo-mcp sd fd-watch <fd> --project <id> --ticket <ticket> --action <action>,schedule SD_FD_IDLE_WAKE idle-any timer
+  solo-mcp pi profile set <process> --project <id> --profile solo-fd-prepare,set Pi profile with canonical helper
+help[2]: solo-mcp tools --search <query>,solo-mcp instances
+
+$ solo-mcp tools --search profile
+instance: solo-pi_goals
+count: 80
+tools[0]:
+
+$ strings solo-mcp profile/spawn flags
+/Users/bryan/.local/bin/solo-mcp
+/Users/bryan/.local/bin/solo-mcp True
+--profile 10127
+process spawn 32289
+profile set 27773
+solo-researcher-strong 10009
+--- --profile at 10127 ---
+f String(text||'').split(/\r?\n/)){ const m=line.match(/Warning:\s*Profile\s+([^:]+):\s*theme not available:\s*(\S+)/i); if(m) out.push({profile:m[1],code:'unavailable_theme',profile_warning:'theme_not_available',theme:m[2],message:line.trim()}); } return out; }
+function piRequiredProfiles(){ return ['solo-tlo-execute','solo-worker-weak','solo-researcher-weak','solo-researcher','solo-researcher-strong']; }
+function profileFromRuntimeArgs(args){ const s=String(args||''); const m=s.match(/(?:^|\s)--profile(?:=|\s+)([^\s"']+)/); return m?m[1]:''; }
+function profileAvailability(name,file=path.join(os.homedir(),'.codex/config.toml')){ if(!name) return null; const cfg=validateCodexConfigToml(file); const present=cfg.solo_profiles.includes(name); return {requested_profile:name,present,config_path:cfg.codex_config.path,profile_state_verified:present}; }
+function profileValidationWarnings(v){ return v&&!v.present?[{code:'profile_not_configured',message:'requested Pi profile is absent from config; launch may run as global/default profile'}]:[]; }
+function piProfileValidation(file=path.join(os.homedir(),'.codex/config.toml')){ const cfg=validateCodexConfigToml(file); const text=fs.readFileSync(cfg.codex_config.path,'utf8'); const theme=(text.match(/^theme\s*=\s*"([^"]+)"/m)||[])[1]||''; con
+--- process spawn at 32289 ---
+test(raw)?tools.filter(t=>String(t.id)===raw):tools.filter(t=>[t.name,t.tool_type,t.command].some(v=>String(v||'').toLowerCase()===raw.toLowerCase())); if(!matches.length){ if(allowMissing) return {tool:null,selector:raw,available,missing:true,reason:'runtime_not_found'}; emit({error:{code:'runtime_not_found',message:`agent runtime ${raw} was not found`,exit:1},requested_runtime:raw,available_runtimes:available,help:[`solo-mcp --instance ${instName} agent tools`,`solo-mcp --instance ${instName} process spawn --kind agent --agent-tool-id <id>`]},1); } const enabled=matches.filter(agentToolEnabled); if(!enabled.length){ if(allowMissing) return {tool:null,selector:raw,available,missing:true,reason:'runtime_disabled',matched:agentToolRows(matches)}; emit({error:{code:'runtime_disabled',message:`agent runtime ${raw} is disabled`,exit:1},requested_runtime:raw,matched_runtimes:agentToolRows(matches),available_runtimes:available,help:[`enable the runtime in Solo, or choose an enabled runtime from: solo-mcp --instance ${instName} agent tools`]},1); } if(enabled.length>1) emit({error:{code:'runtime_ambiguous',message:`agent runtime ${raw} matched multiple enabled tools`,exit:1},requested_runtime:raw,matched_runtimes:agentToolRows(enabled),help:[`rerun with --agent-tool-id <id>`]},1); retur
+--- profile set at 27773 ---
+uard(parseBytes(o.bytes)); const slash=slashCommandLinesFromText(text); const profile=slash.find(x=>/^\/(?:profile|reload-codex-profile)(?:\s|$)/.test(x.text)); if(profile) emit({error:{code:'profile_switch_requires_pi_helper',message:'Profile switching must use the canonical pi profile helper.',exit:2},request:{route:'process send',project_id:project(o)??'',process:o._?.[2]||'',blocked_line:profile.line},recovery:[{action:'set_profile',command:`solo-mcp --instance ${shellQuoteArg(instName)} pi profile set ${shellQuoteArg(o._?.[2]||'<process_id>')}${projectFlag(project(o))} --profile <solo-profile>`},{action:'reload_profiles',command:`solo-mcp --instance ${shellQuoteArg(instName)} pi profile reload ${shellQuoteArg(o._?.[2]||'<process_id>')}${projectFlag(project(o))}`}],help:[`solo-mcp --instance ${instName} pi profile set <process_id> --project <project_id> --profile solo-fd-execute`]},2); if(slash.length>1){ const proc=shellQuoteArg(o._?.[2]||'<process_id>'); const pf=projectFlag(project(o)); const split=slash.map(x=>`solo-mcp --instance ${shellQuoteArg(instName)} process send ${proc}${pf} --input ${shellQuoteArg(x.text)}`).join(' && sleep 0.5 && '); emit({error:{code:'multiple_slash_commands_blocked',message:'process send accepts at most one slash command per input.',exit:2},re
+--- agentToolRuntimeArgs -1 ---
+#!/usr/bin/env node
+import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+import { encode } from '@toon-format/toon';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import { execFileSync } from 'node:child_process';
+
+const VERSION = '0.2.0';
+const EXPECTED = `list_projects select_project get_project_status get_project_stats services_list wait_for_bound_port list_processes get_process_status rename_process start_process stop_process restart_process send_input close_process start_all_commands stop_all_commands restart_all_commands get_process_output get_process_raw_output search_output search_raw_output clear_output get_process_ports list_agent_tools spawn_process bind_session_process whoami register_agent lock_acquire lock_st
+--- runtimeArgs 33577 ---
+.fallback||'none').toLowerCase(); if(!['none','terminal'].includes(f)) usage('fallback must be none or terminal',[`solo-mcp process spawn --kind agent --runtime <runtime> --runtime-args "<args>" --fallback terminal`]); return f; }
+function shellQuoteArg(v){ const s=String(v); if(!s.startsWith('-')&&/^[A-Za-z0-9_\/:.,=+@%^-]+$/.test(s)) return s; return `'${s.replaceAll("'","'\\''")}'`; }
+function runtimeArgsText(o){ const parts=[]; if(o.runtime_args) parts.push(String(o.runtime_args)); if(o.runtime_arg?.length) parts.push(o.runtime_arg.map(shellQuoteArg).join(' ')); return parts.filter(Boolean).join(' '); }
+function appendCommandArgs(command,args){ return [String(command||'').trim(),String(args||'').trim()].filter(Boolean).join(' '); }
+function runtimeRequested(o){ return firstOf(o.agent_tool_id,o.agent_tool,o.runtime); }
+function pushCliFlag(parts,flag,value){ if(value!==undefined&&value!==null&&value!==''&&value!==false) parts.push(flag,shellQuoteArg(value)); }
+function spawnRouteName(o){ return o._?.[0]==='tlo'?'tlo spawn-worker':'process spawn'; }
+function spawnRecoveryCommand(o,instName,selector,extra,{fallbackTerminal=false,agentToolIdPlaceholder=false}={}){ const isTlo=o._?.[0]==='tlo'; const parts=['solo-mcp','--instance',shellQuoteArg(instName),...(isTlo?['tlo','spawn-wo
+--- profileFromRuntimeArgs 10046 ---
+split(/\r?\n/)){ const m=line.match(/Warning:\s*Profile\s+([^:]+):\s*theme not available:\s*(\S+)/i); if(m) out.push({profile:m[1],code:'unavailable_theme',profile_warning:'theme_not_available',theme:m[2],message:line.trim()}); } return out; }
+function piRequiredProfiles(){ return ['solo-tlo-execute','solo-worker-weak','solo-researcher-weak','solo-researcher','solo-researcher-strong']; }
+function profileFromRuntimeArgs(args){ const s=String(args||''); const m=s.match(/(?:^|\s)--profile(?:=|\s+)([^\s"']+)/); return m?m[1]:''; }
+function profileAvailability(name,file=path.join(os.homedir(),'.codex/config.toml')){ if(!name) return null; const cfg=validateCodexConfigToml(file); const present=cfg.solo_profiles.includes(name); return {requested_profile:name,present,config_path:cfg.codex_config.path,profile_state_verified:present}; }
+function profileValidationWarnings(v){ return v&&!v.present?[{code:'profile_not_configured',message:'requested Pi profile is absent from config; launch may run as global/default profile'}]:[]; }
+function piProfileValidation(file=path.join(os.homedir(),'.codex/config.toml')){ const cfg=validateCodexConfigToml(file); const text=fs.readFileSync(cfg.codex_config.path,'utf8'); const theme=(text.match(/^theme\s*=\s*"([^"]+)"/m)||[])[1]||''; const required=piRequi
+--- process_spawn 249338 ---
+instName} process output ${pid||'<id>'} --project ${project_id} --lines 120`,close]}; if(!delivery.prompt_delivered) out.recovery={send_command:researcherSendRecovery(instName,project_id,pid,src.prompt_file),close_command:close}; emit(out, delivery.prompt_delivered?0:1); }
+
+async function handleProcessSpawn(client,o,instName){ if(o.prompt!=null||o.prompt_file!=null) emit({error:{code:'unsupported_process_spawn_prompt',message:'process spawn does not support --prompt or --prompt-file. Use process send --input after the process is ready, or use helpers that own prompt-delivery semantics.',exit:2},request:{route:'process spawn',project_id:project(o)??'',unsupported_flags:[...(o.prompt!=null?['--prompt']:[]),...(o.prompt_file!=null?['--prompt-file']:[])]},process_not_spawned:true,recovery:[{action:'spawn_then_send',command:`solo-mcp --instance ${shellQuoteArg(instName)} process spawn${projectFlag(project(o))} --kind ${shellQuoteArg(o.kind||'agent')} --name ${shellQuoteArg(o.name||'<name>')} && solo-mcp --instance ${shellQuoteArg(instName)} process send <process_id>${projectFlag(project(o))} --input <text>`,note:'Wait until process status or output indicates readiness before sending input.'},{action:'use_tlo_helper',command:`solo-mcp --instance ${shellQuoteArg(instName)} tlo spawn-wor
+async function handleProcessSpawn(client,o,instName){ if(o.prompt!=null||o.prompt_file!=null) emit({error:{code:'unsupported_process_spawn_prompt',message:'process spawn does not support --prompt or --prompt-file. Use process send --input after the process is ready, or use helpers that own prompt-delivery semantics.',exit:2},request:{route:'process spawn',project_id:project(o)??'',unsupported_flags:[...(o.prompt!=null?['--prompt']:[]),...(o.prompt_file!=null?['--prompt-file']:[])]},process_not_spawned:true,recovery:[{action:'spawn_then_send',command:`solo-mcp --instance ${shellQuoteArg(instName)} process spawn${projectFlag(project(o))} --kind ${shellQuoteArg(o.kind||'agent')} --name ${shellQuoteArg(o.name||'<name>')} && solo-mcp --instance ${shellQuoteArg(instName)} process send <process_id>${projectFlag(project(o))} --input <text>`,note:'Wait until process status or output indicates readiness before sending input.'},{action:'use_tlo_helper',command:`solo-mcp --instance ${shellQuoteArg(instName)} tlo spawn-worker --project ${shellQuoteArg(project(o)??'<project_id>')} --todo <todo_id> --name <worker> --prompt-file <path> --run <run_id>`},{action:'use_sd_helper',command:`solo-mcp --instance ${shellQuoteArg(instName)} sd spawn-researcher --project ${shellQuoteArg(project(o)??'<project_id>')} --tier weak --name <name> --prompt-file <path>`}]},2); const kind=o.kind||usage('kind is required',[`solo-mcp process spawn --kind terminal`,`solo-mcp process spawn --kind agent --runtime Codex`]); const plan=await spawnPlan(client,{...o,kind},instName,{defaultRuntime:'Codex'}); const {data,pid,terminal_send}=await executeSpawnPlan(client,plan,o); emit({process:{id:pid,name:data.name??o.name??'',kind:plan.actual_kind,requested_kind:plan.requested_kind},...(plan.profile_validation?{profile_validation:plan.profile_validation}:{}),...(plan.runtime&&Object.keys(plan.runtime).length?{runtime:plan.runtime}:{}),...(plan.materialized_agent_tool?{materialized_agent_tool:{mode:plan.materialized_agent_tool.mode,args_mode:plan.materialized_agent_tool.spec.args_mode||'append',id:plan.materialized_agent_tool.id,name:plan.materialized_agent_tool.name,spec_hash:plan.materialized_agent_tool.spec_hash,created:plan.materialized_agent_tool.created,reenabled:plan.materialized_agent_tool.reenabled,cleanup:plan.materialized_agent_tool.cleanup,backup:plan.materialized_agent_tool.backup}}:{}),...(plan.fallback?{fallback:plan.fallback}:{}),...(plan.actual_kind==='terminal'?{terminal_command:{sent:!!plan.terminal_command,command:plan.terminal_command||'',bytes_sent:Buffer.byteLength(plan.terminal_command||'')}}:{}),warnings:plan.warnings||[],help:[`solo-mcp --instance ${instName} process status ${pid||'<id>'} --project ${plan.spawn_args.project_id??'<project_id>'}`]}); }
+function shouldSendSubmitFollowup(args){ if(args.submit===false||args.input==null) return false; return slashCommandLinesFromText(String(args.input)).length===1; }
+async function sleepMs(ms){ if(ms>0) await new Promise(r=>setTimeout(r,ms)); }
+async function handleProcessSend(client,o,instName){ const args=processSendArgs(o,instName); const data=await call(client,'send_input',args,o.full||o.raw); if(o.raw) emit({tool:'send_input',result:data}); const out=projectSendInput(data,args,o); if(shouldSendSubmitFollowup(args)){ const delayMs=500; await sleepMs(delayMs); await call(client,'send_input',{project_id:args.project_id,...target(args.process_id??args.process_name),bytes:[13],submit:false},true).then(()=>{ out.submit_followup={sent:true,delay_ms:delayMs,bytes_sent:1,reason:'slash_command_autocomplete_submit_retry'}; }).catch(e=>{ out.submit_followup={sent:false,delay_ms:delayMs,error:String(e?.message||e),reason:'slash_command_autocomplete_submit_retry'}; }); } const statusArgs={project_id:args.project_id,...target(args.process_id??args.process_name)}; const status=await call(client,'get_process_status',statusArgs,true).catch(()=>null); const warning=recentSpawnWarning(status,o,instName,args); if(warning) out.warnings=[...(out.warnings||[]),warning]; else if(bool(o.allow_recent_spawn,'allow-recent-spawn')) out.allow_recent_spawn=true; emit(out); }
+async function liveRecentSpawnProbe(client,o,instName){ const project_id=project(o)??usage('project is required'); let pid='', closed=false, sentOut=null, sendError=''; try{ const plan=await spawnPlan(client,{...o,project:project_id,kind:'terminal',name:o.name||`issue072-live-probe-${Date.now()}`},instName,{defaultRuntime:'Codex'}); const spawned=awa
+async function spawnPlan(client,o,instName,{defaultRuntime='Codex'}={}){ o={...o,instance:instName}; const requestedKind=o.kind||'agent'; if(!['agent','terminal'].includes(requestedKind)) usage('kind must be agent or terminal'); const fb=fallbackMode(o); const cm=materializedMode(o); const extra=runtimeArgsText(o); const requestedProfile=profileFromRuntimeArgs(extra); const profileValidation=profileAvailability(requestedProfile); const profileWarnings=profileValidationWarnings(profileValidation); if(profileValidation&&!profileValidation.present&&bool(o.strict_profile,'strict-profile')) emit({error:{code:'profile_not_configured',message:'requested Pi profile is absent from config; spawn suppressed before process creation',exit:2},profile_validation:profileValidation,warnings:profileWarnings,strict_missing_profile:{spawn_suppressed:true,process_not_spawned:true,exit:2},recovery:[{action:'define_profile',command:`edit ~/.codex/config.toml to add [profiles.${requestedProfile}] (not performed by solo-mcp)`},{action:'retry_non_strict',command:spawnRecoveryCommand(o,instName,o.runtime||o.agent_tool||'<runtime>',extra).replace(' --strict-profile','')} ]},2); if(['current','self'].includes(String(o.runtime||'').toLowerCase())){ const hint=await currentTloRuntimeHint(client,project(o),instName,o).catch(()=>null); if(!hint?.agent_tool_id) usage('current TLO runtime could not be resolved',[`solo-mcp --instance ${instName} tlo preflight --project ${project(o)||'<project_id>'}`,`solo-mcp --instance ${instName} tlo spawn-worker --project ${project(o)||'<project_id>'} --todo <todo_id> --name "<worker>" --runtime Pi --runtime-args "--profile solo-worker-weak" --custom-agent-tool materialized --materialized-args-mode replace`]); o={...o,runtime:undefined,agent_tool_id:String(hint.agent_tool_id),runtime_affinity_hint:hint,runtime_selector:'current'}; } if(cm==='materialized'&&materializedArgsMode(o)==='replace'&&!String(extra||'').trim()) usage('--materialized-args-mode replace requires --runtime-args or --runtime-arg',[`solo-mcp process spawn --kind agent --runtime Pi --runtime-args "--profile solo-tlo-execute" --custom-agent-tool materialized --materialized-args-mode replace`]); const project_id=project(o); const base={project_id,kind:requestedKind,name:o.name}; const commandOverride=o.command||'';
+ if(requestedKind==='terminal'){ let runtime={}; let command=commandOverride; if(!command&&runtimeRequested(o)){ const resolved=await resolveAgentTool(client,o,instName,{defaultRuntime:'',allowMissing:true}); if(resolved.tool){ runtime=agentToolRuntime(resolved.tool,resolved.selector); command=runtime.command; } else { runtime={selector:resolved.selector,registered:false,reason:resolved.reason}; command=resolved.selector; } } command=appendCommandArgs(command,extra); if(extra&&!command) usage('command or runtime is required when passing runtime args to a terminal'); return {actual_kind:'terminal',requested_kind:requestedKind,spawn_args:{...base,kind:'terminal'},runtime,terminal_command:command,profile_validation:profileValidation,warnings:profileWarnings}; }
+ const resolved=await resolveAgentTool(client,o,instName,{defaultRuntime,allowMissing:true}); const selector=resolved.selector||runtimeRequested(o)||commandOverride||defaultRuntime; if(!resolved.tool){ const runtime={selector:resolved.selector,registered:false,reason:resolved.reason}; if(cm==='materialized'){ const baseRow=dbAgentToolBySelector(soloDbPath(o),selector); const mat=materializeAgentTool(o,selector,baseRow,extra); await validateMaterializedAgentTool(client,mat,o,instName,selector,extra); const spawn_args={...base,kind:'agent',agent_tool_id:mat.id}; const include=bool(o.include_agent_instructions,'include-agent-instructions'); if(include!=null) spawn_args.include_agent_instructions=include; return {actual_kind:'agent',requested_kind:requestedKind,spawn_args,runtime:materializedRuntime(mat,selector),materialized_agent_tool:mat,profile_validation:profileValidation,warnings:profileWarnings}; } if(fb!=='terminal') emitAgentSpawnConstraintError(resolved.reason||'runtime_not_found',`Agent runtime ${resolved.selector} is not available as an enabled Solo agent tool.`,o,instName,runtime,extra,'runtime_missing_or_disabled'); const command=appendCommandArgs(commandOverride||resolved.selector,extra); return {actual_kind:'terminal',requested_kind:requestedKind,spawn_args:{project_id,kind:'terminal',name:o.name},runtime,terminal_command:command,fallback:{from:'agent',to:'terminal',reason:resolved.reason},profile_validation:profileValidation,warnings:[...profileWarnings,'Terminal fallback does not expose agent_state; classification is lower-confidence.']}; }
+ const runtime=agentToolRuntime(resolved.tool,resolved.selector); if(extra||commandOverride){ if(cm==='materialized'){ const db=soloDbPath(o); const baseRow=dbAgentToolById(db,resolved.tool.id)||dbAgentToolBySelector(db,resolved.selector); const mat=materializeAgentTool(o,resolved.selector,baseRow||resolved.tool,extra); await validateMaterializedAgentTool(client,mat,o,instName,resolved.selector,extra); const spawn_args={...base,kind:'agent',agent_tool_id:mat.id}; const include=bool(o.include_agent_instructions,'include-agent-instructions'); if(include!=null) spawn_args.include_agent_instructions=include; return {actual_kind:'agent',requested_kind:requestedKind,spawn_args,runtime:materializedRuntime(mat,resolved.selector),materialized_agent_tool:mat,profile_validation:profileValidation,warnings:profileWarnings}; } if(fb!=='terminal') emitAgentSpawnConstraintError('backend_does_not_support_agent_custom_args','Registered Solo agent runtimes cannot receive per-spawn custom args through current Solo MCP.',o,instName,runtime,extra,'custom_args_not_supported_by_backend'); const command=appendCommandArgs(commandOverride||runtime.command,extra); return {actual_kind:'terminal',requested_kind:requestedKind,spawn_args:{project_id,kind:'terminal',name:o.name},runtime,fallback:{from:'agent',to:'terminal',reason:'custom_
+quested_kind:requestedKind,spawn_args,runtime:materializedRuntime(mat,resolved.selector),materialized_agent_tool:mat,profile_validation:profileValidation,warnings:profileWarnings}; } if(fb!=='terminal') emitAgentSpawnConstraintError('backend_does_not_support_agent_custom_args','Registered Solo agent runtimes cannot receive per-spawn custom args through current Solo MCP.',o,instName,runtime,extra,'custom_args_not_supported_by_backend'); const command=appendCommandArgs(commandOverride||runtime.command,extra); return {actual_kind:'terminal',requested_kind:requestedKind,spawn_args:{project_id,kind:'terminal',name:o.name},runtime,fallback:{from:'agent',to:'terminal',reason:'custom_args_not_supported_by_backend'},terminal_command:command,profile_validation:profileValidation,warnings:[...profileWarnings,'Terminal fallback does not expose agent_state; classification is lower-confidence.']}; }
+ const spawn_args={...base,kind:'agent',agent_tool_id:Number(resolved.tool.id)}; const include=bool(o.include_agent_instructions,'include-agent-instructions'); if(include!=null) spawn_args.include_agent_instructions=include; if(o.runtime_selector==='current') runtime.selector='current', runtime.inherited_from_process=o.runtime_affinity_hint?.inherited_from_process||''; return {actual_kind:'agent',requested_kind:requestedKind,spawn_args,runtime,profile_validation:profileValidation,warnings:profileWarnings}; }
+async function executeSpawnPlan(client,plan,o){ const data=await call(client,'spawn_process',plan.spawn_args,true); const pid=firstOf(data.process_id,data.id,data.process?.id); let terminal_send={sent:false}; if(plan.actual_kind==='terminal'&&plan.terminal_command){ terminal_send=await call(client,'send_input',{project_id:plan.spawn_args.project_id,process_id:Number(pid),input:plan.terminal_command,submit:true,wait_ms:num(o.command_wait_ms,'command-wait-ms')||num(o.wait_ms,'wait-ms')||1000},true); } return {data,pid,terminal_send}; }
+async function waitForSpawnReadiness(client,project_id,pid,o){ const waitMs=num(o.readiness_wait_ms,'readiness-wait-ms')??1000; const deadline=Date.now()+Math.max(0,waitMs); let status=null, attempts=0, lastError=''; do{ attempts++; try{ status=await call(client,'get_process_status',{project_id,process_id:Number(pid)},true); const lifecycle=tloProjStatus(status).lifecycle||status.status||''; if(lifecycle==='Running'||!lifecycle) return {ok:true,waited:true,attempts,lifecycle:lifecycle||'unknown'}; lastError=`lifecycle=${lifecycle}`; }catch(e){ lastError=String(e?.message||e); } if(Date.now()<deadline) await new Promise(r=>setTimeout(r,Math.min(150,deadline-Date.now()))); }while(Date.now()<deadline); return {ok:false,waited:true,attempts,lifecycle:status?(tloProjStatus(status).lifecycle||status.status||'unknown'):'unknown',error:lastError||'readiness_timeout'}; }
+function spawnPromptDeliveryRecovery(instName,project_id,pid,todo,promptF
+custom_agent_tool 36905
+custom-agent-tool 36409
+materialized-args-mode 35286
+strict-profile 5301
+runtime-args 33350
+$ npx -y @toon-format/cli --decode /tmp/issue041-toon-blocks/01.toon
+$ npx -y @toon-format/cli --decode /tmp/issue041-toon-blocks/02.toon
+$ npx -y @toon-format/cli --decode /tmp/issue041-toon-blocks/01.toon
+$ npx -y @toon-format/cli --decode /tmp/issue041-toon-blocks/02.toon
+$ python3 extract issue041 TOON blocks and validate with @toon-format/cli
+/tmp/issue041-toon-blocks/01.toon	.ai/issues/open/ISSUE-041-harden-acceptance-verification-pipeline-workflow.md	block1
+/tmp/issue041-toon-blocks/02.toon	.ai/issues/open/ISSUE-041-harden-acceptance-verification-pipeline-workflow.md	block2
+/tmp/issue041-toon-blocks/03.toon	.ai/issues/open/ISSUE-041-harden-acceptance-verification-pipeline-workflow.md	block3
+/tmp/issue041-toon-blocks/04.toon	.ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/00-intake.md	block1
+/tmp/issue041-toon-blocks/05.toon	.ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/00-intake.md	block2
+/tmp/issue041-toon-blocks/06.toon	.ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/00-intake.md	block3
+/tmp/issue041-toon-blocks/07.toon	.ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/01-protocol-read.md	block1
+/tmp/issue041-toon-blocks/08.toon	.ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/01-protocol-read.md	block2
+/tmp/issue041-toon-blocks/09.toon	.ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/02-live-surface-research.md	block1
+/tmp/issue041-toon-blocks/10.toon	.ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/03-implementation-design-lock.md	block1
+/tmp/issue041-toon-blocks/11.toon	.ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/03-implementation-design-lock.md	block2
+/tmp/issue041-toon-blocks/12.toon	.ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/04-patch-sequence.md	block1
+/tmp/issue041-toon-blocks/13.toon	.ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/05-proof-plan.md	block1
+/tmp/issue041-toon-blocks/14.toon	.ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/05-proof-plan.md	block2
+/tmp/issue041-toon-blocks/15.toon	.ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/05-proof-plan.md	block3
+/tmp/issue041-toon-blocks/16.toon	.ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/06-issue-writeback.md	block1
+/tmp/issue041-toon-blocks/17.toon	.ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/06-issue-writeback.md	block2
+/tmp/issue041-toon-blocks/18.toon	.ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/06-issue-writeback.md	block3
+/tmp/issue041-toon-blocks/19.toon	.ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/06-issue-writeback.md	block4
+$ npx -y @toon-format/cli --decode /tmp/issue041-toon-blocks/01.toon
+$ npx -y @toon-format/cli --decode /tmp/issue041-toon-blocks/02.toon
+$ npx -y @toon-format/cli --decode /tmp/issue041-toon-blocks/03.toon
+$ npx -y @toon-format/cli --decode /tmp/issue041-toon-blocks/04.toon
+$ npx -y @toon-format/cli --decode /tmp/issue041-toon-blocks/05.toon
+$ npx -y @toon-format/cli --decode /tmp/issue041-toon-blocks/06.toon
+$ npx -y @toon-format/cli --decode /tmp/issue041-toon-blocks/07.toon
+$ npx -y @toon-format/cli --decode /tmp/issue041-toon-blocks/08.toon
+$ npx -y @toon-format/cli --decode /tmp/issue041-toon-blocks/09.toon
+$ npx -y @toon-format/cli --decode /tmp/issue041-toon-blocks/10.toon
+$ npx -y @toon-format/cli --decode /tmp/issue041-toon-blocks/11.toon
+$ npx -y @toon-format/cli --decode /tmp/issue041-toon-blocks/12.toon
+$ npx -y @toon-format/cli --decode /tmp/issue041-toon-blocks/13.toon
+$ npx -y @toon-format/cli --decode /tmp/issue041-toon-blocks/14.toon
+$ npx -y @toon-format/cli --decode /tmp/issue041-toon-blocks/15.toon
+$ npx -y @toon-format/cli --decode /tmp/issue041-toon-blocks/16.toon
+$ npx -y @toon-format/cli --decode /tmp/issue041-toon-blocks/17.toon
+$ npx -y @toon-format/cli --decode /tmp/issue041-toon-blocks/18.toon
+$ npx -y @toon-format/cli --decode /tmp/issue041-toon-blocks/19.toon
+$ git status --short --untracked-files=all
+ M .ai/issues/open/ISSUE-041-harden-acceptance-verification-pipeline-workflow.md
+$ git check-ignore -v .ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/00-intake.md || true
+.gitignore:6:.ai/docs/*	.ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/00-intake.md
+$ git status --short --untracked-files=all
+ M .ai/issues/open/ISSUE-041-harden-acceptance-verification-pipeline-workflow.md
+ M .gitignore
+?? .ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/00-intake.md
+?? .ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/01-protocol-read.md
+?? .ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/02-live-surface-research.md
+?? .ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/03-implementation-design-lock.md
+?? .ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/04-patch-sequence.md
+?? .ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/05-proof-plan.md
+?? .ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/06-issue-writeback.md
+?? .ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/raw/commands.log
+$ git check-ignore -v .ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/00-intake.md || true
+.gitignore:13:!.ai/docs/implementation-readiness/**	.ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/00-intake.md
+$ python3 extract issue041 final TOON blocks and validate with @toon-format/cli
+/tmp/issue041-toon-blocks-final/01.toon	.ai/issues/open/ISSUE-041-harden-acceptance-verification-pipeline-workflow.md	block1
+/tmp/issue041-toon-blocks-final/02.toon	.ai/issues/open/ISSUE-041-harden-acceptance-verification-pipeline-workflow.md	block2
+/tmp/issue041-toon-blocks-final/03.toon	.ai/issues/open/ISSUE-041-harden-acceptance-verification-pipeline-workflow.md	block3
+/tmp/issue041-toon-blocks-final/04.toon	.ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/00-intake.md	block1
+/tmp/issue041-toon-blocks-final/05.toon	.ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/00-intake.md	block2
+/tmp/issue041-toon-blocks-final/06.toon	.ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/00-intake.md	block3
+/tmp/issue041-toon-blocks-final/07.toon	.ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/01-protocol-read.md	block1
+/tmp/issue041-toon-blocks-final/08.toon	.ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/01-protocol-read.md	block2
+/tmp/issue041-toon-blocks-final/09.toon	.ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/02-live-surface-research.md	block1
+/tmp/issue041-toon-blocks-final/10.toon	.ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/03-implementation-design-lock.md	block1
+/tmp/issue041-toon-blocks-final/11.toon	.ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/03-implementation-design-lock.md	block2
+/tmp/issue041-toon-blocks-final/12.toon	.ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/04-patch-sequence.md	block1
+/tmp/issue041-toon-blocks-final/13.toon	.ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/05-proof-plan.md	block1
+/tmp/issue041-toon-blocks-final/14.toon	.ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/05-proof-plan.md	block2
+/tmp/issue041-toon-blocks-final/15.toon	.ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/05-proof-plan.md	block3
+/tmp/issue041-toon-blocks-final/16.toon	.ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/06-issue-writeback.md	block1
+/tmp/issue041-toon-blocks-final/17.toon	.ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/06-issue-writeback.md	block2
+/tmp/issue041-toon-blocks-final/18.toon	.ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/06-issue-writeback.md	block3
+/tmp/issue041-toon-blocks-final/19.toon	.ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/06-issue-writeback.md	block4
+/tmp/issue041-toon-blocks-final/20.toon	.ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/07-final-audit.md	block1
+/tmp/issue041-toon-blocks-final/21.toon	.ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/07-final-audit.md	block2
+/tmp/issue041-toon-blocks-final/22.toon	.ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/07-final-audit.md	block3
+/tmp/issue041-toon-blocks-final/23.toon	.ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/07-final-audit.md	block4
+/tmp/issue041-toon-blocks-final/24.toon	.ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/07-final-audit.md	block5
+total_blocks=24
+$ npx -y @toon-format/cli --decode /tmp/issue041-toon-blocks-final/01.toon
+$ npx -y @toon-format/cli --decode /tmp/issue041-toon-blocks-final/02.toon
+$ npx -y @toon-format/cli --decode /tmp/issue041-toon-blocks-final/03.toon
+$ npx -y @toon-format/cli --decode /tmp/issue041-toon-blocks-final/04.toon
+$ npx -y @toon-format/cli --decode /tmp/issue041-toon-blocks-final/05.toon
+$ npx -y @toon-format/cli --decode /tmp/issue041-toon-blocks-final/06.toon
+$ npx -y @toon-format/cli --decode /tmp/issue041-toon-blocks-final/07.toon
+$ npx -y @toon-format/cli --decode /tmp/issue041-toon-blocks-final/08.toon
+$ npx -y @toon-format/cli --decode /tmp/issue041-toon-blocks-final/09.toon
+$ npx -y @toon-format/cli --decode /tmp/issue041-toon-blocks-final/10.toon
+$ npx -y @toon-format/cli --decode /tmp/issue041-toon-blocks-final/11.toon
+$ npx -y @toon-format/cli --decode /tmp/issue041-toon-blocks-final/12.toon
+$ npx -y @toon-format/cli --decode /tmp/issue041-toon-blocks-final/13.toon
+$ npx -y @toon-format/cli --decode /tmp/issue041-toon-blocks-final/14.toon
+$ npx -y @toon-format/cli --decode /tmp/issue041-toon-blocks-final/15.toon
+$ npx -y @toon-format/cli --decode /tmp/issue041-toon-blocks-final/16.toon
+$ npx -y @toon-format/cli --decode /tmp/issue041-toon-blocks-final/17.toon
+$ npx -y @toon-format/cli --decode /tmp/issue041-toon-blocks-final/18.toon
+$ npx -y @toon-format/cli --decode /tmp/issue041-toon-blocks-final/19.toon
+$ npx -y @toon-format/cli --decode /tmp/issue041-toon-blocks-final/20.toon
+$ npx -y @toon-format/cli --decode /tmp/issue041-toon-blocks-final/21.toon
+$ npx -y @toon-format/cli --decode /tmp/issue041-toon-blocks-final/22.toon
+$ npx -y @toon-format/cli --decode /tmp/issue041-toon-blocks-final/23.toon
+$ npx -y @toon-format/cli --decode /tmp/issue041-toon-blocks-final/24.toon
+$ git status --short --untracked-files=all
+ M .ai/issues/open/ISSUE-041-harden-acceptance-verification-pipeline-workflow.md
+ M .gitignore
+?? .ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/00-intake.md
+?? .ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/01-protocol-read.md
+?? .ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/02-live-surface-research.md
+?? .ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/03-implementation-design-lock.md
+?? .ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/04-patch-sequence.md
+?? .ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/05-proof-plan.md
+?? .ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/06-issue-writeback.md
+?? .ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/07-final-audit.md
+?? .ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/raw/commands.log
+$ git check-ignore .ai/docs/implementation-readiness/ISSUE-041-harden-acceptance-verification-pipeline-workflow/00-intake.md; echo exit=$?
+exit=1
+$ python3 completion audit for ISSUE-041 implementation-readiness objective
+no missing artifacts: pass
+status implementation-ready: pass
+implementation-ready plan section: pass
+exact implementation surfaces: pass
+patch sequence summary: pass
+validation/proof sequence: pass
+blocker/fallback policy: pass
+handoff notes: pass
+final audit cardinality: pass

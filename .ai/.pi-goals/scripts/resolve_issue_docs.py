@@ -48,7 +48,11 @@ def toon_string(value: object) -> str:
 
 def artifact_dir_for(issue: str, slug: str) -> str:
     root = os.environ.get("ISSUE_ARTIFACT_ROOT", ".ai/docs/issue-workflow").strip().rstrip("/")
-    return f"{root}/{issue}-{slug}"
+    subdir = os.environ.get("ISSUE_ARTIFACT_SUBDIR", "").strip().strip("/")
+    base = f"{root}/{issue}-{slug}"
+    if subdir:
+        return f"{base}/{subdir}"
+    return base
 
 
 def discover_issue_docs() -> list[IssueDoc]:
