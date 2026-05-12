@@ -162,10 +162,15 @@ print("  write_acceptance_prompt: cat > " + quote(prompt_file) + " <<'ACCEPTANCE
 print("  spawn_acceptance_agent: " + " ".join([
     "solo-mcp", "--instance", quote(instance), "process", "spawn",
     "--project", quote(project_id), "--kind", "agent", "--runtime", "Pi",
+    "--runtime-args", quote("--profile solo-researcher-strong"),
+    "--custom-agent-tool", "materialized", "--materialized-args-mode", "replace", "--strict-profile",
     "--name", quote(worker_name),
 ]))
 print("  set_worker_id_after_spawn: export ACCEPTANCE_WORKER_ID=<id from spawn_acceptance_agent output>")
 print("  verify_worker_status_after_spawn: " + f"solo-mcp --instance {quote(instance)} process status \"$ACCEPTANCE_WORKER_ID\" --project {quote(project_id)}")
+print("  send_model_selection: " + f"solo-mcp --instance {quote(instance)} process send \"$ACCEPTANCE_WORKER_ID\" --project {quote(project_id)} --input '/model opencode-go/glm-5.1' --allow-recent-spawn")
+print("  verify_worker_status_after_model_selection: " + f"solo-mcp --instance {quote(instance)} process status \"$ACCEPTANCE_WORKER_ID\" --project {quote(project_id)}")
+print("  model_selection_output_check: " + f"solo-mcp --instance {quote(instance)} process output \"$ACCEPTANCE_WORKER_ID\" --project {quote(project_id)} --lines 40")
 print("  send_acceptance_prompt: " + f"solo-mcp --instance {quote(instance)} process send \"$ACCEPTANCE_WORKER_ID\" --project {quote(project_id)} --input \"$(cat {quote(prompt_file)})\" --allow-recent-spawn")
 print("  sparse_poll_status: " + f"sleep 90 && solo-mcp --instance {quote(instance)} process status \"$ACCEPTANCE_WORKER_ID\" --project {quote(project_id)}")
 print("  sparse_poll_small_output: " + f"solo-mcp --instance {quote(instance)} process output \"$ACCEPTANCE_WORKER_ID\" --project {quote(project_id)} --lines 40")
@@ -204,10 +209,16 @@ Required workflow:
 4. Assign ids AC-1, AC-2, ... in order. The number of ids and queued objectives must exactly equal the extracted row count; if they differ, stop and fix the extraction/queue list before executing.
 5. Enqueue all acceptance items first, before executing any item. For each item, enqueue this orchestration objective exactly:
    create a goal from template `verify-acceptance-item` with args `--issue "<resolved_issue_path>" --item-id "AC-N" -- <criterion text>`
-6. After all item goals are queued, execute the queue head-to-tail. Do not pause between items unless blocked by safety, missing authority, missing environment, or explicit user instruction.
-7. For every queued orchestration item, call `list_goal_templates`, match `verify-acceptance-item`, create the concrete goal with `create_goal_from_template`, complete that concrete goal, then dequeue the orchestration item only after the item result is captured.
-8. Treat `verify-acceptance-item` results as evidence, but still compile a final acceptance report yourself.
-9. Final report must include a TOON block with `acceptance_summary` and `acceptance_results` rows. Keep every row single-line, quote string cells, and escape embedded double quotes in criterion/evidence/gap text. The `total` field must equal the extracted acceptance-row count and the number of `acceptance_results` rows.
+   Do not pass `token_budget`, `time_budget_seconds`, `min_tokens_before_wrap_up`, or `min_time_seconds_before_wrap_up` unless explicit queue metadata or user instructions provide those values. Do not invent budget or floor params.
+6. IMPORTANT: NO BATCH CHECKS. After all item goals are queued, execute the queue head-to-tail one item at a time. Processing AC-N..AC-M together for efficiency is a workflow violation, not evidence.
+7. Maintain this ledger and update exactly one row after each item:
+```toon
+acceptance_item_ledger[0]{id,enqueued,template_matched,concrete_goal_created,item_result_captured,concrete_goal_complete,orchestration_dequeued}:
+```
+8. For every queued orchestration item, use this only valid loop: call `list_goal_templates`, match `verify-acceptance-item`, create exactly one concrete goal with `create_goal_from_template`, review that criterion individually, capture exactly one `acceptance_item_result`, complete that concrete item goal, then dequeue that orchestration item only after the item result is captured. Update the ledger row, then move to the next queue head.
+9. If you catch yourself batching AC-N..AC-M, stop immediately, discard that batch shortcut as final evidence, return to the first unprocessed item, and resume one-by-one processing.
+10. Treat `verify-acceptance-item` results as evidence, but still compile a final acceptance report yourself. Aggregate all-items inspection may be used only for orientation before per-item execution; it must never be the source of green rows.
+11. Final report must include a TOON block with `acceptance_summary` and `acceptance_results` rows. Keep every row single-line, quote string cells, and escape embedded double quotes in criterion/evidence/gap text. The `total` field must equal the extracted acceptance-row count and the number of `acceptance_results` rows. The final report is invalid until every extracted criterion has a complete ledger row with all booleans true and every result row is sourced from the matching captured `acceptance_item_result`.
 
 Result statuses:
 - green: criterion is independently verified with concrete evidence.
@@ -230,6 +241,8 @@ If the main agent later sends a correction prompt, re-run only the listed correc
 Run the rendered `spawn_acceptance_agent` command. Set `ACCEPTANCE_WORKER_ID` from the spawn output.
 
 Run the rendered `verify_worker_status_after_spawn` command before sending the prompt. Confirm the process exists and is a Solo agent process. If status is unavailable, stopped, closed, or clearly not an agent, do not send the prompt; inspect a small output tail or respawn once with a new timestamped name.
+
+Run the rendered `send_model_selection` command to switch the worker to `/model opencode-go/glm-5.1`, then run `verify_worker_status_after_model_selection` and `model_selection_output_check`. Do not send the acceptance prompt until the model-selection command has been sent and the worker is still alive.
 
 Send the prompt with the rendered `send_acceptance_prompt` command. The `--allow-recent-spawn` flag acknowledges startup-readiness risk after the explicit status check; it does not prove receipt. Do not treat the command preview as completion evidence.
 
@@ -273,7 +286,7 @@ Changed files/evidence:
 - <file or command output path>
 - <summary>
 
-Re-read the issue doc and relevant changed files. Enqueue the listed corrected acceptance items first using `verify-acceptance-item`, execute the queue head-to-tail, and produce a fresh `acceptance_summary` / `acceptance_results` report for this iteration. Do not modify repository files.
+Re-read the issue doc and relevant changed files. Enqueue the listed corrected acceptance items first using `verify-acceptance-item`, execute the queue head-to-tail with IMPORTANT: NO BATCH CHECKS, maintain the same `acceptance_item_ledger` fields for corrected items, and produce a fresh `acceptance_summary` / `acceptance_results` report for this iteration only after every corrected item ledger row is complete. Do not modify repository files. Do not invent budget or floor params.
 ```
 
 Repeat sparse polling, report review, remediation, and rerun until the acceptance agent reports all green or a true blocker remains.

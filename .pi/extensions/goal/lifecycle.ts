@@ -26,7 +26,7 @@ import { buildBudgetLimitPrompt } from "./prompts";
 import { getGoal, getTelemetry, persistAccountGoal, persistTelemetry, persistUpdateGoal, replayGoalState } from "./state";
 import { cancelGoalMonitor, replayGoalMonitorState, scheduleGoalMonitor } from "./monitor";
 import { replayQueueState } from "./queue-state";
-import { queueSteeringStillValid, sendQueueSteering } from "./queue-steering";
+import { queueSteeringStillValid, sendQueueHandoff } from "./queue-steering";
 import { applyTurnTelemetry, consumeNextTurnOrigin, makeTurnSnapshot, noteBudgetHardStop, noteBudgetLimit, noteBudgetWarning, noteSafetyPause } from "./telemetry";
 import { notifyWarning, promptResumePausedGoal, syncGoalUi } from "./ui";
 import type { BudgetHardStopReason, BudgetLimitReason, BudgetPressure, GoalState, GoalTelemetrySnapshot, StreamBudgetSignal, TurnAccountingSnapshot } from "./types";
@@ -132,6 +132,7 @@ function handleMessageUpdate(pi: ExtensionAPI, event: MessageUpdateEvent, ctx: E
 			{ customType: BUDGET_LIMIT_MESSAGE_TYPE, content: prompt.content, display: false, details: prompt.details },
 			{ deliverAs: "steer" },
 		);
+		sendQueueHandoff(pi, "goal-budget-limited", { goalId: goal.goalId });
 		cancelGoalContinuation(goal.goalId, "budget-hard-stop");
 		ctx.abort();
 		return;
@@ -248,7 +249,7 @@ function finishTurnGoal(pi: ExtensionAPI, ctx: ExtensionContext, goal: GoalState
 	if (goal?.status === "active") scheduleGoalMonitor(pi, ctx);
 	else cancelGoalMonitor(goal?.goalId, "turn-end");
 	syncGoalUi(ctx, goal);
-	if (goal?.status === "complete" && completedThisTurn) sendQueueSteering(pi, "goal-complete");
+	if (goal?.status === "complete" && completedThisTurn) sendQueueHandoff(pi, "goal-complete", { goalId: goal.goalId });
 }
 
 async function pauseForSafety(
@@ -296,7 +297,10 @@ function enforceBudgetHardStop(pi: ExtensionAPI, ctx: ExtensionContext, goal: Go
 	const result = persistUpdateGoal(pi, stopped, nextTelemetry, "budget");
 	syncGoalUi(ctx, result.goal);
 	notifyWarning(ctx, `${budgetResourceText(pressure)} budget hard stop enforced. Goal work stopped.`);
-	if (result.goal) interruptActiveGoalTurn(pi, ctx, result.goal);
+	if (result.goal) {
+		sendQueueHandoff(pi, "goal-budget-limited", { goalId: result.goal.goalId });
+		interruptActiveGoalTurn(pi, ctx, result.goal);
+	}
 	return result;
 }
 
@@ -305,7 +309,10 @@ function markBudgetReached(pi: ExtensionAPI, ctx: ExtensionContext, goal: GoalSt
 	cancelGoalMonitor(goal.goalId, "budget-reached");
 	const limited: GoalState = { ...goal, status: "budgetLimited", updatedAt: Date.now() };
 	const result = persistUpdateGoal(pi, limited, noteBudgetLimit(telemetry, pressureBudgetLimitReason(pressure)), "budget");
-	if (result.goal) scheduleBudgetLimitWrapUp(pi, ctx, result.goal);
+	if (result.goal) {
+		const handedOff = sendQueueHandoff(pi, "goal-budget-limited", { goalId: result.goal.goalId });
+		if (!handedOff) scheduleBudgetLimitWrapUp(pi, ctx, result.goal);
+	}
 	return result;
 }
 

@@ -5,6 +5,20 @@ import type { GoalQueueSteeringReason } from "./types";
 
 const OBJECTIVE_PREVIEW_CHARS = 4_000;
 
+export type QueueHandoffOptions = { triggerTurn?: boolean; goalId?: string };
+
+let lastQueueHandoffKey: string | undefined;
+
+export function sendQueueHandoff(pi: ExtensionAPI, reason: GoalQueueSteeringReason, opts: QueueHandoffOptions = {}): boolean {
+	const next = getQueue()[0];
+	if (!next) return false;
+	const key = `${reason}:${opts.goalId ?? "none"}:${next.queueId}`;
+	if (lastQueueHandoffKey === key) return false;
+	const sent = sendQueueSteering(pi, reason, { triggerTurn: opts.triggerTurn ?? true });
+	if (sent) lastQueueHandoffKey = key;
+	return sent;
+}
+
 export function sendQueueSteering(pi: ExtensionAPI, reason: GoalQueueSteeringReason, opts: { triggerTurn?: boolean } = {}): boolean {
 	const next = getQueue()[0];
 	if (!next) return false;
@@ -32,6 +46,7 @@ function queueSteeringContent(goal: QueuedGoal): string {
 		"",
 		`Queue ID: ${goal.queueId}`,
 		budgetLine(goal),
+		...budgetGuidance(goal),
 		"",
 		"Next queued item/objective:",
 		preview(goal.objective),
@@ -66,7 +81,15 @@ function budgetLine(goal: QueuedGoal): string {
 	const parts = [];
 	if (goal.tokenBudget !== undefined) parts.push(`token_budget=${goal.tokenBudget}`);
 	if (goal.timeBudgetSeconds !== undefined) parts.push(`time_budget_seconds=${goal.timeBudgetSeconds}`);
+	if (goal.minTokensBeforeWrapUp !== undefined) parts.push(`min_tokens_before_wrap_up=${goal.minTokensBeforeWrapUp}`);
+	if (goal.minTimeSecondsBeforeWrapUp !== undefined) parts.push(`min_time_seconds_before_wrap_up=${goal.minTimeSecondsBeforeWrapUp}`);
 	return parts.length ? `Budgets: ${parts.join(", ")}` : "Budgets: none";
+}
+
+function budgetGuidance(goal: QueuedGoal): string[] {
+	const hasBudgetMetadata = goal.tokenBudget !== undefined || goal.timeBudgetSeconds !== undefined || goal.minTokensBeforeWrapUp !== undefined || goal.minTimeSecondsBeforeWrapUp !== undefined;
+	if (!hasBudgetMetadata) return ["Budget guidance: Budgets: none means omit budget/floor params. Do not pass token_budget, time_budget_seconds, min_tokens_before_wrap_up, or min_time_seconds_before_wrap_up when creating the next goal."];
+	return ["Budget guidance: carry only the listed budget/floor metadata exactly. Do not invent token_budget, time_budget_seconds, min_tokens_before_wrap_up, or min_time_seconds_before_wrap_up values."];
 }
 
 function preview(objective: string): string {

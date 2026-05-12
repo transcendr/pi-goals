@@ -1,0 +1,169 @@
+$ node .ai/validation/goal-acceptance-template-contract-probe.mjs
+ok pipeline spawns strong materialized Pi worker
+ok pipeline switches model before prompt
+ok pipeline verifies model selection
+ok pipeline forbids invented budgets
+ok queue steering forbids invented budgets
+ok pipeline has mandatory no-batch instruction
+ok pipeline defines ledger schema
+ok pipeline ledger gates final report
+ok pipeline rejects aggregate substitution
+ok pipeline rerun repeats no-batch ledger discipline
+ok item requires proof plan
+ok item requires sufficiency rationale
+ok item rejects weak string presence
+ok item green requires false-green risk ruling
+ok resolver smoke: verify-acceptance-pipeline resolves
+ok resolver smoke: verify-acceptance-item resolves
+goal-acceptance-template-contract-probe passed
+$ rg -n -- --profile solo-researcher-strong|/model opencode-go/glm-5.1|send_model_selection|materialized-args-mode replace|strict-profile .ai/.pi-goals/verify-acceptance-pipeline.md
+165:    "--runtime-args", quote("--profile solo-researcher-strong"),
+166:    "--custom-agent-tool", "materialized", "--materialized-args-mode", "replace", "--strict-profile",
+171:print("  send_model_selection: " + f"solo-mcp --instance {quote(instance)} process send \"$ACCEPTANCE_WORKER_ID\" --project {quote(project_id)} --input '/model opencode-go/glm-5.1' --allow-recent-spawn")
+245:Run the rendered `send_model_selection` command to switch the worker to `/model opencode-go/glm-5.1`, then run `verify_worker_status_after_model_selection` and `model_selection_output_check`. Do not send the acceptance prompt until the model-selection command has been sent and the worker is still alive.
+$ node .ai/validation/goal-budget-limited-queue-handoff-probe.mjs
+ok types include budget-limited queue steering reason
+ok queue steering exposes sendQueueHandoff
+ok queue handoff triggers turns by default
+ok lifecycle message_update hard stop hands off queue
+ok lifecycle enforce hard stop hands off queue
+ok lifecycle mark reached skips wrap-up when queue handoff sent
+ok tools permit template replacement over budgetLimited queued work
+ok tools report budget-limited replacement explicitly
+ok tools hand off after budget edit to budgetLimited
+ok queue tools allow start over budgetLimited terminal goal
+ok index passes handoff sender to tools
+goal-budget-limited-queue-handoff-probe passed
+$ node .ai/validation/goal-complete-queue-handoff-probe.mjs
+ok lifecycle complete path uses queue handoff
+ok sendQueueHandoff triggers turn by default
+ok tools complete update sends triggered queue handoff
+ok tools only complete-hand off on transition to complete
+ok create from template still replaces completed goals
+ok command registration still uses raw queue steering
+ok tool registration uses deduped queue handoff
+goal-complete-queue-handoff-probe passed
+$ node .ai/validation/goal-complete-queue-dedupe-probe.mjs
+ok dedupe state exists
+ok dedupe key includes reason goal id queue id
+ok duplicate key returns false before send
+ok dedupe key updates only after send
+ok lifecycle uses deduped helper for complete
+ok lifecycle uses deduped helper for budgetLimited
+ok tools pass goalId through sender for complete
+ok tools complete and budgetLimited share sender surface
+goal-complete-queue-dedupe-probe passed
+$ rg -n 'Do not pass token_budget|Do not invent.*budget|Budgets: none|omit budget/floor params' .ai/.pi-goals/verify-acceptance-pipeline.md .pi/extensions/goal/queue-steering.ts
+.pi/extensions/goal/queue-steering.ts:86:	return parts.length ? `Budgets: ${parts.join(", ")}` : "Budgets: none";
+.pi/extensions/goal/queue-steering.ts:91:	if (!hasBudgetMetadata) return ["Budget guidance: Budgets: none means omit budget/floor params. Do not pass token_budget, time_budget_seconds, min_tokens_before_wrap_up, or min_time_seconds_before_wrap_up when creating the next goal."];
+.pi/extensions/goal/queue-steering.ts:92:	return ["Budget guidance: carry only the listed budget/floor metadata exactly. Do not invent token_budget, time_budget_seconds, min_tokens_before_wrap_up, or min_time_seconds_before_wrap_up values."];
+.ai/.pi-goals/verify-acceptance-pipeline.md:212:   Do not pass `token_budget`, `time_budget_seconds`, `min_tokens_before_wrap_up`, or `min_time_seconds_before_wrap_up` unless explicit queue metadata or user instructions provide those values. Do not invent budget or floor params.
+.ai/.pi-goals/verify-acceptance-pipeline.md:289:Re-read the issue doc and relevant changed files. Enqueue the listed corrected acceptance items first using `verify-acceptance-item`, execute the queue head-to-tail with IMPORTANT: NO BATCH CHECKS, maintain the same `acceptance_item_ledger` fields for corrected items, and produce a fresh `acceptance_summary` / `acceptance_results` report for this iteration only after every corrected item ledger row is complete. Do not modify repository files. Do not invent budget or floor params.
+$ node .ai/validation/goal-min-spend-floors-probe.mjs
+ok GoalState has token floor
+ok GoalState has time floor
+ok telemetry records floor work history
+ok queue preserves floor metadata
+ok floor helper evaluates all floors
+ok floor validation bounds minimum by maximum token budget
+ok floor validation bounds minimum by maximum time budget
+ok completion gate has defer decision
+ok completion gate honors max budget precedence
+ok completion gate uses current goal floor
+ok tool schema exposes create floor params
+ok update schema allows null floor removal
+ok same-call floor edit plus complete blocked
+ok deferred completion details include completion_blocked_by_floor
+ok state createGoalState uses options object
+ok agentEnd no-progress suppression checks active floors
+ok agentEnd floor steering respects max budget and exhaustion escapes
+ok completion decision call present
+ok status cancellation present
+ok persist update present
+ok completion gate runs before cancellation
+ok completion gate runs before persistence
+goal-min-spend-floors-probe passed
+$ npm run quality:goal
+
+> pi-goals@0.3.1 quality:goal
+> sentrux gate .pi/extensions/goal && sentrux check .pi/extensions/goal && npm run slop:goal && npm run typecheck:goal && pi --offline --no-session --no-tools -e .pi/extensions/goal/index.ts --list-models >/tmp/pi-goal-quality-load.txt
+
+Scanning .pi/extensions/goal...
+[build_project_map] 30 files, 2 unique dirs, 2 cache misses, 0.2ms
+[resolve] 114 resolved, 22 unresolved (of 136 total specs)
+[resolve_imports] project_map 0.2ms, suffix_idx 0.1ms, suffix_resolve 1.1ms, total 1.4ms
+[build_graphs] 30 files | maps 0.0ms, imports 1.4ms, calls+inherit 0.4ms, total 1.9ms | 113 import, 615 call, 0 inherit edges
+sentrux gate — structural regression check
+
+Quality:      6237 -> 6238
+Coupling:     0.16 → 0.16
+Cycles:       0 → 0
+God files:    0 → 0
+
+Distance from Main Sequence: 0.25
+
+✓ No degradation detected
+Scanning .pi/extensions/goal...
+[build_project_map] 30 files, 2 unique dirs, 2 cache misses, 0.1ms
+[resolve] 114 resolved, 22 unresolved (of 136 total specs)
+[resolve_imports] project_map 0.2ms, suffix_idx 0.3ms, suffix_resolve 1.1ms, total 1.5ms
+[build_graphs] 30 files | maps 0.2ms, imports 1.5ms, calls+inherit 0.5ms, total 2.1ms | 113 import, 615 call, 0 inherit edges
+sentrux check — 33 rules checked
+
+Quality: 6238
+
+✓ All rules pass
+
+> pi-goals@0.3.1 slop:goal
+> if rg -n 'as unknown as|as any' .pi/extensions/goal; then exit 1; else exit 0; fi
+
+
+> pi-goals@0.3.1 typecheck:goal
+> tsc --noEmit --target ES2022 --module ESNext --moduleResolution node --ignoreDeprecations 6.0 --types node --strict --skipLibCheck .pi/extensions/goal/*.ts
+
+provider      model                       context  max-out  thinking  images
+anthropic     claude-3-5-haiku-20241022   200K     8.2K     no        yes   
+anthropic     claude-3-5-haiku-latest     200K     8.2K     no        yes   
+anthropic     claude-3-5-sonnet-20240620  200K     8.2K     no        yes   
+anthropic     claude-3-5-sonnet-20241022  200K     8.2K     no        yes   
+anthropic     claude-3-7-sonnet-20250219  200K     64K      yes       yes   
+anthropic     claude-3-haiku-20240307     200K     4.1K     no        yes   
+anthropic     claude-3-opus-20240229      200K     4.1K     no        yes   
+anthropic     claude-3-sonnet-20240229    200K     4.1K     no        yes   
+anthropic     claude-haiku-4-5            200K     64K      yes       yes   
+anthropic     claude-haiku-4-5-20251001   200K     64K      yes       yes   
+anthropic     claude-opus-4-0             200K     32K      yes       yes   
+anthropic     claude-opus-4-1             200K     32K      yes       yes   
+anthropic     claude-opus-4-1-20250805    200K     32K      yes       yes   
+anthropic     claude-opus-4-20250514      200K     32K      yes       yes   
+anthropic     claude-opus-4-5             200K     64K      yes       yes   
+anthropic     claude-opus-4-5-20251101    200K     64K      yes       yes   
+anthropic     claude-opus-4-6             1M       128K     yes       yes   
+anthropic     claude-opus-4-7             1M       128K     yes       yes   
+anthropic     claude-sonnet-4-0           200K     64K      yes       yes   
+anthropic     claude-sonnet-4-20250514    200K     64K      yes       yes   
+anthropic     claude-sonnet-4-5           200K     64K      yes       yes   
+anthropic     claude-sonnet-4-5-20250929  200K     64K      yes       yes   
+anthropic     claude-sonnet-4-6           1M       64K      yes       yes   
+openai-codex  gpt-5.1                     272K     128K     yes       yes   
+openai-codex  gpt-5.1-codex-max           272K     128K     yes       yes   
+openai-codex  gpt-5.1-codex-mini          272K     128K     yes       yes   
+openai-codex  gpt-5.2                     272K     128K     yes       yes   
+openai-codex  gpt-5.2-codex               272K     128K     yes       yes   
+openai-codex  gpt-5.3-codex               272K     128K     yes       yes   
+openai-codex  gpt-5.3-codex-spark         128K     128K     yes       no    
+openai-codex  gpt-5.4                     272K     128K     yes       yes   
+openai-codex  gpt-5.4-mini                272K     128K     yes       yes   
+openai-codex  gpt-5.5                     272K     128K     yes       yes   
+opencode-go   deepseek-v4-flash           1M       384K     yes       no    
+opencode-go   deepseek-v4-pro             1M       384K     yes       no    
+opencode-go   glm-5                       202.8K   32.8K    yes       no    
+opencode-go   glm-5.1                     202.8K   32.8K    yes       no    
+opencode-go   kimi-k2.5                   262.1K   65.5K    yes       yes   
+opencode-go   kimi-k2.6                   262.1K   65.5K    yes       yes   
+opencode-go   mimo-v2.5                   1M       128K     yes       yes   
+opencode-go   mimo-v2.5-pro               1.0M     128K     yes       no    
+opencode-go   minimax-m2.5                204.8K   65.5K    yes       no    
+opencode-go   minimax-m2.7                204.8K   131.1K   yes       no    
+opencode-go   qwen3.5-plus                262.1K   65.5K    yes       yes   
+opencode-go   qwen3.6-plus                262.1K   65.5K    yes       yes   

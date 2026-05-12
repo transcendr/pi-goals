@@ -143,7 +143,7 @@ function registerRemoveQueuedGoalTool(pi: ExtensionAPI): void {
 
 function startQueuedGoal(pi: ExtensionAPI, runtime: GoalQueueToolRuntime, ctx: ExtensionContext) {
 	const current = getGoal();
-	if (current && current.status !== "complete") return errorResult("A non-complete goal is already active. The queued goal was left in the queue.");
+	if (current && current.status !== "complete" && current.status !== "budgetLimited") return errorResult("A non-terminal goal is already active. The queued goal was left in the queue.");
 	const next = getQueue()[0];
 	if (!next) return { content: [{ type: "text" as const, text: "No queued goals." }], details: { goal: current, telemetry: getTelemetry(), queue: getQueue() } as QueueToolDetails };
 	const objective = resolveQueuedObjective(next);

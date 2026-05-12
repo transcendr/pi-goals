@@ -94,7 +94,9 @@ Read the issue doc completely enough to understand this criterion in context. At
 
 Restate the user-visible invariant implied by this criterion in one concise sentence. Do not treat this restatement as proof.
 
-### 2. Map criterion to implementation and proof surfaces
+### 2. Write a proof plan, then map criterion to implementation and proof surfaces
+
+Before checking, write a concise proof plan: name the exact implementation/proof surfaces you expect to inspect, why those surfaces are sufficient if green, and what would likely fail if the criterion were false. Do not treat the proof plan itself as evidence.
 
 Identify what files, docs, probes, commands, or live behavior should demonstrate this criterion. Use targeted inspection rather than broad wandering.
 
@@ -107,7 +109,7 @@ Useful read-only checks include, when relevant:
 - issue-workflow closeout artifacts named by the issue;
 - validation logs or probe files named in `required_proofs[]`.
 
-Run targeted deterministic or live checks only when they are non-destructive, proportionate, and relevant to this specific criterion. Do not run broad expensive gates unless this criterion depends on them or the issue proof contract requires them.
+Run targeted deterministic or live checks only when they are non-destructive, proportionate, and relevant to this specific criterion. Do not run broad expensive gates unless this criterion depends on them or the issue proof contract requires them. Small scripts are valid only when they directly test the invariant and your result explains why the script would fail if the criterion were false.
 
 ### 3. Attack false-green paths
 
@@ -121,14 +123,15 @@ Before deciding `green`, actively check for false-green risks:
 - A queue/template criterion is satisfied for direct goals but not orchestration queue items.
 - The issue says fixed/complete but the actual files or command outputs contradict it.
 - Your check only proves that strings exist, not that the workflow can be followed.
+- A string-presence-only script is being used as green evidence even though stronger implementation, resolver, runtime, or proof evidence is available.
 
-If a false-green risk is plausible and you cannot rule it out with available read-only evidence, return `red` or `blocked`, not `green`.
+If a false-green risk is plausible and you cannot rule it out with available read-only evidence, return `red` or `blocked`, not `green`. If your only evidence is weak string presence while stronger evidence is available, return `red` or `blocked` and name the stronger evidence needed.
 
 ### 4. Decide status
 
 Use exactly one status:
 
-- `green`: the criterion is independently verified with concrete evidence that would likely fail if the criterion were false. A green result must name at least one direct evidence source and at least one false-green risk you ruled out.
+- `green`: the criterion is independently verified with concrete evidence that would likely fail if the criterion were false. A green result must name at least one direct evidence source, a sufficiency rationale explaining why the evidence would fail if the criterion were false, and at least one false-green risk you ruled out.
 - `red`: the criterion is not met, is contradicted by evidence, or has only weak/vague evidence when stronger evidence is available.
 - `blocked`: verification cannot be completed because required authority, environment, credentials, live service, or safety permission is missing.
 
@@ -148,7 +151,7 @@ acceptance_item_result{id,status,criterion,confidence,evidence,gap,next_action}:
   "{{item-id}}","green|red|blocked","{{args}}","high|medium|low","<files commands artifacts inspected>","<none or precise gap>","<none or requested main-agent action>"
 ```
 
-Keep `evidence`, `gap`, and `next_action` concise but specific. Include command names and paths, not vague statements such as `looked good`. For `green`, include both the decisive evidence and the false-green risk ruled out, for example `evidence: rg/template resolver proved discovery; ruled out docs-only false green`. If the exact criterion text is too long or contains complex punctuation, preserve its meaning while keeping the TOON row valid and single-line.
+Keep `evidence`, `gap`, and `next_action` concise but specific. Include command names and paths, not vague statements such as `looked good`. For `green`, include the decisive evidence, sufficiency rationale, and the false-green risk ruled out, for example `evidence: resolver smoke test fails without template discovery; sufficient because it exercises the intended resolver path; ruled out docs-only false green`. If the exact criterion text is too long or contains complex punctuation, preserve its meaning while keeping the TOON row valid and single-line.
 
 ## Completion standard
 

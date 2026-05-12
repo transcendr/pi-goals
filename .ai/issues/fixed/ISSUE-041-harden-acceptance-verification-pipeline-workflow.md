@@ -1,6 +1,6 @@
 # ISSUE-041 — Harden acceptance verification pipeline workflow
 
-Status: open — implementation-ready
+Status: fixed
 Priority: P1
 Owner: pi-goal automation
 Created: 2026-05-11
@@ -113,36 +113,36 @@ point_resolution[4]{point,classification,fix_strategy}:
 
 ### Runtime queue handoff
 
-- [ ] Implement or reuse ISSUE-037 complete-status queue handoff so `complete + queue non-empty` sends effective queue steering with a triggered follow-up turn and dedupe.
-- [ ] Add `budgetLimited + queue non-empty` handoff after budget limit/reached/hard-stop transitions.
-- [ ] Ensure queue handoff permits the next queued item to be resolved despite the previous goal being `budgetLimited`, without pretending the previous goal is complete.
-- [ ] Add dedupe keyed by terminal goal id and queue head id so lifecycle/tool paths cannot double-steer or double-consume the queue.
-- [ ] Preserve existing no-queue budget-limited behavior and `/goal resume`/`/goal clear` semantics.
+- [x] Implement or reuse ISSUE-037 complete-status queue handoff so `complete + queue non-empty` sends effective queue steering with a triggered follow-up turn and dedupe.
+- [x] Add `budgetLimited + queue non-empty` handoff after budget limit/reached/hard-stop transitions.
+- [x] Ensure queue handoff permits the next queued item to be resolved despite the previous goal being `budgetLimited`, without pretending the previous goal is complete.
+- [x] Add dedupe keyed by terminal goal id and queue head id so lifecycle/tool paths cannot double-steer or double-consume the queue.
+- [x] Preserve existing no-queue budget-limited behavior and `/goal resume`/`/goal clear` semantics.
 
 ### Acceptance worker launch
 
-- [ ] Update `.ai/.pi-goals/verify-acceptance-pipeline.md` spawn command to launch the worker with `--profile solo-researcher-strong`.
-- [ ] Add a ready command and workflow step that sends `/model opencode-go/glm-5.1` to the worker before the initial acceptance prompt.
-- [ ] Verify the worker is alive after the model switch before sending the acceptance prompt; use sparse status/output checks consistent with the pipeline's no-timer rule.
+- [x] Update `.ai/.pi-goals/verify-acceptance-pipeline.md` spawn command to launch the worker with `--profile solo-researcher-strong`.
+- [x] Add a ready command and workflow step that sends `/model opencode-go/glm-5.1` to the worker before the initial acceptance prompt.
+- [x] Verify the worker is alive after the model switch before sending the acceptance prompt; use sparse status/output checks consistent with the pipeline's no-timer rule.
 
 ### Prompt/template hardening
 
-- [ ] Update `.pi/extensions/goal/queue-steering.ts` to state that absent budget/floor metadata means the agent must not pass budget/floor params when creating the next goal.
-- [ ] Update `.ai/.pi-goals/verify-acceptance-pipeline.md` direct prompt with a no-invented-budget rule for item goals.
-- [ ] Add a per-item ledger requirement to the acceptance-agent prompt.
-- [ ] State that an aggregate all-items check is not a substitute for executing and completing each queued `verify-acceptance-item` goal.
-- [ ] Add the explicit mandatory no-batch loop wording: create one item goal, review that point individually, mark red/green/blocked, complete the item goal, dequeue that orchestration item, then move to the next queue head; repeat for all queued goals end-to-end.
-- [ ] Add a mid-run anti-drift instruction: if the worker catches itself batching AC-N..AC-M, it must stop, discard that batch shortcut as evidence, return to the first unprocessed item, and resume one-by-one processing.
-- [ ] Make final `acceptance_summary` invalid unless every row is sourced from a captured `acceptance_item_result` and the ledger is complete.
-- [ ] Update rerun prompt shape to use the same ledger discipline for corrected items.
-- [ ] Update `.ai/.pi-goals/verify-acceptance-item.md` with proof-plan, evidence-sufficiency, and weak-evidence rejection requirements.
+- [x] Update `.pi/extensions/goal/queue-steering.ts` to state that absent budget/floor metadata means the agent must not pass budget/floor params when creating the next goal.
+- [x] Update `.ai/.pi-goals/verify-acceptance-pipeline.md` direct prompt with a no-invented-budget rule for item goals.
+- [x] Add a per-item ledger requirement to the acceptance-agent prompt.
+- [x] State that an aggregate all-items check is not a substitute for executing and completing each queued `verify-acceptance-item` goal.
+- [x] Add the explicit mandatory no-batch loop wording: create one item goal, review that point individually, mark red/green/blocked, complete the item goal, dequeue that orchestration item, then move to the next queue head; repeat for all queued goals end-to-end.
+- [x] Add a mid-run anti-drift instruction: if the worker catches itself batching AC-N..AC-M, it must stop, discard that batch shortcut as evidence, return to the first unprocessed item, and resume one-by-one processing.
+- [x] Make final `acceptance_summary` invalid unless every row is sourced from a captured `acceptance_item_result` and the ledger is complete.
+- [x] Update rerun prompt shape to use the same ledger discipline for corrected items.
+- [x] Update `.ai/.pi-goals/verify-acceptance-item.md` with proof-plan, evidence-sufficiency, and weak-evidence rejection requirements.
 
 ### Validation
 
-- [ ] Add deterministic probe(s) for acceptance template contract hardening.
-- [ ] Add deterministic probe(s) for budget-limited queue handoff and no arbitrary budget propagation.
-- [ ] Run `npm run quality:goal` after runtime changes.
-- [ ] Run a bounded live acceptance-pipeline probe using `.ai/docs/pi-goals-live-probe-testing.md` and clean up all disposable artifacts/state. The fixture must be large enough to catch mid-run batching drift; use at least 12 acceptance criteria or otherwise prove the transcript has no AC-N..AC-M batch processing segment.
+- [x] Add deterministic probe(s) for acceptance template contract hardening.
+- [x] Add deterministic probe(s) for budget-limited queue handoff and no arbitrary budget propagation.
+- [x] Run `npm run quality:goal` after runtime changes.
+- [x] Run a bounded live acceptance-pipeline probe using `.ai/docs/pi-goals-live-probe-testing.md` and clean up all disposable artifacts/state. The fixture must be large enough to catch mid-run batching drift; use at least 12 acceptance criteria or otherwise prove the transcript has no AC-N..AC-M batch processing segment.
 
 ## Acceptance criteria
 
@@ -307,3 +307,30 @@ Handoff notes:
 ## Notes
 
 This issue intentionally treats P3 as partly cascading from two runtime terminal-state handoff bugs: the already-open ISSUE-037 complete-status gap and the newly observed budget-limited queue gap. Fixing those runtime roots plus the acceptance ledger contract should remove the need for manual `DO NOT STOP...` intervention in the acceptance pipeline.
+
+## Implementation closeout
+
+Implemented in this pass:
+
+- Runtime queue handoff: added `goal-budget-limited`, deduped `sendQueueHandoff`, triggered complete/budget-limited queue handoff, budget-limited template/direct queue replacement gates, and no-invented-budget queue steering.
+- Acceptance templates: hardened worker launch with `--profile solo-researcher-strong` plus `/model opencode-go/glm-5.1`, mandatory no-batch ledger workflow, no invented budget/floor params, final-report ledger gating, rerun ledger discipline, proof-plan/evidence-sufficiency requirements, and weak string-presence rejection.
+- Validation: added deterministic probes for acceptance template contract, budget-limited queue handoff, complete queue handoff, and handoff dedupe.
+
+Proof artifacts:
+
+- Deterministic proof log: `.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/implementation-readiness/proof-command-output.txt`
+- Live acceptance-pipeline output: `.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/implementation-readiness/live-acceptance-pipeline-probe-output.txt`
+- Live probe cleanup output: `.ai/docs/issue-workflow/ISSUE-041-harden-acceptance-verification-pipeline-workflow/implementation-readiness/live-probe-cleanup-output.txt`
+
+Validation summary:
+
+- `sentrux gate --save .pi/extensions/goal` saved the pre-change baseline.
+- `node .ai/validation/goal-acceptance-template-contract-probe.mjs` passed.
+- `node .ai/validation/goal-budget-limited-queue-handoff-probe.mjs` passed.
+- `node .ai/validation/goal-complete-queue-handoff-probe.mjs` passed.
+- `node .ai/validation/goal-complete-queue-dedupe-probe.mjs` passed.
+- `node .ai/validation/goal-min-spend-floors-probe.mjs` passed.
+- `npm run quality:goal` passed, including Sentrux gate/check, slop guard, TypeScript validation, and Pi extension load validation.
+- Bounded live acceptance-pipeline probe on disposable ISSUE-999 extracted and processed 12 criteria one by one, used the strong acceptance-worker profile/model path, completed/dequeued all item goals, reported all green, and cleanup removed the disposable issue plus cleared/closed probe state.
+
+Remaining risk: none known. The live probe did require one final formatting correction because the worker initially used `acceptance_results[0]` while listing 12 rows; the corrected `acceptance_results[12]` block was captured without rerunning items.

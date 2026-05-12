@@ -11,7 +11,7 @@ import { registerGoalQueueTools } from "./queue-tools";
 import { getRecentMonitorLogs } from "./monitor-state";
 import { syncGoalUi } from "./ui";
 import { errorResult, formatToolGoal, remainingTime, remainingTokens, resultForGoal, resultForTemplates, type ToolDetails } from "./tool-results";
-import type { GoalCommandScheduler, GoalContinuationCanceller, GoalMonitorCanceller, GoalMonitorScheduler, GoalState, GoalStatus, GoalTelemetrySnapshot } from "./types";
+import type { GoalCommandScheduler, GoalContinuationCanceller, GoalMonitorCanceller, GoalMonitorScheduler, GoalQueueSteeringSender, GoalState, GoalStatus, GoalTelemetrySnapshot } from "./types";
 
 const EmptyParams = Type.Object({});
 const CreateGoalParams = Type.Object({
@@ -48,7 +48,7 @@ type GoalToolRuntime = {
 	cancelMonitor?: GoalMonitorCanceller;
 	scheduleBudgetLimitWrapUp?: (ctx: ExtensionContext, goal: GoalState) => void;
 	getQueueSize?: () => number;
-	sendQueueSteering?: (reason: "goal-clear") => boolean;
+	sendQueueSteering?: GoalQueueSteeringSender;
 };
 
 export function registerGoalTools(
@@ -59,7 +59,7 @@ export function registerGoalTools(
 	cancelMonitor?: GoalMonitorCanceller,
 	scheduleBudgetLimitWrapUp?: (ctx: ExtensionContext, goal: GoalState) => void,
 	getQueueSize?: () => number,
-	sendQueueSteering?: (reason: "goal-clear") => boolean,
+	sendQueueSteering?: GoalQueueSteeringSender,
 ): void {
 	const runtime: GoalToolRuntime = { scheduleContinuation, cancelContinuation, scheduleMonitor, cancelMonitor, scheduleBudgetLimitWrapUp, getQueueSize, sendQueueSteering };
 	registerGetGoalTool(pi);
@@ -225,7 +225,7 @@ function createGoalFromTool(pi: ExtensionAPI, runtime: GoalToolRuntime, params: 
 function createGoalFromTemplateTool(pi: ExtensionAPI, runtime: GoalToolRuntime, params: CreateGoalFromTemplateInput, ctx: ExtensionContext) {
 	const resolved = resolveGoalTemplateInvocationArgs(params.template, params.args ?? "", params.flags ?? {});
 	if (!resolved.ok) return "notTemplate" in resolved ? errorResult(`Unknown goal template '${params.template}'.`) : errorResult(resolved.error);
-	const created = createGoalWithPolicy(pi, runtime, { objective: resolved.template.objective, token_budget: params.token_budget, time_budget_seconds: params.time_budget_seconds, min_tokens_before_wrap_up: params.min_tokens_before_wrap_up, min_time_seconds_before_wrap_up: params.min_time_seconds_before_wrap_up }, ctx, { replaceCompleted: true });
+	const created = createGoalWithPolicy(pi, runtime, { objective: resolved.template.objective, token_budget: params.token_budget, time_budget_seconds: params.time_budget_seconds, min_tokens_before_wrap_up: params.min_tokens_before_wrap_up, min_time_seconds_before_wrap_up: params.min_time_seconds_before_wrap_up }, ctx, { replaceCompleted: true, replaceBudgetLimitedForQueuedWork: true });
 	if (!created.details.error) created.details.resolved_template = { name: resolved.template.name, path: resolved.template.path };
 	return created;
 }
@@ -235,10 +235,10 @@ function createGoalWithPolicy(
 	runtime: GoalToolRuntime,
 	params: CreateGoalInput,
 	ctx: ExtensionContext,
-	policy: { replaceCompleted: boolean },
+	policy: { replaceCompleted: boolean; replaceBudgetLimitedForQueuedWork?: boolean },
 ) {
 	const current = getGoal();
-	if (current && (!policy.replaceCompleted || current.status !== "complete")) {
+	if (current && !canReplaceCurrentGoal(current, runtime, policy)) {
 		return errorResult("A goal already exists. Use clear_goal or ask the user before replacing it.");
 	}
 	const validation = validateObjective(params.objective);
@@ -252,7 +252,19 @@ function createGoalWithPolicy(
 	persistSetGoal(pi, goal, telemetry, "tool");
 	syncGoalUi(ctx, goal);
 	runtime.scheduleMonitor?.(ctx);
-	return resultForGoal(goal, telemetry, current?.status === "complete" ? "Goal created; replaced completed goal." : "Goal created.");
+	return resultForGoal(goal, telemetry, goalCreatedPrefix(current));
+}
+
+function canReplaceCurrentGoal(current: GoalState, runtime: GoalToolRuntime, policy: { replaceCompleted: boolean; replaceBudgetLimitedForQueuedWork?: boolean }): boolean {
+	if (policy.replaceCompleted && current.status === "complete") return true;
+	if (policy.replaceBudgetLimitedForQueuedWork && current.status === "budgetLimited" && (runtime.getQueueSize?.() ?? 0) > 0) return true;
+	return false;
+}
+
+function goalCreatedPrefix(current: GoalState | null): string {
+	if (current?.status === "complete") return "Goal created; replaced completed goal.";
+	if (current?.status === "budgetLimited") return "Goal created; replaced budget-limited goal for queued work.";
+	return "Goal created.";
 }
 
 function updateGoalFromTool(pi: ExtensionAPI, runtime: GoalToolRuntime, params: UpdateGoalInput, ctx: ExtensionContext) {
@@ -277,10 +289,9 @@ function updateGoalFromTool(pi: ExtensionAPI, runtime: GoalToolRuntime, params: 
 		runtime.cancelContinuation?.(goal.goalId, "tool-status");
 		runtime.cancelMonitor?.(goal.goalId, "tool-status");
 	}
-	// When a budget edit transitions active -> budgetLimited, schedule budget-limit wrap-up once.
-	budgetEditWrapUpIfNeeded(pi, ctx, runtime, goal, update.goal);
 	persistUpdateGoal(pi, update.goal, telemetryForUpdate(update.goal, completionDecision), "tool");
 	syncGoalUi(ctx, update.goal);
+	queueHandoffAfterToolUpdate(runtime, ctx, goal, update.goal);
 	if (goal.status !== "active" && update.goal.status === "active") {
 		runtime.scheduleMonitor?.(ctx);
 		runtime.scheduleContinuation?.(ctx, "resumed");
@@ -394,10 +405,15 @@ function applyFloorUpdates(goal: GoalState, params: UpdateGoalInput, changes: st
 	return { ok: true, goal: next, prefix: "", floorChanged };
 }
 
-function budgetEditWrapUpIfNeeded(pi: ExtensionAPI, ctx: ExtensionContext, runtime: GoalToolRuntime, previousGoal: GoalState, updatedGoal: GoalState) {
-	// Only schedule wrap-up when an active goal transitions to budgetLimited due to a budget edit.
+function queueHandoffAfterToolUpdate(runtime: GoalToolRuntime, ctx: ExtensionContext, previousGoal: GoalState, updatedGoal: GoalState): void {
+	if (previousGoal.status !== "complete" && updatedGoal.status === "complete" && (runtime.getQueueSize?.() ?? 0) > 0) {
+		runtime.sendQueueSteering?.("goal-complete", { triggerTurn: true, goalId: updatedGoal.goalId });
+		return;
+	}
+	// Only schedule wrap-up when an active goal transitions to budgetLimited due to a budget edit and no queued work is waiting.
 	if (previousGoal.status === "active" && updatedGoal.status === "budgetLimited" && isBudgetExhausted(updatedGoal)) {
-		runtime.scheduleBudgetLimitWrapUp?.(ctx, updatedGoal);
+		if ((runtime.getQueueSize?.() ?? 0) > 0) runtime.sendQueueSteering?.("goal-budget-limited", { triggerTurn: true, goalId: updatedGoal.goalId });
+		else runtime.scheduleBudgetLimitWrapUp?.(ctx, updatedGoal);
 	}
 }
 
