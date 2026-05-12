@@ -1,5 +1,31 @@
 # Changelog
 
+## 0.4.0 - 2026-05-12
+
+### Highlights
+
+- Added reusable acceptance verification workflows for issue acceptance criteria and full acceptance pipelines.
+- Hardened compaction recovery so active goals and completed-goal queue handoffs continue after normal compaction and context-overflow recovery.
+- Added implementation-readiness workflow helpers and stronger issue-selector resolution for repo-local goal templates.
+
+### Added
+
+- New `verify-acceptance-item` and `verify-acceptance-pipeline` goal templates for adversarial, evidence-backed acceptance verification.
+- New `implementation-ready-issue` goal template plus issue-doc resolution helper for turning execution-ready issues into implementation-ready patch plans.
+- Opt-in compaction continuation debug logging via `PI_GOAL_COMPACTION_DEBUG=1` or `PI_GOAL_COMPACTION_DEBUG_LOG=/path/to/log`.
+
+### Changed
+
+- `deslop-pipeline` now tells boomerang workers to execute the created deslop goal immediately instead of stopping after goal creation.
+- Acceptance verification templates now reject green results that still contain material gaps, required next actions, or unresolved false-green risks.
+- README guidance now calls out queue handoff recovery after compaction/context overflow and bundled acceptance-verification workflow examples.
+
+### Fixed
+
+- Completed goals with queued work now recover the queue handoff after compaction even when Pi reports the session idle before compaction starts.
+- Queue handoff fallback force-sends the post-compaction steering message so stale pre-compaction dedupe keys do not strand queued work.
+- Active-goal continuation preserves floor steering when an agent turn ends.
+
 ## 0.3.1 - 2026-05-11
 
 ### Highlights
