@@ -1,0 +1,37 @@
+$ sentrux gate --save .pi/extensions/goal
+PASS (ran before implementation; baseline saved)
+$ node .ai/validation/goal-precompact-active-queue-probe.mjs
+PASS active precompact sends exactly one message
+PASS active precompact uses continuation message type
+PASS active precompact hides continuation
+PASS active precompact marks compacted reason
+PASS active precompact uses followUp delivery
+PASS active precompact does not trigger immediate non-streaming turn
+PASS finish after prequeue does not duplicate
+PASS goal_precompact_active_queues_followup
+$ node .ai/validation/goal-precompact-completed-queue-probe.mjs
+PASS completed goal with queue sends exactly one message
+PASS completed goal sends queue steering message type
+PASS completed goal queues current queue head
+PASS completed goal uses followUp delivery for compaction survival
+PASS completed goal does not trigger immediate non-streaming turn
+PASS paused goal with queue does not prequeue
+PASS completed goal without queue does not prequeue
+PASS goal_precompact_completed_queue_handoff
+$ node .ai/validation/goal-postcompact-retry-probe.mjs
+PASS idle precompact does not send immediate passive message
+PASS retry eventually sends one continuation
+PASS retry sends continuation message type
+PASS retry triggers follow-up turn when idle and no pending messages
+PASS retry recorded multiple attempts
+PASS goal_postcompact_retry_transient_skip
+$ node .ai/validation/goal-compaction-prequeue-dedupe-probe.mjs
+PASS agentEnd timer canceled and prequeue sends only once
+PASS only one continuation message exists
+PASS remaining continuation is compacted prequeue
+PASS prequeued continuation does not trigger immediate fallback duplicate
+PASS goal_compaction_prequeue_dedupe
+$ npm run quality:goal
+PASS (full output in prior command transcript; rerun not repeated for log economy)
+$ test -s .ai/validation/goal-compaction-prequeue-live-probe-closeout.md
+PASS

@@ -18,14 +18,14 @@ function index(name, needle) {
   return i;
 }
 
-const compactingCheck = index('maybeContinueGoal compaction guard', 'if (compactionActive) {');
-const idleCheck = index('maybeContinueGoal idle guard', 'if (!ctx.isIdle()) return skip(pi, "notIdle");');
+const compactingCheck = index('attemptContinueGoal compaction guard', 'if (compactionActive) {');
+const idleCheck = index('attemptContinueGoal idle guard', 'if (!ctx.isIdle()) {');
 assert('compaction guard runs before idle guard', compactingCheck >= 0 && idleCheck >= 0 && compactingCheck < idleCheck);
 assert('ContinuationSkipReason includes compacting', /ContinuationSkipReason = .*"compacting"/.test(types));
-assert('beginGoalCompaction records deferred active goal', /deferredCompactionGoalId = goal\.goalId;/.test(continuation));
+assert('beginGoalCompaction records active compaction work', /kind: "activeGoal", goalId: goal\.goalId/.test(continuation));
 assert('beginGoalCompaction reports compacting skip telemetry', /skip\(pi, "compacting"\);/.test(continuation));
-assert('maybeContinueGoal defers timer during compaction', /deferredCompactionGoalId = goalId;\n\t\treturn skip\(pi, "compacting"\);/.test(continuation));
-assert('reset clears compaction runtime', /compactionActive = false;\n\tdeferredCompactionGoalId = undefined;/.test(continuation));
+assert('attemptContinueGoal defers while compaction active', /compactionWork = \{ kind: "activeGoal", goalId, key: activeGoalKey\(goalId\) \};\n\t\tskip\(pi, "compacting"\);/.test(continuation));
+assert('reset clears compaction runtime', /compactionActive = false;\n\tcompactionWork = undefined;\n\tprequeuedCompactionKey = undefined;/.test(continuation));
 
 if (process.exitCode) process.exit(process.exitCode);
 console.log('PASS goal_compaction_suppresses_early_send');

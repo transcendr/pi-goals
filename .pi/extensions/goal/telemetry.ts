@@ -3,6 +3,7 @@ import type {
 	BudgetHardStopReason,
 	BudgetLimitReason,
 	BudgetWarningReason,
+	CompactionContinuationAction,
 	ContinuationReason,
 	ContinuationSkipReason,
 	FloorValuePassId,
@@ -68,6 +69,23 @@ export function noteBudgetWrapUpSent(
 ): GoalTelemetrySnapshot | null {
 	if (!telemetry) return null;
 	return { ...telemetry, budgetWrapUpSent: true, updatedAt: now };
+}
+
+export function noteCompactionContinuation(
+	telemetry: GoalTelemetrySnapshot | null,
+	action: CompactionContinuationAction,
+	input: { key?: string; attempts?: number; finalReason?: string } = {},
+	now = Date.now(),
+): GoalTelemetrySnapshot | null {
+	if (!telemetry) return null;
+	return {
+		...telemetry,
+		lastCompactionContinuationAction: action,
+		lastCompactionContinuationKey: input.key,
+		lastCompactionContinuationAttempts: input.attempts,
+		lastCompactionContinuationFinalReason: input.finalReason,
+		updatedAt: now,
+	};
 }
 
 export function noteBudgetLimit(

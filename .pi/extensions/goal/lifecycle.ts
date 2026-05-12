@@ -44,7 +44,7 @@ export function registerGoalLifecycle(pi: ExtensionAPI): void {
 		if (state.goal?.status === "active") scheduleGoalMonitor(pi, ctx);
 		else cancelGoalMonitor(state.goal?.goalId, "session-tree");
 	});
-	pi.on("session_before_compact", () => { beginGoalCompaction(pi); });
+	pi.on("session_before_compact", (_event, ctx) => { beginGoalCompaction(pi, ctx); });
 	pi.on("session_compact", async (_event, ctx) => handleSessionCompact(pi, ctx));
 	pi.on("turn_start", (event) => { handleTurnStart(event); streamBudgetSignalsSent.clear(); });
 	pi.on("tool_call", (event) => handleToolCall(event));

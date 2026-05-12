@@ -1,0 +1,94 @@
+$ git status --short --untracked-files=all
+?? .ai/docs/issue-workflow/ISSUE-042-harden-compaction-continuation-with-pre-compact-queueing/execution-readiness/raw/commands.log
+$ find .ai/issues -type f -name ISSUE-*.md | sed ... | sort -n | tail -5
+037 
+038 
+039 
+040 
+041 
+$ rg -n "session_before_compact|session_compact|hasQueuedMessages|sendCustomMessage|deliverAs|followUp|triggerTurn|hasPendingMessages|scheduleMaybeContinueGoal|beginGoalCompaction|finishGoalCompaction|sendQueueHandoff" .pi/extensions/goal /Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/agent-session.js .ai/.pi-goals/verify-acceptance-pipeline.md .ai/.pi-goals/verify-acceptance-item.md
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/agent-session.js:71:    _followUpMessages = [];
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/agent-session.js:228:            followUp: [...this._followUpMessages],
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/agent-session.js:285:                    const followUpIndex = this._followUpMessages.indexOf(messageText);
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/agent-session.js:286:                    if (followUpIndex !== -1) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/agent-session.js:287:                        this._followUpMessages.splice(followUpIndex, 1);
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/agent-session.js:598:    get followUpMode() {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/agent-session.js:599:        return this.agent.followUpMode;
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/agent-session.js:685:     * - During streaming, queues via steer() or followUp() based on streamingBehavior option
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/agent-session.js:725:            // If streaming, queue via steer() or followUp() based on option
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/agent-session.js:728:                    throw new Error("Agent is already processing. Specify streamingBehavior ('steer' or 'followUp') to queue the message.");
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/agent-session.js:730:                if (options.streamingBehavior === "followUp") {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/agent-session.js:893:    async followUp(text, images) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/agent-session.js:923:        this._followUpMessages.push(text);
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/agent-session.js:929:        this.agent.followUp({
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/agent-session.js:951:     * - Not streaming + triggerTurn: appends to state/session, starts new turn
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/agent-session.js:955:     * @param options.triggerTurn If true and not streaming, triggers a new LLM turn
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/agent-session.js:956:     * @param options.deliverAs Delivery mode: "steer", "followUp", or "nextTurn"
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/agent-session.js:958:    async sendCustomMessage(message, options) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/agent-session.js:967:        if (options?.deliverAs === "nextTurn") {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/agent-session.js:971:            if (options?.deliverAs === "followUp") {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/agent-session.js:972:                this.agent.followUp(appMessage);
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/agent-session.js:978:        else if (options?.triggerTurn) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/agent-session.js:990:     * When the agent is streaming, use deliverAs to specify how to queue the message.
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/agent-session.js:993:     * @param options.deliverAs Delivery mode when streaming: "steer" or "followUp"
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/agent-session.js:1020:            streamingBehavior: options?.deliverAs,
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/agent-session.js:1028:     * @returns Object with steering and followUp arrays
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/agent-session.js:1032:        const followUp = [...this._followUpMessages];
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/agent-session.js:1034:        this._followUpMessages = [];
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/agent-session.js:1037:        return { steering, followUp };
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/agent-session.js:1041:        return this._steeringMessages.length + this._followUpMessages.length;
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/agent-session.js:1049:        return this._followUpMessages;
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/agent-session.js:1234:        this.agent.followUpMode = mode;
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/agent-session.js:1268:            if (this._extensionRunner.hasHandlers("session_before_compact")) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/agent-session.js:1270:                    type: "session_before_compact",
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/agent-session.js:1314:                    type: "session_compact",
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/agent-session.js:1491:            if (this._extensionRunner.hasHandlers("session_before_compact")) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/agent-session.js:1493:                    type: "session_before_compact",
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/agent-session.js:1551:                    type: "session_compact",
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/agent-session.js:1573:            else if (this.agent.hasQueuedMessages()) {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/agent-session.js:1708:                this.sendCustomMessage(message, options).catch((err) => {
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/agent-session.js:1755:            hasPendingMessages: () => this.pendingMessageCount > 0,
+/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/agent-session.js:2504:        context.sendMessage = (message, options) => this.sendCustomMessage(message, options);
+.pi/extensions/goal/command.ts:241:			sendQueueSteering("goal-resume", { triggerTurn: true });
+.pi/extensions/goal/command.ts:250:			sendQueueSteering("goal-resume", { triggerTurn: true });
+.pi/extensions/goal/continuation.ts:32:export function beginGoalCompaction(pi: ExtensionAPI): void {
+.pi/extensions/goal/continuation.ts:44:export function finishGoalCompaction(pi: ExtensionAPI, ctx: ExtensionContext): void {
+.pi/extensions/goal/continuation.ts:51:	scheduleMaybeContinueGoal(pi, ctx, "compacted");
+.pi/extensions/goal/continuation.ts:54:export function scheduleMaybeContinueGoal(pi: ExtensionAPI, ctx: ExtensionContext, reason: ContinuationReason): void {
+.pi/extensions/goal/continuation.ts:96:		{ deliverAs: "steer" },
+.pi/extensions/goal/continuation.ts:115:	if (ctx.hasPendingMessages()) return skip(pi, "pendingMessages");
+.pi/extensions/goal/continuation.ts:124:		{ triggerTurn: true, deliverAs: "followUp" },
+.pi/extensions/goal/continuation.ts:132:	if (ctx.hasPendingMessages()) return;
+.pi/extensions/goal/continuation.ts:137:		{ triggerTurn: true, deliverAs: "followUp" },
+.pi/extensions/goal/monitor.ts:145:		{ deliverAs: "steer" },
+.pi/extensions/goal/queue-steering.ts:8:export type QueueHandoffOptions = { triggerTurn?: boolean; goalId?: string };
+.pi/extensions/goal/queue-steering.ts:12:export function sendQueueHandoff(pi: ExtensionAPI, reason: GoalQueueSteeringReason, opts: QueueHandoffOptions = {}): boolean {
+.pi/extensions/goal/queue-steering.ts:17:	const sent = sendQueueSteering(pi, reason, { triggerTurn: opts.triggerTurn ?? true });
+.pi/extensions/goal/queue-steering.ts:22:export function sendQueueSteering(pi: ExtensionAPI, reason: GoalQueueSteeringReason, opts: { triggerTurn?: boolean } = {}): boolean {
+.pi/extensions/goal/queue-steering.ts:32:		{ deliverAs: "steer", triggerTurn: opts.triggerTurn },
+.pi/extensions/goal/index.ts:3:import { cancelGoalContinuation, interruptActiveGoalTurn, scheduleBudgetLimitWrapUp, scheduleMaybeContinueGoal } from "./continuation";
+.pi/extensions/goal/index.ts:8:import { sendQueueHandoff, sendQueueSteering } from "./queue-steering";
+.pi/extensions/goal/index.ts:13:		(ctx, reason) => scheduleMaybeContinueGoal(pi, ctx, reason),
+.pi/extensions/goal/index.ts:20:	registerGoalTools(pi, (ctx, reason) => scheduleMaybeContinueGoal(pi, ctx, reason), cancelGoalContinuation, (ctx) => scheduleGoalMonitor(pi, ctx), cancelGoalMonitor, (ctx, goal) => scheduleBudgetLimitWrapUp(pi, ctx, goal), () => getQueue().length, (reason, opts) => sendQueueHandoff(pi, reason, opts));
+.pi/extensions/goal/tools.ts:410:		runtime.sendQueueSteering?.("goal-complete", { triggerTurn: true, goalId: updatedGoal.goalId });
+.pi/extensions/goal/tools.ts:415:		if ((runtime.getQueueSize?.() ?? 0) > 0) runtime.sendQueueSteering?.("goal-budget-limited", { triggerTurn: true, goalId: updatedGoal.goalId });
+.pi/extensions/goal/types.ts:147:export type GoalQueueSteeringSender = (reason: GoalQueueSteeringReason, opts?: { triggerTurn?: boolean; goalId?: string }) => boolean;
+.pi/extensions/goal/lifecycle.ts:24:import { beginGoalCompaction, cancelGoalContinuation, finishGoalCompaction, interruptActiveGoalTurn, scheduleBudgetLimitWrapUp, scheduleMaybeContinueGoal } from "./continuation";
+.pi/extensions/goal/lifecycle.ts:29:import { queueSteeringStillValid, sendQueueHandoff } from "./queue-steering";
+.pi/extensions/goal/lifecycle.ts:47:	pi.on("session_before_compact", () => { beginGoalCompaction(pi); });
+.pi/extensions/goal/lifecycle.ts:48:	pi.on("session_compact", async (_event, ctx) => handleSessionCompact(pi, ctx));
+.pi/extensions/goal/lifecycle.ts:53:	pi.on("agent_end", async (_event, ctx) => scheduleMaybeContinueGoal(pi, ctx, "agentEnd"));
+.pi/extensions/goal/lifecycle.ts:72:			scheduleMaybeContinueGoal(pi, ctx, "resumed");
+.pi/extensions/goal/lifecycle.ts:84:	finishGoalCompaction(pi, ctx);
+.pi/extensions/goal/lifecycle.ts:133:			{ deliverAs: "steer" },
+.pi/extensions/goal/lifecycle.ts:135:		sendQueueHandoff(pi, "goal-budget-limited", { goalId: goal.goalId });
+.pi/extensions/goal/lifecycle.ts:150:			{ deliverAs: "steer" },
+.pi/extensions/goal/lifecycle.ts:169:			{ deliverAs: "steer" },
+.pi/extensions/goal/lifecycle.ts:252:	if (goal?.status === "complete" && completedThisTurn) sendQueueHandoff(pi, "goal-complete", { goalId: goal.goalId });
+.pi/extensions/goal/lifecycle.ts:301:		sendQueueHandoff(pi, "goal-budget-limited", { goalId: result.goal.goalId });
+.pi/extensions/goal/lifecycle.ts:313:		const handedOff = sendQueueHandoff(pi, "goal-budget-limited", { goalId: result.goal.goalId });
+$ ls .ai/validation/goal-compaction-*
+.ai/validation/goal-compaction-continuation-probe.mjs
+.ai/validation/goal-compaction-dedupe-telemetry-probe.mjs
+.ai/validation/goal-compaction-live-probe-closeout.md
+.ai/validation/goal-compaction-suppression-probe.mjs

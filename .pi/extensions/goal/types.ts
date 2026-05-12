@@ -56,6 +56,8 @@ export type GoalMonitorFloorReport = {
 	floorQualityState: FloorQualityState;
 };
 
+export type CompactionContinuationAction = "prequeue" | "fallbackRetry" | "fallbackFinished";
+
 export type GoalTelemetrySnapshot = {
 	version: 1;
 	goalId: string;
@@ -84,6 +86,10 @@ export type GoalTelemetrySnapshot = {
 	floorChurnSteerCount?: number;
 	floorQualityState?: FloorQualityState;
 	noMoreValuableWorkReason?: NoMoreValuableWorkReason;
+	lastCompactionContinuationAction?: CompactionContinuationAction;
+	lastCompactionContinuationKey?: string;
+	lastCompactionContinuationAttempts?: number;
+	lastCompactionContinuationFinalReason?: string;
 	updatedAt: number;
 };
 
@@ -144,7 +150,7 @@ export type GoalPauseInterrupter = (ctx: ExtensionContext, goal: GoalState) => v
 export type GoalMonitorScheduler = (ctx: ExtensionContext) => void;
 export type GoalMonitorCanceller = (goalId?: string, reason?: string) => void;
 export type GoalQueueSteeringReason = "goal-complete" | "goal-clear" | "goal-resume" | "goal-budget-limited";
-export type GoalQueueSteeringSender = (reason: GoalQueueSteeringReason, opts?: { triggerTurn?: boolean; goalId?: string }) => boolean;
+export type GoalQueueSteeringSender = (reason: GoalQueueSteeringReason, opts?: { triggerTurn?: boolean; goalId?: string; deliverAs?: "steer" | "followUp" }) => boolean;
 
 export type GoalMonitorAction = "watch" | "steer" | "escalate";
 export type GoalMonitorConfidence = "low" | "medium" | "high";

@@ -5,7 +5,7 @@ import type { GoalQueueSteeringReason } from "./types";
 
 const OBJECTIVE_PREVIEW_CHARS = 4_000;
 
-export type QueueHandoffOptions = { triggerTurn?: boolean; goalId?: string };
+export type QueueHandoffOptions = { triggerTurn?: boolean; goalId?: string; deliverAs?: "steer" | "followUp" };
 
 let lastQueueHandoffKey: string | undefined;
 
@@ -14,12 +14,12 @@ export function sendQueueHandoff(pi: ExtensionAPI, reason: GoalQueueSteeringReas
 	if (!next) return false;
 	const key = `${reason}:${opts.goalId ?? "none"}:${next.queueId}`;
 	if (lastQueueHandoffKey === key) return false;
-	const sent = sendQueueSteering(pi, reason, { triggerTurn: opts.triggerTurn ?? true });
+	const sent = sendQueueSteering(pi, reason, { deliverAs: opts.deliverAs, triggerTurn: opts.triggerTurn ?? true });
 	if (sent) lastQueueHandoffKey = key;
 	return sent;
 }
 
-export function sendQueueSteering(pi: ExtensionAPI, reason: GoalQueueSteeringReason, opts: { triggerTurn?: boolean } = {}): boolean {
+export function sendQueueSteering(pi: ExtensionAPI, reason: GoalQueueSteeringReason, opts: { triggerTurn?: boolean; deliverAs?: "steer" | "followUp" } = {}): boolean {
 	const next = getQueue()[0];
 	if (!next) return false;
 	pi.sendMessage(
@@ -29,7 +29,7 @@ export function sendQueueSteering(pi: ExtensionAPI, reason: GoalQueueSteeringRea
 			display: false,
 			details: { kind: "queueNext", promptId: QUEUE_PROMPT_ID, queueId: next.queueId, reason, createdAt: Date.now() },
 		},
-		{ deliverAs: "steer", triggerTurn: opts.triggerTurn },
+		{ deliverAs: opts.deliverAs ?? "steer", triggerTurn: opts.triggerTurn },
 	);
 	return true;
 }

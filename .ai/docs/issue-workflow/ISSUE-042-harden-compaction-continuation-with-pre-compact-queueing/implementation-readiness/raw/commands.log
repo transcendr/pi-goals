@@ -1,0 +1,110 @@
+$ git status --short --untracked-files=all
+?? .ai/docs/issue-workflow/ISSUE-042-harden-compaction-continuation-with-pre-compact-queueing/execution-readiness/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-042-harden-compaction-continuation-with-pre-compact-queueing/execution-readiness/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-042-harden-compaction-continuation-with-pre-compact-queueing/execution-readiness/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-042-harden-compaction-continuation-with-pre-compact-queueing/execution-readiness/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-042-harden-compaction-continuation-with-pre-compact-queueing/execution-readiness/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-042-harden-compaction-continuation-with-pre-compact-queueing/execution-readiness/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-042-harden-compaction-continuation-with-pre-compact-queueing/execution-readiness/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-042-harden-compaction-continuation-with-pre-compact-queueing/execution-readiness/raw/commands.log
+?? .ai/docs/issue-workflow/ISSUE-042-harden-compaction-continuation-with-pre-compact-queueing/implementation-readiness/raw/commands.log
+?? .ai/issues/open/ISSUE-042-harden-compaction-continuation-with-pre-compact-queueing.md
+$ rg -n "session_before_compact|session_compact|sendCustomMessage|hasQueuedMessages|followUp|triggerTurn" Pi core agent-session.js
+71:    _followUpMessages = [];
+228:            followUp: [...this._followUpMessages],
+285:                    const followUpIndex = this._followUpMessages.indexOf(messageText);
+286:                    if (followUpIndex !== -1) {
+287:                        this._followUpMessages.splice(followUpIndex, 1);
+598:    get followUpMode() {
+599:        return this.agent.followUpMode;
+685:     * - During streaming, queues via steer() or followUp() based on streamingBehavior option
+725:            // If streaming, queue via steer() or followUp() based on option
+728:                    throw new Error("Agent is already processing. Specify streamingBehavior ('steer' or 'followUp') to queue the message.");
+730:                if (options.streamingBehavior === "followUp") {
+893:    async followUp(text, images) {
+923:        this._followUpMessages.push(text);
+929:        this.agent.followUp({
+951:     * - Not streaming + triggerTurn: appends to state/session, starts new turn
+955:     * @param options.triggerTurn If true and not streaming, triggers a new LLM turn
+956:     * @param options.deliverAs Delivery mode: "steer", "followUp", or "nextTurn"
+958:    async sendCustomMessage(message, options) {
+971:            if (options?.deliverAs === "followUp") {
+972:                this.agent.followUp(appMessage);
+978:        else if (options?.triggerTurn) {
+993:     * @param options.deliverAs Delivery mode when streaming: "steer" or "followUp"
+1028:     * @returns Object with steering and followUp arrays
+1032:        const followUp = [...this._followUpMessages];
+1034:        this._followUpMessages = [];
+1037:        return { steering, followUp };
+1041:        return this._steeringMessages.length + this._followUpMessages.length;
+1049:        return this._followUpMessages;
+1234:        this.agent.followUpMode = mode;
+1268:            if (this._extensionRunner.hasHandlers("session_before_compact")) {
+1270:                    type: "session_before_compact",
+1314:                    type: "session_compact",
+1491:            if (this._extensionRunner.hasHandlers("session_before_compact")) {
+1493:                    type: "session_before_compact",
+1551:                    type: "session_compact",
+1573:            else if (this.agent.hasQueuedMessages()) {
+1708:                this.sendCustomMessage(message, options).catch((err) => {
+2504:        context.sendMessage = (message, options) => this.sendCustomMessage(message, options);
+$ rg -n "beginGoalCompaction|finishGoalCompaction|scheduleMaybeContinueGoal|maybeContinueGoal|sendQueueHandoff|getQueue|noteContinuation" .pi/extensions/goal
+.pi/extensions/goal/command.ts:18:import { getQueue, enqueueGoal, persistEnqueue } from "./queue-state";
+.pi/extensions/goal/command.ts:238:	const queue = getQueue();
+.pi/extensions/goal/command.ts:280:	const queue = getQueue();
+.pi/extensions/goal/command.ts:289:		const queue = getQueue();
+.pi/extensions/goal/index.ts:3:import { cancelGoalContinuation, interruptActiveGoalTurn, scheduleBudgetLimitWrapUp, scheduleMaybeContinueGoal } from "./continuation";
+.pi/extensions/goal/index.ts:7:import { getQueue } from "./queue-state";
+.pi/extensions/goal/index.ts:8:import { sendQueueHandoff, sendQueueSteering } from "./queue-steering";
+.pi/extensions/goal/index.ts:13:		(ctx, reason) => scheduleMaybeContinueGoal(pi, ctx, reason),
+.pi/extensions/goal/index.ts:20:	registerGoalTools(pi, (ctx, reason) => scheduleMaybeContinueGoal(pi, ctx, reason), cancelGoalContinuation, (ctx) => scheduleGoalMonitor(pi, ctx), cancelGoalMonitor, (ctx, goal) => scheduleBudgetLimitWrapUp(pi, ctx, goal), () => getQueue().length, (reason, opts) => sendQueueHandoff(pi, reason, opts));
+.pi/extensions/goal/tools.ts:50:	getQueueSize?: () => number;
+.pi/extensions/goal/tools.ts:61:	getQueueSize?: () => number,
+.pi/extensions/goal/tools.ts:64:	const runtime: GoalToolRuntime = { scheduleContinuation, cancelContinuation, scheduleMonitor, cancelMonitor, scheduleBudgetLimitWrapUp, getQueueSize, sendQueueSteering };
+.pi/extensions/goal/tools.ts:174:			const queueSize = runtime.getQueueSize?.() ?? 0;
+.pi/extensions/goal/tools.ts:260:	if (policy.replaceBudgetLimitedForQueuedWork && current.status === "budgetLimited" && (runtime.getQueueSize?.() ?? 0) > 0) return true;
+.pi/extensions/goal/tools.ts:409:	if (previousGoal.status !== "complete" && updatedGoal.status === "complete" && (runtime.getQueueSize?.() ?? 0) > 0) {
+.pi/extensions/goal/tools.ts:415:		if ((runtime.getQueueSize?.() ?? 0) > 0) runtime.sendQueueSteering?.("goal-budget-limited", { triggerTurn: true, goalId: updatedGoal.goalId });
+.pi/extensions/goal/queue-steering.ts:3:import { getQueue, type QueuedGoal } from "./queue-state";
+.pi/extensions/goal/queue-steering.ts:12:export function sendQueueHandoff(pi: ExtensionAPI, reason: GoalQueueSteeringReason, opts: QueueHandoffOptions = {}): boolean {
+.pi/extensions/goal/queue-steering.ts:13:	const next = getQueue()[0];
+.pi/extensions/goal/queue-steering.ts:23:	const next = getQueue()[0];
+.pi/extensions/goal/queue-steering.ts:40:	return typeof queueId === "string" && getQueue()[0]?.queueId === queueId;
+.pi/extensions/goal/lifecycle.ts:24:import { beginGoalCompaction, cancelGoalContinuation, finishGoalCompaction, interruptActiveGoalTurn, scheduleBudgetLimitWrapUp, scheduleMaybeContinueGoal } from "./continuation";
+.pi/extensions/goal/lifecycle.ts:29:import { queueSteeringStillValid, sendQueueHandoff } from "./queue-steering";
+.pi/extensions/goal/lifecycle.ts:47:	pi.on("session_before_compact", () => { beginGoalCompaction(pi); });
+.pi/extensions/goal/lifecycle.ts:53:	pi.on("agent_end", async (_event, ctx) => scheduleMaybeContinueGoal(pi, ctx, "agentEnd"));
+.pi/extensions/goal/lifecycle.ts:72:			scheduleMaybeContinueGoal(pi, ctx, "resumed");
+.pi/extensions/goal/lifecycle.ts:84:	finishGoalCompaction(pi, ctx);
+.pi/extensions/goal/lifecycle.ts:135:		sendQueueHandoff(pi, "goal-budget-limited", { goalId: goal.goalId });
+.pi/extensions/goal/lifecycle.ts:252:	if (goal?.status === "complete" && completedThisTurn) sendQueueHandoff(pi, "goal-complete", { goalId: goal.goalId });
+.pi/extensions/goal/lifecycle.ts:301:		sendQueueHandoff(pi, "goal-budget-limited", { goalId: result.goal.goalId });
+.pi/extensions/goal/lifecycle.ts:313:		const handedOff = sendQueueHandoff(pi, "goal-budget-limited", { goalId: result.goal.goalId });
+.pi/extensions/goal/queue-tools.ts:8:import { enqueueGoal, dequeueGoal, removeGoal, persistEnqueue, persistDequeue, persistRemove, getQueue, type DequeueAudit, type QueuedGoal } from "./queue-state";
+.pi/extensions/goal/queue-tools.ts:147:	const next = getQueue()[0];
+.pi/extensions/goal/queue-tools.ts:148:	if (!next) return { content: [{ type: "text" as const, text: "No queued goals." }], details: { goal: current, telemetry: getTelemetry(), queue: getQueue() } as QueueToolDetails };
+.pi/extensions/goal/queue-tools.ts:167:	return { content: [{ type: "text" as const, text: `Started queued goal: ${started.queueId}\nObjective: ${goal.objective}` }], details: { goal, telemetry, started, queue: getQueue() } as QueueToolDetails };
+.pi/extensions/goal/queue-tools.ts:190:	const queue = getQueue();
+.pi/extensions/goal/telemetry.ts:47:export function noteContinuationScheduled(
+.pi/extensions/goal/telemetry.ts:56:export function noteContinuationSkipped(
+.pi/extensions/goal/queue-state.ts:62:export function getQueue(): QueuedGoal[] {
+.pi/extensions/goal/continuation.ts:13:import { noteBudgetWrapUpSent, noteContinuationScheduled, noteContinuationSkipped, setNextTurnOrigin } from "./telemetry";
+.pi/extensions/goal/continuation.ts:32:export function beginGoalCompaction(pi: ExtensionAPI): void {
+.pi/extensions/goal/continuation.ts:44:export function finishGoalCompaction(pi: ExtensionAPI, ctx: ExtensionContext): void {
+.pi/extensions/goal/continuation.ts:51:	scheduleMaybeContinueGoal(pi, ctx, "compacted");
+.pi/extensions/goal/continuation.ts:54:export function scheduleMaybeContinueGoal(pi: ExtensionAPI, ctx: ExtensionContext, reason: ContinuationReason): void {
+.pi/extensions/goal/continuation.ts:59:	const telemetry = noteContinuationScheduled(getTelemetry(), reason);
+.pi/extensions/goal/continuation.ts:64:		void safelyRun(() => maybeContinueGoal(pi, ctx, reason, goalId));
+.pi/extensions/goal/continuation.ts:107:async function maybeContinueGoal(pi: ExtensionAPI, ctx: ExtensionContext, reason: ContinuationReason, goalId: string): Promise<void> {
+.pi/extensions/goal/continuation.ts:156:	const telemetry = noteContinuationSkipped(getTelemetry(), reason);
+$ rg -n "goal-compaction|queue-handoff|setRuntimeStateForTests|setQueueForTests" .ai/validation .pi/extensions/goal
+.pi/extensions/goal/queue-state.ts:105:export function setQueueForTests(state: GoalQueueRuntimeState): void {
+.pi/extensions/goal/state.ts:40:export function setRuntimeStateForTests(state: GoalRuntimeState): void {
+.ai/validation/goal-budget-limited-queue-handoff-probe.mjs:34:console.log('goal-budget-limited-queue-handoff-probe passed');
+.ai/validation/goal-complete-queue-handoff-probe.mjs:28:console.log('goal-complete-queue-handoff-probe passed');
+.ai/validation/goal-compaction-live-probe-closeout.md:5:- `node .ai/validation/goal-compaction-continuation-probe.mjs` verifies lifecycle hooks for `session_before_compact` / `session_compact`, state replay, and post-compaction scheduling with reason `compacted`.
+.ai/validation/goal-compaction-live-probe-closeout.md:6:- `node .ai/validation/goal-compaction-suppression-probe.mjs` verifies compaction suppression is checked before `ctx.isIdle()` and records `compacting` skip telemetry.
+.ai/validation/goal-compaction-live-probe-closeout.md:7:- `node .ai/validation/goal-compaction-dedupe-telemetry-probe.mjs` verifies stale pending continuations are cleared before replacement scheduling and telemetry paths remain present.
+$ node --version && npm --version
+v25.5.0
+11.8.0
