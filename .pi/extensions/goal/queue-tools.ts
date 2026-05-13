@@ -175,6 +175,7 @@ function sendNextQueueHandoffAfterDequeue(runtime: GoalQueueToolRuntime): void {
 	const goal = getGoal();
 	const reason = queueHandoffReason(goal);
 	const queueLength = getQueue().length;
+	logCompactionDebug("queueTools.dequeue.queueHandoffDecision", { reason, queueLength, hasGoal: Boolean(goal), hasSender: Boolean(runtime.sendQueueHandoff) });
 	if (!goal || !reason || queueLength === 0) return;
 	if (!runtime.sendQueueHandoff) {
 		logCompactionDebug("queueTools.dequeue.queueHandoffSkipped", { reason, queueLength });
