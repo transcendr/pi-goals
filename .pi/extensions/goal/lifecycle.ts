@@ -19,8 +19,9 @@ import {
 	PAUSE_MESSAGE_TYPE,
 	GOAL_MONITOR_MESSAGE_TYPE,
 	QUEUE_MESSAGE_TYPE,
+	AGENT_END_HANDOFF_DELAY_MS,
 } from "./constants";
-import { evaluateBudgetPressure, isBudgetHardStop, isBudgetReached, isBudgetWarning } from "./budget";
+import { evaluateBudgetPressure, isBudgetHardStop, isBudgetReached, isBudgetWarning, queueHandoffReason } from "./budget";
 import { beginGoalCompaction, cancelGoalContinuation, finishGoalCompaction, interruptActiveGoalTurn, scheduleBudgetLimitWrapUp, scheduleMaybeContinueGoal } from "./continuation";
 import { logCompactionDebug, logCompactionDebugWithContext } from "./debug-log";
 import { buildBudgetLimitPrompt } from "./prompts";
@@ -97,16 +98,15 @@ function handleSessionCompact(pi: ExtensionAPI, ctx: ExtensionContext): void {
 function handleAgentEnd(pi: ExtensionAPI, ctx: ExtensionContext): void {
 	logCompactionDebugWithContext("lifecycle.agent_end", ctx);
 	const goal = getGoal();
+	const reason = queueHandoffReason(goal);
 	const queueLength = getQueue().length;
-	const shouldHandoff = (goal?.status === "complete" || goal?.status === "budgetLimited") && queueLength > 0;
-	logCompactionDebugWithContext("lifecycle.agent_end.queueDecision", ctx, { shouldHandoff, queueLength });
-	if (shouldHandoff) {
-		const reason = goal.status === "complete" ? "goal-complete" : "goal-budget-limited";
+	logCompactionDebugWithContext("lifecycle.agent_end.queueDecision", ctx, { reason, queueLength });
+	if (reason && queueLength > 0) {
 		logCompactionDebugWithContext("lifecycle.agent_end.queueHandoff.scheduled", ctx, { reason, force: true });
 		setTimeout(() => {
 			logCompactionDebug("lifecycle.agent_end.queueHandoff.dispatch", { reason, force: true });
-			sendQueueHandoff(pi, reason, { goalId: goal.goalId, force: true });
-		}, 50);
+			sendQueueHandoff(pi, reason, { goalId: goal!.goalId, force: true });
+		}, AGENT_END_HANDOFF_DELAY_MS);
 		return;
 	}
 	logCompactionDebugWithContext("lifecycle.agent_end.continuation", ctx);

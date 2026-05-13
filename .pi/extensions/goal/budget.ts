@@ -1,10 +1,16 @@
 import { BUDGET_HARD_STOP_MULTIPLIER, TIME_BUDGET_WARNING_REMAINING_SECONDS, TOKEN_BUDGET_WARNING_REMAINING } from "./constants";
-import type { BudgetLimitReason, BudgetPressure, BudgetPressureKind, GoalState } from "./types";
+import type { BudgetLimitReason, BudgetPressure, BudgetPressureKind, GoalQueueSteeringReason, GoalState } from "./types";
 
 export function evaluateBudgetPressure(goal: GoalState): BudgetPressure {
 	const token = tokenPressure(goal);
 	const time = timePressure(goal);
 	return moreSevere(token, time);
+}
+
+export function queueHandoffReason(goal: GoalState | null): GoalQueueSteeringReason | undefined {
+	if (goal?.status === "complete") return "goal-complete";
+	if (goal?.status === "budgetLimited") return "goal-budget-limited";
+	return undefined;
 }
 
 export function budgetLimitReason(goal: GoalState): BudgetLimitReason | undefined {

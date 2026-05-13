@@ -30,6 +30,8 @@ export const GOAL_MONITOR_ENTRY_SUMMARY_CHARS = 700;
 export const GOAL_MONITOR_PROCESS_TIMEOUT_MS = 240_000;
 export const GOAL_MONITOR_OUTPUT_CHARS = 20_000;
 
+export const AGENT_END_HANDOFF_DELAY_MS = 50;
+
 export const CONTINUATION_PROMPT_ID = "pi-goal-continuation-v1";
 export const BUDGET_LIMIT_PROMPT_ID = "pi-goal-budget-limit-v1";
 export const BUDGET_WARNING_PROMPT_ID = "pi-goal-budget-warning-v1";

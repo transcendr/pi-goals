@@ -17,6 +17,6 @@ export default function goalExtension(pi: ExtensionAPI): void {
 		cancelGoalMonitor,
 		(reason, opts) => sendQueueSteering(pi, reason, opts),
 	);
-	registerGoalTools(pi, (ctx, reason) => scheduleMaybeContinueGoal(pi, ctx, reason), cancelGoalContinuation, (ctx) => scheduleGoalMonitor(pi, ctx), cancelGoalMonitor, (ctx, goal) => scheduleBudgetLimitWrapUp(pi, ctx, goal), () => getQueue().length, (reason, opts) => sendQueueHandoff(pi, reason, opts), (reason, opts) => sendQueueHandoff(pi, reason, opts));
+	registerGoalTools(pi, (ctx, reason) => scheduleMaybeContinueGoal(pi, ctx, reason), cancelGoalContinuation, (ctx) => scheduleGoalMonitor(pi, ctx), cancelGoalMonitor, (ctx, goal) => scheduleBudgetLimitWrapUp(pi, ctx, goal), () => getQueue().length, (reason, opts) => sendQueueSteering(pi, reason, opts), (reason, opts) => sendQueueHandoff(pi, reason, opts));
 	registerGoalLifecycle(pi);
 }

@@ -4,10 +4,11 @@ import { validateObjective } from "./format";
 import { validateFloorConfig } from "./floor";
 import { createTelemetry } from "./telemetry";
 import { resolveGoalTemplateByName } from "./templates";
+import { queueHandoffReason } from "./budget";
 import { logCompactionDebug } from "./debug-log";
 import { createGoalState, getGoal, getTelemetry, persistSetGoal } from "./state";
 import { enqueueGoal, dequeueGoal, removeGoal, persistEnqueue, persistDequeue, persistRemove, getQueue, type DequeueAudit, type QueuedGoal } from "./queue-state";
-import type { GoalMonitorScheduler, GoalQueueSteeringReason, GoalQueueSteeringSender, GoalState, GoalTelemetrySnapshot } from "./types";
+import type { GoalMonitorScheduler, GoalQueueSteeringSender, GoalState, GoalTelemetrySnapshot } from "./types";
 import { syncGoalUi } from "./ui";
 
 const EmptyParams = Type.Object({});
@@ -178,12 +179,6 @@ function sendNextQueueHandoffAfterDequeue(runtime: GoalQueueToolRuntime): void {
 	if (!goal || !reason || queueLength === 0) return;
 	runtime.sendQueueHandoff?.(reason, { goalId: goal.goalId, triggerTurn: true });
 	logCompactionDebug("queueTools.dequeue.queueHandoffSent", { reason, queueLength });
-}
-
-function queueHandoffReason(goal: GoalState | null): GoalQueueSteeringReason | undefined {
-	if (goal?.status === "complete") return "goal-complete";
-	if (goal?.status === "budgetLimited") return "goal-budget-limited";
-	return undefined;
 }
 
 type QueuedObjectiveResolution = { ok: true; objective: string } | { ok: false; error: string };
