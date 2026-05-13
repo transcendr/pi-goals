@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.4.1 - 2026-05-13
+
+### Highlights
+
+- Hardened queue continuation so completed goals with remaining queued work continue at turn end and satisfied orchestration queue items hand off to the next queued goal.
+
+### Changed
+
+- Documented a reusable live probe scenario for terminal-goal queue handoff validation.
+- Clarified project agent guidance for repo artifact hygiene and Solo scratchpad usage.
+
+### Fixed
+
+- `dequeue_goal` now triggers a deduplicated queue handoff when it consumes an orchestration item and more queued work remains.
+- `agent_end` now schedules a post-turn queue handoff for terminal goals with queued work, avoiding idle sessions that require manual `/goal resume`.
+- Tool-completion queue handoffs now use the deduplicated handoff path consistently.
+
 ## 0.4.0 - 2026-05-12
 
 ### Highlights
