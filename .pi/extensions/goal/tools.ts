@@ -49,6 +49,7 @@ type GoalToolRuntime = {
 	scheduleBudgetLimitWrapUp?: (ctx: ExtensionContext, goal: GoalState) => void;
 	getQueueSize?: () => number;
 	sendQueueSteering?: GoalQueueSteeringSender;
+	sendQueueHandoff?: GoalQueueSteeringSender;
 };
 
 export function registerGoalTools(
@@ -60,14 +61,15 @@ export function registerGoalTools(
 	scheduleBudgetLimitWrapUp?: (ctx: ExtensionContext, goal: GoalState) => void,
 	getQueueSize?: () => number,
 	sendQueueSteering?: GoalQueueSteeringSender,
+	sendQueueHandoff?: GoalQueueSteeringSender,
 ): void {
-	const runtime: GoalToolRuntime = { scheduleContinuation, cancelContinuation, scheduleMonitor, cancelMonitor, scheduleBudgetLimitWrapUp, getQueueSize, sendQueueSteering };
+	const runtime: GoalToolRuntime = { scheduleContinuation, cancelContinuation, scheduleMonitor, cancelMonitor, scheduleBudgetLimitWrapUp, getQueueSize, sendQueueSteering, sendQueueHandoff };
 	registerGetGoalTool(pi);
 	registerListGoalTemplatesTool(pi);
 	registerCreateGoalTool(pi, runtime);
 	registerCreateGoalFromTemplateTool(pi, runtime);
 	registerUpdateGoalTool(pi, runtime);
-	registerGoalQueueTools(pi, { scheduleMonitor });
+	registerGoalQueueTools(pi, { scheduleMonitor, sendQueueHandoff });
 	registerClearGoalTool(pi, runtime);
 }
 

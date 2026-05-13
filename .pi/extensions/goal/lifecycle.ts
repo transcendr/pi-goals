@@ -22,11 +22,11 @@ import {
 } from "./constants";
 import { evaluateBudgetPressure, isBudgetHardStop, isBudgetReached, isBudgetWarning } from "./budget";
 import { beginGoalCompaction, cancelGoalContinuation, finishGoalCompaction, interruptActiveGoalTurn, scheduleBudgetLimitWrapUp, scheduleMaybeContinueGoal } from "./continuation";
-import { logCompactionDebugWithContext } from "./debug-log";
+import { logCompactionDebug, logCompactionDebugWithContext } from "./debug-log";
 import { buildBudgetLimitPrompt } from "./prompts";
 import { getGoal, getTelemetry, persistAccountGoal, persistTelemetry, persistUpdateGoal, replayGoalState } from "./state";
 import { cancelGoalMonitor, replayGoalMonitorState, scheduleGoalMonitor } from "./monitor";
-import { replayQueueState } from "./queue-state";
+import { getQueue, replayQueueState } from "./queue-state";
 import { queueSteeringStillValid, sendQueueHandoff } from "./queue-steering";
 import { applyTurnTelemetry, consumeNextTurnOrigin, makeTurnSnapshot, noteBudgetHardStop, noteBudgetLimit, noteBudgetWarning, noteSafetyPause } from "./telemetry";
 import { notifyWarning, promptResumePausedGoal, syncGoalUi } from "./ui";
@@ -57,10 +57,7 @@ export function registerGoalLifecycle(pi: ExtensionAPI): void {
 	pi.on("tool_call", (event) => handleToolCall(event));
 	pi.on("tool_result", (event) => handleToolResult(event));
 	pi.on("turn_end", async (event, ctx) => handleTurnEnd(pi, event, ctx));
-	pi.on("agent_end", async (_event, ctx) => {
-		logCompactionDebugWithContext("lifecycle.agent_end", ctx);
-		scheduleMaybeContinueGoal(pi, ctx, "agentEnd");
-	});
+	pi.on("agent_end", async (_event, ctx) => handleAgentEnd(pi, ctx));
 	pi.on("message_update", (event, ctx) => handleMessageUpdate(pi, event, ctx));
 	pi.on("context", (event) => filterGoalContext(event));
 }
@@ -95,6 +92,25 @@ function handleSessionCompact(pi: ExtensionAPI, ctx: ExtensionContext): void {
 	logCompactionDebugWithContext("lifecycle.handleSessionCompact.beforeFinish", ctx);
 	finishGoalCompaction(pi, ctx);
 	logCompactionDebugWithContext("lifecycle.handleSessionCompact.end", ctx);
+}
+
+function handleAgentEnd(pi: ExtensionAPI, ctx: ExtensionContext): void {
+	logCompactionDebugWithContext("lifecycle.agent_end", ctx);
+	const goal = getGoal();
+	const queueLength = getQueue().length;
+	const shouldHandoff = (goal?.status === "complete" || goal?.status === "budgetLimited") && queueLength > 0;
+	logCompactionDebugWithContext("lifecycle.agent_end.queueDecision", ctx, { shouldHandoff, queueLength });
+	if (shouldHandoff) {
+		const reason = goal.status === "complete" ? "goal-complete" : "goal-budget-limited";
+		logCompactionDebugWithContext("lifecycle.agent_end.queueHandoff.scheduled", ctx, { reason, force: true });
+		setTimeout(() => {
+			logCompactionDebug("lifecycle.agent_end.queueHandoff.dispatch", { reason, force: true });
+			sendQueueHandoff(pi, reason, { goalId: goal.goalId, force: true });
+		}, 50);
+		return;
+	}
+	logCompactionDebugWithContext("lifecycle.agent_end.continuation", ctx);
+	scheduleMaybeContinueGoal(pi, ctx, "agentEnd");
 }
 
 function handleTurnStart(event: TurnStartEvent): void {

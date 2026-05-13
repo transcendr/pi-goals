@@ -4,9 +4,10 @@ import { validateObjective } from "./format";
 import { validateFloorConfig } from "./floor";
 import { createTelemetry } from "./telemetry";
 import { resolveGoalTemplateByName } from "./templates";
+import { logCompactionDebug } from "./debug-log";
 import { createGoalState, getGoal, getTelemetry, persistSetGoal } from "./state";
 import { enqueueGoal, dequeueGoal, removeGoal, persistEnqueue, persistDequeue, persistRemove, getQueue, type DequeueAudit, type QueuedGoal } from "./queue-state";
-import type { GoalMonitorScheduler, GoalState, GoalTelemetrySnapshot } from "./types";
+import type { GoalMonitorScheduler, GoalQueueSteeringReason, GoalQueueSteeringSender, GoalState, GoalTelemetrySnapshot } from "./types";
 import { syncGoalUi } from "./ui";
 
 const EmptyParams = Type.Object({});
@@ -35,13 +36,14 @@ type QueueToolDetails = {
 
 type GoalQueueToolRuntime = {
 	scheduleMonitor?: GoalMonitorScheduler;
+	sendQueueHandoff?: GoalQueueSteeringSender;
 };
 
 export function registerGoalQueueTools(pi: ExtensionAPI, runtime: GoalQueueToolRuntime = {}): void {
 	registerListGoalQueueTool(pi);
 	registerEnqueueGoalTool(pi);
 	registerStartQueuedGoalTool(pi, runtime);
-	registerDequeueGoalTool(pi);
+	registerDequeueGoalTool(pi, runtime);
 	registerRemoveQueuedGoalTool(pi);
 }
 
@@ -100,7 +102,7 @@ function registerStartQueuedGoalTool(pi: ExtensionAPI, runtime: GoalQueueToolRun
 	});
 }
 
-function registerDequeueGoalTool(pi: ExtensionAPI): void {
+function registerDequeueGoalTool(pi: ExtensionAPI, runtime: GoalQueueToolRuntime): void {
 	pi.registerTool({
 		name: "dequeue_goal",
 		label: "Dequeue Goal",
@@ -119,6 +121,7 @@ function registerDequeueGoalTool(pi: ExtensionAPI): void {
 			const dequeued = dequeueGoal();
 			if (!dequeued) return { content: [{ type: "text" as const, text: "No queued goals." }], details: { goal: getGoal(), telemetry: getTelemetry() } as QueueToolDetails };
 			persistDequeue(pi, "dequeued", { queueId: dequeued.queueId, audit: audit.value });
+			sendNextQueueHandoffAfterDequeue(runtime);
 			return { content: [{ type: "text" as const, text: `Dequeued goal: ${dequeued.queueId}\nObjective: ${dequeued.objective}\nRationale: ${audit.value.rationale}\nAuthority: ${audit.value.authority}` }], details: { goal: getGoal(), telemetry: getTelemetry(), dequeued, dequeue_audit: audit.value } as QueueToolDetails };
 		},
 	});
@@ -165,6 +168,22 @@ function createAndDequeueQueuedGoal(pi: ExtensionAPI, runtime: GoalQueueToolRunt
 	syncGoalUi(ctx, goal);
 	runtime.scheduleMonitor?.(ctx);
 	return { content: [{ type: "text" as const, text: `Started queued goal: ${started.queueId}\nObjective: ${goal.objective}` }], details: { goal, telemetry, started, queue: getQueue() } as QueueToolDetails };
+}
+
+function sendNextQueueHandoffAfterDequeue(runtime: GoalQueueToolRuntime): void {
+	const goal = getGoal();
+	const reason = queueHandoffReason(goal);
+	const queueLength = getQueue().length;
+	logCompactionDebug("queueTools.dequeue.queueHandoffDecision", { reason, queueLength, hasGoal: Boolean(goal), hasSender: Boolean(runtime.sendQueueHandoff) });
+	if (!goal || !reason || queueLength === 0) return;
+	runtime.sendQueueHandoff?.(reason, { goalId: goal.goalId, triggerTurn: true });
+	logCompactionDebug("queueTools.dequeue.queueHandoffSent", { reason, queueLength });
+}
+
+function queueHandoffReason(goal: GoalState | null): GoalQueueSteeringReason | undefined {
+	if (goal?.status === "complete") return "goal-complete";
+	if (goal?.status === "budgetLimited") return "goal-budget-limited";
+	return undefined;
 }
 
 type QueuedObjectiveResolution = { ok: true; objective: string } | { ok: false; error: string };
