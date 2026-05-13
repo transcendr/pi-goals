@@ -101,11 +101,11 @@ function handleAgentEnd(pi: ExtensionAPI, ctx: ExtensionContext): void {
 	const reason = queueHandoffReason(goal);
 	const queueLength = getQueue().length;
 	logCompactionDebugWithContext("lifecycle.agent_end.queueDecision", ctx, { reason, queueLength });
-	if (reason && queueLength > 0) {
+	if (reason && goal && queueLength > 0) {
 		logCompactionDebugWithContext("lifecycle.agent_end.queueHandoff.scheduled", ctx, { reason, force: true });
 		setTimeout(() => {
 			logCompactionDebug("lifecycle.agent_end.queueHandoff.dispatch", { reason, force: true });
-			sendQueueHandoff(pi, reason, { goalId: goal!.goalId, force: true });
+			sendQueueHandoff(pi, reason, { goalId: goal.goalId, force: true });
 		}, AGENT_END_HANDOFF_DELAY_MS);
 		return;
 	}
