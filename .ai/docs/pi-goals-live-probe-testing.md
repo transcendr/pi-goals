@@ -192,6 +192,14 @@ solo-mcp --instance "$SOLO_INSTANCE" process send "$PROBE_PROCESS" --project "$S
 
 Confirm no unintended queued items remain. If cleanup requires removing queued items, use explicit user-authorized instructions or the project queue tools with audit rationale/authority.
 
+## Reusable scenario protocols
+
+Some live probes are recurring regression tests and have dedicated scenario files with context, design rationale, manual protocol, expected transcript evidence, and failure signals.
+
+- `.ai/docs/live-probe-scenarios/terminal-goal-queue-handoff.md` — validates dequeue-driven and `agent_end` catch-up handoff for terminal goals with remaining queued work.
+
+When a scenario file exists, follow it instead of recreating ad hoc prompts from memory. Keep one-off transcripts and logs in `/tmp` unless the scenario itself needs to be updated for future reuse.
+
 ## Evidence standards
 
 A live probe is complete only when the transcript or output shows the behavior under test. Good evidence includes:

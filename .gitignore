@@ -7,6 +7,8 @@ node_modules
 !.ai/docs/pi-goals-live-probe-testing.md
 !.ai/docs/prompt-template-authoring.md
 !.ai/docs/monitor-semantics-steering-latency-prototype.md
+!.ai/docs/live-probe-scenarios/
+!.ai/docs/live-probe-scenarios/**
 !.ai/docs/issue-workflow/
 !.ai/docs/issue-workflow/**
 tmp
