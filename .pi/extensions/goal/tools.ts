@@ -54,22 +54,14 @@ type GoalToolRuntime = {
 
 export function registerGoalTools(
 	pi: ExtensionAPI,
-	scheduleContinuation?: GoalCommandScheduler,
-	cancelContinuation?: GoalContinuationCanceller,
-	scheduleMonitor?: GoalMonitorScheduler,
-	cancelMonitor?: GoalMonitorCanceller,
-	scheduleBudgetLimitWrapUp?: (ctx: ExtensionContext, goal: GoalState) => void,
-	getQueueSize?: () => number,
-	sendQueueSteering?: GoalQueueSteeringSender,
-	sendQueueHandoff?: GoalQueueSteeringSender,
+	runtime: GoalToolRuntime = {},
 ): void {
-	const runtime: GoalToolRuntime = { scheduleContinuation, cancelContinuation, scheduleMonitor, cancelMonitor, scheduleBudgetLimitWrapUp, getQueueSize, sendQueueSteering, sendQueueHandoff };
 	registerGetGoalTool(pi);
 	registerListGoalTemplatesTool(pi);
 	registerCreateGoalTool(pi, runtime);
 	registerCreateGoalFromTemplateTool(pi, runtime);
 	registerUpdateGoalTool(pi, runtime);
-	registerGoalQueueTools(pi, { scheduleMonitor, sendQueueHandoff });
+	registerGoalQueueTools(pi, { scheduleMonitor: runtime.scheduleMonitor, sendQueueHandoff: runtime.sendQueueHandoff });
 	registerClearGoalTool(pi, runtime);
 }
 
