@@ -19,6 +19,15 @@ import { getQueue, enqueueGoal, persistEnqueue } from "./queue-state";
 import { notifyGoal, notifyInfo, notifyWarning, showGoalSummary, showNoGoal, syncGoalUi } from "./ui";
 import type { GoalCommandScheduler, GoalContinuationCanceller, GoalMonitorCanceller, GoalMonitorScheduler, GoalPauseInterrupter, GoalQueueSteeringSender, GoalState } from "./types";
 
+type GoalCommandRuntime = {
+	scheduleContinuation: GoalCommandScheduler;
+	cancelContinuation: GoalContinuationCanceller;
+	interruptActiveTurn: GoalPauseInterrupter;
+	scheduleMonitor: GoalMonitorScheduler;
+	cancelMonitor: GoalMonitorCanceller;
+	sendQueueSteering: GoalQueueSteeringSender;
+};
+
 type GoalSubcommand = {
 	name: "pause" | "resume" | "clear" | "queue";
 	description: string;
@@ -33,17 +42,12 @@ const GOAL_SUBCOMMANDS: GoalSubcommand[] = [
 
 export function registerGoalCommand(
 	pi: ExtensionAPI,
-	scheduleContinuation: GoalCommandScheduler,
-	cancelContinuation: GoalContinuationCanceller,
-	interruptActiveTurn: GoalPauseInterrupter,
-	scheduleMonitor: GoalMonitorScheduler,
-	cancelMonitor: GoalMonitorCanceller,
-	sendQueueSteering: GoalQueueSteeringSender,
+	runtime: GoalCommandRuntime,
 ): void {
 	pi.registerCommand("goal", {
 		description: "Set or view the goal for a long-running task",
 		getArgumentCompletions: goalArgumentCompletions,
-		handler: async (args, ctx) => handleGoalCommand(pi, args, ctx, scheduleContinuation, cancelContinuation, interruptActiveTurn, scheduleMonitor, cancelMonitor, sendQueueSteering),
+		handler: async (args, ctx) => handleGoalCommand(pi, args, ctx, runtime),
 	});
 }
 
@@ -90,12 +94,7 @@ async function handleGoalCommand(
 	pi: ExtensionAPI,
 	args: string,
 	ctx: ExtensionCommandContext,
-	scheduleContinuation: GoalCommandScheduler,
-	cancelContinuation: GoalContinuationCanceller,
-	interruptActiveTurn: GoalPauseInterrupter,
-	scheduleMonitor: GoalMonitorScheduler,
-	cancelMonitor: GoalMonitorCanceller,
-	sendQueueSteering: GoalQueueSteeringSender,
+	runtime: GoalCommandRuntime,
 ): Promise<void> {
 	const trimmed = args.trim();
 	if (!trimmed) {
@@ -105,31 +104,26 @@ async function handleGoalCommand(
 		return;
 	}
 
-	const handled = handleGoalControlCommand(pi, trimmed, ctx, scheduleContinuation, cancelContinuation, interruptActiveTurn, scheduleMonitor, cancelMonitor, sendQueueSteering);
+	const handled = handleGoalControlCommand(pi, trimmed, ctx, runtime);
 	if (handled) return;
 
-	await setGoalObjective(pi, resolveTemplateOrObjective(trimmed, ctx), ctx, scheduleContinuation, cancelContinuation, scheduleMonitor, cancelMonitor);
+	await setGoalObjective(pi, resolveTemplateOrObjective(trimmed, ctx), ctx, runtime);
 }
 
 function handleGoalControlCommand(
 	pi: ExtensionAPI,
 	trimmed: string,
 	ctx: ExtensionCommandContext,
-	scheduleContinuation: GoalCommandScheduler,
-	cancelContinuation: GoalContinuationCanceller,
-	interruptActiveTurn: GoalPauseInterrupter,
-	scheduleMonitor: GoalMonitorScheduler,
-	cancelMonitor: GoalMonitorCanceller,
-	sendQueueSteering: GoalQueueSteeringSender,
+	runtime: GoalCommandRuntime,
 ): boolean {
 	const firstToken = trimmed.split(/\s+/, 1)[0].toLowerCase();
 	if (firstToken === "queue") {
 		handleQueueCommand(pi, trimmed, ctx);
 		return true;
 	}
-	if (trimmed === "pause") pauseGoal(pi, ctx, cancelContinuation, interruptActiveTurn, cancelMonitor);
-	else if (trimmed === "resume") resumeGoal(pi, ctx, scheduleContinuation, scheduleMonitor, sendQueueSteering);
-	else if (trimmed === "clear") clearGoal(pi, ctx, cancelContinuation, cancelMonitor, sendQueueSteering);
+	if (trimmed === "pause") pauseGoal(pi, ctx, runtime);
+	else if (trimmed === "resume") resumeGoal(pi, ctx, runtime);
+	else if (trimmed === "clear") clearGoal(pi, ctx, runtime);
 	else return false;
 	return true;
 }
@@ -164,10 +158,7 @@ async function setGoalObjective(
 	pi: ExtensionAPI,
 	input: string,
 	ctx: ExtensionCommandContext,
-	scheduleContinuation: GoalCommandScheduler,
-	cancelContinuation: GoalContinuationCanceller,
-	scheduleMonitor: GoalMonitorScheduler,
-	cancelMonitor: GoalMonitorCanceller,
+	runtime: GoalCommandRuntime,
 ): Promise<void> {
 	if (!input) return;
 	const validation = validateObjective(input);
@@ -190,8 +181,8 @@ async function setGoalObjective(
 			}
 			return;
 		}
-		cancelContinuation(existing.goalId, "replace");
-		cancelMonitor(existing.goalId, "replace");
+		runtime.cancelContinuation(existing.goalId, "replace");
+		runtime.cancelMonitor(existing.goalId, "replace");
 	}
 
 	const goal = createGoalState({ objective: validation.objective });
@@ -199,8 +190,8 @@ async function setGoalObjective(
 	persistSetGoal(pi, goal, telemetry, "command");
 	syncGoalUi(ctx, goal);
 	notifyGoal(ctx, goal);
-	scheduleMonitor(ctx);
-	scheduleContinuation(ctx, "created");
+	runtime.scheduleMonitor(ctx);
+	runtime.scheduleContinuation(ctx, "created");
 }
 
 function replacementChoicePrompt(objective: string): string {
@@ -212,33 +203,31 @@ function replacementChoicePrompt(objective: string): string {
 function pauseGoal(
 	pi: ExtensionAPI,
 	ctx: ExtensionCommandContext,
-	cancelContinuation: GoalContinuationCanceller,
-	interruptActiveTurn: GoalPauseInterrupter,
-	cancelMonitor: GoalMonitorCanceller,
+	runtime: GoalCommandRuntime,
 ): void {
 	const goal = getGoal();
 	if (!goal) {
 		notifyInfo(ctx, `${GOAL_USAGE}\nNo goal is currently set.`);
 		return;
 	}
-	cancelContinuation(goal.goalId, "pause");
-	cancelMonitor(goal.goalId, "pause");
+	runtime.cancelContinuation(goal.goalId, "pause");
+	runtime.cancelMonitor(goal.goalId, "pause");
 	const paused: GoalState = { ...goal, status: "paused", updatedAt: Date.now() };
 	persistUpdateGoal(pi, paused, getTelemetry(), "command");
 	syncGoalUi(ctx, paused);
 	notifyGoal(ctx, paused);
 	if (!ctx.isIdle()) {
-		interruptActiveTurn(ctx, paused);
+		runtime.interruptActiveTurn(ctx, paused);
 		notifyWarning(ctx, "Goal paused. The active turn was interrupted; run /goal resume to continue.");
 	}
 }
 
-function resumeGoal(pi: ExtensionAPI, ctx: ExtensionCommandContext, scheduleContinuation: GoalCommandScheduler, scheduleMonitor: GoalMonitorScheduler, sendQueueSteering: GoalQueueSteeringSender): void {
+function resumeGoal(pi: ExtensionAPI, ctx: ExtensionCommandContext, runtime: GoalCommandRuntime): void {
 	const goal = getGoal();
 	const queue = getQueue();
 	if (!goal) {
 		if (queue.length > 0) {
-			sendQueueSteering("goal-resume", { triggerTurn: true });
+			runtime.sendQueueSteering("goal-resume", { triggerTurn: true });
 			notifyInfo(ctx, `No active goal. Resuming queued goal processing for ${queue.length} queued goal${queue.length > 1 ? "s" : ""}.`);
 			return;
 		}
@@ -247,7 +236,7 @@ function resumeGoal(pi: ExtensionAPI, ctx: ExtensionCommandContext, scheduleCont
 	}
 	if (goal.status === "complete") {
 		if (queue.length > 0) {
-			sendQueueSteering("goal-resume", { triggerTurn: true });
+			runtime.sendQueueSteering("goal-resume", { triggerTurn: true });
 			notifyInfo(ctx, `Goal is complete. Resuming queued goal processing for ${queue.length} queued goal${queue.length > 1 ? "s" : ""}.`);
 			return;
 		}
@@ -266,19 +255,19 @@ function resumeGoal(pi: ExtensionAPI, ctx: ExtensionCommandContext, scheduleCont
 	if (telemetry) persistTelemetry(pi, telemetry, "resume");
 	syncGoalUi(ctx, active);
 	notifyGoal(ctx, active);
-	scheduleMonitor(ctx);
-	scheduleContinuation(ctx, "resumed");
+	runtime.scheduleMonitor(ctx);
+	runtime.scheduleContinuation(ctx, "resumed");
 }
 
-function clearGoal(pi: ExtensionAPI, ctx: ExtensionCommandContext, cancelContinuation: GoalContinuationCanceller, cancelMonitor: GoalMonitorCanceller, sendQueueSteering: GoalQueueSteeringSender): void {
+function clearGoal(pi: ExtensionAPI, ctx: ExtensionCommandContext, runtime: GoalCommandRuntime): void {
 	const goal = getGoal();
 	const hadGoal = Boolean(goal);
-	cancelContinuation(goal?.goalId, "clear");
-	cancelMonitor(goal?.goalId, "clear");
+	runtime.cancelContinuation(goal?.goalId, "clear");
+	runtime.cancelMonitor(goal?.goalId, "clear");
 	const result = persistClearGoal(pi, "command");
 	syncGoalUi(ctx, result.goal);
 	const queue = getQueue();
-	if (queue.length > 0) sendQueueSteering("goal-clear");
+	if (queue.length > 0) runtime.sendQueueSteering("goal-clear");
 	const queueHint = queue.length > 0 ? `\n${queue.length} queued goal${queue.length > 1 ? "s" : ""} available. Queue steering was sent to the agent context.` : "";
 	notifyInfo(ctx, hadGoal ? `Goal cleared${queueHint}` : `No goal to clear\nThis session does not currently have a goal.${queueHint}`);
 }

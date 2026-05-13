@@ -8,15 +8,14 @@ import { getQueue } from "./queue-state";
 import { sendQueueHandoff, sendQueueSteering } from "./queue-steering";
 
 export default function goalExtension(pi: ExtensionAPI): void {
-	registerGoalCommand(
-		pi,
-		(ctx, reason) => scheduleMaybeContinueGoal(pi, ctx, reason),
-		cancelGoalContinuation,
-		(ctx, goal) => interruptActiveGoalTurn(pi, ctx, goal),
-		(ctx) => scheduleGoalMonitor(pi, ctx),
-		cancelGoalMonitor,
-		(reason, opts) => sendQueueSteering(pi, reason, opts),
-	);
+	registerGoalCommand(pi, {
+		scheduleContinuation: (ctx, reason) => scheduleMaybeContinueGoal(pi, ctx, reason),
+		cancelContinuation: cancelGoalContinuation,
+		interruptActiveTurn: (ctx, goal) => interruptActiveGoalTurn(pi, ctx, goal),
+		scheduleMonitor: (ctx) => scheduleGoalMonitor(pi, ctx),
+		cancelMonitor: cancelGoalMonitor,
+		sendQueueSteering: (reason, opts) => sendQueueSteering(pi, reason, opts),
+	});
 	registerGoalTools(pi, {
 		scheduleContinuation: (ctx, reason) => scheduleMaybeContinueGoal(pi, ctx, reason),
 		cancelContinuation: cancelGoalContinuation,
