@@ -409,12 +409,12 @@ function applyFloorUpdates(goal: GoalState, params: UpdateGoalInput, changes: st
 
 function queueHandoffAfterToolUpdate(runtime: GoalToolRuntime, ctx: ExtensionContext, previousGoal: GoalState, updatedGoal: GoalState): void {
 	if (previousGoal.status !== "complete" && updatedGoal.status === "complete" && (runtime.getQueueSize?.() ?? 0) > 0) {
-		runtime.sendQueueSteering?.("goal-complete", { triggerTurn: true, goalId: updatedGoal.goalId });
+		runtime.sendQueueHandoff?.("goal-complete", { triggerTurn: true, goalId: updatedGoal.goalId });
 		return;
 	}
 	// Only schedule wrap-up when an active goal transitions to budgetLimited due to a budget edit and no queued work is waiting.
 	if (previousGoal.status === "active" && updatedGoal.status === "budgetLimited" && isBudgetExhausted(updatedGoal)) {
-		if ((runtime.getQueueSize?.() ?? 0) > 0) runtime.sendQueueSteering?.("goal-budget-limited", { triggerTurn: true, goalId: updatedGoal.goalId });
+		if ((runtime.getQueueSize?.() ?? 0) > 0) runtime.sendQueueHandoff?.("goal-budget-limited", { triggerTurn: true, goalId: updatedGoal.goalId });
 		else runtime.scheduleBudgetLimitWrapUp?.(ctx, updatedGoal);
 	}
 }
