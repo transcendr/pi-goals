@@ -6,13 +6,13 @@ Persistent goal tracking for [Pi](https://www.npmjs.com/package/@earendil-works/
 
 ## What's new
 
-Bounded reusable prompt discovery keeps `/goal` autocomplete responsive in large workspaces, and active goals or queued handoffs now recover safely after Pi compaction and context-overflow recovery. See the [changelog](CHANGELOG.md) for details.
+Goal queue handoffs are more resilient: satisfied orchestration items continue to the next queued goal, completed goals with queued work recover at turn end, and active goals or queued handoffs still recover safely after Pi compaction and context-overflow recovery. See the [changelog](CHANGELOG.md) for details.
 
 ## Features
 
 - `/goal` command for creating, pausing, resuming, replacing, and clearing a persistent objective.
 - Goal state that survives reloads, compaction, context-overflow recovery, and `/tree` navigation.
-- Compaction-aware continuation and queue handoff recovery, so completed goals with queued work do not strand the queue after summarization.
+- Queue handoff recovery for completed goals, satisfied orchestration queue items, and compaction/context-overflow recovery, so queued work does not strand silently.
 - Time and token budgets with goal-aware continuation and wrap-up behavior.
 - Optional completion floors that prevent premature wrap-up until minimum goal-directed work has happened.
 - Reusable token-aware prompt templates from bounded `.pi-goals/` and `.ai/.pi-goals/` directories.
