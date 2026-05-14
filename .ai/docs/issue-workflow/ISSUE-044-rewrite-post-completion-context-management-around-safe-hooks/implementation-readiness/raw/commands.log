@@ -1,0 +1,397 @@
+## 00-intake / 02-live-surface commands
+$ git status --short --untracked-files=all
+?? .ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/execution-readiness/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/execution-readiness/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/execution-readiness/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/execution-readiness/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/execution-readiness/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/execution-readiness/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/execution-readiness/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/execution-readiness/raw/commands.log
+?? .ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/implementation-readiness/raw/commands.log
+?? .ai/issues/open/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks.md
+
+$ test -f .ai/issues/open/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks.md && echo issue_exists
+issue_exists
+
+$ wc -l .pi/extensions/goal/{command.ts,tools.ts,queue-tools.ts,lifecycle.ts,continuation.ts,context-reset.ts,state.ts,queue-state.ts,templates.ts,types.ts,ui.ts,tool-results.ts}
+     384 .pi/extensions/goal/command.ts
+     441 .pi/extensions/goal/tools.ts
+     238 .pi/extensions/goal/queue-tools.ts
+     445 .pi/extensions/goal/lifecycle.ts
+     384 .pi/extensions/goal/continuation.ts
+     187 .pi/extensions/goal/context-reset.ts
+     205 .pi/extensions/goal/state.ts
+     298 .pi/extensions/goal/queue-state.ts
+     267 .pi/extensions/goal/templates.ts
+     226 .pi/extensions/goal/types.ts
+      49 .pi/extensions/goal/ui.ts
+      74 .pi/extensions/goal/tool-results.ts
+    3198 total
+
+$ rg -n "export function|type .*Params|Type.Object|parsePostCompletionContextDirective|needsPostCompletionContextReset|attemptPostCompletionContextReset|recordPostStartContextResetAnchor|sendQueueHandoff|startQueuedGoal|createGoalWithPolicy|queueHandoffAfterToolUpdate|markContextResetPendingOnCompletion|currentCompactionWork|attemptQueueHandoff" .pi/extensions/goal/{command.ts,tools.ts,queue-tools.ts,lifecycle.ts,continuation.ts,context-reset.ts,state.ts,queue-state.ts,templates.ts,types.ts}
+.pi/extensions/goal/templates.ts:50:export function discoverGoalTemplates(root = process.cwd()): GoalTemplate[] {
+.pi/extensions/goal/templates.ts:57:export function listGoalTemplateMetadata(root = process.cwd()): GoalTemplateMetadata[] {
+.pi/extensions/goal/templates.ts:73:export function resolveGoalTemplateInvocation(input: string, root = process.cwd()): TemplateResolution {
+.pi/extensions/goal/templates.ts:79:export function resolveGoalTemplateInvocationArgs(nameOrAlias: string, invocationArgs = "", flags: Record<string, string> = {}, root = process.cwd()): TemplateResolution {
+.pi/extensions/goal/templates.ts:85:export function resolveGoalTemplateByName(nameOrAlias: string, flags: Record<string, string>, args = "", root = process.cwd()): TemplateResolution {
+.pi/extensions/goal/context-reset.ts:25:export function captureContextResetCommandContext(ctx: ExtensionCommandContext, source: ContextResetCommandContextSource): void {
+.pi/extensions/goal/context-reset.ts:31:export function clearContextResetCommandContext(): void {
+.pi/extensions/goal/context-reset.ts:37:export function getContextResetCapabilityStatus(): { available: boolean; source?: ContextResetCommandContextSource; capturedAt?: number } {
+.pi/extensions/goal/context-reset.ts:41:export function getContextResetCapabilitySource(): ContextResetCommandContextSource | undefined {
+.pi/extensions/goal/context-reset.ts:45:export function hasContextResetCapability(): boolean {
+.pi/extensions/goal/context-reset.ts:49:export function parsePostCompletionContextDirective(input: string): ParsedPostCompletionContextDirective {
+.pi/extensions/goal/context-reset.ts:63:export function contextResetPolicyError(policy: GoalPostCompletionContextPolicy): string | undefined {
+.pi/extensions/goal/context-reset.ts:68:export function withPostCompletionContextPolicy(goal: GoalState, policy: GoalPostCompletionContextPolicy): GoalState {
+.pi/extensions/goal/context-reset.ts:78:export function recordPostStartContextResetAnchor(pi: ExtensionAPI, ctx: ExtensionContext, goal: GoalState, reason: PiGoalEventReason): GoalState {
+.pi/extensions/goal/context-reset.ts:94:export function markContextResetPendingOnCompletion(goal: GoalState): GoalState {
+.pi/extensions/goal/context-reset.ts:100:export function needsPostCompletionContextReset(goal: GoalState | null): boolean {
+.pi/extensions/goal/context-reset.ts:104:export async function attemptPostCompletionContextReset(pi: ExtensionAPI, ctx: ExtensionContext, reason: PiGoalEventReason): Promise<ContextResetOutcome> {
+.pi/extensions/goal/context-reset.ts:106:	if (!needsPostCompletionContextReset(current) || !current) return { status: "skipped", reason: "no pending context reset" };
+.pi/extensions/goal/queue-state.ts:64:export function getQueue(): QueuedGoal[] {
+.pi/extensions/goal/queue-state.ts:68:export function enqueueGoal(objective: string, source: "command" | "tool", opts?: { tokenBudget?: number; timeBudgetSeconds?: number; minTokensBeforeWrapUp?: number; minTimeSecondsBeforeWrapUp?: number; postCompletionContext?: GoalPostCompletionContextPolicy; template?: string; templateFlags?: Record<string, string>; templateArgs?: string }): QueuedGoal {
+.pi/extensions/goal/queue-state.ts:87:export function dequeueGoal(): QueuedGoal | undefined {
+.pi/extensions/goal/queue-state.ts:91:export function removeGoal(queueId: string): QueuedGoal | undefined {
+.pi/extensions/goal/queue-state.ts:97:export function replayQueueState(ctx: { sessionManager: { getBranch(): unknown[] } }): GoalQueueRuntimeState {
+.pi/extensions/goal/queue-state.ts:108:export function setQueueForTests(state: GoalQueueRuntimeState): void {
+.pi/extensions/goal/queue-state.ts:112:export function persistEnqueue(pi: ExtensionAPI, goal: QueuedGoal): void {
+.pi/extensions/goal/queue-state.ts:116:export function persistDequeue(pi: ExtensionAPI, reason: string, metadata: DequeuePersistMetadata = {}): void {
+.pi/extensions/goal/queue-state.ts:120:export function persistRemove(pi: ExtensionAPI, queueId: string, reason: string): void {
+.pi/extensions/goal/continuation.ts:14:import { sendQueueHandoff } from "./queue-steering";
+.pi/extensions/goal/continuation.ts:50:export function beginGoalCompaction(pi: ExtensionAPI, ctx: ExtensionContext): void {
+.pi/extensions/goal/continuation.ts:57:	compactionWork = currentCompactionWork();
+.pi/extensions/goal/continuation.ts:75:export function finishGoalCompaction(pi: ExtensionAPI, ctx: ExtensionContext): void {
+.pi/extensions/goal/continuation.ts:97:export function scheduleMaybeContinueGoal(pi: ExtensionAPI, ctx: ExtensionContext, reason: ContinuationReason): void {
+.pi/extensions/goal/continuation.ts:120:export function scheduleBudgetLimitWrapUp(pi: ExtensionAPI, ctx: ExtensionContext, goal: GoalState): void {
+.pi/extensions/goal/continuation.ts:129:export function cancelGoalContinuation(goalId?: string, _reason = "cancelled"): void {
+.pi/extensions/goal/continuation.ts:142:export function interruptActiveGoalTurn(pi: ExtensionAPI, ctx: ExtensionContext, goal: GoalState): void {
+.pi/extensions/goal/continuation.ts:152:export function resetContinuationRuntime(): void {
+.pi/extensions/goal/continuation.ts:162:export function setCompactionFallbackRetryDelaysForTests(delaysMs: number[]): void {
+.pi/extensions/goal/continuation.ts:221:function currentCompactionWork(): CompactionContinuationWork | undefined {
+.pi/extensions/goal/continuation.ts:224:	logRuntime("currentCompactionWork.inspect", { queueHeadId: queueHead?.queueId });
+.pi/extensions/goal/continuation.ts:244:	const sent = sendQueueHandoff(pi, "goal-complete", { goalId: work.goalId, triggerTurn: false, deliverAs: "followUp", force: true });
+.pi/extensions/goal/continuation.ts:265:	const result = work.kind === "activeGoal" ? attemptContinueGoal(pi, ctx, "compacted", work.goalId) : attemptQueueHandoff(pi, ctx, work);
+.pi/extensions/goal/continuation.ts:276:function attemptQueueHandoff(pi: ExtensionAPI, ctx: ExtensionContext, work: Extract<CompactionContinuationWork, { kind: "queueHandoff" }>): ContinuationAttemptResult {
+.pi/extensions/goal/continuation.ts:277:	logCompactionDebugWithContext("attemptQueueHandoff.start", ctx, workFields(work));
+.pi/extensions/goal/continuation.ts:285:	const sent = sendQueueHandoff(pi, "goal-complete", { goalId: work.goalId, force: true });
+.pi/extensions/goal/continuation.ts:286:	logRuntime("attemptQueueHandoff.sendResult", { ...workFields(work), sent });
+.pi/extensions/goal/tools.ts:10:import { markContextResetPendingOnCompletion, contextResetPolicyError, getContextResetCapabilitySource, needsPostCompletionContextReset, parsePostCompletionContextDirective, recordPostStartContextResetAnchor, withPostCompletionContextPolicy } from "./context-reset";
+.pi/extensions/goal/tools.ts:17:const EmptyParams = Type.Object({});
+.pi/extensions/goal/tools.ts:18:const CreateGoalParams = Type.Object({
+.pi/extensions/goal/tools.ts:26:const CreateGoalFromTemplateParams = Type.Object({
+.pi/extensions/goal/tools.ts:36:const UpdateGoalParams = Type.Object({
+.pi/extensions/goal/tools.ts:53:	sendQueueHandoff?: GoalQueueSteeringSender;
+.pi/extensions/goal/tools.ts:56:export function registerGoalTools(
+.pi/extensions/goal/tools.ts:65:	registerGoalQueueTools(pi, { scheduleMonitor: runtime.scheduleMonitor, sendQueueHandoff: runtime.sendQueueHandoff });
+.pi/extensions/goal/tools.ts:217:	return createGoalWithPolicy(pi, runtime, params, ctx, { replaceCompleted: false });
+.pi/extensions/goal/tools.ts:223:	const created = createGoalWithPolicy(pi, runtime, { objective: resolved.template.objective, token_budget: params.token_budget, time_budget_seconds: params.time_budget_seconds, min_tokens_before_wrap_up: params.min_tokens_before_wrap_up, min_time_seconds_before_wrap_up: params.min_time_seconds_before_wrap_up }, ctx, { replaceCompleted: true, replaceBudgetLimitedForQueuedWork: true });
+.pi/extensions/goal/tools.ts:228:function createGoalWithPolicy(
+.pi/extensions/goal/tools.ts:239:	const parsed = parsePostCompletionContextDirective(params.objective);
+.pi/extensions/goal/tools.ts:253:	const anchoredGoal = recordPostStartContextResetAnchor(pi, ctx, goal, "tool");
+.pi/extensions/goal/tools.ts:295:	queueHandoffAfterToolUpdate(runtime, ctx, goal, update.goal);
+.pi/extensions/goal/tools.ts:362:	const updated = markContextResetPendingOnCompletion({ ...next, updatedAt: Date.now() });
+.pi/extensions/goal/tools.ts:410:function queueHandoffAfterToolUpdate(runtime: GoalToolRuntime, ctx: ExtensionContext, previousGoal: GoalState, updatedGoal: GoalState): void {
+.pi/extensions/goal/tools.ts:412:		if (needsPostCompletionContextReset(updatedGoal)) return;
+.pi/extensions/goal/tools.ts:413:		runtime.sendQueueHandoff?.("goal-complete", { triggerTurn: true, goalId: updatedGoal.goalId });
+.pi/extensions/goal/tools.ts:418:		if ((runtime.getQueueSize?.() ?? 0) > 0) runtime.sendQueueHandoff?.("goal-budget-limited", { triggerTurn: true, goalId: updatedGoal.goalId });
+.pi/extensions/goal/queue-tools.ts:10:import { contextResetPolicyError, getContextResetCapabilitySource, needsPostCompletionContextReset, parsePostCompletionContextDirective, recordPostStartContextResetAnchor, withPostCompletionContextPolicy } from "./context-reset";
+.pi/extensions/goal/queue-tools.ts:15:const EmptyParams = Type.Object({});
+.pi/extensions/goal/queue-tools.ts:16:const CreateGoalParams = Type.Object({
+.pi/extensions/goal/queue-tools.ts:23:const DequeueGoalParams = Type.Object({
+.pi/extensions/goal/queue-tools.ts:41:	sendQueueHandoff?: GoalQueueSteeringSender;
+.pi/extensions/goal/queue-tools.ts:44:export function registerGoalQueueTools(pi: ExtensionAPI, runtime: GoalQueueToolRuntime = {}): void {
+.pi/extensions/goal/queue-tools.ts:75:			const parsed = parsePostCompletionContextDirective(params.objective);
+.pi/extensions/goal/queue-tools.ts:106:			return startQueuedGoal(pi, runtime, ctx);
+.pi/extensions/goal/queue-tools.ts:143:		parameters: Type.Object({ queueId: Type.String({ description: "Queue ID of the goal to remove" }) }),
+.pi/extensions/goal/queue-tools.ts:153:function startQueuedGoal(pi: ExtensionAPI, runtime: GoalQueueToolRuntime, ctx: ExtensionContext) {
+.pi/extensions/goal/queue-tools.ts:160:	const parsed = parsePostCompletionContextDirective(objective.objective);
+.pi/extensions/goal/queue-tools.ts:180:	const anchoredGoal = recordPostStartContextResetAnchor(pi, ctx, goal, "tool");
+.pi/extensions/goal/queue-tools.ts:195:	logCompactionDebug("queueTools.dequeue.queueHandoffDecision", { reason, queueLength, hasGoal: Boolean(goal), hasSender: Boolean(runtime.sendQueueHandoff) });
+.pi/extensions/goal/queue-tools.ts:196:	if (!goal || !reason || queueLength === 0 || needsPostCompletionContextReset(goal)) return;
+.pi/extensions/goal/queue-tools.ts:197:	if (!runtime.sendQueueHandoff) {
+.pi/extensions/goal/queue-tools.ts:201:	runtime.sendQueueHandoff(reason, { goalId: goal.goalId, triggerTurn: true });
+.pi/extensions/goal/state.ts:21:export function getGoal(): GoalState | null {
+.pi/extensions/goal/state.ts:25:export function getTelemetry(): GoalTelemetrySnapshot | null {
+.pi/extensions/goal/state.ts:29:export function getRuntimeState(): GoalRuntimeState {
+.pi/extensions/goal/state.ts:33:export function replayGoalState(ctx: ExtensionContext): GoalRuntimeState {
+.pi/extensions/goal/state.ts:44:export function setRuntimeStateForTests(state: GoalRuntimeState): void {
+.pi/extensions/goal/state.ts:48:export function createGoalState(input: CreateGoalStateInput): GoalState {
+.pi/extensions/goal/state.ts:69:export function persistSetGoal(
+.pi/extensions/goal/state.ts:78:export function persistUpdateGoal(
+.pi/extensions/goal/state.ts:90:export function persistTelemetry(
+.pi/extensions/goal/state.ts:102:export function persistAccountGoal(
+.pi/extensions/goal/state.ts:122:export function persistClearGoal(pi: ExtensionAPI, reason: PiGoalEventReason): MutationResult {
+.pi/extensions/goal/lifecycle.ts:29:import { attemptPostCompletionContextReset, needsPostCompletionContextReset } from "./context-reset";
+.pi/extensions/goal/lifecycle.ts:32:import { queueSteeringStillValid, sendQueueHandoff } from "./queue-steering";
+.pi/extensions/goal/lifecycle.ts:40:export function registerGoalLifecycle(pi: ExtensionAPI): void {
+.pi/extensions/goal/lifecycle.ts:102:	if (needsPostCompletionContextReset(goal)) {
+.pi/extensions/goal/lifecycle.ts:103:		const outcome = await attemptPostCompletionContextReset(pi, ctx, "reset");
+.pi/extensions/goal/lifecycle.ts:115:			sendQueueHandoff(pi, reason, { goalId: goal.goalId, force: true });
+.pi/extensions/goal/lifecycle.ts:171:		sendQueueHandoff(pi, "goal-budget-limited", { goalId: goal.goalId });
+.pi/extensions/goal/lifecycle.ts:287:	if (needsPostCompletionContextReset(goal)) {
+.pi/extensions/goal/lifecycle.ts:288:		const outcome = await attemptPostCompletionContextReset(pi, ctx, "reset");
+.pi/extensions/goal/lifecycle.ts:294:	if (goal?.status === "complete" && completedThisTurn && !needsPostCompletionContextReset(goal)) sendQueueHandoff(pi, "goal-complete", { goalId: goal.goalId });
+.pi/extensions/goal/lifecycle.ts:343:		sendQueueHandoff(pi, "goal-budget-limited", { goalId: result.goal.goalId });
+.pi/extensions/goal/lifecycle.ts:355:		const handedOff = sendQueueHandoff(pi, "goal-budget-limited", { goalId: result.goal.goalId });
+.pi/extensions/goal/command.ts:19:import { captureContextResetCommandContext, clearContextResetCommandContext, getContextResetCapabilityStatus, parsePostCompletionContextDirective, recordPostStartContextResetAnchor, withPostCompletionContextPolicy } from "./context-reset";
+.pi/extensions/goal/command.ts:45:export function registerGoalCommand(
+.pi/extensions/goal/command.ts:56:export function goalArgumentCompletions(argumentPrefix: string): AutocompleteItem[] | null {
+.pi/extensions/goal/command.ts:176:	const parsed = parsePostCompletionContextDirective(input);
+.pi/extensions/goal/command.ts:208:	const anchoredGoal = recordPostStartContextResetAnchor(pi, ctx, goal, "command");
+.pi/extensions/goal/command.ts:342:	const parsed = parsePostCompletionContextDirective(resolved.objective);
+.pi/extensions/goal/command.ts:370:		const parsed = parsePostCompletionContextDirective(resolved.objective);
+
+$ find .ai/validation -maxdepth 1 -type f -name "goal-*.mjs" | sort
+.ai/validation/goal-acceptance-template-contract-probe.mjs
+.ai/validation/goal-budget-limited-queue-handoff-probe.mjs
+.ai/validation/goal-compaction-continuation-probe.mjs
+.ai/validation/goal-compaction-dedupe-telemetry-probe.mjs
+.ai/validation/goal-compaction-prequeue-dedupe-probe.mjs
+.ai/validation/goal-compaction-suppression-probe.mjs
+.ai/validation/goal-complete-queue-dedupe-probe.mjs
+.ai/validation/goal-complete-queue-handoff-probe.mjs
+.ai/validation/goal-context-reset-anchor-command-probe.mjs
+.ai/validation/goal-context-reset-branch-repair-probe.mjs
+.ai/validation/goal-context-reset-clear-handoff-probe.mjs
+.ai/validation/goal-context-reset-failure-probe.mjs
+.ai/validation/goal-context-reset-model-tool-policy-probe.mjs
+.ai/validation/goal-context-reset-nl-policy-probe.mjs
+.ai/validation/goal-context-reset-queue-stack-policy-probe.mjs
+.ai/validation/goal-context-reset-queued-anchor-probe.mjs
+.ai/validation/goal-context-reset-summarize-handoff-probe.mjs
+.ai/validation/goal-floor-steering-probe.mjs
+.ai/validation/goal-min-spend-floors-probe.mjs
+.ai/validation/goal-postcompact-retry-probe.mjs
+.ai/validation/goal-precompact-active-queue-probe.mjs
+.ai/validation/goal-precompact-completed-queue-probe.mjs
+
+$ rg -n "PI_GOAL_|process.env|feature flag|settings" .pi/extensions/goal README.md package.json ~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md ~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/settings.md
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/settings.md:3:Pi uses JSON settings files with project settings overriding global settings.
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/settings.md:7:| `~/.pi/agent/settings.json` | Global (all projects) |
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/settings.md:8:| `.pi/settings.json` | Project (current directory) |
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/settings.md:10:Edit directly or use `/settings` for common options.
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/settings.md:170:When multiple sources specify a session directory, precedence is `--session-dir`, `PI_CODING_AGENT_SESSION_DIR`, then `sessionDir` in settings.json.
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/settings.md:192:These settings define where to load extensions, skills, prompts, and themes from.
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/settings.md:194:Paths in `~/.pi/agent/settings.json` resolve relative to `~/.pi/agent`. Paths in `.pi/settings.json` resolve relative to `.pi`. Absolute paths and `~` are supported.
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/settings.md:260:Project settings (`.pi/settings.json`) override global settings. Nested objects are merged:
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/settings.md:263:// ~/.pi/agent/settings.json (global)
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/settings.md:269:// .pi/settings.json (project)
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:121:Additional paths via `settings.json`:
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:330:thinking level changes (settings, keybinding, pi.setThinkingLevel())
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1437:Built-in interactive commands (like `/model` and `/settings`) are not included here. They are handled only in interactive
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:2309:          { value: "#2753", label: "#2753", description: "Reload stale resource settings" },
+.pi/extensions/goal/debug-log.ts:14:	const path = process.env.PI_GOAL_COMPACTION_DEBUG_LOG || DEFAULT_LOG_PATH;
+.pi/extensions/goal/debug-log.ts:30:	if (process.env.PI_GOAL_COMPACTION_DEBUG_LOG) return true;
+.pi/extensions/goal/debug-log.ts:31:	const enabled = process.env.PI_GOAL_COMPACTION_DEBUG;
+
+$ sentrux gate .pi/extensions/goal
+sentrux gate — structural regression check
+
+Quality:      6223 -> 6223
+Coupling:     0.14 → 0.14
+Cycles:       0 → 0
+God files:    0 → 0
+
+Distance from Main Sequence: 0.30
+
+✓ No degradation detected
+
+$ sentrux check .pi/extensions/goal
+sentrux check — 33 rules checked
+
+Quality: 6223
+
+✓ All rules pass
+
+## 06-issue-writeback / TOON validation
+$ python3 extract TOON blocks from ISSUE-044
+block-01.toon
+block-02.toon
+block-03.toon
+block-04.toon
+block-05.toon
+block-06.toon
+block-07.toon
+block-08.toon
+
+$ for block in /tmp/issue044-toon-blocks-*/block-*.toon; do npx -y @toon-format/cli --decode "$block" >/dev/null; done
+decode /tmp/issue044-toon-blocks-50290/block-01.toon
+decode /tmp/issue044-toon-blocks-50290/block-02.toon
+decode /tmp/issue044-toon-blocks-50290/block-03.toon
+decode /tmp/issue044-toon-blocks-50290/block-04.toon
+decode /tmp/issue044-toon-blocks-50290/block-05.toon
+decode /tmp/issue044-toon-blocks-50290/block-06.toon
+decode /tmp/issue044-toon-blocks-50290/block-07.toon
+decode /tmp/issue044-toon-blocks-50290/block-08.toon
+
+## 06-issue-writeback / TOON validation rerun
+$ extract all ISSUE-044 issue/workflow TOON blocks and decode
+decode /tmp/issue044-toon-all-50934/001-ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks_md-01.toon
+decode /tmp/issue044-toon-all-50934/002-ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks_md-02.toon
+decode /tmp/issue044-toon-all-50934/003-ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks_md-03.toon
+decode /tmp/issue044-toon-all-50934/004-ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks_md-04.toon
+decode /tmp/issue044-toon-all-50934/005-ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks_md-05.toon
+decode /tmp/issue044-toon-all-50934/006-ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks_md-06.toon
+decode /tmp/issue044-toon-all-50934/007-ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks_md-07.toon
+decode /tmp/issue044-toon-all-50934/008-ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks_md-08.toon
+decode /tmp/issue044-toon-all-50934/009-00-request_md-01.toon
+decode /tmp/issue044-toon-all-50934/010-01-protocol-read_md-01.toon
+decode /tmp/issue044-toon-all-50934/011-01-protocol-read_md-02.toon
+decode /tmp/issue044-toon-all-50934/012-01-protocol-read_md-03.toon
+decode /tmp/issue044-toon-all-50934/013-02-grounded-research_md-01.toon
+decode /tmp/issue044-toon-all-50934/014-02-grounded-research_md-02.toon
+decode /tmp/issue044-toon-all-50934/015-02-grounded-research_md-03.toon
+decode /tmp/issue044-toon-all-50934/016-02-grounded-research_md-04.toon
+decode /tmp/issue044-toon-all-50934/017-02-grounded-research_md-05.toon
+decode /tmp/issue044-toon-all-50934/018-02-grounded-research_md-06.toon
+
+## 06-issue-writeback / TOON validation rerun v2
+$ extract all ISSUE-044 issue/workflow TOON blocks and decode
+decode /tmp/issue044-toon-all-51764/001-ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks_md-01.toon
+decode /tmp/issue044-toon-all-51764/002-ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks_md-02.toon
+decode /tmp/issue044-toon-all-51764/003-ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks_md-03.toon
+decode /tmp/issue044-toon-all-51764/004-ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks_md-04.toon
+decode /tmp/issue044-toon-all-51764/005-ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks_md-05.toon
+decode /tmp/issue044-toon-all-51764/006-ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks_md-06.toon
+decode /tmp/issue044-toon-all-51764/007-ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks_md-07.toon
+decode /tmp/issue044-toon-all-51764/008-ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks_md-08.toon
+decode /tmp/issue044-toon-all-51764/009-00-request_md-01.toon
+decode /tmp/issue044-toon-all-51764/010-01-protocol-read_md-01.toon
+decode /tmp/issue044-toon-all-51764/011-01-protocol-read_md-02.toon
+decode /tmp/issue044-toon-all-51764/012-01-protocol-read_md-03.toon
+decode /tmp/issue044-toon-all-51764/013-02-grounded-research_md-01.toon
+decode /tmp/issue044-toon-all-51764/014-02-grounded-research_md-02.toon
+decode /tmp/issue044-toon-all-51764/015-02-grounded-research_md-03.toon
+decode /tmp/issue044-toon-all-51764/016-02-grounded-research_md-04.toon
+decode /tmp/issue044-toon-all-51764/017-02-grounded-research_md-05.toon
+decode /tmp/issue044-toon-all-51764/018-02-grounded-research_md-06.toon
+decode /tmp/issue044-toon-all-51764/019-03-design-lock_md-01.toon
+decode /tmp/issue044-toon-all-51764/020-03-design-lock_md-02.toon
+decode /tmp/issue044-toon-all-51764/021-03-design-lock_md-03.toon
+decode /tmp/issue044-toon-all-51764/022-03-design-lock_md-04.toon
+decode /tmp/issue044-toon-all-51764/023-04-proof-threat-model_md-01.toon
+decode /tmp/issue044-toon-all-51764/024-04-proof-threat-model_md-02.toon
+decode /tmp/issue044-toon-all-51764/025-04-proof-threat-model_md-03.toon
+decode /tmp/issue044-toon-all-51764/026-04-proof-threat-model_md-04.toon
+decode /tmp/issue044-toon-all-51764/027-05-issue-writeback_md-01.toon
+decode /tmp/issue044-toon-all-51764/028-05-issue-writeback_md-02.toon
+decode /tmp/issue044-toon-all-51764/029-06-final-audit_md-01.toon
+decode /tmp/issue044-toon-all-51764/030-06-final-audit_md-02.toon
+decode /tmp/issue044-toon-all-51764/031-06-final-audit_md-03.toon
+decode /tmp/issue044-toon-all-51764/032-00-intake_md-01.toon
+decode /tmp/issue044-toon-all-51764/033-00-intake_md-02.toon
+decode /tmp/issue044-toon-all-51764/034-00-intake_md-03.toon
+decode /tmp/issue044-toon-all-51764/035-01-protocol-read_md-01.toon
+decode /tmp/issue044-toon-all-51764/036-01-protocol-read_md-02.toon
+decode /tmp/issue044-toon-all-51764/037-01-protocol-read_md-03.toon
+decode /tmp/issue044-toon-all-51764/038-01-protocol-read_md-04.toon
+decode /tmp/issue044-toon-all-51764/039-01-protocol-read_md-05.toon
+decode /tmp/issue044-toon-all-51764/040-01-protocol-read_md-06.toon
+decode /tmp/issue044-toon-all-51764/041-02-live-surface-research_md-01.toon
+decode /tmp/issue044-toon-all-51764/042-02-live-surface-research_md-02.toon
+decode /tmp/issue044-toon-all-51764/043-02-live-surface-research_md-03.toon
+decode /tmp/issue044-toon-all-51764/044-02-live-surface-research_md-04.toon
+decode /tmp/issue044-toon-all-51764/045-02-live-surface-research_md-05.toon
+decode /tmp/issue044-toon-all-51764/046-03-implementation-design-lock_md-01.toon
+decode /tmp/issue044-toon-all-51764/047-03-implementation-design-lock_md-02.toon
+decode /tmp/issue044-toon-all-51764/048-04-patch-sequence_md-01.toon
+decode /tmp/issue044-toon-all-51764/049-04-patch-sequence_md-02.toon
+decode /tmp/issue044-toon-all-51764/050-05-proof-plan_md-01.toon
+decode /tmp/issue044-toon-all-51764/051-05-proof-plan_md-02.toon
+decode /tmp/issue044-toon-all-51764/052-05-proof-plan_md-03.toon
+decode /tmp/issue044-toon-all-51764/053-05-proof-plan_md-04.toon
+decode /tmp/issue044-toon-all-51764/054-05-proof-plan_md-05.toon
+all ISSUE-044 TOON blocks decoded
+
+## 07-final-audit / final TOON + visibility validation
+$ extract all ISSUE-044 issue/workflow TOON blocks and decode
+decode /tmp/issue044-toon-final-54074/001-ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks_md-01.toon
+decode /tmp/issue044-toon-final-54074/002-ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks_md-02.toon
+decode /tmp/issue044-toon-final-54074/003-ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks_md-03.toon
+decode /tmp/issue044-toon-final-54074/004-ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks_md-04.toon
+decode /tmp/issue044-toon-final-54074/005-ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks_md-05.toon
+decode /tmp/issue044-toon-final-54074/006-ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks_md-06.toon
+decode /tmp/issue044-toon-final-54074/007-ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks_md-07.toon
+decode /tmp/issue044-toon-final-54074/008-ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks_md-08.toon
+decode /tmp/issue044-toon-final-54074/009-00-request_md-01.toon
+decode /tmp/issue044-toon-final-54074/010-01-protocol-read_md-01.toon
+decode /tmp/issue044-toon-final-54074/011-01-protocol-read_md-02.toon
+decode /tmp/issue044-toon-final-54074/012-01-protocol-read_md-03.toon
+decode /tmp/issue044-toon-final-54074/013-02-grounded-research_md-01.toon
+decode /tmp/issue044-toon-final-54074/014-02-grounded-research_md-02.toon
+decode /tmp/issue044-toon-final-54074/015-02-grounded-research_md-03.toon
+decode /tmp/issue044-toon-final-54074/016-02-grounded-research_md-04.toon
+decode /tmp/issue044-toon-final-54074/017-02-grounded-research_md-05.toon
+decode /tmp/issue044-toon-final-54074/018-02-grounded-research_md-06.toon
+decode /tmp/issue044-toon-final-54074/019-03-design-lock_md-01.toon
+decode /tmp/issue044-toon-final-54074/020-03-design-lock_md-02.toon
+decode /tmp/issue044-toon-final-54074/021-03-design-lock_md-03.toon
+decode /tmp/issue044-toon-final-54074/022-03-design-lock_md-04.toon
+decode /tmp/issue044-toon-final-54074/023-04-proof-threat-model_md-01.toon
+decode /tmp/issue044-toon-final-54074/024-04-proof-threat-model_md-02.toon
+decode /tmp/issue044-toon-final-54074/025-04-proof-threat-model_md-03.toon
+decode /tmp/issue044-toon-final-54074/026-04-proof-threat-model_md-04.toon
+decode /tmp/issue044-toon-final-54074/027-05-issue-writeback_md-01.toon
+decode /tmp/issue044-toon-final-54074/028-05-issue-writeback_md-02.toon
+decode /tmp/issue044-toon-final-54074/029-06-final-audit_md-01.toon
+decode /tmp/issue044-toon-final-54074/030-06-final-audit_md-02.toon
+decode /tmp/issue044-toon-final-54074/031-06-final-audit_md-03.toon
+decode /tmp/issue044-toon-final-54074/032-00-intake_md-01.toon
+decode /tmp/issue044-toon-final-54074/033-00-intake_md-02.toon
+decode /tmp/issue044-toon-final-54074/034-00-intake_md-03.toon
+decode /tmp/issue044-toon-final-54074/035-01-protocol-read_md-01.toon
+decode /tmp/issue044-toon-final-54074/036-01-protocol-read_md-02.toon
+decode /tmp/issue044-toon-final-54074/037-01-protocol-read_md-03.toon
+decode /tmp/issue044-toon-final-54074/038-01-protocol-read_md-04.toon
+decode /tmp/issue044-toon-final-54074/039-01-protocol-read_md-05.toon
+decode /tmp/issue044-toon-final-54074/040-01-protocol-read_md-06.toon
+decode /tmp/issue044-toon-final-54074/041-02-live-surface-research_md-01.toon
+decode /tmp/issue044-toon-final-54074/042-02-live-surface-research_md-02.toon
+decode /tmp/issue044-toon-final-54074/043-02-live-surface-research_md-03.toon
+decode /tmp/issue044-toon-final-54074/044-02-live-surface-research_md-04.toon
+decode /tmp/issue044-toon-final-54074/045-02-live-surface-research_md-05.toon
+decode /tmp/issue044-toon-final-54074/046-03-implementation-design-lock_md-01.toon
+decode /tmp/issue044-toon-final-54074/047-03-implementation-design-lock_md-02.toon
+decode /tmp/issue044-toon-final-54074/048-04-patch-sequence_md-01.toon
+decode /tmp/issue044-toon-final-54074/049-04-patch-sequence_md-02.toon
+decode /tmp/issue044-toon-final-54074/050-05-proof-plan_md-01.toon
+decode /tmp/issue044-toon-final-54074/051-05-proof-plan_md-02.toon
+decode /tmp/issue044-toon-final-54074/052-05-proof-plan_md-03.toon
+decode /tmp/issue044-toon-final-54074/053-05-proof-plan_md-04.toon
+decode /tmp/issue044-toon-final-54074/054-05-proof-plan_md-05.toon
+decode /tmp/issue044-toon-final-54074/055-06-issue-writeback_md-01.toon
+decode /tmp/issue044-toon-final-54074/056-06-issue-writeback_md-02.toon
+decode /tmp/issue044-toon-final-54074/057-06-issue-writeback_md-03.toon
+decode /tmp/issue044-toon-final-54074/058-06-issue-writeback_md-04.toon
+decode /tmp/issue044-toon-final-54074/059-07-final-audit_md-01.toon
+decode /tmp/issue044-toon-final-54074/060-07-final-audit_md-02.toon
+decode /tmp/issue044-toon-final-54074/061-07-final-audit_md-03.toon
+decode /tmp/issue044-toon-final-54074/062-07-final-audit_md-04.toon
+decode /tmp/issue044-toon-final-54074/063-07-final-audit_md-05.toon
+decode /tmp/issue044-toon-final-54074/064-07-final-audit_md-06.toon
+all ISSUE-044 TOON blocks decoded
+
+$ git status --short --untracked-files=all
+?? .ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/execution-readiness/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/execution-readiness/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/execution-readiness/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/execution-readiness/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/execution-readiness/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/execution-readiness/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/execution-readiness/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/execution-readiness/raw/commands.log
+?? .ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/implementation-readiness/00-intake.md
+?? .ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/implementation-readiness/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/implementation-readiness/02-live-surface-research.md
+?? .ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/implementation-readiness/03-implementation-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/implementation-readiness/04-patch-sequence.md
+?? .ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/implementation-readiness/05-proof-plan.md
+?? .ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/implementation-readiness/06-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/implementation-readiness/07-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/implementation-readiness/raw/commands.log
+?? .ai/issues/open/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks.md
+
+$ git check-ignore -v .ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/implementation-readiness/07-final-audit.md || true
+.gitignore:13:!.ai/docs/issue-workflow/**	.ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/implementation-readiness/07-final-audit.md
+
+$ git check-ignore -v .ai/issues/open/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks.md || true

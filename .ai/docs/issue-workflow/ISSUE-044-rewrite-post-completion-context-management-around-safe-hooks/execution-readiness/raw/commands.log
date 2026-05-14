@@ -1,0 +1,449 @@
+## 00-request discovery commands
+$ git status --short --untracked-files=all
+?? .ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/execution-readiness/raw/commands.log
+
+$ find .ai/issues -maxdepth 2 -type d | sort
+.ai/issues
+.ai/issues/closed
+.ai/issues/defer
+.ai/issues/fixed
+.ai/issues/open
+
+$ find .ai/issues/open .ai/issues/refine .ai/issues/fixed .ai/issues/defer .ai/issues/closed -maxdepth 1 -type f -name 'ISSUE-*.md' 2>/dev/null | sort | tail -80
+.ai/issues/fixed/ISSUE-001-pi-goal-extension.md
+.ai/issues/fixed/ISSUE-002-goal-pause-active-turn-interrupt.md
+.ai/issues/fixed/ISSUE-003-paused-goal-continuation-guard.md
+.ai/issues/fixed/ISSUE-004-goal-subcommand-fuzzy-autocomplete.md
+.ai/issues/fixed/ISSUE-005-goal-widget-labels-and-time-budget.md
+.ai/issues/fixed/ISSUE-006-goal-widget-card-ui.md
+.ai/issues/fixed/ISSUE-007-goal-budget-warning-and-hard-stop.md
+.ai/issues/fixed/ISSUE-008-goal-objective-limit-15k.md
+.ai/issues/fixed/ISSUE-009-goal-budget-edit-status-recompute.md
+.ai/issues/fixed/ISSUE-010-goal-update-telemetry-completion-semantics.md
+.ai/issues/fixed/ISSUE-012-goal-budget-limited-resume-and-wrapup-gaps.md
+.ai/issues/fixed/ISSUE-017-reusable-goal-prompt-docs.md
+.ai/issues/fixed/ISSUE-020-goal-churn-monitor.md
+.ai/issues/fixed/ISSUE-025-goal-line-breaks-widget-rendering.md
+.ai/issues/fixed/ISSUE-026-nl-reusable-goal-prompts.md
+.ai/issues/fixed/ISSUE-027-goal-queue.md
+.ai/issues/fixed/ISSUE-028-goal-replacement-preview.md
+.ai/issues/fixed/ISSUE-029-goal-queue-direct-enqueue.md
+.ai/issues/fixed/ISSUE-030-queued-goal-steering.md
+.ai/issues/fixed/ISSUE-031-goal-queue-template-autocomplete.md
+.ai/issues/fixed/ISSUE-032-prose-queue-orchestration-guidance.md
+.ai/issues/fixed/ISSUE-033-resume-processes-queued-goals.md
+.ai/issues/fixed/ISSUE-034-prevent-unsatisfied-queued-goal-discard.md
+.ai/issues/fixed/ISSUE-035-multi-item-goal-queue-block.md
+.ai/issues/fixed/ISSUE-036-minimum-goal-spend-floors.md
+.ai/issues/fixed/ISSUE-038-bound-goal-template-autocomplete-discovery.md
+.ai/issues/fixed/ISSUE-039-recover-active-goal-continuation-after-compaction.md
+.ai/issues/fixed/ISSUE-040-verify-acceptance-pipeline-goal-templates.md
+.ai/issues/fixed/ISSUE-041-harden-acceptance-verification-pipeline-workflow.md
+.ai/issues/fixed/ISSUE-042-harden-compaction-continuation-with-pre-compact-queueing.md
+.ai/issues/open/ISSUE-011-goal-widget-real-component-and-narrow-width.md
+.ai/issues/open/ISSUE-013-goal-update-natural-language.md
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md
+.ai/issues/open/ISSUE-015-goal-subgoals.md
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md
+.ai/issues/open/ISSUE-018-goal-start-in-worktree.md
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md
+.ai/issues/open/ISSUE-022-goal-history-checkpoints-and-compaction.md
+.ai/issues/open/ISSUE-023-goal-dependency-triggers-and-watchers.md
+.ai/issues/open/ISSUE-024-goal-audit-command.md
+.ai/issues/open/ISSUE-037-goal-queue-auto-continuation-after-complete.md
+.ai/issues/open/ISSUE-043-per-goal-post-completion-context-reset.md
+
+## 00-request corrected next issue number command
+
+## 00-request corrected next issue number command v2
+$ find .ai/issues -type f -name 'ISSUE-*.md' 2>/dev/null | sed -E 's#.*/ISSUE-([0-9]+).*#\1#' | sort -n | tail -1 | awk '{printf("ISSUE-%03d", $1+1)}'
+ISSUE-044
+
+## 02-grounded-research commands
+$ rg -n "postCompletionContext|contextReset|parsePostCompletionContextDirective|needsPostCompletionContextReset|attemptPostCompletionContextReset|notifyContextResetFailure|sendQueueHandoff|TRAILING_DIRECTIVE|CreateGoalParams|CreateGoalFromTemplateParams|enqueueGoal\\(" .pi/extensions/goal
+.pi/extensions/goal/types.ts:12:	postCompletionContext?: GoalPostCompletionContextPolicy;
+.pi/extensions/goal/types.ts:13:	contextResetAnchorEntryId?: string;
+.pi/extensions/goal/types.ts:14:	contextResetCapabilitySource?: GoalContextResetCapabilitySource;
+.pi/extensions/goal/types.ts:15:	contextResetStatus?: GoalContextResetStatus;
+.pi/extensions/goal/types.ts:16:	contextResetFailure?: string;
+.pi/extensions/goal/types.ts:17:	contextResetCompletedAt?: number;
+.pi/extensions/goal/continuation.ts:14:import { sendQueueHandoff } from "./queue-steering";
+.pi/extensions/goal/continuation.ts:244:	const sent = sendQueueHandoff(pi, "goal-complete", { goalId: work.goalId, triggerTurn: false, deliverAs: "followUp", force: true });
+.pi/extensions/goal/continuation.ts:285:	const sent = sendQueueHandoff(pi, "goal-complete", { goalId: work.goalId, force: true });
+.pi/extensions/goal/context-reset.ts:8:	| { ok: true; objective: string; postCompletionContext: GoalPostCompletionContextPolicy }
+.pi/extensions/goal/context-reset.ts:17:const TRAILING_DIRECTIVE_PATTERN = /(?:,?\s+and\s+(summarize|clear)\s+(?:the\s+)?context\s*[.!?]*)$/i;
+.pi/extensions/goal/context-reset.ts:49:export function parsePostCompletionContextDirective(input: string): ParsedPostCompletionContextDirective {
+.pi/extensions/goal/context-reset.ts:52:	const trailing = TRAILING_DIRECTIVE_PATTERN.exec(trimmed);
+.pi/extensions/goal/context-reset.ts:53:	if (!trailing) return { ok: true, objective: input, postCompletionContext: "none" };
+.pi/extensions/goal/context-reset.ts:60:	return { ok: true, objective, postCompletionContext: policy };
+.pi/extensions/goal/context-reset.ts:63:export function contextResetPolicyError(policy: GoalPostCompletionContextPolicy): string | undefined {
+.pi/extensions/goal/context-reset.ts:69:	if (policy === "none") return { ...goal, postCompletionContext: "none" };
+.pi/extensions/goal/context-reset.ts:72:		postCompletionContext: policy,
+.pi/extensions/goal/context-reset.ts:73:		contextResetCapabilitySource: storedCommandContextSource,
+.pi/extensions/goal/context-reset.ts:74:		contextResetStatus: "pending",
+.pi/extensions/goal/context-reset.ts:79:	if ((goal.postCompletionContext ?? "none") === "none") return goal;
+.pi/extensions/goal/context-reset.ts:84:			contextResetStatus: "failed",
+.pi/extensions/goal/context-reset.ts:85:			contextResetFailure: "Could not record context reset anchor because the current session branch has no entries.",
+.pi/extensions/goal/context-reset.ts:90:	const anchored: GoalState = { ...goal, contextResetAnchorEntryId: anchor, updatedAt: Date.now() };
+.pi/extensions/goal/context-reset.ts:95:	if (goal.status !== "complete" || (goal.postCompletionContext ?? "none") === "none") return goal;
+.pi/extensions/goal/context-reset.ts:96:	if (goal.contextResetStatus === "done") return goal;
+.pi/extensions/goal/context-reset.ts:97:	return { ...goal, contextResetStatus: "pending", contextResetFailure: undefined };
+.pi/extensions/goal/context-reset.ts:100:export function needsPostCompletionContextReset(goal: GoalState | null): boolean {
+.pi/extensions/goal/context-reset.ts:101:	return Boolean(goal && goal.status === "complete" && (goal.postCompletionContext ?? "none") !== "none" && goal.contextResetStatus !== "done");
+.pi/extensions/goal/context-reset.ts:104:export async function attemptPostCompletionContextReset(pi: ExtensionAPI, ctx: ExtensionContext, reason: PiGoalEventReason): Promise<ContextResetOutcome> {
+.pi/extensions/goal/context-reset.ts:106:	if (!needsPostCompletionContextReset(current) || !current) return { status: "skipped", reason: "no pending context reset" };
+.pi/extensions/goal/context-reset.ts:108:	const policy = goal.postCompletionContext ?? "none";
+.pi/extensions/goal/context-reset.ts:109:	const resetKey = `${goal.goalId}:${policy}:${goal.contextResetAnchorEntryId ?? "missing"}`;
+.pi/extensions/goal/context-reset.ts:117:		const targetId = goal.contextResetAnchorEntryId;
+.pi/extensions/goal/context-reset.ts:130:			contextResetStatus: "done",
+.pi/extensions/goal/context-reset.ts:131:			contextResetCompletedAt: Date.now(),
+.pi/extensions/goal/context-reset.ts:132:			contextResetFailure: undefined,
+.pi/extensions/goal/context-reset.ts:146:	if (!goal.contextResetAnchorEntryId) return "Missing context reset anchor entry id.";
+.pi/extensions/goal/context-reset.ts:148:	if (!storedCommandContext.sessionManager.getEntry(goal.contextResetAnchorEntryId)) return `Context reset target entry '${goal.contextResetAnchorEntryId}' is missing.`;
+.pi/extensions/goal/context-reset.ts:149:	if ((goal.postCompletionContext ?? "none") === "summarize" && !storedCommandContext.model) return "Cannot summarize context reset because no model is available.";
+.pi/extensions/goal/context-reset.ts:156:		contextResetStatus: "failed",
+.pi/extensions/goal/context-reset.ts:157:		contextResetFailure: message,
+.pi/extensions/goal/lifecycle.ts:29:import { attemptPostCompletionContextReset, needsPostCompletionContextReset } from "./context-reset";
+.pi/extensions/goal/lifecycle.ts:32:import { queueSteeringStillValid, sendQueueHandoff } from "./queue-steering";
+.pi/extensions/goal/lifecycle.ts:34:import { notifyContextResetFailure, notifyWarning, promptResumePausedGoal, syncGoalUi } from "./ui";
+.pi/extensions/goal/lifecycle.ts:102:	if (needsPostCompletionContextReset(goal)) {
+.pi/extensions/goal/lifecycle.ts:103:		const outcome = await attemptPostCompletionContextReset(pi, ctx, "reset");
+.pi/extensions/goal/lifecycle.ts:104:		logCompactionDebugWithContext("lifecycle.agent_end.contextReset", ctx, { status: outcome.status, reason: "reason" in outcome ? outcome.reason : undefined });
+.pi/extensions/goal/lifecycle.ts:105:		if (outcome.status === "failed") { syncGoalUi(ctx, getGoal()); notifyContextResetFailure(ctx, outcome.reason); return; }
+.pi/extensions/goal/lifecycle.ts:115:			sendQueueHandoff(pi, reason, { goalId: goal.goalId, force: true });
+.pi/extensions/goal/lifecycle.ts:171:		sendQueueHandoff(pi, "goal-budget-limited", { goalId: goal.goalId });
+.pi/extensions/goal/lifecycle.ts:287:	if (needsPostCompletionContextReset(goal)) {
+.pi/extensions/goal/lifecycle.ts:288:		const outcome = await attemptPostCompletionContextReset(pi, ctx, "reset");
+.pi/extensions/goal/lifecycle.ts:289:		logCompactionDebugWithContext("lifecycle.turn_end.contextReset", ctx, { status: outcome.status, reason: "reason" in outcome ? outcome.reason : undefined });
+.pi/extensions/goal/lifecycle.ts:290:		if (outcome.status === "failed") { syncGoalUi(ctx, getGoal()); notifyContextResetFailure(ctx, outcome.reason); return; }
+.pi/extensions/goal/lifecycle.ts:294:	if (goal?.status === "complete" && completedThisTurn && !needsPostCompletionContextReset(goal)) sendQueueHandoff(pi, "goal-complete", { goalId: goal.goalId });
+.pi/extensions/goal/lifecycle.ts:343:		sendQueueHandoff(pi, "goal-budget-limited", { goalId: result.goal.goalId });
+.pi/extensions/goal/lifecycle.ts:355:		const handedOff = sendQueueHandoff(pi, "goal-budget-limited", { goalId: result.goal.goalId });
+.pi/extensions/goal/queue-tools.ts:10:import { contextResetPolicyError, getContextResetCapabilitySource, needsPostCompletionContextReset, parsePostCompletionContextDirective, recordPostStartContextResetAnchor, withPostCompletionContextPolicy } from "./context-reset";
+.pi/extensions/goal/queue-tools.ts:16:const CreateGoalParams = Type.Object({
+.pi/extensions/goal/queue-tools.ts:41:	sendQueueHandoff?: GoalQueueSteeringSender;
+.pi/extensions/goal/queue-tools.ts:73:		parameters: CreateGoalParams,
+.pi/extensions/goal/queue-tools.ts:75:			const parsed = parsePostCompletionContextDirective(params.objective);
+.pi/extensions/goal/queue-tools.ts:77:			const resetCapabilityError = contextResetPolicyError(parsed.postCompletionContext);
+.pi/extensions/goal/queue-tools.ts:83:			const queued = enqueueGoal(validation.objective, "tool", { tokenBudget: params.token_budget, timeBudgetSeconds: params.time_budget_seconds, minTokensBeforeWrapUp: params.min_tokens_before_wrap_up, minTimeSecondsBeforeWrapUp: params.min_time_seconds_before_wrap_up, postCompletionContext: parsed.postCompletionContext });
+.pi/extensions/goal/queue-tools.ts:160:	const parsed = parsePostCompletionContextDirective(objective.objective);
+.pi/extensions/goal/queue-tools.ts:162:	const postCompletionContext = chooseQueuedPolicy(next.postCompletionContext, parsed.postCompletionContext);
+.pi/extensions/goal/queue-tools.ts:163:	const resetCapabilityError = contextResetPolicyError(postCompletionContext);
+.pi/extensions/goal/queue-tools.ts:167:	return createAndDequeueQueuedGoal(pi, runtime, ctx, next, validation.objective, postCompletionContext);
+.pi/extensions/goal/queue-tools.ts:170:function createAndDequeueQueuedGoal(pi: ExtensionAPI, runtime: GoalQueueToolRuntime, ctx: ExtensionContext, next: QueuedGoal, objective: string, postCompletionContext: GoalPostCompletionContextPolicy) {
+.pi/extensions/goal/queue-tools.ts:173:	const baseGoal = createGoalState({ objective, tokenBudget: next.tokenBudget, timeBudgetSeconds: next.timeBudgetSeconds, minTokensBeforeWrapUp: next.minTokensBeforeWrapUp, minTimeSecondsBeforeWrapUp: next.minTimeSecondsBeforeWrapUp, contextResetCapabilitySource: getContextResetCapabilitySource() });
+.pi/extensions/goal/queue-tools.ts:174:	const goal = withPostCompletionContextPolicy(baseGoal, postCompletionContext);
+.pi/extensions/goal/queue-tools.ts:195:	logCompactionDebug("queueTools.dequeue.queueHandoffDecision", { reason, queueLength, hasGoal: Boolean(goal), hasSender: Boolean(runtime.sendQueueHandoff) });
+.pi/extensions/goal/queue-tools.ts:196:	if (!goal || !reason || queueLength === 0 || needsPostCompletionContextReset(goal)) return;
+.pi/extensions/goal/queue-tools.ts:197:	if (!runtime.sendQueueHandoff) {
+.pi/extensions/goal/queue-tools.ts:201:	runtime.sendQueueHandoff(reason, { goalId: goal.goalId, triggerTurn: true });
+.pi/extensions/goal/tools.ts:10:import { markContextResetPendingOnCompletion, contextResetPolicyError, getContextResetCapabilitySource, needsPostCompletionContextReset, parsePostCompletionContextDirective, recordPostStartContextResetAnchor, withPostCompletionContextPolicy } from "./context-reset";
+.pi/extensions/goal/tools.ts:18:const CreateGoalParams = Type.Object({
+.pi/extensions/goal/tools.ts:26:const CreateGoalFromTemplateParams = Type.Object({
+.pi/extensions/goal/tools.ts:53:	sendQueueHandoff?: GoalQueueSteeringSender;
+.pi/extensions/goal/tools.ts:65:	registerGoalQueueTools(pi, { scheduleMonitor: runtime.scheduleMonitor, sendQueueHandoff: runtime.sendQueueHandoff });
+.pi/extensions/goal/tools.ts:112:		parameters: CreateGoalParams,
+.pi/extensions/goal/tools.ts:131:		parameters: CreateGoalFromTemplateParams,
+.pi/extensions/goal/tools.ts:239:	const parsed = parsePostCompletionContextDirective(params.objective);
+.pi/extensions/goal/tools.ts:241:	const resetCapabilityError = contextResetPolicyError(parsed.postCompletionContext);
+.pi/extensions/goal/tools.ts:249:	const baseGoal = createGoalState({ objective: validation.objective, tokenBudget: params.token_budget, timeBudgetSeconds: params.time_budget_seconds, minTokensBeforeWrapUp: params.min_tokens_before_wrap_up, minTimeSecondsBeforeWrapUp: params.min_time_seconds_before_wrap_up, contextResetCapabilitySource: getContextResetCapabilitySource() });
+.pi/extensions/goal/tools.ts:250:	const goal = withPostCompletionContextPolicy(baseGoal, parsed.postCompletionContext);
+.pi/extensions/goal/tools.ts:412:		if (needsPostCompletionContextReset(updatedGoal)) return;
+.pi/extensions/goal/tools.ts:413:		runtime.sendQueueHandoff?.("goal-complete", { triggerTurn: true, goalId: updatedGoal.goalId });
+.pi/extensions/goal/tools.ts:418:		if ((runtime.getQueueSize?.() ?? 0) > 0) runtime.sendQueueHandoff?.("goal-budget-limited", { triggerTurn: true, goalId: updatedGoal.goalId });
+.pi/extensions/goal/ui.ts:37:export function notifyContextResetFailure(ctx: ExtensionContext, reason: string): void {
+.pi/extensions/goal/command.ts:19:import { captureContextResetCommandContext, clearContextResetCommandContext, getContextResetCapabilityStatus, parsePostCompletionContextDirective, recordPostStartContextResetAnchor, withPostCompletionContextPolicy } from "./context-reset";
+.pi/extensions/goal/command.ts:143:	postCompletionContext?: GoalPostCompletionContextPolicy;
+.pi/extensions/goal/command.ts:176:	const parsed = parsePostCompletionContextDirective(input);
+.pi/extensions/goal/command.ts:193:				const queued = enqueueGoal(validation.objective, "command", { postCompletionContext: parsed.postCompletionContext });
+.pi/extensions/goal/command.ts:205:	const goal = withPostCompletionContextPolicy(createGoalState({ objective: validation.objective }), parsed.postCompletionContext);
+.pi/extensions/goal/command.ts:331:			const goal = enqueueGoal(item.objective, "command", { postCompletionContext: item.postCompletionContext, template: item.template, templateFlags: item.templateFlags, templateArgs: item.templateArgs });
+.pi/extensions/goal/command.ts:342:	const parsed = parsePostCompletionContextDirective(resolved.objective);
+.pi/extensions/goal/command.ts:352:	const queued = enqueueGoal(validation.objective, "command", { postCompletionContext: parsed.postCompletionContext, template: resolved.template, templateFlags: resolved.templateFlags, templateArgs: resolved.templateArgs });
+.pi/extensions/goal/command.ts:370:		const parsed = parsePostCompletionContextDirective(resolved.objective);
+.pi/extensions/goal/command.ts:381:		resolvedItems.push({ ...resolved, objective: validation.objective, postCompletionContext: parsed.postCompletionContext });
+.pi/extensions/goal/index.ts:8:import { sendQueueHandoff, sendQueueSteering } from "./queue-steering";
+.pi/extensions/goal/index.ts:27:		sendQueueHandoff: (reason, opts) => sendQueueHandoff(pi, reason, opts),
+.pi/extensions/goal/queue-steering.ts:13:export function sendQueueHandoff(pi: ExtensionAPI, reason: GoalQueueSteeringReason, opts: QueueHandoffOptions = {}): boolean {
+.pi/extensions/goal/queue-state.ts:13:	postCompletionContext?: GoalPostCompletionContextPolicy;
+.pi/extensions/goal/queue-state.ts:68:export function enqueueGoal(objective: string, source: "command" | "tool", opts?: { tokenBudget?: number; timeBudgetSeconds?: number; minTokensBeforeWrapUp?: number; minTimeSecondsBeforeWrapUp?: number; postCompletionContext?: GoalPostCompletionContextPolicy; template?: string; templateFlags?: Record<string, string>; templateArgs?: string }): QueuedGoal {
+.pi/extensions/goal/queue-state.ts:77:		postCompletionContext: opts?.postCompletionContext,
+.pi/extensions/goal/queue-state.ts:202:	const postCompletionContext = parseOptionalPolicyField(raw.postCompletionContext);
+.pi/extensions/goal/queue-state.ts:203:	if (!postCompletionContext.ok) return null;
+.pi/extensions/goal/queue-state.ts:217:		postCompletionContext: postCompletionContext.value,
+.pi/extensions/goal/state.ts:12:	postCompletionContext?: GoalPostCompletionContextPolicy;
+.pi/extensions/goal/state.ts:13:	contextResetAnchorEntryId?: string;
+.pi/extensions/goal/state.ts:14:	contextResetCapabilitySource?: GoalContextResetCapabilitySource;
+.pi/extensions/goal/state.ts:15:	contextResetStatus?: GoalContextResetStatus;
+.pi/extensions/goal/state.ts:54:		postCompletionContext: input.postCompletionContext,
+.pi/extensions/goal/state.ts:55:		contextResetAnchorEntryId: input.contextResetAnchorEntryId,
+.pi/extensions/goal/state.ts:56:		contextResetCapabilitySource: input.contextResetCapabilitySource,
+.pi/extensions/goal/state.ts:57:		contextResetStatus: input.contextResetStatus,
+.pi/extensions/goal/state.ts:164:	const postCompletionContext = parsePostCompletionContextPolicy(v.postCompletionContext);
+.pi/extensions/goal/state.ts:165:	const contextResetStatus = parseContextResetStatus(v.contextResetStatus);
+.pi/extensions/goal/state.ts:166:	const contextResetCapabilitySource = parseContextResetCapabilitySource(v.contextResetCapabilitySource);
+.pi/extensions/goal/state.ts:169:		postCompletionContext,
+.pi/extensions/goal/state.ts:170:		contextResetAnchorEntryId: optionalString(v.contextResetAnchorEntryId),
+.pi/extensions/goal/state.ts:171:		contextResetCapabilitySource,
+.pi/extensions/goal/state.ts:172:		contextResetStatus,
+.pi/extensions/goal/state.ts:173:		contextResetFailure: optionalString(v.contextResetFailure),
+.pi/extensions/goal/state.ts:174:		contextResetCompletedAt: optionalFiniteNumber(v.contextResetCompletedAt),
+
+$ rg -n "summarize context|clear context|post-completion context reset|post_completion|context reset" README.md .ai/validation .ai/.pi-goals .pi/extensions/goal
+README.md:72:- `/goal anchor` — capture command-context capability so later non-slash/model-tool-created goals can request a post-completion context reset.
+README.md:80:## Post-completion context reset
+README.md:85:/goal investigate the flaky test and summarize context
+README.md:86:/goal queue update docs and clear context
+README.md:95:The primary API is prose-first: use trailing directives like `and summarize context` or `and clear context`. Explicit `/goal ...`, `/goal queue ...`, and `/goal <template> ...` invocations capture the command-context capability automatically, so they do not require a prior `/goal anchor`.
+README.md:102:/goal queue [1] collect evidence and summarize context
+README.md:103:[2] run the cleanup and clear context
+.pi/extensions/goal/context-reset.ts:55:		return { ok: false, error: "Ambiguous context reset directive. Use exactly one trailing 'and clear context' or 'and summarize context'." };
+.pi/extensions/goal/context-reset.ts:85:			contextResetFailure: "Could not record context reset anchor because the current session branch has no entries.",
+.pi/extensions/goal/context-reset.ts:106:	if (!needsPostCompletionContextReset(current) || !current) return { status: "skipped", reason: "no pending context reset" };
+.pi/extensions/goal/context-reset.ts:110:	if (activeResetKey === resetKey) return { status: "skipped", reason: "context reset already in progress" };
+.pi/extensions/goal/context-reset.ts:116:		if (!commandCtx) return failReset(pi, goal, "Missing command-context reset capability. Run /goal anchor before requesting reset from non-slash goals.", reason);
+.pi/extensions/goal/context-reset.ts:118:		if (!targetId) return failReset(pi, goal, "Missing context reset anchor entry id.", reason);
+.pi/extensions/goal/context-reset.ts:123:			label: `pi-goal ${policy} context reset`,
+.pi/extensions/goal/context-reset.ts:146:	if (!goal.contextResetAnchorEntryId) return "Missing context reset anchor entry id.";
+.pi/extensions/goal/context-reset.ts:147:	if (!storedCommandContext) return "Missing command-context reset capability. Run /goal anchor before requesting reset from non-slash goals.";
+.pi/extensions/goal/context-reset.ts:149:	if ((goal.postCompletionContext ?? "none") === "summarize" && !storedCommandContext.model) return "Cannot summarize context reset because no model is available.";
+.pi/extensions/goal/command.ts:42:	{ name: "anchor", description: "Capture context reset capability for later non-slash goals" },
+.pi/extensions/goal/command.ts:247:		notifyInfo(ctx, "Goal context reset capability captured for later non-slash/model-tool goals. This is not a rewind anchor; per-goal reset anchors are recorded after each goal starts.");
+.pi/extensions/goal/command.ts:252:		notifyInfo(ctx, status.available ? `Goal context reset capability is available from ${status.source ?? "unknown"}.` : "No goal context reset capability is captured.");
+.pi/extensions/goal/command.ts:257:		notifyInfo(ctx, "Goal context reset capability cleared.");
+.pi/extensions/goal/command.ts:372:			notifyWarning(ctx, `Queue item ${i + 1} (${item.marker} on line ${item.lineIndex + 1}) has an invalid context reset directive. No goals were queued.\n${parsed.error}`);
+.pi/extensions/goal/ui.ts:39:		`Post-completion context reset failed: ${reason}`,
+.pi/extensions/goal/ui.ts:41:		"Fix the reset issue, then complete or clear the goal/queue manually. If this goal came from prose/model tooling, run /goal anchor before requesting context reset.",
+.ai/validation/goal-context-reset-summarize-handoff-probe.mjs:9:assert('summarize reset labels tree navigation', reset.includes('label: `pi-goal ${policy} context reset`'));
+.ai/validation/goal-context-reset-failure-probe.mjs:8:assert('missing anchor is failure', reset.includes('Missing context reset anchor entry id'));
+.ai/validation/goal-context-reset-failure-probe.mjs:9:assert('missing capability is failure', reset.includes('Missing command-context reset capability'));
+.ai/validation/goal-context-reset-failure-probe.mjs:14:assert('failed reset surfaces actionable warning', lifecycle.includes('notifyContextResetFailure') && ui.includes('Post-completion context reset failed') && ui.includes('Queued goal handoff was blocked'));
+.ai/validation/goal-context-reset-nl-policy-probe.mjs:19:assert('parser rejects ambiguous multiple directives', reset.includes('matches.length > 1') && reset.includes('Ambiguous context reset directive'));
+
+$ find .ai/validation -maxdepth 1 -type f -name 'goal-context-reset-*.mjs' | sort
+.ai/validation/goal-context-reset-anchor-command-probe.mjs
+.ai/validation/goal-context-reset-branch-repair-probe.mjs
+.ai/validation/goal-context-reset-clear-handoff-probe.mjs
+.ai/validation/goal-context-reset-failure-probe.mjs
+.ai/validation/goal-context-reset-model-tool-policy-probe.mjs
+.ai/validation/goal-context-reset-nl-policy-probe.mjs
+.ai/validation/goal-context-reset-queue-stack-policy-probe.mjs
+.ai/validation/goal-context-reset-queued-anchor-probe.mjs
+.ai/validation/goal-context-reset-summarize-handoff-probe.mjs
+
+$ sentrux gate .pi/extensions/goal
+sentrux gate — structural regression check
+
+Quality:      6223 -> 6223
+Coupling:     0.14 → 0.14
+Cycles:       0 → 0
+God files:    0 → 0
+
+Distance from Main Sequence: 0.30
+
+✓ No degradation detected
+
+$ sentrux check .pi/extensions/goal
+sentrux check — 33 rules checked
+
+Quality: 6223
+
+✓ All rules pass
+
+## 02-grounded-research feature flag/config surface commands
+$ rg -n "featureFlag|feature flag|flags|config|postCompletionActions|hooks|process.env|GOAL_" .pi/extensions/goal package.json README.md
+README.md:221:- `{{name}}` placeholders resolve from `--name value` or `--name=value` flags.
+.pi/extensions/goal/command.ts:3:import { GOAL_USAGE, GOAL_USAGE_HINT } from "./constants";
+.pi/extensions/goal/command.ts:37:const GOAL_SUBCOMMANDS: GoalSubcommand[] = [
+.pi/extensions/goal/command.ts:60:	const scored = GOAL_SUBCOMMANDS.map((subcommand) => ({
+.pi/extensions/goal/command.ts:160:			templateFlags: resolution.template.flags,
+.pi/extensions/goal/command.ts:228:		notifyInfo(ctx, `${GOAL_USAGE}\nNo goal is currently set.`);
+.pi/extensions/goal/command.ts:272:		notifyInfo(ctx, `${GOAL_USAGE}\n${GOAL_USAGE_HINT}`);
+.pi/extensions/goal/monitor.ts:5:	GOAL_MONITOR_MESSAGE_TYPE,
+.pi/extensions/goal/monitor.ts:6:	GOAL_MONITOR_OUTPUT_CHARS,
+.pi/extensions/goal/monitor.ts:7:	GOAL_MONITOR_PROCESS_TIMEOUT_MS,
+.pi/extensions/goal/monitor.ts:8:	GOAL_MONITOR_REPORT_INTERVAL_SECONDS,
+.pi/extensions/goal/monitor.ts:56:	const extraction = extractXmlPayload(output.slice(0, GOAL_MONITOR_OUTPUT_CHARS), DECISION_ROOT);
+.pi/extensions/goal/monitor.ts:108:	], { cwd: ctx.cwd, timeout: GOAL_MONITOR_PROCESS_TIMEOUT_MS });
+.pi/extensions/goal/monitor.ts:109:	const combined = [result.stdout, result.stderr].filter(Boolean).join("\n").slice(0, GOAL_MONITOR_OUTPUT_CHARS);
+.pi/extensions/goal/monitor.ts:140:			customType: GOAL_MONITOR_MESSAGE_TYPE,
+.pi/extensions/goal/monitor.ts:155:	const timer = setTimeout(() => void safelyRun(() => runMonitorCycle(pi, ctx, goalId)), GOAL_MONITOR_REPORT_INTERVAL_SECONDS * 1000);
+.pi/extensions/goal/monitor-report.ts:3:	GOAL_MONITOR_ENTRY_SUMMARY_CHARS,
+.pi/extensions/goal/monitor-report.ts:4:	GOAL_MONITOR_RECENT_BRANCH_ENTRY_LIMIT,
+.pi/extensions/goal/monitor-report.ts:5:	GOAL_MONITOR_RECENT_LOG_LIMIT,
+.pi/extensions/goal/monitor-report.ts:30:		recentLogEntries: getRecentMonitorLogs(goal.goalId, GOAL_MONITOR_RECENT_LOG_LIMIT),
+.pi/extensions/goal/monitor-report.ts:49:	const start = Math.max(0, branch.length - GOAL_MONITOR_RECENT_BRANCH_ENTRY_LIMIT);
+.pi/extensions/goal/monitor-report.ts:54:	if (typeof entry !== "object" || entry === null) return { index, type: typeof entry, summary: String(entry).slice(0, GOAL_MONITOR_ENTRY_SUMMARY_CHARS) };
+.pi/extensions/goal/monitor-report.ts:103:	return normalized.length > GOAL_MONITOR_ENTRY_SUMMARY_CHARS ? `${normalized.slice(0, GOAL_MONITOR_ENTRY_SUMMARY_CHARS)}…` : normalized;
+.pi/extensions/goal/templates.ts:36:	flags: Record<string, string>;
+.pi/extensions/goal/templates.ts:44:	flags: Record<string, string>;
+.pi/extensions/goal/templates.ts:76:	return resolveGoalTemplateByName(parsed.name, parsed.flags, parsed.args, root);
+.pi/extensions/goal/templates.ts:79:export function resolveGoalTemplateInvocationArgs(nameOrAlias: string, invocationArgs = "", flags: Record<string, string> = {}, root = process.cwd()): TemplateResolution {
+.pi/extensions/goal/templates.ts:82:	return resolveGoalTemplateByName(parsed.name, { ...parsed.flags, ...flags }, parsed.args, root);
+.pi/extensions/goal/templates.ts:85:export function resolveGoalTemplateByName(nameOrAlias: string, flags: Record<string, string>, args = "", root = process.cwd()): TemplateResolution {
+.pi/extensions/goal/templates.ts:91:		const values = { ...flags, args };
+.pi/extensions/goal/templates.ts:94:		return { ok: true, template: { name: template.name, path: template.path, objective, flags: { ...flags }, args } };
+.pi/extensions/goal/templates.ts:184:	return { name, flags: parseFlags(rest), args };
+.pi/extensions/goal/constants.ts:5:export const GOAL_MONITOR_MESSAGE_TYPE = "pi-goal-monitor-steer";
+.pi/extensions/goal/constants.ts:7:export const GOAL_MONITOR_LOG_ENTRY_TYPE = "pi-goal-monitor-log";
+.pi/extensions/goal/constants.ts:26:export const GOAL_MONITOR_REPORT_INTERVAL_SECONDS = 90;
+.pi/extensions/goal/constants.ts:27:export const GOAL_MONITOR_RECENT_LOG_LIMIT = 10;
+.pi/extensions/goal/constants.ts:28:export const GOAL_MONITOR_RECENT_BRANCH_ENTRY_LIMIT = 12;
+.pi/extensions/goal/constants.ts:29:export const GOAL_MONITOR_ENTRY_SUMMARY_CHARS = 700;
+.pi/extensions/goal/constants.ts:30:export const GOAL_MONITOR_PROCESS_TIMEOUT_MS = 240_000;
+.pi/extensions/goal/constants.ts:31:export const GOAL_MONITOR_OUTPUT_CHARS = 20_000;
+.pi/extensions/goal/constants.ts:39:export const GOAL_MONITOR_PROMPT_ID = "pi-goal-monitor-v1";
+.pi/extensions/goal/constants.ts:42:export const GOAL_USAGE = "Usage: /goal <objective>";
+.pi/extensions/goal/constants.ts:43:export const GOAL_USAGE_HINT = "Example: /goal improve benchmark coverage";
+.pi/extensions/goal/lifecycle.ts:20:	GOAL_MONITOR_MESSAGE_TYPE,
+.pi/extensions/goal/lifecycle.ts:192:	// mid-turn, (2) telemetry flags prevent re-sending if turn_end already warned.
+.pi/extensions/goal/lifecycle.ts:437:	return [CONTINUATION_MESSAGE_TYPE, BUDGET_LIMIT_MESSAGE_TYPE, PAUSE_MESSAGE_TYPE, GOAL_MONITOR_MESSAGE_TYPE, QUEUE_MESSAGE_TYPE].includes(String(customType));
+.pi/extensions/goal/lifecycle.ts:443:	if (customType === GOAL_MONITOR_MESSAGE_TYPE) return status === "active" && kind === "monitorSteer";
+.pi/extensions/goal/debug-log.ts:14:	const path = process.env.PI_GOAL_COMPACTION_DEBUG_LOG || DEFAULT_LOG_PATH;
+.pi/extensions/goal/debug-log.ts:30:	if (process.env.PI_GOAL_COMPACTION_DEBUG_LOG) return true;
+.pi/extensions/goal/debug-log.ts:31:	const enabled = process.env.PI_GOAL_COMPACTION_DEBUG;
+.pi/extensions/goal/floor.ts:41:export function validateFloorConfig(config: GoalFloorConfig): string | undefined {
+.pi/extensions/goal/floor.ts:42:	if (config.minTokensBeforeWrapUp !== undefined) {
+.pi/extensions/goal/floor.ts:43:		const error = validatePositiveInteger("min_tokens_before_wrap_up", config.minTokensBeforeWrapUp);
+.pi/extensions/goal/floor.ts:45:		if (config.tokenBudget !== undefined && config.minTokensBeforeWrapUp > config.tokenBudget) {
+.pi/extensions/goal/floor.ts:49:	if (config.minTimeSecondsBeforeWrapUp !== undefined) {
+.pi/extensions/goal/floor.ts:50:		const error = validatePositiveInteger("min_time_seconds_before_wrap_up", config.minTimeSecondsBeforeWrapUp);
+.pi/extensions/goal/floor.ts:52:		if (config.timeBudgetSeconds !== undefined && config.minTimeSecondsBeforeWrapUp > config.timeBudgetSeconds) {
+.pi/extensions/goal/ui.ts:2:import { GOAL_USAGE, GOAL_USAGE_HINT, STATUS_UI_KEY, WIDGET_UI_KEY } from "./constants";
+.pi/extensions/goal/ui.ts:18:	ctx.ui.notify(`${GOAL_USAGE}\n${GOAL_USAGE_HINT}`, "info");
+.pi/extensions/goal/queue-tools.ts:72:		promptGuidelines: ["Use only when the user explicitly asks to queue a goal for later, not for ordinary task requests.", "Fill flags and args from the user's prose, but ask for missing required values instead of guessing."],
+.pi/extensions/goal/format.ts:3:import { GOAL_USAGE, GOAL_USAGE_HINT, LONG_OBJECTIVE_HINT, MAX_OBJECTIVE_CHARS, OBJECTIVE_EXCERPT_CHARS } from "./constants";
+.pi/extensions/goal/format.ts:11:		return { ok: false, message: "Goal objective must not be empty.", hint: `${GOAL_USAGE}\n${GOAL_USAGE_HINT}` };
+.pi/extensions/goal/queue-steering.ts:81:			`If classified as a direct goal, start_queued_goal will re-resolve template '${goal.template}' with flags=${JSON.stringify(goal.templateFlags ?? {})}, args=${JSON.stringify(goal.templateArgs ?? "")}.`,
+.pi/extensions/goal/monitor-prompts.ts:1:import { GOAL_MONITOR_PROMPT_ID } from "./constants";
+.pi/extensions/goal/monitor-prompts.ts:71:<prompt_id>${GOAL_MONITOR_PROMPT_ID}</prompt_id>
+.pi/extensions/goal/tools.ts:28:	flags: Type.Optional(TemplateFlags),
+.pi/extensions/goal/tools.ts:128:			"Fill template flags and args from the user's prose or current context, but ask for missing required values instead of guessing.",
+.pi/extensions/goal/tools.ts:197:	flags?: Record<string, string>;
+.pi/extensions/goal/tools.ts:221:	const resolved = resolveGoalTemplateInvocationArgs(params.template, params.args ?? "", params.flags ?? {});
+.pi/extensions/goal/monitor-state.ts:2:import { GOAL_MONITOR_LOG_ENTRY_TYPE, GOAL_MONITOR_RECENT_LOG_LIMIT } from "./constants";
+.pi/extensions/goal/monitor-state.ts:19:export function getRecentMonitorLogs(goalId: string, limit = GOAL_MONITOR_RECENT_LOG_LIMIT): GoalMonitorLogEntry[] {
+.pi/extensions/goal/monitor-state.ts:52:	pi.appendEntry(GOAL_MONITOR_LOG_ENTRY_TYPE, entry);
+.pi/extensions/goal/monitor-state.ts:65:	if (candidate.type !== "custom" || candidate.customType !== GOAL_MONITOR_LOG_ENTRY_TYPE) return null;
+
+$ find .pi/extensions/goal -maxdepth 1 -type f | sort
+.pi/extensions/goal/budget.ts
+.pi/extensions/goal/command.ts
+.pi/extensions/goal/completion-gate.ts
+.pi/extensions/goal/constants.ts
+.pi/extensions/goal/context-reset.ts
+.pi/extensions/goal/continuation.ts
+.pi/extensions/goal/debug-log.ts
+.pi/extensions/goal/floor-steering.ts
+.pi/extensions/goal/floor.ts
+.pi/extensions/goal/format.ts
+.pi/extensions/goal/index.ts
+.pi/extensions/goal/lifecycle.ts
+.pi/extensions/goal/model-output.ts
+.pi/extensions/goal/monitor-prompts.ts
+.pi/extensions/goal/monitor-report.ts
+.pi/extensions/goal/monitor-state.ts
+.pi/extensions/goal/monitor.ts
+.pi/extensions/goal/prompts.ts
+.pi/extensions/goal/queue-block-parser.ts
+.pi/extensions/goal/queue-state.ts
+.pi/extensions/goal/queue-steering.ts
+.pi/extensions/goal/queue-tools.ts
+.pi/extensions/goal/state.ts
+.pi/extensions/goal/telemetry.ts
+.pi/extensions/goal/templates.ts
+.pi/extensions/goal/tool-results.ts
+.pi/extensions/goal/tools.ts
+.pi/extensions/goal/types.ts
+.pi/extensions/goal/ui.ts
+.pi/extensions/goal/widget.ts
+
+## 02-grounded-research compaction continuation reset-gate check
+$ rg -n "currentCompactionWork|prequeueCompactionWork|attemptQueueHandoff|needsPostCompletionContextReset|sendQueueHandoff" .pi/extensions/goal/continuation.ts
+14:import { sendQueueHandoff } from "./queue-steering";
+57:	compactionWork = currentCompactionWork();
+70:	const prequeued = prequeueCompactionWork(pi, compactionWork);
+221:function currentCompactionWork(): CompactionContinuationWork | undefined {
+224:	logRuntime("currentCompactionWork.inspect", { queueHeadId: queueHead?.queueId });
+231:function prequeueCompactionWork(pi: ExtensionAPI, work: CompactionContinuationWork): boolean {
+232:	logRuntime("prequeueCompactionWork.start", workFields(work));
+236:			logRuntime("prequeueCompactionWork.activeGoal.mismatch", workFields(work));
+241:		logRuntime("prequeueCompactionWork.activeGoal.sent", workFields(work));
+244:	const sent = sendQueueHandoff(pi, "goal-complete", { goalId: work.goalId, triggerTurn: false, deliverAs: "followUp", force: true });
+246:	logRuntime("prequeueCompactionWork.queueHandoff.end", { ...workFields(work), sent });
+265:	const result = work.kind === "activeGoal" ? attemptContinueGoal(pi, ctx, "compacted", work.goalId) : attemptQueueHandoff(pi, ctx, work);
+276:function attemptQueueHandoff(pi: ExtensionAPI, ctx: ExtensionContext, work: Extract<CompactionContinuationWork, { kind: "queueHandoff" }>): ContinuationAttemptResult {
+277:	logCompactionDebugWithContext("attemptQueueHandoff.start", ctx, workFields(work));
+285:	const sent = sendQueueHandoff(pi, "goal-complete", { goalId: work.goalId, force: true });
+286:	logRuntime("attemptQueueHandoff.sendResult", { ...workFields(work), sent });
+
+## 05-issue-writeback checks
+$ test -f .ai/issues/open/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks.md
+ok issue file exists
+$ rg -n "^(Status:|Next best session:|## Goal|## Grounded research findings|## Locked design choices|## Required proofs|## TOON synthesis)" .ai/issues/open/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks.md
+3:Status: execution-ready
+8:Next best session: implementation-ready-issue
+28:## Goal
+176:## Grounded research findings
+209:## Locked design choices
+333:## Required proofs
+359:## TOON synthesis
+
+## 06-final-audit visibility and TOON checks
+$ git status --short --untracked-files=all
+?? .ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/execution-readiness/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/execution-readiness/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/execution-readiness/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/execution-readiness/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/execution-readiness/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/execution-readiness/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/execution-readiness/raw/commands.log
+?? .ai/issues/open/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks.md
+
+$ git check-ignore -v .ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/execution-readiness/00-request.md || true
+.gitignore:13:!.ai/docs/issue-workflow/**	.ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/execution-readiness/00-request.md
+
+$ git check-ignore -v .ai/issues/open/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks.md || true
+
+$ rg -n "toon.version: 1|required_proofs\\[|locked_requirements\\[|implementation_surfaces\\[|verification_checks\\[" .ai/issues/open/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks.md .ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/execution-readiness/*.md
+.ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/execution-readiness/05-issue-writeback.md:14:toon.version: 1
+.ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/execution-readiness/05-issue-writeback.md:28:  "Required proofs",present,"importable required_proofs[] TOON block"
+.ai/issues/open/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks.md:185:toon.version: 1
+.ai/issues/open/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks.md:218:toon.version: 1
+.ai/issues/open/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks.md:248:toon.version: 1
+.ai/issues/open/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks.md:336:toon.version: 1
+.ai/issues/open/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks.md:337:required_proofs[11]{name,source,command,pass_condition,scope,notes}:
+.ai/issues/open/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks.md:354:toon.version: 1
+.ai/issues/open/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks.md:362:toon.version: 1
+.ai/issues/open/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks.md:374:locked_requirements[8]{id,requirement}:
+.ai/issues/open/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks.md:393:implementation_surfaces[8]{path,role}:
+.ai/issues/open/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks.md:403:verification_checks[7]{id,check,evidence}:
+.ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/execution-readiness/03-design-lock.md:8:toon.version: 1
+.ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/execution-readiness/04-proof-threat-model.md:12:toon.version: 1
+.ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/execution-readiness/04-proof-threat-model.md:56:toon.version: 1
+.ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/execution-readiness/04-proof-threat-model.md:57:required_proofs[11]{name,source,command,pass_condition,scope,notes}:
+.ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/execution-readiness/04-proof-threat-model.md:74:toon.version: 1
+.ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/execution-readiness/01-protocol-read.md:6:toon.version: 1
+.ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/execution-readiness/01-protocol-read.md:11:  "d4","~/.codex/feature-workflow-pipelines/references/canonical-issue-docs-and-toon-synthesis.md","issue doc structure, proof threat model, required_proofs[]"
+.ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/execution-readiness/01-protocol-read.md:35:  "r6","feature-workflow-pipelines","include importable required_proofs[] TOON when Solo/TLO proof closeout is expected"
+.ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/execution-readiness/01-protocol-read.md:36:  "r7","toon reference","TOON blocks must be real TOON syntax with toon.version: 1 and structured rows"
+.ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/execution-readiness/02-grounded-research.md:16:toon.version: 1
+.ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/execution-readiness/00-request.md:12:toon.version: 1
+
+## 06-final-audit post-audit visibility check
+$ git status --short --untracked-files=all
+?? .ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/execution-readiness/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/execution-readiness/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/execution-readiness/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/execution-readiness/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/execution-readiness/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/execution-readiness/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/execution-readiness/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/execution-readiness/raw/commands.log
+?? .ai/issues/open/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks.md
+
+$ git check-ignore -v .ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/execution-readiness/06-final-audit.md || true
+.gitignore:13:!.ai/docs/issue-workflow/**	.ai/docs/issue-workflow/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks/execution-readiness/06-final-audit.md
+
+$ git check-ignore -v .ai/issues/open/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks.md || true

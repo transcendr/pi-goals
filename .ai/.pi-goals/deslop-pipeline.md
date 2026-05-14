@@ -122,7 +122,7 @@ print("  spawn_worker: " + " ".join([
     "--include-agent-instructions", "false",
 ]))
 print("  set_worker_id_after_spawn: export DESLOP_WORKER_ID=<id from spawn_worker output>")
-print("  send_model_switch: " + f"solo-mcp --instance {quote(instance)} process send \"$DESLOP_WORKER_ID\" --project {quote(project_id)} --input {quote('/model opencode-go/glm-5.1')} --allow-recent-spawn --wait-ms 2000")
+print("  send_model_switch: " + f"solo-mcp --instance {quote(instance)} process send \"$DESLOP_WORKER_ID\" --project {quote(project_id)} --input {quote('/model opencode-go/deepseek-v4-pro')} --allow-recent-spawn --wait-ms 2000")
 print("  verify_model_switch_output: " + f"solo-mcp --instance {quote(instance)} process output \"$DESLOP_WORKER_ID\" --project {quote(project_id)} --lines 40")
 print("  send_deslop_boomerang: " + f"solo-mcp --instance {quote(instance)} process send \"$DESLOP_WORKER_ID\" --project {quote(project_id)} --input {quote(boomerang)}")
 print("  sparse_poll_status: " + f"sleep 90 && solo-mcp --instance {quote(instance)} process status \"$DESLOP_WORKER_ID\" --project {quote(project_id)}")
@@ -166,7 +166,7 @@ Spawn a new Solo agent process using Pi runtime with `--profile solo-researcher-
 After spawning, set `DESLOP_WORKER_ID` from the spawn output as shown in the resolved context, then send this exact model switch:
 
 ```text
-/model opencode-go/glm-5.1
+/model opencode-go/deepseek-v4-pro
 ```
 
 Use the rendered `send_model_switch` command for delivery, preserving the slash command exactly. It includes a short bounded wait to reduce racey output checks. Before sending the deslop boomerang, run the rendered `verify_model_switch_output` command and inspect the output for evidence that the model switch completed successfully. If the model switch failed or is unclear, retry `send_model_switch` once and then rerun `verify_model_switch_output`. If the second attempt still fails or remains unclear, do not send the boomerang; escalate with the evidence and ask for direction.
