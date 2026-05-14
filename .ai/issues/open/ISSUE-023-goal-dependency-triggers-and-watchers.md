@@ -9,7 +9,7 @@ Next best session: implement and validate extension-owned goal wait-condition wa
 Next best session rationale: The first watcher release is now bounded: extension-owned, per-local-active-goal, one-shot watchers for file existence/change/contains and argv command exit, with durable replay, stale-guarded delivery, resource caps, and explicit list/cancel surfaces.
 Target bucket: open
 Issue kind: feature
-Target repo roots: `/Users/bryan/dev/personal/experiments/pi-goals`
+Target repo roots: `~/dev/personal/experiments/pi-goals`
 Parent issue: `.ai/issues/fixed/ISSUE-001-pi-goal-extension.md`
 Depends on:
 - `.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md`
@@ -268,14 +268,14 @@ verification_checks[7]{id,check,evidence}:
 ```toon
 toon.version: 1
 required_proofs[8]{name,source,command,pass_condition,scope,notes}:
-  "quality_goal","ISSUE-023","cd /Users/bryan/dev/personal/experiments/pi-goals && npm run quality:goal","exit 0","run","full extension quality gate after implementation"
-  "watcher_schema_caps_probe","ISSUE-023","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-watcher-schema-caps-probe.mjs","exit 0 and output includes PASS watcher_schema_caps_enforced","run","must fail if watcher kind parsing, interval/timeout/output caps, cwd binding, or per-goal/session counts are unbounded"
-  "watcher_replay_reload_probe","ISSUE-023","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-watcher-replay-reload-probe.mjs","exit 0 and output includes PASS watcher_replay_reload_safe","run","must fail if registrations/satisfaction/cancel/timeout/delivery state are lost or duplicated across replay/reload"
-  "watcher_stale_guard_probe","ISSUE-023","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-watcher-stale-guard-probe.mjs","exit 0 and output includes PASS watcher_stale_guards_block_invalid_nudges","run","must cover wrong goal id, paused, complete, clear, budget-limited, pending messages, busy context, and cwd mismatch"
-  "watcher_one_shot_delivery_probe","ISSUE-023","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-watcher-one-shot-delivery-probe.mjs","exit 0 and output includes PASS watcher_delivers_at_most_once","run","must fail if one satisfied watcher can deliver more than one nudge without explicit re-arm"
-  "watcher_command_safety_probe","ISSUE-023","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-watcher-command-safety-probe.mjs","exit 0 and output includes PASS watcher_command_safety_bounds","run","must fail if command watchers accept shell strings, interactive stdin, missing timeouts, output overflow, or unreported nonzero exits"
-  "watcher_render_cancel_probe","ISSUE-023","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-watcher-render-cancel-probe.mjs","exit 0 and output includes PASS watcher_render_cancel_axi","run","must fail if list output hides active/terminal watcher state or cancel is not idempotent/actionable"
-  "watcher_live_probe_or_skip","ISSUE-023","cd /Users/bryan/dev/personal/experiments/pi-goals && test -s .ai/validation/goal-watcher-live-probe-closeout.md","exit 0","run","record disposable live watcher evidence if runtime polling/command execution is implemented, or an explicit deterministic-coverage skip rationale"
+  "quality_goal","ISSUE-023","cd ~/dev/personal/experiments/pi-goals && npm run quality:goal","exit 0","run","full extension quality gate after implementation"
+  "watcher_schema_caps_probe","ISSUE-023","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-watcher-schema-caps-probe.mjs","exit 0 and output includes PASS watcher_schema_caps_enforced","run","must fail if watcher kind parsing, interval/timeout/output caps, cwd binding, or per-goal/session counts are unbounded"
+  "watcher_replay_reload_probe","ISSUE-023","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-watcher-replay-reload-probe.mjs","exit 0 and output includes PASS watcher_replay_reload_safe","run","must fail if registrations/satisfaction/cancel/timeout/delivery state are lost or duplicated across replay/reload"
+  "watcher_stale_guard_probe","ISSUE-023","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-watcher-stale-guard-probe.mjs","exit 0 and output includes PASS watcher_stale_guards_block_invalid_nudges","run","must cover wrong goal id, paused, complete, clear, budget-limited, pending messages, busy context, and cwd mismatch"
+  "watcher_one_shot_delivery_probe","ISSUE-023","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-watcher-one-shot-delivery-probe.mjs","exit 0 and output includes PASS watcher_delivers_at_most_once","run","must fail if one satisfied watcher can deliver more than one nudge without explicit re-arm"
+  "watcher_command_safety_probe","ISSUE-023","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-watcher-command-safety-probe.mjs","exit 0 and output includes PASS watcher_command_safety_bounds","run","must fail if command watchers accept shell strings, interactive stdin, missing timeouts, output overflow, or unreported nonzero exits"
+  "watcher_render_cancel_probe","ISSUE-023","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-watcher-render-cancel-probe.mjs","exit 0 and output includes PASS watcher_render_cancel_axi","run","must fail if list output hides active/terminal watcher state or cancel is not idempotent/actionable"
+  "watcher_live_probe_or_skip","ISSUE-023","cd ~/dev/personal/experiments/pi-goals && test -s .ai/validation/goal-watcher-live-probe-closeout.md","exit 0","run","record disposable live watcher evidence if runtime polling/command execution is implemented, or an explicit deterministic-coverage skip rationale"
 ```
 
 ## Non-goals for first implementation

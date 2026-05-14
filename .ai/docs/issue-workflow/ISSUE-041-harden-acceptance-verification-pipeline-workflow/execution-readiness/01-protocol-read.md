@@ -6,12 +6,12 @@
 toon.version: 1
 protocol_files[7]{id,path,purpose}:
   "p1","AGENTS.md","project rules for pi-goals issue workflow, gates, queue routing, and live probes"
-  "p2","/Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/SKILL.md","governing feature-workflow issue-first/remediation pipeline"
-  "p3","/Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/references/canonical-issue-docs-and-toon-synthesis.md","canonical issue structure, proof threat model, required_proofs shape"
-  "p4","/Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/references/research-pass.md","grounded research pass method"
-  "p5","/Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/references/design-landscape-exploration-and-choice-locking.md","design choice locking method"
-  "p6","/Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/references/toon-for-issues-and-execution-planning.md","TOON issue-planning guidance"
-  "p7","/Users/bryan/.agents/skills/axi/SKILL.md","TOON syntax and agent-facing output guidance because the issue will contain required_proofs TOON"
+  "p2","~/.codex/feature-workflow-pipelines/SKILL.md","governing feature-workflow issue-first/remediation pipeline"
+  "p3","~/.codex/feature-workflow-pipelines/references/canonical-issue-docs-and-toon-synthesis.md","canonical issue structure, proof threat model, required_proofs shape"
+  "p4","~/.codex/feature-workflow-pipelines/references/research-pass.md","grounded research pass method"
+  "p5","~/.codex/feature-workflow-pipelines/references/design-landscape-exploration-and-choice-locking.md","design choice locking method"
+  "p6","~/.codex/feature-workflow-pipelines/references/toon-for-issues-and-execution-planning.md","TOON issue-planning guidance"
+  "p7","~/.agents/skills/axi/SKILL.md","TOON syntax and agent-facing output guidance because the issue will contain required_proofs TOON"
 ```
 
 ## Extracted requirements

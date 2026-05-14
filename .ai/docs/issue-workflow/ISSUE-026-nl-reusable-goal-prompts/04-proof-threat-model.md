@@ -28,9 +28,9 @@ Required proof classes:
 ## Required proofs TOON
 
 required_proofs[6]{name,command,condition}:
-  template_probe,"NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-template-probe.cjs",exit 0; existing slash-template behavior remains green
-  nl_template_inventory_probe,"NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-nl-template-inventory-probe.cjs",exit 0; model-facing inventory includes names aliases descriptions and placeholder hints
-  nl_template_create_probe,"NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-nl-template-create-probe.cjs",exit 0; structured natural-language-derived params resolve and create a goal
-  nl_template_missing_input_probe,"NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-nl-template-missing-input-probe.cjs",exit 0; missing placeholders fail without goal creation
+  template_probe,"NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-template-probe.cjs",exit 0; existing slash-template behavior remains green
+  nl_template_inventory_probe,"NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-nl-template-inventory-probe.cjs",exit 0; model-facing inventory includes names aliases descriptions and placeholder hints
+  nl_template_create_probe,"NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-nl-template-create-probe.cjs",exit 0; structured natural-language-derived params resolve and create a goal
+  nl_template_missing_input_probe,"NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-nl-template-missing-input-probe.cjs",exit 0; missing placeholders fail without goal creation
   quality_goal,"npm run quality:goal",exit 0; Sentrux slop TypeScript and Pi load gates pass
   no_escape_hatches,"npm run slop:goal",exit 0; no TypeScript escape-hatch casts in goal extension

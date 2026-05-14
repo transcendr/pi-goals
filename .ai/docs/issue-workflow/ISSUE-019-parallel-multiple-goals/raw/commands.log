@@ -94,8 +94,8 @@ $ rg -n "GoalState|active|queue|subgoal|worktree|session|newSession|switchSessio
 .ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:175:  "s6",".pi/extensions/goal/format.ts","render active waiting summaries for tool/UI/widget helpers"
 .ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:178:## Required proofs
 .ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:182:required_proofs[6]{name,source,command,pass_condition,scope,notes}:
-.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:184:  "idle_nudge_suppresses_immediate","ISSUE-016","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-idle-nudge-suppresses-immediate-probe.mjs","exit 0 and output includes PASS suppresses_immediate_continuation","run","must fail if 25ms follow-up still schedules for idle_nudge"
-.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:186:  "manual_mode_probe","ISSUE-016","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-manual-mode-no-auto-probe.mjs","exit 0 and output includes PASS manual_schedules_no_auto_followup","run","must fail if manual mode schedules any automatic continuation"
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:184:  "idle_nudge_suppresses_immediate","ISSUE-016","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-idle-nudge-suppresses-immediate-probe.mjs","exit 0 and output includes PASS suppresses_immediate_continuation","run","must fail if 25ms follow-up still schedules for idle_nudge"
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:186:  "manual_mode_probe","ISSUE-016","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-manual-mode-no-auto-probe.mjs","exit 0 and output includes PASS manual_schedules_no_auto_followup","run","must fail if manual mode schedules any automatic continuation"
 .ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:193:- Full external process monitoring; see watcher/dependency issue.
 .ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:195:- New public goal status beyond the existing status union.
 .ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md:197:- Replacing churn monitor behavior.
@@ -294,200 +294,200 @@ $ rg -n "GoalState|active|queue|subgoal|worktree|session|newSession|switchSessio
 .ai/issues/open/ISSUE-015-goal-subgoals.md:331:  "v4","no-subgoal and active-child widget modes render within width bounds","render probe"
 .ai/issues/open/ISSUE-015-goal-subgoals.md:335:## Required proofs
 .ai/issues/open/ISSUE-015-goal-subgoals.md:339:required_proofs[5]{name,source,command,pass_condition,scope,notes}:
-.ai/issues/open/ISSUE-015-goal-subgoals.md:341:  "subgoal_replay_probe","ISSUE-015","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-subgoal-replay-probe.mjs","exit 0 and output includes PASS replay_preserves_active_subgoal","run","probe should create parent+child events and replay them"
-.ai/issues/open/ISSUE-015-goal-subgoals.md:342:  "completion_block_probe","ISSUE-015","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-subgoal-completion-block-probe.mjs","exit 0 and output includes PASS completion_blocked_by_subgoal","run","must fail if parent completion succeeds with unresolved blocking child"
-.ai/issues/open/ISSUE-015-goal-subgoals.md:343:  "template_child_probe","ISSUE-015","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-subgoal-template-child-probe.mjs","exit 0 and output includes PASS no_top_level_replacement","run","must prove template-backed child stays nested"
-.ai/issues/open/ISSUE-015-goal-subgoals.md:344:  "live_probe_or_skip","ISSUE-015","cd /Users/bryan/dev/personal/experiments/pi-goals && test -s .ai/validation/goal-subgoal-live-probe-closeout.md","exit 0","run","record live probe evidence or explicit skip rationale grounded in deterministic coverage"
+.ai/issues/open/ISSUE-015-goal-subgoals.md:341:  "subgoal_replay_probe","ISSUE-015","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-subgoal-replay-probe.mjs","exit 0 and output includes PASS replay_preserves_active_subgoal","run","probe should create parent+child events and replay them"
+.ai/issues/open/ISSUE-015-goal-subgoals.md:342:  "completion_block_probe","ISSUE-015","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-subgoal-completion-block-probe.mjs","exit 0 and output includes PASS completion_blocked_by_subgoal","run","must fail if parent completion succeeds with unresolved blocking child"
+.ai/issues/open/ISSUE-015-goal-subgoals.md:343:  "template_child_probe","ISSUE-015","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-subgoal-template-child-probe.mjs","exit 0 and output includes PASS no_top_level_replacement","run","must prove template-backed child stays nested"
+.ai/issues/open/ISSUE-015-goal-subgoals.md:344:  "live_probe_or_skip","ISSUE-015","cd ~/dev/personal/experiments/pi-goals && test -s .ai/validation/goal-subgoal-live-probe-closeout.md","exit 0","run","record live probe evidence or explicit skip rationale grounded in deterministic coverage"
 .ai/issues/open/ISSUE-015-goal-subgoals.md:349:- Arbitrary-depth subgoal trees.
 .ai/issues/open/ISSUE-015-goal-subgoals.md:350:- Parallel child agents, child worktrees, or multi-session orchestration.
 .ai/issues/open/ISSUE-015-goal-subgoals.md:351:- Slash-command subgoal management.
 .ai/issues/open/ISSUE-015-goal-subgoals.md:354:- Independent subgoal proof runner separate from ISSUE-021.
 .ai/issues/open/ISSUE-015-goal-subgoals.md:355:- Durable human-readable checkpoints beyond compact state/evidence fields; see ISSUE-022.
 
-$ rg -n "interface ExtensionCommandContext|newSession\(|switchSession\(|sendUserMessage|setSessionName|ExtensionAPI|exec\(" /Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts /Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples /Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs 2>/dev/null | head -180
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:241:export interface ExtensionCommandContext extends ExtensionContext {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:245:    newSession(options?: {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:269:    switchSession(sessionPath: string, options?: {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:280: * This is passed to `withSession()` callbacks on `newSession()`, `fork()`, and `switchSession()`.
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:287:    sendUserMessage(content: string | (TextContent | ImageContent)[], options?: {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:781: * ExtensionAPI passed to extension factory functions.
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:783:export interface ExtensionAPI {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:841:    sendUserMessage(content: string | (TextContent | ImageContent)[], options?: {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:847:    setSessionName(name: string): void;
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:853:    exec(command: string, args: string[], options?: ExecOptions): Promise<ExecResult>;
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:1003:export type ExtensionFactory = (pi: ExtensionAPI) => void | Promise<void>;
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:1076:    sendUserMessage: SendUserMessageHandler;
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:1078:    setSessionName: SetSessionNameHandler;
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:1109:export interface ExtensionCommandContextActions {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/custom-provider.md:33:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/custom-provider.md:35:export default function (pi: ExtensionAPI) {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/custom-provider.md:99:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/custom-provider.md:101:export default async function (pi: ExtensionAPI) {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/session-format.md:194:For sessions with a parent (created via `/fork`, `/clone`, or `newSession({ parentSession })`):
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/session-format.md:285:Session metadata (e.g., user-defined display name). Set via `/name` command or `pi.setSessionName()` in extensions.
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/session-format.md:377:- `newSession(options?)` - Start a new session (options: `{ parentSession?: string }`)
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/sdk.md:159:- `newSession()`
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/sdk.md:160:- `switchSession()`
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/sdk.md:177:await runtime.newSession();
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/sdk.md:743:await runtime.newSession();
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/sdk.md:746:await runtime.switchSession("/path/to/session.jsonl");
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/sdk.md:1142:type ExtensionAPI
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/sdk/13-session-runtime.ts:56:await runtime.newSession();
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/sdk/13-session-runtime.ts:58:console.log("After newSession():", session.sessionFile);
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/sdk/13-session-runtime.ts:61:	await runtime.switchSession(originalSessionFile);
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/sdk/13-session-runtime.ts:63:	console.log("After switchSession():", session.sessionFile);
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/sdk/06-extensions.ts:13: *   export default function (pi: ExtensionAPI) { ... }
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/sdk/06-extensions.ts:56:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/sdk/06-extensions.ts:58:export default function (pi: ExtensionAPI) {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/hello.ts:6:import { defineTool, type ExtensionAPI } from "@earendil-works/pi-coding-agent";
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/hello.ts:24:export default function (pi: ExtensionAPI) {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/tui.md:593:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/tui.md:825:import { CustomEditor, type ExtensionAPI } from "@earendil-works/pi-coding-agent";
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/tui.md:877:export default function (pi: ExtensionAPI) {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/preset.ts:44:import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/preset.ts:107:export default function presetExtension(pi: ExtensionAPI) {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/input-transform.ts:12:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/input-transform.ts:14:export default function (pi: ExtensionAPI) {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/qna.ts:11:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/qna.ts:30:export default function (pi: ExtensionAPI) {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/bash-spawn-hook.ts:10:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/bash-spawn-hook.ts:13:export default function (pi: ExtensionAPI) {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:47:- [ExtensionAPI Methods](#extensionapi-methods)
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:60:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:63:export default function (pi: ExtensionAPI) {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:142:| `@earendil-works/pi-coding-agent` | Extension types (`ExtensionAPI`, `ExtensionContext`, events) |
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:155:An extension exports a default factory function that receives `ExtensionAPI`. The factory can be synchronous or asynchronous:
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:158:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:160:export default function (pi: ExtensionAPI) {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:187:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:189:export default async function (pi: ExtensionAPI) {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:793:      exec(command, cwd, options) {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:794:        return local.exec(`source ~/.profile\n${command}`, cwd, options);
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:821:  // event.source - "interactive" (typed), "rpc" (API), or "extension" (via sendUserMessage)
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:991:### ctx.newSession(options?)
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:999:const result = await ctx.newSession({
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1010:    await ctx.sendUserMessage(kickoff);
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1069:### ctx.switchSession(sessionPath, options?)
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1074:const result = await ctx.switchSession("/path/to/session.jsonl", {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1076:    await ctx.sendUserMessage("Resume work in the replacement session");
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1102:      await ctx.switchSession(choice, {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1114:`withSession` receives a fresh `ReplacedSessionContext`, which extends `ExtensionCommandContext` with async `sendMessage()` and `sendUserMessage()` helpers bound to the replacement session.
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1129:    await ctx.newSession({
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1131:        await ctx.sendUserMessage(kickoff);
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1144:    await ctx.newSession({
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1148:        pi.sendUserMessage("wrong");
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1184:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1187:export default function (pi: ExtensionAPI) {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1202:      pi.sendUserMessage("/reload-runtime", { deliverAs: "followUp" });
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1211:## ExtensionAPI Methods
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1291:### pi.sendUserMessage(content, options?)
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1297:pi.sendUserMessage("What is 2+2?");
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1300:pi.sendUserMessage([
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1306:pi.sendUserMessage("Focus on error handling", { deliverAs: "steer" });
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1307:pi.sendUserMessage("And then summarize", { deliverAs: "followUp" });
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1336:### pi.setSessionName(name)
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1341:pi.setSessionName("Refactor auth module");
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1474:### pi.exec(command, args, options?)
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1479:const result = await pi.exec("git", ["status"], { signal, timeout: 5000 });
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1631:export default function (pi: ExtensionAPI) {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1743:    const result = await pi.exec("some-command", [], { signal });
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1962:export default function (pi: ExtensionAPI) {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:2390:import { CustomEditor, type ExtensionAPI } from "@earendil-works/pi-coding-agent";
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:2409:export default function (pi: ExtensionAPI) {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:2537:| `send-user-message.ts` | Inject user messages | `registerCommand`, `sendUserMessage` |
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:2538:| `reload-runtime.ts` | Reload command and LLM tool handoff | `registerCommand`, `ctx.reload()`, `sendUserMessage` |
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:2591:| `session-name.ts` | Name sessions for selector | `setSessionName`, `getSessionName` |
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/working-indicator.ts:19:import type { ExtensionAPI, ExtensionContext, WorkingIndicatorOptions } from "@earendil-works/pi-coding-agent";
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/working-indicator.ts:86:export default function (pi: ExtensionAPI) {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/model-status.ts:10:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/model-status.ts:12:export default function (pi: ExtensionAPI) {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/custom-header.ts:8:import type { ExtensionAPI, Theme } from "@earendil-works/pi-coding-agent";
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/custom-header.ts:47:export default function (pi: ExtensionAPI) {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/file-trigger.ts:12:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/file-trigger.ts:14:export default function (pi: ExtensionAPI) {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/timed-confirm.ts:10:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/timed-confirm.ts:12:export default function (pi: ExtensionAPI) {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/tool-override.ts:24:import { type ExtensionAPI, getAgentDir, withFileMutationQueue } from "@earendil-works/pi-coding-agent";
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/tool-override.ts:68:export default function (pi: ExtensionAPI) {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/message-renderer.ts:10:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/message-renderer.ts:13:export default function (pi: ExtensionAPI) {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/dirty-repo-guard.ts:8:import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/dirty-repo-guard.ts:11:	pi: ExtensionAPI,
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/dirty-repo-guard.ts:16:	const { stdout, code } = await pi.exec("git", ["status", "--porcelain"]);
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/dirty-repo-guard.ts:47:export default function (pi: ExtensionAPI) {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/trigger-compact.ts:1:import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/trigger-compact.ts:5:export default function (pi: ExtensionAPI) {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/ssh.ts:17:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/ssh.ts:114:export default function (pi: ExtensionAPI) {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/minimal-mode.ts:19:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/minimal-mode.ts:67:export default function (pi: ExtensionAPI) {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/hidden-thinking-label.ts:21:import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/hidden-thinking-label.ts:25:export default function (pi: ExtensionAPI) {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/commands.ts:13:import type { ExtensionAPI, SlashCommandInfo } from "@earendil-works/pi-coding-agent";
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/commands.ts:15:export default function commandsExtension(pi: ExtensionAPI) {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/pirate.ts:13:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/pirate.ts:15:export default function pirateExtension(pi: ExtensionAPI) {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/mac-system-theme.ts:10:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/mac-system-theme.ts:25:export default function (pi: ExtensionAPI) {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/custom-footer.ts:12:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/custom-footer.ts:15:export default function (pi: ExtensionAPI) {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/titlebar-spinner.ts:12:import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/titlebar-spinner.ts:16:function getBaseTitle(pi: ExtensionAPI): string {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/titlebar-spinner.ts:22:export default function (pi: ExtensionAPI) {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/todo.ts:14:import type { ExtensionAPI, ExtensionContext, Theme } from "@earendil-works/pi-coding-agent";
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/todo.ts:105:export default function (pi: ExtensionAPI) {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/bookmark.ts:10:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/bookmark.ts:12:export default function (pi: ExtensionAPI) {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/built-in-tool-renderer.ts:28:import type { BashToolDetails, EditToolDetails, ExtensionAPI, ReadToolDetails } from "@earendil-works/pi-coding-agent";
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/built-in-tool-renderer.ts:32:export default function (pi: ExtensionAPI) {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/claude-rules.ts:22:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/claude-rules.ts:49:export default function claudeRulesExtension(pi: ExtensionAPI) {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/README.md:61:| `send-user-message.ts` | Demonstrates `pi.sendUserMessage()` for sending user messages from extensions |
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/README.md:118:| `session-name.ts` | Name sessions for the session selector via `setSessionName` |
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/README.md:140:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/README.md:143:export default function (pi: ExtensionAPI) {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/inline-bash.ts:17:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/inline-bash.ts:19:export default function (pi: ExtensionAPI) {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/inline-bash.ts:45:		let match = PATTERN.exec(text);
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/inline-bash.ts:48:			match = PATTERN.exec(text);
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/inline-bash.ts:54:				const bashResult = await pi.exec("bash", ["-c", command], {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/custom-compaction.ts:17:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/custom-compaction.ts:20:export default function (pi: ExtensionAPI) {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/working-message-test.ts:15:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/working-message-test.ts:20:export default function (pi: ExtensionAPI) {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/subagent/index.ts:22:import { type ExtensionAPI, getMarkdownTheme, withFileMutationQueue } from "@earendil-works/pi-coding-agent";
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/subagent/index.ts:431:export default function (pi: ExtensionAPI) {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/rpc-demo.ts:20:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/rpc-demo.ts:22:export default function (pi: ExtensionAPI) {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/modal-editor.ts:12:import { CustomEditor, type ExtensionAPI } from "@earendil-works/pi-coding-agent";
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/modal-editor.ts:81:export default function (pi: ExtensionAPI) {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/prompt-customizer.ts:15:import type { BuildSystemPromptOptions, ExtensionAPI } from "@earendil-works/pi-coding-agent";
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/prompt-customizer.ts:86:export default function promptCustomizer(pi: ExtensionAPI) {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/space-invaders.ts:6:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/space-invaders.ts:527:export default function (pi: ExtensionAPI) {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/reload-runtime.ts:8:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/reload-runtime.ts:11:export default function (pi: ExtensionAPI) {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/reload-runtime.ts:30:			pi.sendUserMessage("/reload-runtime", { deliverAs: "followUp" });
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/system-prompt-header.ts:6:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/system-prompt-header.ts:8:export default function (pi: ExtensionAPI) {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/question.ts:7:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/question.ts:36:export default function question(pi: ExtensionAPI) {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/auto-commit-on-exit.ts:8:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/auto-commit-on-exit.ts:10:export default function (pi: ExtensionAPI) {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/auto-commit-on-exit.ts:13:		const { stdout: status, code } = await pi.exec("git", ["status", "--porcelain"]);
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/auto-commit-on-exit.ts:42:		await pi.exec("git", ["add", "-A"]);
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/auto-commit-on-exit.ts:43:		const { code: commitCode } = await pi.exec("git", ["commit", "-m", commitMessage]);
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/doom-overlay/index.ts:12:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/doom-overlay/index.ts:21:export default function (pi: ExtensionAPI) {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/protected-paths.ts:8:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/protected-paths.ts:10:export default function (pi: ExtensionAPI) {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/confirm-destructive.ts:8:import type { ExtensionAPI, SessionBeforeSwitchEvent, SessionMessageEntry } from "@earendil-works/pi-coding-agent";
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/confirm-destructive.ts:10:export default function (pi: ExtensionAPI) {
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/tic-tac-toe.ts:21:import type { ExtensionAPI, ExtensionContext, Theme, ToolExecutionMode } from "@earendil-works/pi-coding-agent";
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/tic-tac-toe.ts:658:export default function (pi: ExtensionAPI) {
+$ rg -n "interface ExtensionCommandContext|newSession\(|switchSession\(|sendUserMessage|setSessionName|ExtensionAPI|exec\(" ~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts ~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples ~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs 2>/dev/null | head -180
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:241:export interface ExtensionCommandContext extends ExtensionContext {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:245:    newSession(options?: {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:269:    switchSession(sessionPath: string, options?: {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:280: * This is passed to `withSession()` callbacks on `newSession()`, `fork()`, and `switchSession()`.
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:287:    sendUserMessage(content: string | (TextContent | ImageContent)[], options?: {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:781: * ExtensionAPI passed to extension factory functions.
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:783:export interface ExtensionAPI {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:841:    sendUserMessage(content: string | (TextContent | ImageContent)[], options?: {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:847:    setSessionName(name: string): void;
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:853:    exec(command: string, args: string[], options?: ExecOptions): Promise<ExecResult>;
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:1003:export type ExtensionFactory = (pi: ExtensionAPI) => void | Promise<void>;
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:1076:    sendUserMessage: SendUserMessageHandler;
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:1078:    setSessionName: SetSessionNameHandler;
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:1109:export interface ExtensionCommandContextActions {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/custom-provider.md:33:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/custom-provider.md:35:export default function (pi: ExtensionAPI) {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/custom-provider.md:99:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/custom-provider.md:101:export default async function (pi: ExtensionAPI) {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/session-format.md:194:For sessions with a parent (created via `/fork`, `/clone`, or `newSession({ parentSession })`):
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/session-format.md:285:Session metadata (e.g., user-defined display name). Set via `/name` command or `pi.setSessionName()` in extensions.
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/session-format.md:377:- `newSession(options?)` - Start a new session (options: `{ parentSession?: string }`)
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/sdk.md:159:- `newSession()`
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/sdk.md:160:- `switchSession()`
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/sdk.md:177:await runtime.newSession();
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/sdk.md:743:await runtime.newSession();
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/sdk.md:746:await runtime.switchSession("/path/to/session.jsonl");
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/sdk.md:1142:type ExtensionAPI
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/sdk/13-session-runtime.ts:56:await runtime.newSession();
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/sdk/13-session-runtime.ts:58:console.log("After newSession():", session.sessionFile);
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/sdk/13-session-runtime.ts:61:	await runtime.switchSession(originalSessionFile);
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/sdk/13-session-runtime.ts:63:	console.log("After switchSession():", session.sessionFile);
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/sdk/06-extensions.ts:13: *   export default function (pi: ExtensionAPI) { ... }
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/sdk/06-extensions.ts:56:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/sdk/06-extensions.ts:58:export default function (pi: ExtensionAPI) {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/hello.ts:6:import { defineTool, type ExtensionAPI } from "@earendil-works/pi-coding-agent";
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/hello.ts:24:export default function (pi: ExtensionAPI) {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/tui.md:593:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/tui.md:825:import { CustomEditor, type ExtensionAPI } from "@earendil-works/pi-coding-agent";
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/tui.md:877:export default function (pi: ExtensionAPI) {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/preset.ts:44:import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/preset.ts:107:export default function presetExtension(pi: ExtensionAPI) {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/input-transform.ts:12:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/input-transform.ts:14:export default function (pi: ExtensionAPI) {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/qna.ts:11:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/qna.ts:30:export default function (pi: ExtensionAPI) {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/bash-spawn-hook.ts:10:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/bash-spawn-hook.ts:13:export default function (pi: ExtensionAPI) {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:47:- [ExtensionAPI Methods](#extensionapi-methods)
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:60:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:63:export default function (pi: ExtensionAPI) {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:142:| `@earendil-works/pi-coding-agent` | Extension types (`ExtensionAPI`, `ExtensionContext`, events) |
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:155:An extension exports a default factory function that receives `ExtensionAPI`. The factory can be synchronous or asynchronous:
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:158:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:160:export default function (pi: ExtensionAPI) {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:187:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:189:export default async function (pi: ExtensionAPI) {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:793:      exec(command, cwd, options) {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:794:        return local.exec(`source ~/.profile\n${command}`, cwd, options);
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:821:  // event.source - "interactive" (typed), "rpc" (API), or "extension" (via sendUserMessage)
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:991:### ctx.newSession(options?)
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:999:const result = await ctx.newSession({
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1010:    await ctx.sendUserMessage(kickoff);
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1069:### ctx.switchSession(sessionPath, options?)
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1074:const result = await ctx.switchSession("/path/to/session.jsonl", {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1076:    await ctx.sendUserMessage("Resume work in the replacement session");
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1102:      await ctx.switchSession(choice, {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1114:`withSession` receives a fresh `ReplacedSessionContext`, which extends `ExtensionCommandContext` with async `sendMessage()` and `sendUserMessage()` helpers bound to the replacement session.
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1129:    await ctx.newSession({
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1131:        await ctx.sendUserMessage(kickoff);
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1144:    await ctx.newSession({
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1148:        pi.sendUserMessage("wrong");
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1184:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1187:export default function (pi: ExtensionAPI) {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1202:      pi.sendUserMessage("/reload-runtime", { deliverAs: "followUp" });
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1211:## ExtensionAPI Methods
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1291:### pi.sendUserMessage(content, options?)
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1297:pi.sendUserMessage("What is 2+2?");
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1300:pi.sendUserMessage([
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1306:pi.sendUserMessage("Focus on error handling", { deliverAs: "steer" });
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1307:pi.sendUserMessage("And then summarize", { deliverAs: "followUp" });
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1336:### pi.setSessionName(name)
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1341:pi.setSessionName("Refactor auth module");
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1474:### pi.exec(command, args, options?)
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1479:const result = await pi.exec("git", ["status"], { signal, timeout: 5000 });
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1631:export default function (pi: ExtensionAPI) {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1743:    const result = await pi.exec("some-command", [], { signal });
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:1962:export default function (pi: ExtensionAPI) {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:2390:import { CustomEditor, type ExtensionAPI } from "@earendil-works/pi-coding-agent";
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:2409:export default function (pi: ExtensionAPI) {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:2537:| `send-user-message.ts` | Inject user messages | `registerCommand`, `sendUserMessage` |
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:2538:| `reload-runtime.ts` | Reload command and LLM tool handoff | `registerCommand`, `ctx.reload()`, `sendUserMessage` |
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md:2591:| `session-name.ts` | Name sessions for selector | `setSessionName`, `getSessionName` |
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/working-indicator.ts:19:import type { ExtensionAPI, ExtensionContext, WorkingIndicatorOptions } from "@earendil-works/pi-coding-agent";
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/working-indicator.ts:86:export default function (pi: ExtensionAPI) {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/model-status.ts:10:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/model-status.ts:12:export default function (pi: ExtensionAPI) {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/custom-header.ts:8:import type { ExtensionAPI, Theme } from "@earendil-works/pi-coding-agent";
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/custom-header.ts:47:export default function (pi: ExtensionAPI) {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/file-trigger.ts:12:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/file-trigger.ts:14:export default function (pi: ExtensionAPI) {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/timed-confirm.ts:10:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/timed-confirm.ts:12:export default function (pi: ExtensionAPI) {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/tool-override.ts:24:import { type ExtensionAPI, getAgentDir, withFileMutationQueue } from "@earendil-works/pi-coding-agent";
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/tool-override.ts:68:export default function (pi: ExtensionAPI) {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/message-renderer.ts:10:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/message-renderer.ts:13:export default function (pi: ExtensionAPI) {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/dirty-repo-guard.ts:8:import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/dirty-repo-guard.ts:11:	pi: ExtensionAPI,
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/dirty-repo-guard.ts:16:	const { stdout, code } = await pi.exec("git", ["status", "--porcelain"]);
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/dirty-repo-guard.ts:47:export default function (pi: ExtensionAPI) {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/trigger-compact.ts:1:import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/trigger-compact.ts:5:export default function (pi: ExtensionAPI) {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/ssh.ts:17:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/ssh.ts:114:export default function (pi: ExtensionAPI) {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/minimal-mode.ts:19:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/minimal-mode.ts:67:export default function (pi: ExtensionAPI) {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/hidden-thinking-label.ts:21:import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/hidden-thinking-label.ts:25:export default function (pi: ExtensionAPI) {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/commands.ts:13:import type { ExtensionAPI, SlashCommandInfo } from "@earendil-works/pi-coding-agent";
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/commands.ts:15:export default function commandsExtension(pi: ExtensionAPI) {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/pirate.ts:13:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/pirate.ts:15:export default function pirateExtension(pi: ExtensionAPI) {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/mac-system-theme.ts:10:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/mac-system-theme.ts:25:export default function (pi: ExtensionAPI) {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/custom-footer.ts:12:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/custom-footer.ts:15:export default function (pi: ExtensionAPI) {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/titlebar-spinner.ts:12:import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/titlebar-spinner.ts:16:function getBaseTitle(pi: ExtensionAPI): string {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/titlebar-spinner.ts:22:export default function (pi: ExtensionAPI) {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/todo.ts:14:import type { ExtensionAPI, ExtensionContext, Theme } from "@earendil-works/pi-coding-agent";
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/todo.ts:105:export default function (pi: ExtensionAPI) {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/bookmark.ts:10:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/bookmark.ts:12:export default function (pi: ExtensionAPI) {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/built-in-tool-renderer.ts:28:import type { BashToolDetails, EditToolDetails, ExtensionAPI, ReadToolDetails } from "@earendil-works/pi-coding-agent";
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/built-in-tool-renderer.ts:32:export default function (pi: ExtensionAPI) {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/claude-rules.ts:22:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/claude-rules.ts:49:export default function claudeRulesExtension(pi: ExtensionAPI) {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/README.md:61:| `send-user-message.ts` | Demonstrates `pi.sendUserMessage()` for sending user messages from extensions |
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/README.md:118:| `session-name.ts` | Name sessions for the session selector via `setSessionName` |
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/README.md:140:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/README.md:143:export default function (pi: ExtensionAPI) {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/inline-bash.ts:17:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/inline-bash.ts:19:export default function (pi: ExtensionAPI) {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/inline-bash.ts:45:		let match = PATTERN.exec(text);
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/inline-bash.ts:48:			match = PATTERN.exec(text);
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/inline-bash.ts:54:				const bashResult = await pi.exec("bash", ["-c", command], {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/custom-compaction.ts:17:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/custom-compaction.ts:20:export default function (pi: ExtensionAPI) {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/working-message-test.ts:15:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/working-message-test.ts:20:export default function (pi: ExtensionAPI) {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/subagent/index.ts:22:import { type ExtensionAPI, getMarkdownTheme, withFileMutationQueue } from "@earendil-works/pi-coding-agent";
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/subagent/index.ts:431:export default function (pi: ExtensionAPI) {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/rpc-demo.ts:20:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/rpc-demo.ts:22:export default function (pi: ExtensionAPI) {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/modal-editor.ts:12:import { CustomEditor, type ExtensionAPI } from "@earendil-works/pi-coding-agent";
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/modal-editor.ts:81:export default function (pi: ExtensionAPI) {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/prompt-customizer.ts:15:import type { BuildSystemPromptOptions, ExtensionAPI } from "@earendil-works/pi-coding-agent";
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/prompt-customizer.ts:86:export default function promptCustomizer(pi: ExtensionAPI) {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/space-invaders.ts:6:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/space-invaders.ts:527:export default function (pi: ExtensionAPI) {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/reload-runtime.ts:8:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/reload-runtime.ts:11:export default function (pi: ExtensionAPI) {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/reload-runtime.ts:30:			pi.sendUserMessage("/reload-runtime", { deliverAs: "followUp" });
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/system-prompt-header.ts:6:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/system-prompt-header.ts:8:export default function (pi: ExtensionAPI) {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/question.ts:7:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/question.ts:36:export default function question(pi: ExtensionAPI) {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/auto-commit-on-exit.ts:8:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/auto-commit-on-exit.ts:10:export default function (pi: ExtensionAPI) {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/auto-commit-on-exit.ts:13:		const { stdout: status, code } = await pi.exec("git", ["status", "--porcelain"]);
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/auto-commit-on-exit.ts:42:		await pi.exec("git", ["add", "-A"]);
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/auto-commit-on-exit.ts:43:		const { code: commitCode } = await pi.exec("git", ["commit", "-m", commitMessage]);
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/doom-overlay/index.ts:12:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/doom-overlay/index.ts:21:export default function (pi: ExtensionAPI) {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/protected-paths.ts:8:import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/protected-paths.ts:10:export default function (pi: ExtensionAPI) {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/confirm-destructive.ts:8:import type { ExtensionAPI, SessionBeforeSwitchEvent, SessionMessageEntry } from "@earendil-works/pi-coding-agent";
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/confirm-destructive.ts:10:export default function (pi: ExtensionAPI) {
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/tic-tac-toe.ts:21:import type { ExtensionAPI, ExtensionContext, Theme, ToolExecutionMode } from "@earendil-works/pi-coding-agent";
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/tic-tac-toe.ts:658:export default function (pi: ExtensionAPI) {
 
 $ git worktree list --porcelain | head -120
-worktree /Users/bryan/dev/personal/experiments/pi-goals
+worktree ~/dev/personal/experiments/pi-goals
 HEAD 3e508bd126d8e28813a7fd58b65e6ac1d1a03a7e
 branch refs/heads/develop
 

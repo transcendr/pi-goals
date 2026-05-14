@@ -8,7 +8,7 @@ Next best session: none — fixed for `/goal queue` autocomplete
 Next best session rationale: Research isolates the gap to `goalArgumentCompletions()` whitespace handling in `.pi/extensions/goal/command.ts`; root template autocomplete can be reused.
 Target bucket: fixed
 Issue kind: feature
-Target repo roots: `/Users/bryan/dev/personal/experiments/pi-goals`
+Target repo roots: `~/dev/personal/experiments/pi-goals`
 Parent issue: `.ai/issues/fixed/ISSUE-027-goal-queue.md`
 Related:
 - `.ai/issues/open/ISSUE-029-goal-queue-direct-enqueue.md`
@@ -96,15 +96,15 @@ Implemented in commit `8ed0f47 fix: repair queued goal command flow`.
 
 Validation passed for this issue as part of the ISSUE-028..031 stack:
 
-- `NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-replacement-preview-probe.cjs`
-- `NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-direct-enqueue-probe.cjs`
-- `NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-completion-steer-probe.cjs`
-- `NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-template-steer-probe.cjs`
-- `NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-template-autocomplete-probe.cjs`
+- `NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-replacement-preview-probe.cjs`
+- `NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-direct-enqueue-probe.cjs`
+- `NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-completion-steer-probe.cjs`
+- `NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-template-steer-probe.cjs`
+- `NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-template-autocomplete-probe.cjs`
 - `npm run quality:goal`
 
 ## Required proofs
 
 required_proofs[2]{name,command,condition}:
-  queue_template_autocomplete_probe,"NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-template-autocomplete-probe.cjs","exit 0; queue template autocomplete matches names aliases and returns queue-prefixed values"
+  queue_template_autocomplete_probe,"NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-template-autocomplete-probe.cjs","exit 0; queue template autocomplete matches names aliases and returns queue-prefixed values"
   quality_goal,"npm run quality:goal","exit 0; Sentrux slop TypeScript and Pi load gates pass"

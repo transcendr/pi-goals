@@ -41,8 +41,8 @@ Code/API/docs:
 - `.pi/extensions/goal/widget.ts`
 - `.pi/extensions/goal/ui.ts`
 - `README.md`
-- `/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts`
-- `/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/handoff.ts`
+- `~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts`
+- `~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/handoff.ts`
 
 ## Current behavior facts
 
@@ -56,7 +56,7 @@ Code/API/docs:
 - `README.md` documents single-session goal state, queue, reusable templates, completion floors, and churn monitor, but not worktree starts.
 - Pi extension API exposes `ctx.newSession(...)`, `ctx.switchSession(...)`, and replacement-session callbacks, but the inspected type definition does not expose a way to change the current process cwd while replacing/switching sessions.
 - Pi extension API exposes `pi.exec(command,args,options?)`, and examples use it for Git commands. This is the likely bounded execution seam for `git worktree` operations.
-- `git worktree list --porcelain` currently shows only the main worktree at `/Users/bryan/dev/personal/experiments/pi-goals` on branch `develop`; there are no existing sibling worktrees in this repo at research time.
+- `git worktree list --porcelain` currently shows only the main worktree at `~/dev/personal/experiments/pi-goals` on branch `develop`; there are no existing sibling worktrees in this repo at research time.
 
 ## Nearby issue constraints
 

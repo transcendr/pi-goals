@@ -5,7 +5,7 @@
 - Path: `.ai/issues/open/ISSUE-036-minimum-goal-spend-floors.md`
 - Status: `open — execution-ready`
 - Priority: `P1`
-- Target repo root: `/Users/bryan/dev/personal/experiments/pi-goals`
+- Target repo root: `~/dev/personal/experiments/pi-goals`
 - Next best session: focused implementation/validation pass for minimum spend floors
 
 ## Writeback inputs used

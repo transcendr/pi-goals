@@ -8,7 +8,7 @@ Next best session: focused implementation/validation pass for `/goal queue` bloc
 Next best session rationale: The scope is narrow and grounded in the existing command-side queue implementation; no product fork remains after locking command-side atomic block parsing.
 Target bucket: open
 Issue kind: feature
-Target repo roots: `/Users/bryan/dev/personal/experiments/pi-goals`
+Target repo roots: `~/dev/personal/experiments/pi-goals`
 Parent issue: `.ai/issues/fixed/ISSUE-027-goal-queue.md`
 Depends on: none
 Related:
@@ -238,8 +238,8 @@ invariants[6]{id,invariant}:
 toon.version: 1
 required_proofs[5]{name,source,command,pass_condition,scope,notes}:
   "sentrux_gate","issue doc","sentrux gate --save .pi/extensions/goal","exit 0",run,"pre-implementation architecture sensor per repo rule"
-  "multi_item_queue_probe","issue doc","NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-multi-item-probe.cjs","exit 0",run,"proves example block, continuation-line item preservation, nested marker disambiguation, FIFO order, atomic invalid behavior, and no/single-arg regressions"
-  "queue_regression_probe","issue doc","NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-direct-enqueue-probe.cjs && NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-order-probe.cjs","exit 0",run,"reuses existing queue direct enqueue/order regression coverage where available"
+  "multi_item_queue_probe","issue doc","NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-multi-item-probe.cjs","exit 0",run,"proves example block, continuation-line item preservation, nested marker disambiguation, FIFO order, atomic invalid behavior, and no/single-arg regressions"
+  "queue_regression_probe","issue doc","NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-direct-enqueue-probe.cjs && NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-order-probe.cjs","exit 0",run,"reuses existing queue direct enqueue/order regression coverage where available"
   "quality_goal","issue doc","npm run quality:goal","exit 0",run,"required project quality gate"
   "live_probe","issue doc","Follow .ai/docs/pi-goals-live-probe-testing.md: resolve pi-goals-live-probe by current Solo context, send the exact ordered-marker/nested-example block from this issue including original wording/typos, then /goal queue","transcript shows exactly three queued rows; goal 1 preserves the embedded [1]/[2]/[3] example lines as content; later [2] and [3] delimit goals 2 and 3",run,"mandatory live Pi TUI slash-command proof; do not skip"
 ```

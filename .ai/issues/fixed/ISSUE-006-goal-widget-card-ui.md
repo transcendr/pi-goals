@@ -4,7 +4,7 @@ Status: fixed — implemented and validated
 Priority: medium
 Next best session: focused Pi extension UI implementation session
 Next best session rationale: The runtime behavior is complete; this issue is a contained UI polish pass over the existing widget surface, with Sentrux boundaries and live TUI validation as the main risks.
-Target repo roots: `/Users/bryan/dev/personal/experiments/pi-goals`
+Target repo roots: `~/dev/personal/experiments/pi-goals`
 Parent issue: `.ai/issues/fixed/ISSUE-001-pi-goal-extension.md`
 Depends on:
 
@@ -275,11 +275,11 @@ Proof implications:
 ```toon
 toon.version: 1
 required_proofs[5]{name,source,command,pass_condition,scope,notes}:
-  "sentrux_gate","issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && sentrux gate .pi/extensions/goal","exit 0",run,"structural regression gate"
-  "sentrux_check","issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && sentrux check .pi/extensions/goal","exit 0",run,"all Sentrux rules pass including widget.ts layer"
-  "pi_extension_load","issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && pi --offline --no-session --no-tools -e .pi/extensions/goal/index.ts --list-models >/tmp/pi-goal-widget-load.txt","exit 0",run,"extension loads with widget module"
-  "no_plain_usage_widget","issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && ! rg 'Usage: \\${formatElapsed|ctx\\.ui\\.setWidget\\(WIDGET_UI_KEY, widgetLines' .pi/extensions/goal","exit 0",run,"old plain widget pattern is absent"
-  "live_widget_probe","issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && printf '%s\n' 'MANUAL: run pi TUI, create a budgeted goal, verify themed card/bars/clear behavior, attach screenshot or transcript note'","operator evidence attached",manual,"bounded live visual validation required"
+  "sentrux_gate","issue doc","cd ~/dev/personal/experiments/pi-goals && sentrux gate .pi/extensions/goal","exit 0",run,"structural regression gate"
+  "sentrux_check","issue doc","cd ~/dev/personal/experiments/pi-goals && sentrux check .pi/extensions/goal","exit 0",run,"all Sentrux rules pass including widget.ts layer"
+  "pi_extension_load","issue doc","cd ~/dev/personal/experiments/pi-goals && pi --offline --no-session --no-tools -e .pi/extensions/goal/index.ts --list-models >/tmp/pi-goal-widget-load.txt","exit 0",run,"extension loads with widget module"
+  "no_plain_usage_widget","issue doc","cd ~/dev/personal/experiments/pi-goals && ! rg 'Usage: \\${formatElapsed|ctx\\.ui\\.setWidget\\(WIDGET_UI_KEY, widgetLines' .pi/extensions/goal","exit 0",run,"old plain widget pattern is absent"
+  "live_widget_probe","issue doc","cd ~/dev/personal/experiments/pi-goals && printf '%s\n' 'MANUAL: run pi TUI, create a budgeted goal, verify themed card/bars/clear behavior, attach screenshot or transcript note'","operator evidence attached",manual,"bounded live visual validation required"
 ```
 
 ## Execution checklist

@@ -4,7 +4,7 @@ Status: fixed — implemented and validated
 Priority: high  
 Next best session: follow-up refinement issue from `.ai/issues/open`  
 Next best session rationale: Initial modular implementation is committed; remaining work is tracked in follow-up issues.  
-Target repo roots: `/Users/bryan/dev/personal/experiments/pi-goals`  
+Target repo roots: `~/dev/personal/experiments/pi-goals`  
 Parent issue: none  
 Depends on: `.ai/docs/codex-goal-command-research.md` and local pi extension APIs  
 Goal: Implement a feature-complete pi extension named `pi-goal` that ports Codex CLI's `/goal` mode as closely as possible while using the best pi-native UX surfaces.
@@ -76,10 +76,10 @@ Accepted deviations / follow-ups:
 - `.ai/docs/pi-goal-future-churn-overseer.md` — self-contained future overseer/churn-controller concept note and telemetry rationale.
 - `references/codex` — cloned OpenAI Codex source repo.
 - Pi docs read in this pass:
-  - `/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md`
-  - `/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/tui.md`
-  - `/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/session-format.md`
-  - `/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/compaction.md`
+  - `~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md`
+  - `~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/tui.md`
+  - `~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/session-format.md`
+  - `~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/compaction.md`
 
 ## Grounded research and design-loop log
 
@@ -942,7 +942,7 @@ Keep `index.ts` as a small entrypoint. Preserve the module boundaries described 
 ```toon
 toon.version: 1
 issue{id,status,target_repo,next_session,goal}:
-  "ISSUE-001","execution-ready","/Users/bryan/dev/personal/experiments/pi-goals","implementation-focused pi extension build","feature-complete Codex-style /goal port as pi-goal extension"
+  "ISSUE-001","execution-ready","~/dev/personal/experiments/pi-goals","implementation-focused pi extension build","feature-complete Codex-style /goal port as pi-goal extension"
 
 readiness{open_forks,design_locked,implementation_choice_left_to_worker}:
   0,true,false

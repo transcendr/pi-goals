@@ -18,15 +18,15 @@ protocol_reads[22]{id,path,purpose}:
   "r11",".ai/issues/open/ISSUE-037-goal-queue-auto-continuation-after-complete.md","dependency for complete-status queue handoff"
   "r12",".ai/issues/open/ISSUE-040-verify-acceptance-pipeline-goal-templates.md","parent workflow/template intent"
   "r13",".ai/docs/pi-goals-live-probe-testing.md","live probe process and cleanup rules"
-  "r14","/Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/SKILL.md","governing planning workflow; already freshly present in context"
-  "r15","/Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/references/canonical-issue-docs-and-toon-synthesis.md","canonical issue and proof/TOON rules; freshly present"
-  "r16","/Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/references/execution-planning-vs-implementation-planning.md","implementation-planning distinction"
-  "r17","/Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/references/research-pass.md","grounded research method; freshly present"
-  "r18","/Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/references/design-landscape-exploration-and-choice-locking.md","design lock method; freshly present"
-  "r19","/Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/references/toon-for-issues-and-execution-planning.md","TOON issue-planning guidance; freshly present"
+  "r14","~/.codex/feature-workflow-pipelines/SKILL.md","governing planning workflow; already freshly present in context"
+  "r15","~/.codex/feature-workflow-pipelines/references/canonical-issue-docs-and-toon-synthesis.md","canonical issue and proof/TOON rules; freshly present"
+  "r16","~/.codex/feature-workflow-pipelines/references/execution-planning-vs-implementation-planning.md","implementation-planning distinction"
+  "r17","~/.codex/feature-workflow-pipelines/references/research-pass.md","grounded research method; freshly present"
+  "r18","~/.codex/feature-workflow-pipelines/references/design-landscape-exploration-and-choice-locking.md","design lock method; freshly present"
+  "r19","~/.codex/feature-workflow-pipelines/references/toon-for-issues-and-execution-planning.md","TOON issue-planning guidance; freshly present"
   "r20",".ai/docs/prompt-template-authoring.md","template authoring standards because ISSUE-041 changes .ai/.pi-goals templates"
-  "r21","/Users/bryan/.agents/skills/axi/SKILL.md","AXI rules for agent-facing CLI/helper output and structured errors"
-  "r22","/Users/bryan/.pi/agent/.cache/codex-skills/axi-toon-cli/SKILL.md","AXI/TOON CLI validation and transcript standards"
+  "r21","~/.agents/skills/axi/SKILL.md","AXI rules for agent-facing CLI/helper output and structured errors"
+  "r22","~/.codex/axi-toon-cli/SKILL.md","AXI/TOON CLI validation and transcript standards"
 ```
 
 ## Extracted implementation-planning requirements

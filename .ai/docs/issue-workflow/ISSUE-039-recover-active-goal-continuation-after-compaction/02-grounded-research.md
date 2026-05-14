@@ -11,9 +11,9 @@ Files inspected:
 - `.pi/extensions/goal/telemetry.ts`
 - `.ai/issues/open/ISSUE-022-goal-history-checkpoints-and-compaction.md`
 - `.ai/issues/open/ISSUE-037-goal-queue-auto-continuation-after-complete.md`
-- `/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/compaction.md`
-- `/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md`
-- `/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/agent-session.js`
+- `~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/compaction.md`
+- `~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md`
+- `~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/agent-session.js`
 
 Live code facts:
 

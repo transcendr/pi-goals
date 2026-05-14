@@ -4,14 +4,14 @@
 
 - `AGENTS.md`
 - `.ai/.pi-goals/create-issue-doc.md`
-- `/Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/SKILL.md`
-- `/Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/references/pipelines.md`
-- `/Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/references/canonical-issue-docs-and-toon-synthesis.md`
-- `/Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/references/research-pass.md`
-- `/Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/references/design-landscape-exploration-and-choice-locking.md`
-- `/Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/references/toon-for-issues-and-execution-planning.md`
-- `/Users/bryan/.agents/skills/axi/SKILL.md`
-- `/Users/bryan/.pi/agent/.cache/codex-skills/sentrux/SKILL.md`
+- `~/.codex/feature-workflow-pipelines/SKILL.md`
+- `~/.codex/feature-workflow-pipelines/references/pipelines.md`
+- `~/.codex/feature-workflow-pipelines/references/canonical-issue-docs-and-toon-synthesis.md`
+- `~/.codex/feature-workflow-pipelines/references/research-pass.md`
+- `~/.codex/feature-workflow-pipelines/references/design-landscape-exploration-and-choice-locking.md`
+- `~/.codex/feature-workflow-pipelines/references/toon-for-issues-and-execution-planning.md`
+- `~/.agents/skills/axi/SKILL.md`
+- `~/.codex/sentrux/SKILL.md`
 - TOON spec URL probed from `https://toonformat.dev/reference/spec.html` (see `raw/commands.log`).
 
 ## Extracted workflow requirements

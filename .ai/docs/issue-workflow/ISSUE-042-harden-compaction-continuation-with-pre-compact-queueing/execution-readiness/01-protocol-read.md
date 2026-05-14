@@ -2,11 +2,11 @@
 
 Files read completely or freshly present:
 - `AGENTS.md`
-- `/Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/SKILL.md`
-- `/Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/references/canonical-issue-docs-and-toon-synthesis.md`
-- `/Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/references/research-pass.md`
-- `/Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/references/design-landscape-exploration-and-choice-locking.md`
-- `/Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/references/toon-for-issues-and-execution-planning.md`
+- `~/.codex/feature-workflow-pipelines/SKILL.md`
+- `~/.codex/feature-workflow-pipelines/references/canonical-issue-docs-and-toon-synthesis.md`
+- `~/.codex/feature-workflow-pipelines/references/research-pass.md`
+- `~/.codex/feature-workflow-pipelines/references/design-landscape-exploration-and-choice-locking.md`
+- `~/.codex/feature-workflow-pipelines/references/toon-for-issues-and-execution-planning.md`
 
 Extracted requirements:
 - Create issue docs under `.ai/issues/<bucket>/` and make the issue doc the canonical planning doc.

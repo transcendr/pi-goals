@@ -8,7 +8,7 @@ Next best session: green-loop implementation
 Next best session rationale: The bug is isolated to a small TypeScript path, but it affects live slash-command autocomplete and needs adversarial proof against false-green repo-local tests.
 Target bucket: open
 Issue kind: fix
-Target repo roots: `/Users/bryan/dev/personal/experiments/pi-goals`
+Target repo roots: `~/dev/personal/experiments/pi-goals`
 Parent issue: none
 Depends on: none
 Related:
@@ -83,7 +83,7 @@ Rejected alternatives:
 ```toon
 toon.version: 1
 issue{id,status,kind,target_root,next_session}:
-  "ISSUE-038","open execution-ready","fix","/Users/bryan/dev/personal/experiments/pi-goals","green-loop implementation"
+  "ISSUE-038","open execution-ready","fix","~/dev/personal/experiments/pi-goals","green-loop implementation"
 feature_memory[4]{id,fact}:
   "fm1","goalArgumentCompletions calls templateCompletions during slash-command autocomplete"
   "fm2","templateCompletions calls discoverGoalTemplates for each completion request"
@@ -167,7 +167,7 @@ Proof strategy:
 ```toon
 toon.version: 1
 required_proofs[3]{name,source,command,pass_condition,scope,notes}:
-  "bounded_template_discovery_probe","issue doc","NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-template-discovery-bounds-probe.cjs","exit 0 and nested decoy templates are ignored while root .pi-goals and .ai/.pi-goals completions work",run,"probe should fail against current recursive discovery"
+  "bounded_template_discovery_probe","issue doc","NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-template-discovery-bounds-probe.cjs","exit 0 and nested decoy templates are ignored while root .pi-goals and .ai/.pi-goals completions work",run,"probe should fail against current recursive discovery"
   "quality_goal","issue doc","npm run quality:goal","exit 0",run,"runs Sentrux slop TypeScript and Pi extension load validation"
   "live_probe_closeout","issue doc","test -f .ai/docs/issue-workflow/ISSUE-038-bound-goal-template-autocomplete-discovery/live-probe-closeout.md && rg -n \"PASS|SKIPPED:\" .ai/docs/issue-workflow/ISSUE-038-bound-goal-template-autocomplete-discovery/live-probe-closeout.md","exit 0 and closeout records bounded live probe pass or explicit skip reason",run,"do not probe by scanning the real home directory"
 ```

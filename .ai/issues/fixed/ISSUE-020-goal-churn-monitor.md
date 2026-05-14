@@ -6,7 +6,7 @@ Owner: unassigned
 Created: 2026-05-08
 Next best session: none — implemented
 Next best session rationale: Implementation completed with active interval scheduling, persistent monitor invocation, XML parsing, bounded churn log feedback, steering injection, and validation probes.
-Target repo roots: `/Users/bryan/dev/personal/experiments/pi-goals`
+Target repo roots: `~/dev/personal/experiments/pi-goals`
 Parent issue: `.ai/issues/fixed/ISSUE-001-pi-goal-extension.md`
 Depends on:
 - `.ai/docs/pi-goal-future-churn-overseer.md`
@@ -290,10 +290,10 @@ Validation run after implementation:
 
 - `! rg 'churn-check|consecutiveNoProgressTurns >= 2|consecutiveAutoTurns >= 8|shouldRequestAutomaticReview|runChurnMonitor|recommended_action|```json' .pi/extensions/goal` — passed.
 - `rg 'GOAL_MONITOR_REPORT_INTERVAL_SECONDS = 90|GOAL_MONITOR_RECENT_LOG_LIMIT = 10' .pi/extensions/goal/constants.ts` — passed.
-- `NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-monitor-schedule-probe.cjs` — passed.
-- `NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-monitor-report-probe.cjs` — passed.
-- `NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-monitor-xml-parser-probe.cjs` — passed.
-- `NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-monitor-steer-probe.cjs` — passed.
+- `NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-monitor-schedule-probe.cjs` — passed.
+- `NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-monitor-report-probe.cjs` — passed.
+- `NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-monitor-xml-parser-probe.cjs` — passed.
+- `NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-monitor-steer-probe.cjs` — passed.
 - `sentrux gate .pi/extensions/goal` — passed.
 - `sentrux check .pi/extensions/goal` — passed.
 - `pi --offline --no-session --no-tools -e .pi/extensions/goal/index.ts --list-models` — passed.
@@ -305,10 +305,10 @@ required_proofs[10]{name,command,condition}:
   no_bad_churn_code,"! rg 'churn-check|consecutiveNoProgressTurns >= 2|consecutiveAutoTurns >= 8|shouldRequestAutomaticReview|runChurnMonitor' .pi/extensions/goal",exit 0 before reimplementation
   no_manual_command,"! rg 'churn-check' .pi/extensions/goal/command.ts",exit 0
   named_monitor_defaults,"rg 'MONITOR_.*90|CHURN_.*10|REPORT_.*INTERVAL|LOG_.*LIMIT' .pi/extensions/goal",exit 0 after implementation
-  monitor_schedule_probe,"NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-monitor-schedule-probe.cjs",exit 0
-  monitor_report_probe,"NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-monitor-report-probe.cjs",exit 0
-  monitor_xml_parser_probe,"NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-monitor-xml-parser-probe.cjs",exit 0
-  monitor_steer_probe,"NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-monitor-steer-probe.cjs",exit 0
+  monitor_schedule_probe,"NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-monitor-schedule-probe.cjs",exit 0
+  monitor_report_probe,"NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-monitor-report-probe.cjs",exit 0
+  monitor_xml_parser_probe,"NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-monitor-xml-parser-probe.cjs",exit 0
+  monitor_steer_probe,"NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-monitor-steer-probe.cjs",exit 0
   sentrux_gate,"sentrux gate .pi/extensions/goal",exit 0
   sentrux_check,"sentrux check .pi/extensions/goal",exit 0
   pi_load,"pi --offline --no-session --no-tools -e .pi/extensions/goal/index.ts --list-models",exit 0

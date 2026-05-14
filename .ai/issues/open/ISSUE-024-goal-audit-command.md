@@ -9,7 +9,7 @@ Next best session: focused implementation/validation pass for bounded goal audit
 Next best session rationale: Command/tool semantics, prompt constraints, persistence posture, status behavior, and proof requirements are locked. Implementation can proceed without choosing product/runtime direction.
 Target bucket: open
 Issue kind: feature
-Target repo roots: `/Users/bryan/dev/personal/experiments/pi-goals`
+Target repo roots: `~/dev/personal/experiments/pi-goals`
 Parent issue: `.ai/issues/fixed/ISSUE-001-pi-goal-extension.md`
 Depends on:
 - `.ai/issues/open/ISSUE-021-goal-completion-proofs.md`
@@ -195,13 +195,13 @@ verification_checks[5]{id,check,evidence}:
 ```toon
 toon.version: 1
 required_proofs[7]{name,source,command,pass_condition,scope,notes}:
-  "quality_goal","ISSUE-024","cd /Users/bryan/dev/personal/experiments/pi-goals && npm run quality:goal","exit 0","run","full extension quality gate after implementation"
-  "audit_command_probe","ISSUE-024","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-audit-command-probe.mjs","exit 0 and output includes PASS audit_command_no_continuation","run","must fail if audit is missing or schedules normal continuation"
-  "audit_prompt_guard_probe","ISSUE-024","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-audit-prompt-guard-probe.mjs","exit 0 and output includes PASS audit_prompt_forbids_completion","run","must fail if audit prompt permits completion or lacks checklist states"
-  "audit_tool_probe","ISSUE-024","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-audit-tool-probe.mjs","exit 0 and output includes PASS audit_tool_shared_guards","run","must fail if audit_goal diverges from slash command behavior"
-  "audit_replay_probe","ISSUE-024","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-audit-replay-probe.mjs","exit 0 and output includes PASS audit_replay_bounded_metadata","run","must fail if audit records mutate goal status/objective or bloat replay state"
-  "paused_budget_audit_probe","ISSUE-024","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-audit-status-probe.mjs","exit 0 and output includes PASS audit_readonly_for_paused_budget_limited","run","must fail if audit resumes or schedules continuation for paused/budget-limited goals"
-  "live_probe_or_skip","ISSUE-024","cd /Users/bryan/dev/personal/experiments/pi-goals && test -s .ai/validation/goal-audit-live-probe-closeout.md","exit 0","run","record live /goal audit evidence or explicit deterministic-coverage skip rationale"
+  "quality_goal","ISSUE-024","cd ~/dev/personal/experiments/pi-goals && npm run quality:goal","exit 0","run","full extension quality gate after implementation"
+  "audit_command_probe","ISSUE-024","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-audit-command-probe.mjs","exit 0 and output includes PASS audit_command_no_continuation","run","must fail if audit is missing or schedules normal continuation"
+  "audit_prompt_guard_probe","ISSUE-024","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-audit-prompt-guard-probe.mjs","exit 0 and output includes PASS audit_prompt_forbids_completion","run","must fail if audit prompt permits completion or lacks checklist states"
+  "audit_tool_probe","ISSUE-024","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-audit-tool-probe.mjs","exit 0 and output includes PASS audit_tool_shared_guards","run","must fail if audit_goal diverges from slash command behavior"
+  "audit_replay_probe","ISSUE-024","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-audit-replay-probe.mjs","exit 0 and output includes PASS audit_replay_bounded_metadata","run","must fail if audit records mutate goal status/objective or bloat replay state"
+  "paused_budget_audit_probe","ISSUE-024","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-audit-status-probe.mjs","exit 0 and output includes PASS audit_readonly_for_paused_budget_limited","run","must fail if audit resumes or schedules continuation for paused/budget-limited goals"
+  "live_probe_or_skip","ISSUE-024","cd ~/dev/personal/experiments/pi-goals && test -s .ai/validation/goal-audit-live-probe-closeout.md","exit 0","run","record live /goal audit evidence or explicit deterministic-coverage skip rationale"
 ```
 
 ## Non-goals for first implementation

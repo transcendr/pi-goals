@@ -8,7 +8,7 @@ Next best session: none — fixed for queue completion steering
 Next best session rationale: Queue persistence and manual queue tools exist; missing behavior is isolated to completion/clear handoff and steering prompt construction.
 Target bucket: fixed
 Issue kind: feature
-Target repo roots: `/Users/bryan/dev/personal/experiments/pi-goals`
+Target repo roots: `~/dev/personal/experiments/pi-goals`
 Parent issue: `.ai/issues/fixed/ISSUE-027-goal-queue.md`
 Related:
 - `.ai/issues/open/ISSUE-029-goal-queue-direct-enqueue.md`
@@ -97,16 +97,16 @@ Implemented in commit `8ed0f47 fix: repair queued goal command flow`.
 
 Validation passed for this issue as part of the ISSUE-028..031 stack:
 
-- `NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-replacement-preview-probe.cjs`
-- `NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-direct-enqueue-probe.cjs`
-- `NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-completion-steer-probe.cjs`
-- `NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-template-steer-probe.cjs`
-- `NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-template-autocomplete-probe.cjs`
+- `NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-replacement-preview-probe.cjs`
+- `NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-direct-enqueue-probe.cjs`
+- `NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-completion-steer-probe.cjs`
+- `NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-template-steer-probe.cjs`
+- `NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-template-autocomplete-probe.cjs`
 - `npm run quality:goal`
 
 ## Required proofs
 
 required_proofs[3]{name,command,condition}:
-  queue_completion_steer_probe,"NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-completion-steer-probe.cjs","exit 0; completion with queued goal injects steer message with queue id objective and no dequeue"
-  queue_template_steer_probe,"NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-template-steer-probe.cjs","exit 0; template-origin queued goal steering explicitly instructs create_goal_from_template"
+  queue_completion_steer_probe,"NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-completion-steer-probe.cjs","exit 0; completion with queued goal injects steer message with queue id objective and no dequeue"
+  queue_template_steer_probe,"NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-template-steer-probe.cjs","exit 0; template-origin queued goal steering explicitly instructs create_goal_from_template"
   quality_goal,"npm run quality:goal","exit 0; Sentrux slop TypeScript and Pi load gates pass"

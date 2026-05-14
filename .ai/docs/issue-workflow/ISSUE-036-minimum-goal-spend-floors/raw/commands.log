@@ -1,5 +1,5 @@
 $ pwd
-/Users/bryan/dev/personal/experiments/pi-goals
+~/dev/personal/experiments/pi-goals
 
 $ git status --short --untracked-files=all
  M .gitignore

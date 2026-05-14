@@ -26,7 +26,7 @@ false_greens[5]{id,risk,proof_countermeasure}:
 
 ```toon
 required_proofs[4]{name,command,condition}:
-  widget_multiline_probe,"NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-widget-multiline-probe.cjs",exit 0
+  widget_multiline_probe,"NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-widget-multiline-probe.cjs",exit 0
   quality_goal,"npm run quality:goal",exit 0
   no_escape_hatch_casts,"npm run slop:goal",exit 0
   pi_load,"pi --offline --no-session --no-tools -e .pi/extensions/goal/index.ts --list-models",exit 0

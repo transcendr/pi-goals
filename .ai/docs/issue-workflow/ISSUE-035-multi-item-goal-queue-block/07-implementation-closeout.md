@@ -23,8 +23,8 @@ Implemented command-side multi-item `/goal queue` block parsing. Clear marker-de
 toon.version: 1
 proofs[5]{name,command,result,notes}:
   "sentrux_gate","sentrux gate --save .pi/extensions/goal","pass","baseline saved before/around implementation; final quality gate detected no degradation"
-  "multi_item_queue_probe","NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-multi-item-probe.cjs","pass","covers request example, continuation lines, nested ordered marker disambiguation, marker variants, atomic invalid behavior, and no/single-arg regressions"
-  "queue_regression_probe","NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-direct-enqueue-probe.cjs && NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-order-probe.cjs","pass","existing direct enqueue/template and FIFO replay probes still pass"
+  "multi_item_queue_probe","NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-multi-item-probe.cjs","pass","covers request example, continuation lines, nested ordered marker disambiguation, marker variants, atomic invalid behavior, and no/single-arg regressions"
+  "queue_regression_probe","NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-direct-enqueue-probe.cjs && NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-order-probe.cjs","pass","existing direct enqueue/template and FIFO replay probes still pass"
   "quality_goal","npm run quality:goal","pass","sentrux gate/check, slop guard, TypeScript, and extension load validation passed"
   "live_probe","pi-goals-live-probe exact ordered-marker/nested-example block","pass","live slash-command path queued exactly three goals; session details show goal 1 preserved embedded [1], [2], and [3] lines; validation artifacts cleaned afterward"
 ```
@@ -44,7 +44,7 @@ this is goal one that coincidently also has the same annotations in it like
 ```
 
 - Session state entry path observed during validation:
-  `/Users/bryan/.pi/agent/sessions/--Users-bryan-dev-personal-experiments-pi-goals--/2026-05-10T01-08-34-288Z_019e0f6d-cb70-70df-9007-3b9d2d7ce013.jsonl`
+  `~/.pi/agent/sessions/--Users-bryan-dev-personal-experiments-pi-goals--/2026-05-10T01-08-34-288Z_019e0f6d-cb70-70df-9007-3b9d2d7ce013.jsonl`
 - Live-probe validation queue items `q-1778419783162-1`, `q-1778419783162-2`, and `q-1778419783162-3` were removed after validation without execution; final probe output confirmed `No queued goals.`
 
 ## Solo audit

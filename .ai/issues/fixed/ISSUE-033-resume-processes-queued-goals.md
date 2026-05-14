@@ -124,11 +124,11 @@ False-green risks:
 ```toon
 toon.version: 1
 required_proofs[5]{name,source,command,pass_condition,scope,notes}:
-  "pre_sentrux_gate","issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && sentrux gate --save .pi/extensions/goal","exit 0 before substantial implementation",run,"required repo gate for architecture-sensitive extension work"
-  "no_goal_resume_queue_probe","issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && node /tmp/pi-goal-resume-empty-queue-probe.cjs","exit 0 and proves enqueue-only plus resume-triggered queue steering with no current goal",run,"implement or update focused deterministic probe"
-  "completed_goal_resume_queue_probe","issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && node /tmp/pi-goal-resume-completed-queue-probe.cjs","exit 0 and proves enqueue-only plus resume-triggered queue steering with completed current goal",run,"implement or update focused deterministic probe"
+  "pre_sentrux_gate","issue doc","cd ~/dev/personal/experiments/pi-goals && sentrux gate --save .pi/extensions/goal","exit 0 before substantial implementation",run,"required repo gate for architecture-sensitive extension work"
+  "no_goal_resume_queue_probe","issue doc","cd ~/dev/personal/experiments/pi-goals && node /tmp/pi-goal-resume-empty-queue-probe.cjs","exit 0 and proves enqueue-only plus resume-triggered queue steering with no current goal",run,"implement or update focused deterministic probe"
+  "completed_goal_resume_queue_probe","issue doc","cd ~/dev/personal/experiments/pi-goals && node /tmp/pi-goal-resume-completed-queue-probe.cjs","exit 0 and proves enqueue-only plus resume-triggered queue steering with completed current goal",run,"implement or update focused deterministic probe"
   "live_resume_queue_probe","issue doc","use persistent live Pi probe to run realistic /goal queue then /goal resume scenarios for no-goal and completed-goal states","agent visibly begins resolving queued head only after /goal resume in both scenarios",manual,"use sparse polling and clean up probe state"
-  "quality_goal","issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && npm run quality:goal","exit 0",run,"single required final gate"
+  "quality_goal","issue doc","cd ~/dev/personal/experiments/pi-goals && npm run quality:goal","exit 0",run,"single required final gate"
 ```
 
 ## Acceptance criteria

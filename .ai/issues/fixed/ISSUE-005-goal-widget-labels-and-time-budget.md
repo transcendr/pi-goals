@@ -4,7 +4,7 @@ Status: fixed — implemented and validated
 Priority: medium
 Parent issue: `.ai/issues/fixed/ISSUE-001-pi-goal-extension.md`
 Depends on: implemented modular `pi-goal` runtime under `.pi/extensions/goal/`
-Target repo roots: `/Users/bryan/dev/personal/experiments/pi-goals`
+Target repo roots: `~/dev/personal/experiments/pi-goals`
 Next best session: resource accounting/UI implementation pass
 Goal: Replace ambiguous widget `Usage:` labeling with explicit time/token resource lines and add first-class optional time budget support.
 

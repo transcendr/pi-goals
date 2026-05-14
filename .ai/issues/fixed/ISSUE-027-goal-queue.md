@@ -8,7 +8,7 @@ Next best session: focused implementation/validation pass for persisted sequenti
 Next best session rationale: The requested first pass can be implemented without resolving broader parallel-goal/worktree architecture; it extends current single-goal runtime with a persisted FIFO queue, command/tool surfaces, and stale-guarded next-goal prompting.
 Target bucket: fixed
 Issue kind: feature
-Target repo roots: `/Users/bryan/dev/personal/experiments/pi-goals`
+Target repo roots: `~/dev/personal/experiments/pi-goals`
 Parent issue: `.ai/issues/fixed/ISSUE-001-pi-goal-extension.md`
 Depends on: none for first pass
 Related:
@@ -197,9 +197,9 @@ invariants[5]{id,invariant}:
 ```toon
 toon.version: 1
 required_proofs[5]{name,command,condition}:
-  "queue_persistence_probe","NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-persistence-probe.cjs","exit 0; queued goals persist and replay in FIFO order"
-  "queue_command_probe","NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-command-probe.cjs","exit 0; /goal queue and replace queue branch work without replacing active goal"
-  "queue_tool_probe","NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-tool-probe.cjs","exit 0; agent-facing queue tools list enqueue and remove safely"
-  "queue_advance_probe","NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-advance-probe.cjs","exit 0; next queued goal prompt fires only for valid current queue head and safe goal state"
+  "queue_persistence_probe","NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-persistence-probe.cjs","exit 0; queued goals persist and replay in FIFO order"
+  "queue_command_probe","NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-command-probe.cjs","exit 0; /goal queue and replace queue branch work without replacing active goal"
+  "queue_tool_probe","NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-tool-probe.cjs","exit 0; agent-facing queue tools list enqueue and remove safely"
+  "queue_advance_probe","NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-advance-probe.cjs","exit 0; next queued goal prompt fires only for valid current queue head and safe goal state"
   "quality_goal","npm run quality:goal","exit 0; Sentrux slop TypeScript and Pi load gates pass"
 ```

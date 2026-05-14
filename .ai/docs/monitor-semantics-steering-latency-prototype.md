@@ -36,10 +36,10 @@ This report is grounded in local project surfaces, not web research. Because no 
 Primary local evidence inspected:
 
 - Pi session format docs:
-  - `/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/session-format.md`
-  - `/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/sessions.md`
+  - `~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/session-format.md`
+  - `~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/sessions.md`
 - Pi extension docs:
-  - `/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md`
+  - `~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md`
 - `pi-goals` runtime modules:
   - `.pi/extensions/goal/monitor.ts`
   - `.pi/extensions/goal/monitor-prompts.ts`
@@ -55,7 +55,7 @@ Primary local evidence inspected:
 - Project live-probe guidance:
   - `.ai/docs/pi-goals-live-probe-testing.md`
 - Pi session transcripts under:
-  - `/Users/bryan/.pi/agent/sessions/--Users-bryan-dev-personal-experiments-pi-goals--/*.jsonl`
+  - `~/.pi/agent/sessions/--Users-bryan-dev-personal-experiments-pi-goals--/*.jsonl`
 
 ## Current implementation summary
 

@@ -5,7 +5,7 @@ Priority: high
 Parent issue: `.ai/issues/fixed/ISSUE-001-pi-goal-extension.md`
 Related: `.ai/issues/open/ISSUE-002-goal-pause-active-turn-interrupt.md`
 Depends on: implemented modular `pi-goal` runtime under `.pi/extensions/goal/`
-Target repo roots: `/Users/bryan/dev/personal/experiments/pi-goals`
+Target repo roots: `~/dev/personal/experiments/pi-goals`
 Next best session: runtime guard implementation paired with ISSUE-002 where practical
 Goal: Prevent stale, pasted, queued, or hidden continuation prompts from causing substantive goal work while persisted goal state is `paused`.
 

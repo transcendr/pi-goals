@@ -27,8 +27,8 @@ false_greens[6]{id,risk,why_shallow_checks_miss_it}:
 ## Required proof rows to include in the issue
 
 required_proofs[3]{name,source,command,pass_condition,scope,notes}:
-  "queue_orchestration_steer_probe","issue doc","NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-orchestration-steer-probe.cjs","exit 0; non-template steering includes direct-vs-orchestration guidance, existing-tool guidance, multi-goal-before-dequeue guidance, and no parser/reorder assumptions",run,"focused behavior proof for the new requirement"
-  "queue_template_steer_probe","issue doc","NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-template-steer-probe.cjs","exit 0; template-origin steering still includes start_queued_goal and create_goal_from_template fallback",run,"regression proof for existing template metadata behavior"
+  "queue_orchestration_steer_probe","issue doc","NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-orchestration-steer-probe.cjs","exit 0; non-template steering includes direct-vs-orchestration guidance, existing-tool guidance, multi-goal-before-dequeue guidance, and no parser/reorder assumptions",run,"focused behavior proof for the new requirement"
+  "queue_template_steer_probe","issue doc","NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-template-steer-probe.cjs","exit 0; template-origin steering still includes start_queued_goal and create_goal_from_template fallback",run,"regression proof for existing template metadata behavior"
   "quality_goal","issue doc","npm run quality:goal","exit 0; Sentrux gate/check, slop guard, TypeScript validation, and Pi extension load validation pass",run,"project required gate"
 
 ## Adequacy check

@@ -9,7 +9,7 @@ Next best session: focused implementation/validation pass for branch-replayed ch
 Next best session rationale: Storage location, trigger model, authorship, compaction posture, context bounds, export behavior, and proof requirements are locked for a bounded first release. Implementation can proceed without choosing product/API direction.
 Target bucket: open
 Issue kind: feature
-Target repo roots: `/Users/bryan/dev/personal/experiments/pi-goals`
+Target repo roots: `~/dev/personal/experiments/pi-goals`
 Parent issue: `.ai/issues/fixed/ISSUE-001-pi-goal-extension.md`
 Depends on: none for the bounded first checkpoint/history pass
 Related:
@@ -270,15 +270,15 @@ Probe intent is expanded in `.ai/docs/issue-workflow/ISSUE-022-goal-history-chec
 ```toon
 toon.version: 1
 required_proofs[9]{name,source,command,pass_condition,scope,notes}:
-  "quality_goal","ISSUE-022","cd /Users/bryan/dev/personal/experiments/pi-goals && npm run quality:goal","exit 0","run","full extension quality gate after implementation"
-  "checkpoint_schema_probe","ISSUE-022","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-checkpoint-schema-probe.mjs","exit 0 and output includes PASS checkpoint_schema_bounded_separate_entries","run","must fail if checkpoint history is unbounded or stored as full arrays on GoalState"
-  "checkpoint_replay_probe","ISSUE-022","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-checkpoint-replay-probe.mjs","exit 0 and output includes PASS checkpoint_replay_branch_local","run","must fail if replay loses latest/list summaries or accepts stale goal ids"
-  "checkpoint_trigger_dedupe_probe","ISSUE-022","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-checkpoint-trigger-dedupe-probe.mjs","exit 0 and output includes PASS checkpoint_triggers_deduped","run","must fail if pause/budget/complete hooks repeatedly emit duplicate checkpoints"
-  "checkpoint_context_bound_probe","ISSUE-022","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-checkpoint-context-bound-probe.mjs","exit 0 and output includes PASS checkpoint_history_not_injected","run","must fail if continuation or monitor prompts include full checkpoint history"
-  "checkpoint_compaction_probe","ISSUE-022","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-checkpoint-compaction-probe.mjs","exit 0 and output includes PASS checkpoint_compaction_handoff_bounded","run","must fail if compaction hooks are absent or inject unbounded history"
-  "checkpoint_not_completion_proof_probe","ISSUE-022","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-checkpoint-not-completion-proof-probe.mjs","exit 0 and output includes PASS checkpoint_not_completion_proof","run","must fail if checkpoint presence lets update_goal complete bypass floors/proofs/subgoal blockers"
-  "checkpoint_export_probe","ISSUE-022","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-checkpoint-export-probe.mjs","exit 0 and output includes PASS checkpoint_export_explicit_bounded","run","must fail if export writes automatically or outside bounded explicit output"
-  "live_probe_or_skip","ISSUE-022","cd /Users/bryan/dev/personal/experiments/pi-goals && test -s .ai/validation/goal-checkpoint-live-probe-closeout.md","exit 0","run","record live /goal checkpoint/history evidence or explicit deterministic-coverage skip rationale"
+  "quality_goal","ISSUE-022","cd ~/dev/personal/experiments/pi-goals && npm run quality:goal","exit 0","run","full extension quality gate after implementation"
+  "checkpoint_schema_probe","ISSUE-022","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-checkpoint-schema-probe.mjs","exit 0 and output includes PASS checkpoint_schema_bounded_separate_entries","run","must fail if checkpoint history is unbounded or stored as full arrays on GoalState"
+  "checkpoint_replay_probe","ISSUE-022","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-checkpoint-replay-probe.mjs","exit 0 and output includes PASS checkpoint_replay_branch_local","run","must fail if replay loses latest/list summaries or accepts stale goal ids"
+  "checkpoint_trigger_dedupe_probe","ISSUE-022","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-checkpoint-trigger-dedupe-probe.mjs","exit 0 and output includes PASS checkpoint_triggers_deduped","run","must fail if pause/budget/complete hooks repeatedly emit duplicate checkpoints"
+  "checkpoint_context_bound_probe","ISSUE-022","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-checkpoint-context-bound-probe.mjs","exit 0 and output includes PASS checkpoint_history_not_injected","run","must fail if continuation or monitor prompts include full checkpoint history"
+  "checkpoint_compaction_probe","ISSUE-022","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-checkpoint-compaction-probe.mjs","exit 0 and output includes PASS checkpoint_compaction_handoff_bounded","run","must fail if compaction hooks are absent or inject unbounded history"
+  "checkpoint_not_completion_proof_probe","ISSUE-022","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-checkpoint-not-completion-proof-probe.mjs","exit 0 and output includes PASS checkpoint_not_completion_proof","run","must fail if checkpoint presence lets update_goal complete bypass floors/proofs/subgoal blockers"
+  "checkpoint_export_probe","ISSUE-022","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-checkpoint-export-probe.mjs","exit 0 and output includes PASS checkpoint_export_explicit_bounded","run","must fail if export writes automatically or outside bounded explicit output"
+  "live_probe_or_skip","ISSUE-022","cd ~/dev/personal/experiments/pi-goals && test -s .ai/validation/goal-checkpoint-live-probe-closeout.md","exit 0","run","record live /goal checkpoint/history evidence or explicit deterministic-coverage skip rationale"
 ```
 
 ## Non-goals for first implementation

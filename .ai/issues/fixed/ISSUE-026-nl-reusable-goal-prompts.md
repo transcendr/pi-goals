@@ -8,7 +8,7 @@ Next best session: none — fixed
 Next best session rationale: Implemented in commit f99fe51 with required probes and `npm run quality:goal` passing.
 Target bucket: fixed
 Issue kind: feature
-Target repo roots: `/Users/bryan/dev/personal/experiments/pi-goals`
+Target repo roots: `~/dev/personal/experiments/pi-goals`
 Parent issue: `.ai/issues/fixed/ISSUE-001-pi-goal-extension.md`
 Depends on:
 - `.ai/issues/fixed/ISSUE-017-reusable-goal-prompt-docs.md`
@@ -162,18 +162,18 @@ Summary:
 
 Validation passed:
 
-- `NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-template-probe.cjs`
-- `NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-nl-template-inventory-probe.cjs`
-- `NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-nl-template-create-probe.cjs`
-- `NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-nl-template-missing-input-probe.cjs`
+- `NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-template-probe.cjs`
+- `NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-nl-template-inventory-probe.cjs`
+- `NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-nl-template-create-probe.cjs`
+- `NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-nl-template-missing-input-probe.cjs`
 - `npm run quality:goal`
 
 ## Required proofs
 
 required_proofs[6]{name,command,condition}:
-  template_probe,"NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-template-probe.cjs",exit 0; existing slash-template behavior remains green
-  nl_template_inventory_probe,"NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-nl-template-inventory-probe.cjs",exit 0; model-facing inventory includes names aliases descriptions and placeholder hints
-  nl_template_create_probe,"NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-nl-template-create-probe.cjs",exit 0; structured natural-language-derived params resolve and create a goal
-  nl_template_missing_input_probe,"NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-nl-template-missing-input-probe.cjs",exit 0; missing placeholders fail without goal creation
+  template_probe,"NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-template-probe.cjs",exit 0; existing slash-template behavior remains green
+  nl_template_inventory_probe,"NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-nl-template-inventory-probe.cjs",exit 0; model-facing inventory includes names aliases descriptions and placeholder hints
+  nl_template_create_probe,"NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-nl-template-create-probe.cjs",exit 0; structured natural-language-derived params resolve and create a goal
+  nl_template_missing_input_probe,"NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-nl-template-missing-input-probe.cjs",exit 0; missing placeholders fail without goal creation
   quality_goal,"npm run quality:goal",exit 0; Sentrux slop TypeScript and Pi load gates pass
   no_escape_hatches,"npm run slop:goal",exit 0; no TypeScript escape-hatch casts in goal extension

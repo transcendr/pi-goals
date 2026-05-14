@@ -31,7 +31,7 @@ Next best session: focused implementation/validation pass for minimum spend floo
 Next best session rationale: The product/API fork is locked to hard pre-wrap-up gates with qualitative anti-churn steering. The implementation spans state, tools, lifecycle prompts, monitor, UI, README, and live validation, so it needs a focused behavior-changing pass with deterministic probes plus live `pi-goals-live-probe` evidence.
 Target bucket: open
 Issue kind: feature
-Target repo roots: `/Users/bryan/dev/personal/experiments/pi-goals`
+Target repo roots: `~/dev/personal/experiments/pi-goals`
 Parent issue: `.ai/issues/fixed/ISSUE-001-pi-goal-extension.md`
 Depends on:
 - `.ai/issues/fixed/ISSUE-007-goal-budget-warning-and-hard-stop.md`

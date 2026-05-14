@@ -9,7 +9,7 @@ Planning and repro facts:
 - Acceptance worker process `18` returned iteration-2 green for AC-1/AC-6 but explicitly recorded material gaps: static code probes only, no runtime probe for post-compaction not-idle/pending-message scenarios, no live proof that an agent turn starts after compaction.
 
 Pi core facts inspected:
-- `/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/agent-session.js` exposes `sendCustomMessage` semantics:
+- `~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/agent-session.js` exposes `sendCustomMessage` semantics:
   - `deliverAs: "nextTurn"` stores a pending next-turn message.
   - while streaming, `deliverAs: "followUp"` calls `this.agent.followUp(appMessage)` and `deliverAs` other than follow-up calls `this.agent.steer(appMessage)`.
   - when not streaming and `triggerTurn` is true, Pi calls `agent.prompt(appMessage)` immediately.

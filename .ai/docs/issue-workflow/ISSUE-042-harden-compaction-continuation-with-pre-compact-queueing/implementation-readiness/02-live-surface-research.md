@@ -79,7 +79,7 @@ Research finding:
 ## Pi core read-only dependency
 
 File inspected:
-- `/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/agent-session.js`
+- `~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/agent-session.js`
 
 Important semantics:
 - `sendCustomMessage` queues real follow-up/steer messages only when `this.isStreaming` is true; otherwise `triggerTurn` starts immediately and no-trigger appends passive history.

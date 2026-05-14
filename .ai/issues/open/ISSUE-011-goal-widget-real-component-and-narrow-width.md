@@ -8,7 +8,7 @@ Promoted: 2026-05-10
 Kind: feature
 Next best session: implement deterministic bordered/compact goal widget rendering
 Next best session rationale: Pi TUI strategy is now locked; implementation can harden the current widget without searching for a nonexistent card component.
-Target repo roots: `/Users/bryan/dev/personal/experiments/pi-goals`
+Target repo roots: `~/dev/personal/experiments/pi-goals`
 Parent issue: `.ai/issues/fixed/ISSUE-001-pi-goal-extension.md`
 Unblocks: `.ai/issues/refine/ISSUE-014-goal-progress-estimates.md`
 Related: `.ai/issues/fixed/ISSUE-025-goal-line-breaks-widget-rendering.md`

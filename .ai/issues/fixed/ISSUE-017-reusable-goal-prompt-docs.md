@@ -6,7 +6,7 @@ Owner: unassigned
 Created: 2026-05-08
 Next best session: focused implementation/validation pass for reusable goal prompt docs
 Next best session rationale: Design is locked for a project-local Markdown template resolver with bounded inline command interpolation, preview, autocomplete, and create-goal integration.
-Target repo roots: `/Users/bryan/dev/personal/experiments/pi-goals`
+Target repo roots: `~/dev/personal/experiments/pi-goals`
 Parent issue: `.ai/issues/fixed/ISSUE-001-pi-goal-extension.md`
 Depends on: `.ai/issues/fixed/ISSUE-004-goal-subcommand-fuzzy-autocomplete.md`
 
@@ -89,7 +89,7 @@ Some goals will be reused often: release checks, issue implementation, deslop pa
 ## Required proofs
 
 required_proofs[5]{name,command,condition}:
-  discover_templates,"NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-template-probe.cjs",exit 0
+  discover_templates,"NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-template-probe.cjs",exit 0
   sentrux_gate,"sentrux gate .pi/extensions/goal",exit 0
   sentrux_check,"sentrux check .pi/extensions/goal",exit 0
   pi_load,"pi --offline --no-session --no-tools -e .pi/extensions/goal/index.ts --list-models",exit 0

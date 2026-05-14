@@ -9,7 +9,7 @@ Next best session: implement deterministic `/goal update` parser, proposal confi
 Next best session rationale: Parser strategy, trust boundary, confirmation UX, completion restriction, objective edit semantics, literal syntax, and progress dependency are now locked.
 Target bucket: open
 Issue kind: feature
-Target repo roots: `/Users/bryan/dev/personal/experiments/pi-goals`
+Target repo roots: `~/dev/personal/experiments/pi-goals`
 Parent issue: `.ai/issues/fixed/ISSUE-001-pi-goal-extension.md`
 Depends on:
 - `.ai/issues/fixed/ISSUE-010-goal-update-telemetry-completion-semantics.md`

@@ -27,13 +27,13 @@ Required proof rows proposed for the issue doc:
 ```toon
 toon.version: 1
 required_proofs[7]{name,source,command,pass_condition,scope,notes}:
-  "sentrux_baseline","AGENTS.md","cd /Users/bryan/dev/personal/experiments/pi-goals && sentrux gate --save .pi/extensions/goal","exit 0 and baseline saved before substantial implementation",run,"required before extension implementation"
-  "precompact_active_queue_probe","issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-precompact-active-queue-probe.mjs","exit 0 and output includes PASS goal_precompact_active_queues_followup",run,"must fail if active goal does not create real queued continuation before compaction"
-  "precompact_completed_queue_probe","issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-precompact-completed-queue-probe.mjs","exit 0 and output includes PASS goal_precompact_completed_queue_handoff",run,"must fail if completed goal plus queued next item can strand after compaction"
-  "postcompact_retry_probe","issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-postcompact-retry-probe.mjs","exit 0 and output includes PASS goal_postcompact_retry_transient_skip",run,"must fail if transient notIdle/pendingMessages skip is terminal"
-  "compaction_dedupe_probe","issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-compaction-prequeue-dedupe-probe.mjs","exit 0 and output includes PASS goal_compaction_prequeue_dedupe",run,"must fail if pre-queue and fallback duplicate work"
-  "quality_goal","AGENTS.md","cd /Users/bryan/dev/personal/experiments/pi-goals && npm run quality:goal","exit 0",run,"required extension quality gate"
-  "live_probe_or_skip","issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && test -s .ai/validation/goal-compaction-prequeue-live-probe-closeout.md","exit 0 and closeout records bounded live pass or explicit deterministic-coverage skip rationale",run,"live runtime behavior was the failure source"
+  "sentrux_baseline","AGENTS.md","cd ~/dev/personal/experiments/pi-goals && sentrux gate --save .pi/extensions/goal","exit 0 and baseline saved before substantial implementation",run,"required before extension implementation"
+  "precompact_active_queue_probe","issue doc","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-precompact-active-queue-probe.mjs","exit 0 and output includes PASS goal_precompact_active_queues_followup",run,"must fail if active goal does not create real queued continuation before compaction"
+  "precompact_completed_queue_probe","issue doc","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-precompact-completed-queue-probe.mjs","exit 0 and output includes PASS goal_precompact_completed_queue_handoff",run,"must fail if completed goal plus queued next item can strand after compaction"
+  "postcompact_retry_probe","issue doc","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-postcompact-retry-probe.mjs","exit 0 and output includes PASS goal_postcompact_retry_transient_skip",run,"must fail if transient notIdle/pendingMessages skip is terminal"
+  "compaction_dedupe_probe","issue doc","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-compaction-prequeue-dedupe-probe.mjs","exit 0 and output includes PASS goal_compaction_prequeue_dedupe",run,"must fail if pre-queue and fallback duplicate work"
+  "quality_goal","AGENTS.md","cd ~/dev/personal/experiments/pi-goals && npm run quality:goal","exit 0",run,"required extension quality gate"
+  "live_probe_or_skip","issue doc","cd ~/dev/personal/experiments/pi-goals && test -s .ai/validation/goal-compaction-prequeue-live-probe-closeout.md","exit 0 and closeout records bounded live pass or explicit deterministic-coverage skip rationale",run,"live runtime behavior was the failure source"
 ```
 
 Proof adequacy gate:

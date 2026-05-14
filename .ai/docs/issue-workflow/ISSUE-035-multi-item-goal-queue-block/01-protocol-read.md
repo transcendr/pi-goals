@@ -3,12 +3,12 @@
 ## Files read
 
 - `AGENTS.md` — project-local rules for pi-goals, quality gate, issue workflow, queue routing, and live probe validation.
-- `/Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/SKILL.md` — full workflow skill.
-- `/Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/references/canonical-issue-docs-and-toon-synthesis.md` — canonical issue structure and proof/TOON requirements.
-- `/Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/references/research-pass.md` — grounded research pass rules.
-- `/Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/references/design-landscape-exploration-and-choice-locking.md` — design choice locking rules.
-- `/Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/references/toon-for-issues-and-execution-planning.md` — TOON planning block guidance.
-- `/Users/bryan/.agents/skills/axi/SKILL.md` — TOON/AXI requirements because required proofs/TOON blocks are needed.
+- `~/.codex/feature-workflow-pipelines/SKILL.md` — full workflow skill.
+- `~/.codex/feature-workflow-pipelines/references/canonical-issue-docs-and-toon-synthesis.md` — canonical issue structure and proof/TOON requirements.
+- `~/.codex/feature-workflow-pipelines/references/research-pass.md` — grounded research pass rules.
+- `~/.codex/feature-workflow-pipelines/references/design-landscape-exploration-and-choice-locking.md` — design choice locking rules.
+- `~/.codex/feature-workflow-pipelines/references/toon-for-issues-and-execution-planning.md` — TOON planning block guidance.
+- `~/.agents/skills/axi/SKILL.md` — TOON/AXI requirements because required proofs/TOON blocks are needed.
 
 ## Extracted requirements
 

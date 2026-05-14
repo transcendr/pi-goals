@@ -9,7 +9,7 @@ Next best session: focused implementation/validation pass for durable completion
 Next best session rationale: The design choices are now locked for a first release: proof gates live on `GoalState`, the extension runtime executes bounded required proof commands, and completion is blocked when required proofs are missing, stale, or failed. Recent floor-gate and queue-continuation bugs show this is high leverage for preventing false-green goal completion.
 Target bucket: open
 Issue kind: feature
-Target repo roots: `/Users/bryan/dev/personal/experiments/pi-goals`
+Target repo roots: `~/dev/personal/experiments/pi-goals`
 Parent issue: `.ai/issues/fixed/ISSUE-001-pi-goal-extension.md`
 Depends on:
 - `.ai/issues/fixed/ISSUE-036-minimum-goal-spend-floors.md`
@@ -281,12 +281,12 @@ False-green risks:
 ```toon
 toon.version: 1
 required_proofs[6]{name,source,command,pass_condition,scope,notes}:
-  proof_gate_decision_probe,"issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-proof-gate-decision-probe.mjs","exit 0; missing, failed, stale, and passing proof cases are asserted",run,"must fail if completion can bypass required proof gates"
-  proof_runner_probe,"issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-proof-runner-probe.mjs","exit 0; exit_zero, contains, timeout, and output-cap behavior asserted",run,"validates bounded runner semantics"
-  replay_probe,"issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-proof-replay-probe.mjs","exit 0; proof gates/results survive replay; goal/proof config changes stale results; token/time accounting alone does not stale",run,"guards branch replay compatibility and freshness precision"
-  floor_budget_regression,"issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-min-spend-floors-probe.mjs && npm run quality:goal","exit 0",run,"ensures proof gates do not break existing completion floors or required quality gate"
+  proof_gate_decision_probe,"issue doc","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-proof-gate-decision-probe.mjs","exit 0; missing, failed, stale, and passing proof cases are asserted",run,"must fail if completion can bypass required proof gates"
+  proof_runner_probe,"issue doc","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-proof-runner-probe.mjs","exit 0; exit_zero, contains, timeout, and output-cap behavior asserted",run,"validates bounded runner semantics"
+  replay_probe,"issue doc","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-proof-replay-probe.mjs","exit 0; proof gates/results survive replay; goal/proof config changes stale results; token/time accounting alone does not stale",run,"guards branch replay compatibility and freshness precision"
+  floor_budget_regression,"issue doc","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-min-spend-floors-probe.mjs && npm run quality:goal","exit 0",run,"ensures proof gates do not break existing completion floors or required quality gate"
   live_probe,"issue doc","Use .ai/docs/pi-goals-live-probe-testing.md to create a disposable proof-gated goal, fail completion before proof pass, run/pass proof, complete goal, and cleanup","transcript shows failed proof blocks completion and fresh passing proof allows completion",live,"needed because completion-gate behavior is live runtime behavior"
-  slop_guard,"AGENTS.md","cd /Users/bryan/dev/personal/experiments/pi-goals && npm run slop:goal","exit 0",run,"no TypeScript escape-hatch casts under .pi/extensions/goal"
+  slop_guard,"AGENTS.md","cd ~/dev/personal/experiments/pi-goals && npm run slop:goal","exit 0",run,"no TypeScript escape-hatch casts under .pi/extensions/goal"
 ```
 
 ## TOON synthesis

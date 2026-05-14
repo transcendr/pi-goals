@@ -9,7 +9,7 @@ No live `/goal audit` probe was run during this issue-doc promotion goal because
 The implementation pass must satisfy `live_probe_or_skip` from the issue's required proofs:
 
 ```bash
-cd /Users/bryan/dev/personal/experiments/pi-goals && test -s .ai/validation/goal-audit-live-probe-closeout.md
+cd ~/dev/personal/experiments/pi-goals && test -s .ai/validation/goal-audit-live-probe-closeout.md
 ```
 
 That closeout file should contain either:

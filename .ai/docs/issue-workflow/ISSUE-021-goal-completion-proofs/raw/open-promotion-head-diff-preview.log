@@ -17,7 +17,7 @@
 +Next best session rationale: The design choices are now locked for a first release: proof gates live on `GoalState`, the extension runtime executes bounded required proof commands, and completion is blocked when required proofs are missing, stale, or failed. Recent floor-gate and queue-continuation bugs show this is high leverage for preventing false-green goal completion.
 +Target bucket: open
 +Issue kind: feature
- Target repo roots: `/Users/bryan/dev/personal/experiments/pi-goals`
+ Target repo roots: `~/dev/personal/experiments/pi-goals`
  Parent issue: `.ai/issues/fixed/ISSUE-001-pi-goal-extension.md`
 -Depends on: none
 -Related: `.ai/issues/refine/ISSUE-024-goal-audit-command.md`

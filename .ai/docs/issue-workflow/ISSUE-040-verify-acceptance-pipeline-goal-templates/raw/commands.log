@@ -124,8 +124,8 @@ $ rg -n "Acceptance criteria|Acceptance|acceptance criteria|required_proofs|goal
 .ai/issues/fixed/ISSUE-029-goal-queue-direct-enqueue.md:56:- Keep `/goal queue <template invocation>` resolving the template before enqueueing.
 .ai/issues/fixed/ISSUE-029-goal-queue-direct-enqueue.md:71:## Acceptance criteria
 .ai/issues/fixed/ISSUE-029-goal-queue-direct-enqueue.md:75:- `/goal queue <template invocation>` enqueues the resolved template objective directly.
-.ai/issues/fixed/ISSUE-029-goal-queue-direct-enqueue.md:97:- `NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-template-steer-probe.cjs`
-.ai/issues/fixed/ISSUE-029-goal-queue-direct-enqueue.md:98:- `NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-template-autocomplete-probe.cjs`
+.ai/issues/fixed/ISSUE-029-goal-queue-direct-enqueue.md:97:- `NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-template-steer-probe.cjs`
+.ai/issues/fixed/ISSUE-029-goal-queue-direct-enqueue.md:98:- `NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-template-autocomplete-probe.cjs`
 .ai/issues/fixed/ISSUE-029-goal-queue-direct-enqueue.md:103:required_proofs[2]{name,command,condition}:
 .ai/.pi-goals/create-issue-doc.md:47:- trailing `-- {{args}}`: context, motivation, constraints, known files, desired behavior, acceptance criteria, or rough notes.
 .ai/.pi-goals/create-issue-doc.md:68:9. Include a TOON-style `required_proofs[]` block when the issue is intended for Solo/TLO or proof-driven execution.
@@ -185,7 +185,7 @@ $ rg -n "Acceptance criteria|Acceptance|acceptance criteria|required_proofs|goal
 .ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:153:- The implementation fixes autocomplete only, but natural-language tools such as `list_goal_templates` still recurse through home.
 .ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:161:- Test both autocomplete surfaces and template-list/resolution surfaces.
 .ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:169:required_proofs[3]{name,source,command,pass_condition,scope,notes}:
-.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:170:  "bounded_template_discovery_probe","issue doc","NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-template-discovery-bounds-probe.cjs","exit 0 and nested decoy templates are ignored while root .pi-goals and .ai/.pi-goals completions work",run,"probe should fail against current recursive discovery"
+.ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:170:  "bounded_template_discovery_probe","issue doc","NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-template-discovery-bounds-probe.cjs","exit 0 and nested decoy templates are ignored while root .pi-goals and .ai/.pi-goals completions work",run,"probe should fail against current recursive discovery"
 .ai/issues/open/ISSUE-038-bound-goal-template-autocomplete-discovery.md:172:  "live_probe_closeout","issue doc","test -f .ai/docs/issue-workflow/ISSUE-038-bound-goal-template-autocomplete-discovery/live-probe-closeout.md && rg -n \"PASS|SKIPPED:\" .ai/docs/issue-workflow/ISSUE-038-bound-goal-template-autocomplete-discovery/live-probe-closeout.md","exit 0 and closeout records bounded live probe pass or explicit skip reason",run,"do not probe by scanning the real home directory"
 .ai/issues/open/ISSUE-021-goal-completion-proofs.md:64:- Acceptance traceability matrix: `.ai/docs/issue-workflow/ISSUE-021-goal-completion-proofs/16-acceptance-traceability-matrix.md`
 .ai/issues/open/ISSUE-021-goal-completion-proofs.md:127:- `.pi/extensions/goal/templates.ts`
@@ -234,7 +234,7 @@ $ solo-mcp --instance solo-pi_goals projects
 count: 1
 shown: 1
 projects[1]{id,name,path}:
-  2,pi-goals,/Users/bryan/dev/personal/experiments/pi-goals
+  2,pi-goals,~/dev/personal/experiments/pi-goals
 
 $ solo-mcp --instance solo-pi_goals tlo preflight --project 2
 tlo_preflight:
@@ -352,15 +352,15 @@ $ wc -l selected workflow/template/Solo docs
       63 .ai/.pi-goals/deslop-commit-range.md
       28 .ai/.pi-goals/enqueue-goal-stack.md
      266 .pi/extensions/goal/templates.ts
-     329 /Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/SKILL.md
-     205 /Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/references/canonical-issue-docs-and-toon-synthesis.md
-     160 /Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/references/research-pass.md
-     149 /Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/references/design-landscape-exploration-and-choice-locking.md
-     276 /Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/references/toon-for-issues-and-execution-planning.md
-     213 /Users/bryan/.agents/skills/axi/SKILL.md
-     225 /Users/bryan/.pi/agent/.cache/codex-skills/solo-mcp/SKILL.md
-     578 /Users/bryan/.pi/agent/.cache/codex-skills/solo-tlo/SKILL.md
-      88 /Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/prompt-templates.md
+     329 ~/.codex/feature-workflow-pipelines/SKILL.md
+     205 ~/.codex/feature-workflow-pipelines/references/canonical-issue-docs-and-toon-synthesis.md
+     160 ~/.codex/feature-workflow-pipelines/references/research-pass.md
+     149 ~/.codex/feature-workflow-pipelines/references/design-landscape-exploration-and-choice-locking.md
+     276 ~/.codex/feature-workflow-pipelines/references/toon-for-issues-and-execution-planning.md
+     213 ~/.agents/skills/axi/SKILL.md
+     225 ~/.codex/solo-mcp/SKILL.md
+     578 ~/.codex/solo-tlo/SKILL.md
+      88 ~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/prompt-templates.md
     3195 total
 
 $ test -f issue and artifact files
@@ -432,11 +432,11 @@ $ rg -n "^## |required_proofs|toon.version|verify-acceptance-pipeline|verify-acc
 321:## Required proofs
 324:toon.version: 1
 325:required_proofs[7]{name,source,command,pass_condition,scope,notes}:
-326:  "template_files_exist","issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && test -f .ai/.pi-goals/verify-acceptance-pipeline.md && test -f .ai/.pi-goals/verify-acceptance-item.md","exit 0",run,"both reusable goal templates exist under the bounded .ai/.pi-goals root"
-327:  "forbidden_patterns_absent","issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && ! rg -n '/boomerang|timer-pair|tlo timer|timer_pair|check-ms|send-seam' .ai/.pi-goals/verify-acceptance-pipeline.md","exit 0 and no forbidden boomerang/timer-assisted patterns are present",run,"the template may say not to use timers in prose only if this grep remains clean for concrete timer commands"
-328:  "pipeline_contract_static","issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && rg -n 'verify-acceptance-item|sleep 90|process status|process output|process send|ACCEPTANCE_WORKER_ID|acceptance_summary|corrected acceptance' .ai/.pi-goals/verify-acceptance-pipeline.md","exit 0 with matches for item-template routing sparse polling direct send worker id final report and retry loop",run,"guards the higher-order workflow contract"
-329:  "item_contract_static","issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && rg -n 'acceptance_item_result|false-green|green|red|blocked|{{issue}}|{{item-id}}|{{args}}|targeted|proof|implementation' .ai/.pi-goals/verify-acceptance-item.md","exit 0 with matches for placeholders adversarial verification and structured item result",run,"guards inner-loop validation rigor"
-330:  "template_discovery","issue doc","Use the pi-goal list_goal_templates tool from /Users/bryan/dev/personal/experiments/pi-goals","output lists verify-acceptance-pipeline and verify-acceptance-item with aliases and required placeholders args for pipeline and args issue item-id for item",live,"tool-level proof because template discovery is exposed through the extension rather than a package script"
+326:  "template_files_exist","issue doc","cd ~/dev/personal/experiments/pi-goals && test -f .ai/.pi-goals/verify-acceptance-pipeline.md && test -f .ai/.pi-goals/verify-acceptance-item.md","exit 0",run,"both reusable goal templates exist under the bounded .ai/.pi-goals root"
+327:  "forbidden_patterns_absent","issue doc","cd ~/dev/personal/experiments/pi-goals && ! rg -n '/boomerang|timer-pair|tlo timer|timer_pair|check-ms|send-seam' .ai/.pi-goals/verify-acceptance-pipeline.md","exit 0 and no forbidden boomerang/timer-assisted patterns are present",run,"the template may say not to use timers in prose only if this grep remains clean for concrete timer commands"
+328:  "pipeline_contract_static","issue doc","cd ~/dev/personal/experiments/pi-goals && rg -n 'verify-acceptance-item|sleep 90|process status|process output|process send|ACCEPTANCE_WORKER_ID|acceptance_summary|corrected acceptance' .ai/.pi-goals/verify-acceptance-pipeline.md","exit 0 with matches for item-template routing sparse polling direct send worker id final report and retry loop",run,"guards the higher-order workflow contract"
+329:  "item_contract_static","issue doc","cd ~/dev/personal/experiments/pi-goals && rg -n 'acceptance_item_result|false-green|green|red|blocked|{{issue}}|{{item-id}}|{{args}}|targeted|proof|implementation' .ai/.pi-goals/verify-acceptance-item.md","exit 0 with matches for placeholders adversarial verification and structured item result",run,"guards inner-loop validation rigor"
+330:  "template_discovery","issue doc","Use the pi-goal list_goal_templates tool from ~/dev/personal/experiments/pi-goals","output lists verify-acceptance-pipeline and verify-acceptance-item with aliases and required placeholders args for pipeline and args issue item-id for item",live,"tool-level proof because template discovery is exposed through the extension rather than a package script"
 332:  "acceptance_pipeline_live_probe","issue doc","Follow .ai/docs/pi-goals-live-probe-testing.md with a disposable synthetic issue doc containing two trivial acceptance criteria, run verify-acceptance-pipeline against it in a real Pi/Solo session, then clean up","transcript shows an acceptance agent is spawned, item goals are queued through verify-acceptance-item, final report is all green, and no disposable goal/queue residue remains; if skipped, closeout records explicit rationale",live,"validates real queue steering and direct process input behavior"
 335:## Non-goals
 

@@ -44,13 +44,13 @@ Live probe must prove:
 ```toon
 toon.version: 1
 required_proofs[7]{name,source,command,pass_condition,scope,notes}:
-  "quality_goal","ISSUE-018","cd /Users/bryan/dev/personal/experiments/pi-goals && npm run quality:goal","exit 0","run","full extension quality gate after implementation"
-  "worktree_plan_probe","ISSUE-018","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-worktree-plan-probe.mjs","exit 0 and output includes PASS worktree_plan_safe_names","run","must fail if generated branch/path/id values are unsafe, unbounded, or collide silently"
-  "dirty_source_probe","ISSUE-018","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-worktree-dirty-source-probe.mjs","exit 0 and output includes PASS dirty_source_blocks_by_default","run","must fail if dirty source worktrees are created without explicit override/warning"
-  "collision_probe","ISSUE-018","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-worktree-collision-probe.mjs","exit 0 and output includes PASS worktree_collisions_refuse_overwrite","run","must fail if branch/path collisions overwrite or reuse existing targets"
-  "adoption_replay_probe","ISSUE-018","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-worktree-adoption-replay-probe.mjs","exit 0 and output includes PASS worktree_binding_replays","run","must fail if adopted GoalState loses worktree path/branch/origin metadata"
-  "cleanup_safety_probe","ISSUE-018","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-worktree-cleanup-safety-probe.mjs","exit 0 and output includes PASS complete_clear_do_not_remove_worktree","run","must fail if completion/clear deletes or schedules deletion of the worktree"
-  "live_disposable_worktree_probe","ISSUE-018","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-worktree-live-probe.mjs","exit 0 and output includes PASS disposable_worktree_created_and_cleaned","run","must create a disposable worktree/branch, verify isolation, and clean up its own fixture"
+  "quality_goal","ISSUE-018","cd ~/dev/personal/experiments/pi-goals && npm run quality:goal","exit 0","run","full extension quality gate after implementation"
+  "worktree_plan_probe","ISSUE-018","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-worktree-plan-probe.mjs","exit 0 and output includes PASS worktree_plan_safe_names","run","must fail if generated branch/path/id values are unsafe, unbounded, or collide silently"
+  "dirty_source_probe","ISSUE-018","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-worktree-dirty-source-probe.mjs","exit 0 and output includes PASS dirty_source_blocks_by_default","run","must fail if dirty source worktrees are created without explicit override/warning"
+  "collision_probe","ISSUE-018","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-worktree-collision-probe.mjs","exit 0 and output includes PASS worktree_collisions_refuse_overwrite","run","must fail if branch/path collisions overwrite or reuse existing targets"
+  "adoption_replay_probe","ISSUE-018","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-worktree-adoption-replay-probe.mjs","exit 0 and output includes PASS worktree_binding_replays","run","must fail if adopted GoalState loses worktree path/branch/origin metadata"
+  "cleanup_safety_probe","ISSUE-018","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-worktree-cleanup-safety-probe.mjs","exit 0 and output includes PASS complete_clear_do_not_remove_worktree","run","must fail if completion/clear deletes or schedules deletion of the worktree"
+  "live_disposable_worktree_probe","ISSUE-018","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-worktree-live-probe.mjs","exit 0 and output includes PASS disposable_worktree_created_and_cleaned","run","must create a disposable worktree/branch, verify isolation, and clean up its own fixture"
 ```
 
 ## Coverage notes

@@ -4,7 +4,7 @@ Status: fixed — implemented and validated
 Priority: high
 Parent issue: `.ai/issues/fixed/ISSUE-001-pi-goal-extension.md`
 Depends on: implemented modular `pi-goal` runtime under `.pi/extensions/goal/`
-Target repo roots: `/Users/bryan/dev/personal/experiments/pi-goals`
+Target repo roots: `~/dev/personal/experiments/pi-goals`
 Next best session: focused implementation/validation pass for active-turn pause semantics
 Goal: When the user runs `/goal pause` while an automatic goal turn is already running, the active goal pursuit must be steered or stopped promptly instead of continuing obliviously.
 

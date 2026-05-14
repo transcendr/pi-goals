@@ -9,7 +9,7 @@ Next best session: focused implementation/validation pass for nested child subgo
 Next best session rationale: The major architecture fork is now locked by owner decision: first release should implement a nested child goal runtime inside the active parent goal, not lightweight checklist-only subgoals and not separate queued/top-level child goals. The remaining work is implementation and validation within that bounded scope.
 Target bucket: open
 Issue kind: feature
-Target repo roots: `/Users/bryan/dev/personal/experiments/pi-goals`
+Target repo roots: `~/dev/personal/experiments/pi-goals`
 Parent issue: `.ai/issues/fixed/ISSUE-001-pi-goal-extension.md`
 Depends on: none for the first nested-child pass
 Related:
@@ -337,11 +337,11 @@ verification_checks[5]{id,check,evidence}:
 ```toon
 toon.version: 1
 required_proofs[5]{name,source,command,pass_condition,scope,notes}:
-  "quality_goal","ISSUE-015","cd /Users/bryan/dev/personal/experiments/pi-goals && npm run quality:goal","exit 0","run","required full extension quality gate after implementation"
-  "subgoal_replay_probe","ISSUE-015","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-subgoal-replay-probe.mjs","exit 0 and output includes PASS replay_preserves_active_subgoal","run","probe should create parent+child events and replay them"
-  "completion_block_probe","ISSUE-015","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-subgoal-completion-block-probe.mjs","exit 0 and output includes PASS completion_blocked_by_subgoal","run","must fail if parent completion succeeds with unresolved blocking child"
-  "template_child_probe","ISSUE-015","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-subgoal-template-child-probe.mjs","exit 0 and output includes PASS no_top_level_replacement","run","must prove template-backed child stays nested"
-  "live_probe_or_skip","ISSUE-015","cd /Users/bryan/dev/personal/experiments/pi-goals && test -s .ai/validation/goal-subgoal-live-probe-closeout.md","exit 0","run","record live probe evidence or explicit skip rationale grounded in deterministic coverage"
+  "quality_goal","ISSUE-015","cd ~/dev/personal/experiments/pi-goals && npm run quality:goal","exit 0","run","required full extension quality gate after implementation"
+  "subgoal_replay_probe","ISSUE-015","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-subgoal-replay-probe.mjs","exit 0 and output includes PASS replay_preserves_active_subgoal","run","probe should create parent+child events and replay them"
+  "completion_block_probe","ISSUE-015","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-subgoal-completion-block-probe.mjs","exit 0 and output includes PASS completion_blocked_by_subgoal","run","must fail if parent completion succeeds with unresolved blocking child"
+  "template_child_probe","ISSUE-015","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-subgoal-template-child-probe.mjs","exit 0 and output includes PASS no_top_level_replacement","run","must prove template-backed child stays nested"
+  "live_probe_or_skip","ISSUE-015","cd ~/dev/personal/experiments/pi-goals && test -s .ai/validation/goal-subgoal-live-probe-closeout.md","exit 0","run","record live probe evidence or explicit skip rationale grounded in deterministic coverage"
 ```
 
 ## Non-goals for first implementation

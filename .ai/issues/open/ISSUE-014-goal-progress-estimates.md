@@ -9,7 +9,7 @@ Target bucket: open
 Issue kind: feature
 Next best session: implement optional advisory progress estimates for pi-goals
 Next best session rationale: State ownership, update semantics, UI rendering, safety-counter behavior, and proof shape are now locked.
-Target repo roots: `/Users/bryan/dev/personal/experiments/pi-goals`
+Target repo roots: `~/dev/personal/experiments/pi-goals`
 Parent issue: `.ai/issues/fixed/ISSUE-001-pi-goal-extension.md`
 Depends on: `.ai/issues/open/ISSUE-011-goal-widget-real-component-and-narrow-width.md`
 Related: `.ai/issues/open/ISSUE-021-goal-completion-proofs.md`, `.ai/issues/open/ISSUE-024-goal-audit-command.md`

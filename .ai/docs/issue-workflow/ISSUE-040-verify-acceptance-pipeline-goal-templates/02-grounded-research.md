@@ -12,7 +12,7 @@ Template mechanics and examples:
 
 - `.pi/extensions/goal/templates.ts`
 - `.ai/docs/prompt-template-authoring.md`
-- `/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/prompt-templates.md`
+- `~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/prompt-templates.md`
 - `.ai/.pi-goals/deslop-pipeline.md`
 - `.ai/.pi-goals/deslop-commit-range.md`
 - `.ai/.pi-goals/enqueue-goal-stack.md`
@@ -32,8 +32,8 @@ Project and issue workflow:
 
 Solo orchestration:
 
-- `/Users/bryan/.pi/agent/.cache/codex-skills/solo-mcp/SKILL.md`
-- `/Users/bryan/.pi/agent/.cache/codex-skills/solo-tlo/SKILL.md`
+- `~/.codex/solo-mcp/SKILL.md`
+- `~/.codex/solo-tlo/SKILL.md`
 - `solo-mcp --instance solo-pi_goals projects`
 - `solo-mcp --instance solo-pi_goals tlo preflight --project 2`
 - `solo-mcp --instance solo-pi_goals tlo spawn-worker --help`
@@ -86,7 +86,7 @@ Solo orchestration:
 - Current repo resolves to Solo instance/project:
   - instance: `solo-pi_goals`
   - project id: `2`
-  - path: `/Users/bryan/dev/personal/experiments/pi-goals`
+  - path: `~/dev/personal/experiments/pi-goals`
 - `solo-mcp --instance solo-pi_goals tlo preflight --project 2` reports this current session as timer-capable, but the user explicitly wants this template to avoid timers. That user requirement overrides copying `deslop-pipeline`'s timer-pair pattern.
 - `solo-mcp process send --input` is the canonical low-level direct prompt delivery path.
 - `process send --wait-ms` is only a bounded preview and is not receipt/readiness/absence evidence.

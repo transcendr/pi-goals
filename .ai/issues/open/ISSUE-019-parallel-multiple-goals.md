@@ -9,7 +9,7 @@ Next best session: focused implementation/validation pass for multi-goal collect
 Next best session rationale: The major architecture forks are locked: first pass introduces a multi-goal collection with one local-active goal in the current session, explicit focus/switch semantics, per-goal budgets/proofs/worktree metadata, and metadata-only external parallel handles. It does not silently spawn background model sessions or implement a full team runtime inside `pi-goal`.
 Target bucket: open
 Issue kind: feature
-Target repo roots: `/Users/bryan/dev/personal/experiments/pi-goals`
+Target repo roots: `~/dev/personal/experiments/pi-goals`
 Parent issue: `.ai/issues/fixed/ISSUE-001-pi-goal-extension.md`
 Depends on:
 - `.ai/issues/open/ISSUE-018-goal-start-in-worktree.md`
@@ -258,14 +258,14 @@ verification_checks[7]{id,check,evidence}:
 ```toon
 toon.version: 1
 required_proofs[8]{name,source,command,pass_condition,scope,notes}:
-  "quality_goal","ISSUE-019","cd /Users/bryan/dev/personal/experiments/pi-goals && npm run quality:goal","exit 0","run","full extension quality gate after implementation"
-  "multi_goal_replay_probe","ISSUE-019","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-multi-replay-probe.mjs","exit 0 and output includes PASS multi_goal_collection_replays","run","must fail if collection ids/status/focus/local-active/per-goal budgets are lost or older single-goal replay regresses"
-  "focus_switch_probe","ISSUE-019","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-multi-focus-switch-probe.mjs","exit 0 and output includes PASS focus_switch_isolated","run","must fail if focus schedules continuation or switch leaves two local-active goals"
-  "continuation_isolation_probe","ISSUE-019","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-multi-continuation-isolation-probe.mjs","exit 0 and output includes PASS only_local_active_continues","run","must fail if paused, focused-only, or external goals receive local continuation/monitor/budget side effects"
-  "mutation_boundary_probe","ISSUE-019","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-multi-mutation-boundary-probe.mjs","exit 0 and output includes PASS per_goal_mutations_do_not_leak","run","must fail if clear/update/complete of one goal mutates unrelated goals"
-  "queue_subgoal_boundary_probe","ISSUE-019","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-multi-queue-subgoal-boundary-probe.mjs","exit 0 and output includes PASS queue_subgoal_multi_goal_boundaries","run","must fail if queue items or ISSUE-015 subgoals are treated as parallel top-level goals"
-  "multi_goal_render_probe","ISSUE-019","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-multi-render-probe.mjs","exit 0 and output includes PASS multi_goal_compact_rendering","run","must fail if list/tool/widget summaries hide ownership/status counts or break single-goal rendering"
-  "live_parallel_probe_or_skip","ISSUE-019","cd /Users/bryan/dev/personal/experiments/pi-goals && test -s .ai/validation/goal-multi-live-probe-closeout.md","exit 0","run","record live external-session/process evidence if implemented, or an explicit deterministic-coverage skip rationale when first pass has metadata-only external handles"
+  "quality_goal","ISSUE-019","cd ~/dev/personal/experiments/pi-goals && npm run quality:goal","exit 0","run","full extension quality gate after implementation"
+  "multi_goal_replay_probe","ISSUE-019","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-multi-replay-probe.mjs","exit 0 and output includes PASS multi_goal_collection_replays","run","must fail if collection ids/status/focus/local-active/per-goal budgets are lost or older single-goal replay regresses"
+  "focus_switch_probe","ISSUE-019","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-multi-focus-switch-probe.mjs","exit 0 and output includes PASS focus_switch_isolated","run","must fail if focus schedules continuation or switch leaves two local-active goals"
+  "continuation_isolation_probe","ISSUE-019","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-multi-continuation-isolation-probe.mjs","exit 0 and output includes PASS only_local_active_continues","run","must fail if paused, focused-only, or external goals receive local continuation/monitor/budget side effects"
+  "mutation_boundary_probe","ISSUE-019","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-multi-mutation-boundary-probe.mjs","exit 0 and output includes PASS per_goal_mutations_do_not_leak","run","must fail if clear/update/complete of one goal mutates unrelated goals"
+  "queue_subgoal_boundary_probe","ISSUE-019","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-multi-queue-subgoal-boundary-probe.mjs","exit 0 and output includes PASS queue_subgoal_multi_goal_boundaries","run","must fail if queue items or ISSUE-015 subgoals are treated as parallel top-level goals"
+  "multi_goal_render_probe","ISSUE-019","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-multi-render-probe.mjs","exit 0 and output includes PASS multi_goal_compact_rendering","run","must fail if list/tool/widget summaries hide ownership/status counts or break single-goal rendering"
+  "live_parallel_probe_or_skip","ISSUE-019","cd ~/dev/personal/experiments/pi-goals && test -s .ai/validation/goal-multi-live-probe-closeout.md","exit 0","run","record live external-session/process evidence if implemented, or an explicit deterministic-coverage skip rationale when first pass has metadata-only external handles"
 ```
 
 ## Non-goals for first implementation

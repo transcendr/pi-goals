@@ -1,5 +1,5 @@
 $ pwd
-/Users/bryan/dev/personal/experiments/pi-goals
+~/dev/personal/experiments/pi-goals
 
 $ git status --short --untracked-files=all
 
@@ -198,8 +198,8 @@ count: 80
 tools[0]:
 
 $ strings solo-mcp profile/spawn flags
-/Users/bryan/.local/bin/solo-mcp
-/Users/bryan/.local/bin/solo-mcp True
+~/.local/bin/solo-mcp
+~/.local/bin/solo-mcp True
 --profile 10127
 process spawn 32289
 profile set 27773

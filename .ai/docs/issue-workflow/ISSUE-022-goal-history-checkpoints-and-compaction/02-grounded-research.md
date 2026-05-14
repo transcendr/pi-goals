@@ -22,7 +22,7 @@
 - `.pi/extensions/goal/monitor-report.ts`
 - `.pi/extensions/goal/constants.ts`
 - `.pi/extensions/goal/index.ts`
-- `/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts`
+- `~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts`
 
 Primary command transcript: `raw/commands.log`.
 

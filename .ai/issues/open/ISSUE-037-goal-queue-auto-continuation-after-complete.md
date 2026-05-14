@@ -8,7 +8,7 @@ Next best session: focused implementation/validation pass for completed-goal que
 Next best session rationale: The failure is user-visible and violates queued-goal orchestration semantics. The issue is grounded to specific lifecycle/tool/queue-steering surfaces and needs a small behavior fix plus deterministic and live probes.
 Target bucket: open
 Issue kind: bug
-Target repo roots: `/Users/bryan/dev/personal/experiments/pi-goals`
+Target repo roots: `~/dev/personal/experiments/pi-goals`
 Parent issue: `.ai/issues/fixed/ISSUE-027-goal-queue.md`
 Depends on:
 - `.ai/issues/fixed/ISSUE-030-queued-goal-steering.md`
@@ -135,10 +135,10 @@ False-green risks:
 ```toon
 toon.version: 1
 required_proofs[5]{name,source,command,pass_condition,scope,notes}:
-  completion_queue_handoff_probe,"issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-complete-queue-handoff-probe.mjs","exit 0 and asserts queued head steering/follow-up after update_goal complete",run,"must fail if tool completion leaves non-empty queue stranded"
-  no_duplicate_queue_handoff_probe,"issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-complete-queue-dedupe-probe.mjs","exit 0 and asserts one effective handoff per completed goal/queue head",run,"guards double-start/double-dequeue regressions"
-  existing_queue_resume_probe,"issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-queue-resume-probe.mjs","exit 0 or documented existing equivalent remains green",run,"protects fixed queue resume semantics"
-  quality_gate,"AGENTS.md","cd /Users/bryan/dev/personal/experiments/pi-goals && npm run quality:goal","exit 0",run,"required extension quality gate"
+  completion_queue_handoff_probe,"issue doc","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-complete-queue-handoff-probe.mjs","exit 0 and asserts queued head steering/follow-up after update_goal complete",run,"must fail if tool completion leaves non-empty queue stranded"
+  no_duplicate_queue_handoff_probe,"issue doc","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-complete-queue-dedupe-probe.mjs","exit 0 and asserts one effective handoff per completed goal/queue head",run,"guards double-start/double-dequeue regressions"
+  existing_queue_resume_probe,"issue doc","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-queue-resume-probe.mjs","exit 0 or documented existing equivalent remains green",run,"protects fixed queue resume semantics"
+  quality_gate,"AGENTS.md","cd ~/dev/personal/experiments/pi-goals && npm run quality:goal","exit 0",run,"required extension quality gate"
   live_probe,"issue doc","Use .ai/docs/pi-goals-live-probe-testing.md to complete a trivial active goal while at least one queued goal remains","transcript shows queue steering/continuation occurs without manual prompting and cleanup leaves no test queue artifacts",live,"needed because failure was live runtime steering behavior"
 ```
 

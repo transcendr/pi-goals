@@ -17,6 +17,6 @@ Proof strategy:
 - Assert no destructive dequeue happens merely because steering was injected.
 
 required_proofs[3]{name,command,condition}:
-  queue_completion_steer_probe,"NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-completion-steer-probe.cjs","exit 0; completion with queued goal injects steer message with queue id objective and no dequeue"
-  queue_template_steer_probe,"NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-template-steer-probe.cjs","exit 0; template-origin queued goal steering explicitly instructs create_goal_from_template"
+  queue_completion_steer_probe,"NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-completion-steer-probe.cjs","exit 0; completion with queued goal injects steer message with queue id objective and no dequeue"
+  queue_template_steer_probe,"NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-template-steer-probe.cjs","exit 0; template-origin queued goal steering explicitly instructs create_goal_from_template"
   quality_goal,"npm run quality:goal","exit 0; Sentrux slop TypeScript and Pi load gates pass"

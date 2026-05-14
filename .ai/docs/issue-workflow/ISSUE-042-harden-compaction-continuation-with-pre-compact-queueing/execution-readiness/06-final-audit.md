@@ -29,7 +29,7 @@ Commands/files inspected:
 - `.ai/.pi-goals/verify-acceptance-pipeline.md`
 - `.ai/.pi-goals/verify-acceptance-item.md`
 - `.ai/validation/goal-compaction-*.mjs`
-- Pi core docs/source under `/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/`
+- Pi core docs/source under `~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/`
 
 Artifact visibility command output summary:
 - `git status --short --untracked-files=all` listed all ISSUE-042 workflow artifacts and the issue doc.

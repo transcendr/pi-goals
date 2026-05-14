@@ -9,17 +9,17 @@ Read the governing project and workflow instructions before/while creating the i
 ```toon
 files_read[5]{path,purpose}:
   "AGENTS.md","project-local pi-goal module, quality, and issue conventions"
-  "/Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/SKILL.md","governing issue-first workflow"
-  "/Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/references/canonical-issue-docs-and-toon-synthesis.md","canonical issue shape and proof/TOON expectations"
-  "/Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/references/research-pass.md","grounded research pass expectations"
-  "/Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/references/design-landscape-exploration-and-choice-locking.md","design-locking pass expectations"
+  "~/.codex/feature-workflow-pipelines/SKILL.md","governing issue-first workflow"
+  "~/.codex/feature-workflow-pipelines/references/canonical-issue-docs-and-toon-synthesis.md","canonical issue shape and proof/TOON expectations"
+  "~/.codex/feature-workflow-pipelines/references/research-pass.md","grounded research pass expectations"
+  "~/.codex/feature-workflow-pipelines/references/design-landscape-exploration-and-choice-locking.md","design-locking pass expectations"
 ```
 
 Also read:
 
 ```toon
 files_read[1]{path,purpose}:
-  "/Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/references/toon-for-issues-and-execution-planning.md","TOON/proof row guidance"
+  "~/.codex/feature-workflow-pipelines/references/toon-for-issues-and-execution-planning.md","TOON/proof row guidance"
 ```
 
 ## Workflow requirements extracted

@@ -4,7 +4,7 @@ Status: fixed — implemented and validated
 Priority: medium
 Parent issue: `.ai/issues/fixed/ISSUE-001-pi-goal-extension.md`
 Depends on: implemented `/goal` command in `.pi/extensions/goal/command.ts`
-Target repo roots: `/Users/bryan/dev/personal/experiments/pi-goals`
+Target repo roots: `~/dev/personal/experiments/pi-goals`
 Next best session: small UX implementation pass
 Goal: Improve `/goal` discoverability by adding scoped fuzzy autocomplete for supported control subcommands.
 

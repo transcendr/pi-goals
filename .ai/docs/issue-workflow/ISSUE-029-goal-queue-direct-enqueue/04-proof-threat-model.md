@@ -16,5 +16,5 @@ Proof strategy:
 - Include a template-backed queue case when practical.
 
 required_proofs[2]{name,command,condition}:
-  queue_direct_enqueue_probe,"NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-direct-enqueue-probe.cjs","exit 0; /goal queue text dispatch enqueues directly without select prompt"
+  queue_direct_enqueue_probe,"NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-direct-enqueue-probe.cjs","exit 0; /goal queue text dispatch enqueues directly without select prompt"
   quality_goal,"npm run quality:goal","exit 0; Sentrux slop TypeScript and Pi load gates pass"

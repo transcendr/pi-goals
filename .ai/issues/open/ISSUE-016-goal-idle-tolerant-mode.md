@@ -9,7 +9,7 @@ Next best session: implement and validate idle-nudge continuation policy
 Next best session rationale: The policy schema, default behavior, timer semantics, update surface, UI wording, and proof strategy are now locked for a bounded first pass.
 Target bucket: open
 Issue kind: feature
-Target repo roots: `/Users/bryan/dev/personal/experiments/pi-goals`
+Target repo roots: `~/dev/personal/experiments/pi-goals`
 Parent issue: `.ai/issues/fixed/ISSUE-001-pi-goal-extension.md`
 Depends on:
 - `.ai/issues/fixed/ISSUE-003-paused-goal-continuation-guard.md`
@@ -180,12 +180,12 @@ implementation_surfaces[6]{id,path,change}:
 ```toon
 toon.version: 1
 required_proofs[6]{name,source,command,pass_condition,scope,notes}:
-  "quality_goal","ISSUE-016","cd /Users/bryan/dev/personal/experiments/pi-goals && npm run quality:goal","exit 0","run","full extension quality gate after implementation"
-  "idle_nudge_suppresses_immediate","ISSUE-016","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-idle-nudge-suppresses-immediate-probe.mjs","exit 0 and output includes PASS suppresses_immediate_continuation","run","must fail if 25ms follow-up still schedules for idle_nudge"
-  "idle_nudge_stale_guard","ISSUE-016","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-idle-nudge-stale-guard-probe.mjs","exit 0 and output includes PASS stale_guard_blocks_invalid_nudge","run","must cover pause/complete/replace/pending-message stale cases"
-  "manual_mode_probe","ISSUE-016","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-manual-mode-no-auto-probe.mjs","exit 0 and output includes PASS manual_schedules_no_auto_followup","run","must fail if manual mode schedules any automatic continuation"
-  "idle_policy_replay_probe","ISSUE-016","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-idle-policy-replay-probe.mjs","exit 0 and output includes PASS idle_policy_replay_defaults","run","must prove older goals default to immediate and configured fields survive replay"
-  "live_probe_or_skip","ISSUE-016","cd /Users/bryan/dev/personal/experiments/pi-goals && test -s .ai/validation/goal-idle-nudge-live-probe-closeout.md","exit 0","run","record live probe evidence or explicit deterministic-coverage skip rationale"
+  "quality_goal","ISSUE-016","cd ~/dev/personal/experiments/pi-goals && npm run quality:goal","exit 0","run","full extension quality gate after implementation"
+  "idle_nudge_suppresses_immediate","ISSUE-016","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-idle-nudge-suppresses-immediate-probe.mjs","exit 0 and output includes PASS suppresses_immediate_continuation","run","must fail if 25ms follow-up still schedules for idle_nudge"
+  "idle_nudge_stale_guard","ISSUE-016","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-idle-nudge-stale-guard-probe.mjs","exit 0 and output includes PASS stale_guard_blocks_invalid_nudge","run","must cover pause/complete/replace/pending-message stale cases"
+  "manual_mode_probe","ISSUE-016","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-manual-mode-no-auto-probe.mjs","exit 0 and output includes PASS manual_schedules_no_auto_followup","run","must fail if manual mode schedules any automatic continuation"
+  "idle_policy_replay_probe","ISSUE-016","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-idle-policy-replay-probe.mjs","exit 0 and output includes PASS idle_policy_replay_defaults","run","must prove older goals default to immediate and configured fields survive replay"
+  "live_probe_or_skip","ISSUE-016","cd ~/dev/personal/experiments/pi-goals && test -s .ai/validation/goal-idle-nudge-live-probe-closeout.md","exit 0","run","record live probe evidence or explicit deterministic-coverage skip rationale"
 ```
 
 ## Non-goals for first implementation

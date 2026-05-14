@@ -8,7 +8,7 @@ Next best session: focused implementation/probe pass
 Next best session rationale: The design choice is locked by user direction and live code research; implementation should be limited to queue steering guidance plus focused prompt-content probes unless a tiny adjacent prompt-guideline update is discovered.
 Target bucket: open
 Issue kind: feature
-Target repo roots: `/Users/bryan/dev/personal/experiments/pi-goals`
+Target repo roots: `~/dev/personal/experiments/pi-goals`
 Parent issue: `.ai/issues/fixed/ISSUE-027-goal-queue.md`
 Depends on: `.ai/issues/fixed/ISSUE-030-queued-goal-steering.md`
 Related:
@@ -131,9 +131,9 @@ Summary:
 Validation passed:
 
 - `npm run typecheck:goal`
-- `NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-orchestration-steer-probe.cjs`
-- `NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-template-steer-probe.cjs`
-- `NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-tool-guidance-probe.cjs`
+- `NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-orchestration-steer-probe.cjs`
+- `NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-template-steer-probe.cjs`
+- `NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-tool-guidance-probe.cjs`
 - `npm run quality:goal`
 
 ## Proof threat model
@@ -186,7 +186,7 @@ verification_checks[3]{id,check,evidence}:
 ```toon
 toon.version: 1
 required_proofs[3]{name,source,command,pass_condition,scope,notes}:
-  "queue_orchestration_steer_probe","issue doc","NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-orchestration-steer-probe.cjs","exit 0; non-template steering includes direct-vs-orchestration guidance, existing-tool guidance, multi-goal-before-dequeue guidance, and no parser or reorder assumptions",run,"focused behavior proof for this issue"
-  "queue_template_steer_probe","issue doc","NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-template-steer-probe.cjs","exit 0; template-origin steering still includes start_queued_goal and create_goal_from_template fallback",run,"regression proof for template metadata steering"
+  "queue_orchestration_steer_probe","issue doc","NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-orchestration-steer-probe.cjs","exit 0; non-template steering includes direct-vs-orchestration guidance, existing-tool guidance, multi-goal-before-dequeue guidance, and no parser or reorder assumptions",run,"focused behavior proof for this issue"
+  "queue_template_steer_probe","issue doc","NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-queue-template-steer-probe.cjs","exit 0; template-origin steering still includes start_queued_goal and create_goal_from_template fallback",run,"regression proof for template metadata steering"
   "quality_goal","issue doc","npm run quality:goal","exit 0; Sentrux gate/check, slop guard, TypeScript validation, and Pi extension load validation pass",run,"project required quality gate"
 ```

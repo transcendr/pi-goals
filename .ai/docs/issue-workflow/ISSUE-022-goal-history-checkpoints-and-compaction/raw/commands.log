@@ -191,8 +191,8 @@ README.md:166:Monitor state is goal-scoped and replayable, so branching and `/tr
 .ai/issues/open/ISSUE-024-goal-audit-command.md:176:  "lr5","audit consumes proof, subgoal, floor, budget, and telemetry summaries when available"
 .ai/issues/open/ISSUE-024-goal-audit-command.md:183:  "s5",".pi/extensions/goal/state.ts","replay bounded audit metadata without bloating GoalState snapshots"
 .ai/issues/open/ISSUE-024-goal-audit-command.md:187:  "v2","audit prompt forbids completion and requires evidence checklist states","prompt static probe"
-.ai/issues/open/ISSUE-024-goal-audit-command.md:200:  "audit_prompt_guard_probe","ISSUE-024","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-audit-prompt-guard-probe.mjs","exit 0 and output includes PASS audit_prompt_forbids_completion","run","must fail if audit prompt permits completion or lacks checklist states"
-.ai/issues/open/ISSUE-024-goal-audit-command.md:202:  "audit_replay_probe","ISSUE-024","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-audit-replay-probe.mjs","exit 0 and output includes PASS audit_replay_bounded_metadata","run","must fail if audit records mutate goal status/objective or bloat replay state"
+.ai/issues/open/ISSUE-024-goal-audit-command.md:200:  "audit_prompt_guard_probe","ISSUE-024","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-audit-prompt-guard-probe.mjs","exit 0 and output includes PASS audit_prompt_forbids_completion","run","must fail if audit prompt permits completion or lacks checklist states"
+.ai/issues/open/ISSUE-024-goal-audit-command.md:202:  "audit_replay_probe","ISSUE-024","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-audit-replay-probe.mjs","exit 0 and output includes PASS audit_replay_bounded_metadata","run","must fail if audit records mutate goal status/objective or bloat replay state"
 .ai/issues/open/ISSUE-024-goal-audit-command.md:212:- Full audit history widget.
 .pi/extensions/goal/monitor.ts:13:import { persistMonitorDecisionLog, replayGoalMonitorLogs, resetGoalMonitorLogRuntime } from "./monitor-state";
 .pi/extensions/goal/monitor.ts:14:import { getGoal, getTelemetry, persistTelemetry } from "./state";
@@ -479,18 +479,18 @@ README.md:166:Monitor state is goal-scoped and replayable, so branching and `/tr
 .pi/extensions/goal/telemetry.ts:221:			return noteFloorQualityExhausted(telemetry);
 .pi/extensions/goal/telemetry.ts:223:			return telemetry;
 
-$ rg -n "Compaction|compaction|compact\(" /Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts .pi/extensions/goal
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:16:import type { CompactionPreparation, CompactionResult } from "../compaction/index.js";
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:23:import type { BranchSummaryEntry, CompactionEntry, ReadonlySessionManager, SessionEntry, SessionManager } from "../session-manager.js";
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:193:    /** Estimated context tokens, or null if unknown (e.g. right after compaction, before next LLM response). */
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:201:    onComplete?: (result: CompactionResult) => void;
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:232:    /** Trigger compaction without awaiting completion. */
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:233:    compact(options?: CompactOptions): void;
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:401:/** Fired before context compaction (can be cancelled or customized) */
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:404:    preparation: CompactionPreparation;
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:409:/** Fired after context compaction */
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:412:    compactionEntry: CompactionEntry;
-/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:749:    compaction?: CompactionResult;
+$ rg -n "Compaction|compaction|compact\(" ~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts .pi/extensions/goal
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:16:import type { CompactionPreparation, CompactionResult } from "../compaction/index.js";
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:23:import type { BranchSummaryEntry, CompactionEntry, ReadonlySessionManager, SessionEntry, SessionManager } from "../session-manager.js";
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:193:    /** Estimated context tokens, or null if unknown (e.g. right after compaction, before next LLM response). */
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:201:    onComplete?: (result: CompactionResult) => void;
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:232:    /** Trigger compaction without awaiting completion. */
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:233:    compact(options?: CompactOptions): void;
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:401:/** Fired before context compaction (can be cancelled or customized) */
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:404:    preparation: CompactionPreparation;
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:409:/** Fired after context compaction */
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:412:    compactionEntry: CompactionEntry;
+~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts:749:    compaction?: CompactionResult;
 
 $ sentrux gate --save .pi/extensions/goal
 Baseline saved to .pi/extensions/goal/.sentrux/baseline.json
@@ -1684,5 +1684,5 @@ $ node -e final timestamp/readiness
 PASS issue022_final_timestamp 2026-05-10T23:53:07.209Z
 
 $ pwd && echo PASS no_more_valuable_autonomous_work_issue022
-/Users/bryan/dev/personal/experiments/pi-goals
+~/dev/personal/experiments/pi-goals
 PASS no_more_valuable_autonomous_work_issue022

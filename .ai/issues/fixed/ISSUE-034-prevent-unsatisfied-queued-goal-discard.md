@@ -123,11 +123,11 @@ False-green risks:
 ```toon
 toon.version: 1
 required_proofs[5]{name,source,command,pass_condition,scope,notes}:
-  "pre_sentrux_gate","issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && sentrux gate --save .pi/extensions/goal","exit 0 before substantial implementation",run,"required extension architecture gate"
-  "dequeue_requires_rationale_authority","issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && node /tmp/pi-goal-dequeue-audit-args-probe.cjs","exit 0 and proves no-arg/blank-rationale/blank-authority dequeues are rejected",run,"implement focused deterministic probe"
-  "dequeue_persists_audit_fields","issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && node /tmp/pi-goal-dequeue-audit-persist-probe.cjs","exit 0 and proves valid rationale+authority dequeues once and persists both fields",run,"implement focused deterministic probe"
-  "agents_guidance","issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && rg -n 'Never discard queued work|Do not call `dequeue_goal`' AGENTS.md","exit 0 and both trust-boundary instructions are present",run,"project guidance mitigation requested by owner"
-  "quality_goal","issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && npm run quality:goal","exit 0",run,"single required final gate"
+  "pre_sentrux_gate","issue doc","cd ~/dev/personal/experiments/pi-goals && sentrux gate --save .pi/extensions/goal","exit 0 before substantial implementation",run,"required extension architecture gate"
+  "dequeue_requires_rationale_authority","issue doc","cd ~/dev/personal/experiments/pi-goals && node /tmp/pi-goal-dequeue-audit-args-probe.cjs","exit 0 and proves no-arg/blank-rationale/blank-authority dequeues are rejected",run,"implement focused deterministic probe"
+  "dequeue_persists_audit_fields","issue doc","cd ~/dev/personal/experiments/pi-goals && node /tmp/pi-goal-dequeue-audit-persist-probe.cjs","exit 0 and proves valid rationale+authority dequeues once and persists both fields",run,"implement focused deterministic probe"
+  "agents_guidance","issue doc","cd ~/dev/personal/experiments/pi-goals && rg -n 'Never discard queued work|Do not call `dequeue_goal`' AGENTS.md","exit 0 and both trust-boundary instructions are present",run,"project guidance mitigation requested by owner"
+  "quality_goal","issue doc","cd ~/dev/personal/experiments/pi-goals && npm run quality:goal","exit 0",run,"single required final gate"
 ```
 
 ## Acceptance criteria

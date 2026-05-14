@@ -43,9 +43,9 @@ Pi coding-agent exports `DynamicBorder` and `BorderedLoader`, but neither is a g
 
 Source evidence:
 
-- `/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/modes/interactive/components/dynamic-border.js`
-- `/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/modes/interactive/components/bordered-loader.js`
-- `/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/tui.md`
+- `~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/modes/interactive/components/dynamic-border.js`
+- `~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/dist/modes/interactive/components/bordered-loader.js`
+- `~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/tui.md`
 - examples: `plan-mode/index.ts`, `widget-placement.ts`, `preset.ts`, `qna.ts`, `custom-footer.ts`
 
 ## Negative finding: no generic card component

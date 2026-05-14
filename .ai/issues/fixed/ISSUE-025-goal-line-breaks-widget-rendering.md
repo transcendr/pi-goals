@@ -8,7 +8,7 @@ Next best session: none — fixed
 Next best session rationale: Implemented in commit b6d56f4 with multiline widget probe and npm run quality:goal.
 Target bucket: fixed
 Issue kind: bug
-Target repo roots: `/Users/bryan/dev/personal/experiments/pi-goals`
+Target repo roots: `~/dev/personal/experiments/pi-goals`
 Parent issue: `.ai/issues/fixed/ISSUE-001-pi-goal-extension.md`
 Related:
 - `.ai/issues/open/ISSUE-011-goal-widget-real-component-and-narrow-width.md`
@@ -146,7 +146,7 @@ Required proof shape:
 ## Required proofs
 
 required_proofs[4]{name,command,condition}:
-  widget_multiline_probe,"NODE_PATH=/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-widget-multiline-probe.cjs",exit 0; proves multiline objectives produce no embedded newlines and no over-width widget lines
+  widget_multiline_probe,"NODE_PATH=~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/node_modules node /tmp/pi-goal-widget-multiline-probe.cjs",exit 0; proves multiline objectives produce no embedded newlines and no over-width widget lines
   quality_goal,"npm run quality:goal",exit 0
   no_escape_hatch_casts,"npm run slop:goal",exit 0
   pi_load,"pi --offline --no-session --no-tools -e .pi/extensions/goal/index.ts --list-models",exit 0

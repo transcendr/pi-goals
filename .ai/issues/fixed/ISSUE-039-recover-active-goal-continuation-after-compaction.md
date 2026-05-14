@@ -8,7 +8,7 @@ Next best session: green-loop implementation
 Next best session rationale: The failure strands an active persistent goal after a non-deterministic provider/compaction sequence. The fix is small but race-prone and needs adversarial probes plus a bounded live check.
 Target bucket: open
 Issue kind: fix
-Target repo roots: `/Users/bryan/dev/personal/experiments/pi-goals`
+Target repo roots: `~/dev/personal/experiments/pi-goals`
 Parent issue: none
 Depends on: none
 Related:
@@ -99,7 +99,7 @@ Rejected alternatives:
 ```toon
 toon.version: 1
 issue{id,status,kind,target_root,next_session}:
-  "ISSUE-039","open execution-ready","fix","/Users/bryan/dev/personal/experiments/pi-goals","green-loop implementation"
+  "ISSUE-039","open execution-ready","fix","~/dev/personal/experiments/pi-goals","green-loop implementation"
 feature_memory[5]{id,fact}:
   "fm1","pi-goals schedules active continuation from agent_end only"
   "fm2","Pi core performs retry and compaction checks after extension agent_end"
@@ -205,9 +205,9 @@ Proof strategy:
 ```toon
 toon.version: 1
 required_proofs[5]{name,source,command,pass_condition,scope,notes}:
-  "goal_compaction_continuation_probe","issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-compaction-continuation-probe.mjs","exit 0 and output includes PASS goal_compaction_post_continuation",run,"must fail if active goal after session_compact is stranded"
-  "goal_compaction_suppression_probe","issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-compaction-suppression-probe.mjs","exit 0 and output includes PASS goal_compaction_suppresses_early_send",run,"must fail if continuation is sent while compaction flag is active despite ctx idle"
-  "goal_compaction_dedupe_telemetry_probe","issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && node .ai/validation/goal-compaction-dedupe-telemetry-probe.mjs","exit 0 and output includes PASS goal_compaction_dedupe_telemetry",run,"must fail if agent_end plus session_compact causes duplicate continuation or no telemetry reason"
-  "quality_goal","AGENTS.md","cd /Users/bryan/dev/personal/experiments/pi-goals && npm run quality:goal","exit 0",run,"required extension quality gate"
-  "live_probe_or_skip","issue doc","cd /Users/bryan/dev/personal/experiments/pi-goals && test -s .ai/validation/goal-compaction-live-probe-closeout.md","exit 0 and closeout records bounded live pass or explicit deterministic-coverage skip rationale",run,"do not reproduce by overflowing real user context"
+  "goal_compaction_continuation_probe","issue doc","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-compaction-continuation-probe.mjs","exit 0 and output includes PASS goal_compaction_post_continuation",run,"must fail if active goal after session_compact is stranded"
+  "goal_compaction_suppression_probe","issue doc","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-compaction-suppression-probe.mjs","exit 0 and output includes PASS goal_compaction_suppresses_early_send",run,"must fail if continuation is sent while compaction flag is active despite ctx idle"
+  "goal_compaction_dedupe_telemetry_probe","issue doc","cd ~/dev/personal/experiments/pi-goals && node .ai/validation/goal-compaction-dedupe-telemetry-probe.mjs","exit 0 and output includes PASS goal_compaction_dedupe_telemetry",run,"must fail if agent_end plus session_compact causes duplicate continuation or no telemetry reason"
+  "quality_goal","AGENTS.md","cd ~/dev/personal/experiments/pi-goals && npm run quality:goal","exit 0",run,"required extension quality gate"
+  "live_probe_or_skip","issue doc","cd ~/dev/personal/experiments/pi-goals && test -s .ai/validation/goal-compaction-live-probe-closeout.md","exit 0 and closeout records bounded live pass or explicit deterministic-coverage skip rationale",run,"do not reproduce by overflowing real user context"
 ```

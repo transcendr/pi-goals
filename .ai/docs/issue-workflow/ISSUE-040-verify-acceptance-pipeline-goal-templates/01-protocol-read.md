@@ -10,18 +10,18 @@ Project/workflow docs:
 
 - `AGENTS.md` — project rules for issue docs, `.ai/.pi-goals`, Solo context, queue routing, live probes, and quality gates.
 - `.ai/.pi-goals/create-issue-doc.md` — reusable goal prompt defining mandatory issue-doc creation artifacts and completion standard.
-- `/Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/SKILL.md` — issue-first canonical-doc pipeline and execution-ready standard.
-- `/Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/references/canonical-issue-docs-and-toon-synthesis.md` — canonical issue structure, TOON synthesis, and execution-readiness gate.
-- `/Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/references/research-pass.md` — grounded research pass requirements.
-- `/Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/references/design-landscape-exploration-and-choice-locking.md` — design fork locking requirements.
-- `/Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/references/toon-for-issues-and-execution-planning.md` — practical TOON planning shape and anti-fake-green guidance.
-- `/Users/bryan/.agents/skills/axi/SKILL.md` — TOON/agent-facing CLI output discipline used for issue TOON rows and rendered Solo command shape.
+- `~/.codex/feature-workflow-pipelines/SKILL.md` — issue-first canonical-doc pipeline and execution-ready standard.
+- `~/.codex/feature-workflow-pipelines/references/canonical-issue-docs-and-toon-synthesis.md` — canonical issue structure, TOON synthesis, and execution-readiness gate.
+- `~/.codex/feature-workflow-pipelines/references/research-pass.md` — grounded research pass requirements.
+- `~/.codex/feature-workflow-pipelines/references/design-landscape-exploration-and-choice-locking.md` — design fork locking requirements.
+- `~/.codex/feature-workflow-pipelines/references/toon-for-issues-and-execution-planning.md` — practical TOON planning shape and anti-fake-green guidance.
+- `~/.agents/skills/axi/SKILL.md` — TOON/agent-facing CLI output discipline used for issue TOON rows and rendered Solo command shape.
 
 Template authoring and Pi template mechanics:
 
 - `.ai/docs/prompt-template-authoring.md` — source-of-truth authoring guide requested by the user.
 - `.pi/extensions/goal/templates.ts` — actual `.ai/.pi-goals` discovery, frontmatter, placeholder, `{{args}}`, flags, and inline-command behavior.
-- `/Users/bryan/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/prompt-templates.md` — Pi core prompt-template docs to avoid confusing core prompt templates with `pi-goal` reusable goal templates.
+- `~/dev/_state/personal/npm-tools/pi/lib/node_modules/@earendil-works/pi-coding-agent/docs/prompt-templates.md` — Pi core prompt-template docs to avoid confusing core prompt templates with `pi-goal` reusable goal templates.
 - `.ai/.pi-goals/deslop-pipeline.md` — reference higher-order Solo-supervised pipeline template requested by the user, with explicit decision to reject its timer-pair and `/boomerang` parts for this issue.
 - `.ai/.pi-goals/deslop-commit-range.md` — focused inner workflow template example.
 - `.ai/.pi-goals/enqueue-goal-stack.md` — queue head-to-tail semantics and exact no-pause language.
@@ -31,8 +31,8 @@ Template authoring and Pi template mechanics:
 
 Solo orchestration docs:
 
-- `/Users/bryan/.pi/agent/.cache/codex-skills/solo-mcp/SKILL.md` — Solo CLI semantics, process spawn/send/status/output, materialized Pi runtime, and token-efficient read patterns.
-- `/Users/bryan/.pi/agent/.cache/codex-skills/solo-tlo/SKILL.md` — TLO worker orchestration, process truth vs report truth, sparse monitoring, and closeout verification.
+- `~/.codex/solo-mcp/SKILL.md` — Solo CLI semantics, process spawn/send/status/output, materialized Pi runtime, and token-efficient read patterns.
+- `~/.codex/solo-tlo/SKILL.md` — TLO worker orchestration, process truth vs report truth, sparse monitoring, and closeout verification.
 
 Issue examples inspected:
 

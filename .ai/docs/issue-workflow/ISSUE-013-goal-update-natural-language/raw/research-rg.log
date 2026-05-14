@@ -587,7 +587,7 @@ $ rg -n "update_goal|progressCount|completedGoal|goalUpdated|toolName|details.go
 .ai/issues/open/ISSUE-014-goal-progress-estimates.md:1:# ISSUE-014 — Agent-estimated goal progress percentage
 .ai/issues/open/ISSUE-014-goal-progress-estimates.md:10:Next best session: implement optional advisory progress estimates for pi-goals
 .ai/issues/open/ISSUE-014-goal-progress-estimates.md:11:Next best session rationale: State ownership, update semantics, UI rendering, safety-counter behavior, and proof shape are now locked.
-.ai/issues/open/ISSUE-014-goal-progress-estimates.md:12:Target repo roots: `/Users/bryan/dev/personal/experiments/pi-goals`
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md:12:Target repo roots: `~/dev/personal/experiments/pi-goals`
 .ai/issues/open/ISSUE-014-goal-progress-estimates.md:13:Parent issue: `.ai/issues/fixed/ISSUE-001-pi-goal-extension.md`
 .ai/issues/open/ISSUE-014-goal-progress-estimates.md:14:Depends on: `.ai/issues/open/ISSUE-011-goal-widget-real-component-and-narrow-width.md`
 .ai/issues/open/ISSUE-014-goal-progress-estimates.md:15:Related: `.ai/issues/open/ISSUE-021-goal-completion-proofs.md`, `.ai/issues/open/ISSUE-024-goal-audit-command.md`
