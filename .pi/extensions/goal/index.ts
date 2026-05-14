@@ -6,8 +6,13 @@ import { cancelGoalMonitor, scheduleGoalMonitor } from "./monitor";
 import { registerGoalTools } from "./tools";
 import { getQueue } from "./queue-state";
 import { sendQueueHandoff, sendQueueSteering } from "./queue-steering";
+import { getGoalFeatureFlags } from "./feature-flags";
+import { createNoopPostCompletionActionRunner } from "./post-completion-actions";
+import { createContextResetActionRunner } from "./context-reset";
 
 export default function goalExtension(pi: ExtensionAPI): void {
+	const flags = getGoalFeatureFlags();
+	const postCompletionRunner = flags.postCompletionActions ? createContextResetActionRunner(flags) : createNoopPostCompletionActionRunner("disabled by PI_GOAL_POST_COMPLETION_ACTIONS");
 	registerGoalCommand(pi, {
 		scheduleContinuation: (ctx, reason) => scheduleMaybeContinueGoal(pi, ctx, reason),
 		cancelContinuation: cancelGoalContinuation,
@@ -25,6 +30,7 @@ export default function goalExtension(pi: ExtensionAPI): void {
 		getQueueSize: () => getQueue().length,
 		sendQueueSteering: (reason, opts) => sendQueueSteering(pi, reason, opts),
 		sendQueueHandoff: (reason, opts) => sendQueueHandoff(pi, reason, opts),
+		postCompletionRunner,
 	});
-	registerGoalLifecycle(pi);
+	registerGoalLifecycle(pi, postCompletionRunner);
 }

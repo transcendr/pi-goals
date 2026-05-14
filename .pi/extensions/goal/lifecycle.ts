@@ -29,6 +29,8 @@ import { getGoal, getTelemetry, persistAccountGoal, persistTelemetry, persistUpd
 import { cancelGoalMonitor, replayGoalMonitorState, scheduleGoalMonitor } from "./monitor";
 import { getQueue, replayQueueState } from "./queue-state";
 import { queueSteeringStillValid, sendQueueHandoff } from "./queue-steering";
+import { createNoopPostCompletionActionRunner, type PostCompletionActionRunner } from "./post-completion-actions";
+import { processTerminalGoalWorkflow } from "./terminal-workflow";
 import { applyTurnTelemetry, consumeNextTurnOrigin, makeTurnSnapshot, noteBudgetHardStop, noteBudgetLimit, noteBudgetWarning, noteSafetyPause } from "./telemetry";
 import { notifyWarning, promptResumePausedGoal, syncGoalUi } from "./ui";
 import type { BudgetHardStopReason, BudgetLimitReason, BudgetPressure, GoalState, GoalTelemetrySnapshot, StreamBudgetSignal, TurnAccountingSnapshot } from "./types";
@@ -36,7 +38,7 @@ import type { BudgetHardStopReason, BudgetLimitReason, BudgetPressure, GoalState
 let activeTurn: TurnAccountingSnapshot | null = null;
 let streamBudgetSignalsSent: Set<StreamBudgetSignal> = new Set();
 
-export function registerGoalLifecycle(pi: ExtensionAPI): void {
+export function registerGoalLifecycle(pi: ExtensionAPI, postCompletionRunner: PostCompletionActionRunner = createNoopPostCompletionActionRunner("post-completion runner unavailable")): void {
 	pi.on("session_start", async (event, ctx) => handleSessionStart(pi, event, ctx));
 	pi.on("session_tree", async (_event, ctx) => {
 		const state = replayGoalState(ctx);
@@ -57,8 +59,8 @@ export function registerGoalLifecycle(pi: ExtensionAPI): void {
 	pi.on("turn_start", (event) => { handleTurnStart(event); streamBudgetSignalsSent.clear(); });
 	pi.on("tool_call", (event) => handleToolCall(event));
 	pi.on("tool_result", (event) => handleToolResult(event));
-	pi.on("turn_end", async (event, ctx) => handleTurnEnd(pi, event, ctx));
-	pi.on("agent_end", async (_event, ctx) => handleAgentEnd(pi, ctx));
+	pi.on("turn_end", async (event, ctx) => handleTurnEnd(pi, event, ctx, postCompletionRunner));
+	pi.on("agent_end", async (_event, ctx) => handleAgentEnd(pi, ctx, postCompletionRunner));
 	pi.on("message_update", (event, ctx) => handleMessageUpdate(pi, event, ctx));
 	pi.on("context", (event) => filterGoalContext(event));
 }
@@ -95,7 +97,7 @@ function handleSessionCompact(pi: ExtensionAPI, ctx: ExtensionContext): void {
 	logCompactionDebugWithContext("lifecycle.handleSessionCompact.end", ctx);
 }
 
-function handleAgentEnd(pi: ExtensionAPI, ctx: ExtensionContext): void {
+async function handleAgentEnd(pi: ExtensionAPI, ctx: ExtensionContext, postCompletionRunner: PostCompletionActionRunner): Promise<void> {
 	logCompactionDebugWithContext("lifecycle.agent_end", ctx);
 	const goal = getGoal();
 	const reason = queueHandoffReason(goal);
@@ -105,7 +107,7 @@ function handleAgentEnd(pi: ExtensionAPI, ctx: ExtensionContext): void {
 		logCompactionDebugWithContext("lifecycle.agent_end.queueHandoff.scheduled", ctx, { reason, force: true });
 		setTimeout(() => {
 			logCompactionDebug("lifecycle.agent_end.queueHandoff.dispatch", { reason, force: true });
-			sendQueueHandoff(pi, reason, { goalId: goal.goalId, force: true });
+			void processTerminalGoalWorkflow(pi, ctx, { goal, reason: "turn", runner: postCompletionRunner, force: true });
 		}, AGENT_END_HANDOFF_DELAY_MS);
 		return;
 	}
@@ -229,7 +231,7 @@ function hasToolError(details: unknown): boolean {
 	return typeof details === "object" && details !== null && "error" in details;
 }
 
-async function handleTurnEnd(pi: ExtensionAPI, event: TurnEndEvent, ctx: ExtensionContext): Promise<void> {
+async function handleTurnEnd(pi: ExtensionAPI, event: TurnEndEvent, ctx: ExtensionContext, postCompletionRunner: PostCompletionActionRunner): Promise<void> {
 	const turn = activeTurn;
 	activeTurn = null;
 	if (!turn) return;
@@ -271,14 +273,14 @@ async function handleTurnEnd(pi: ExtensionAPI, event: TurnEndEvent, ctx: Extensi
 		return;
 	}
 
-	finishTurnGoal(pi, ctx, updated, turn.completedGoal);
+	await finishTurnGoal(pi, ctx, updated, turn.completedGoal, postCompletionRunner);
 }
 
-function finishTurnGoal(pi: ExtensionAPI, ctx: ExtensionContext, goal: GoalState | null, completedThisTurn: boolean): void {
+async function finishTurnGoal(pi: ExtensionAPI, ctx: ExtensionContext, goal: GoalState | null, completedThisTurn: boolean, postCompletionRunner: PostCompletionActionRunner): Promise<void> {
 	if (goal?.status === "active") scheduleGoalMonitor(pi, ctx);
 	else cancelGoalMonitor(goal?.goalId, "turn-end");
 	syncGoalUi(ctx, goal);
-	if (goal?.status === "complete" && completedThisTurn) sendQueueHandoff(pi, "goal-complete", { goalId: goal.goalId });
+	if (goal?.status === "complete" && completedThisTurn) await processTerminalGoalWorkflow(pi, ctx, { goal, reason: "turn", runner: postCompletionRunner });
 }
 
 async function pauseForSafety(

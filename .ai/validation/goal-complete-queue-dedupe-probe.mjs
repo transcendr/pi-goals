@@ -17,12 +17,12 @@ const tools = read('.pi/extensions/goal/tools.ts');
 
 assert('dedupe state exists', steering.includes('let lastQueueHandoffKey'));
 assert('dedupe key includes reason goal id queue id', steering.includes('`${reason}:${opts.goalId ?? "none"}:${next.queueId}`'));
-assert('duplicate key returns false before send', steering.includes('if (lastQueueHandoffKey === key) return false'));
+assert('duplicate key returns false before send', steering.includes('lastQueueHandoffKey === key') && steering.includes('return false;'));
 assert('dedupe key updates only after send', steering.includes('if (sent) lastQueueHandoffKey = key'));
-assert('lifecycle uses deduped helper for complete', lifecycle.includes('sendQueueHandoff(pi, "goal-complete"'));
+assert('lifecycle uses terminal workflow for complete', lifecycle.includes('processTerminalGoalWorkflow(pi, ctx, { goal') && lifecycle.includes('goal?.status === "complete"'));
 assert('lifecycle uses deduped helper for budgetLimited', lifecycle.includes('sendQueueHandoff(pi, "goal-budget-limited"'));
-assert('tools pass goalId through sender for complete', tools.includes('goalId: updatedGoal.goalId'));
-assert('tools complete and budgetLimited share sender surface', tools.includes('"goal-complete"') && tools.includes('"goal-budget-limited"'));
+assert('tools pass complete updates through terminal workflow', tools.includes('processTerminalGoalWorkflow(pi, ctx, { goal: updatedGoal') && tools.includes('updatedGoal.status === "complete"'));
+assert('tools complete and budgetLimited share terminal workflow surface', tools.match(/processTerminalGoalWorkflow\(pi, ctx, \{ goal: updatedGoal/g)?.length >= 2);
 
 if (process.exitCode) process.exit(process.exitCode);
 console.log('goal-complete-queue-dedupe-probe passed');

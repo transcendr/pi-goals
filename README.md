@@ -97,6 +97,27 @@ Use `/goal` when you want direct command control; use natural language when you 
 
 When a goal reaches its time or token budget, `pi-goals` steers the agent into wrap-up instead of silently continuing. Exhausted goals cannot be resumed until the budget is raised or the goal is cleared.
 
+## Post-completion actions
+
+Goals may request optional post-completion actions. The first supported action is `context.reset`, with modes `clear` and `summarize`. Prose directives are intentionally trailing-only, for example:
+
+```text
+/goal write the release notes and summarize context
+/goal repo-worktree-inventory -- current state and summarize context
+/goal queue clean the worktree and clear context
+```
+
+For template invocations, the trailing directive is extracted from the raw invocation args before template expansion, so it still works when a template places `{{args}}` in the middle of the final objective.
+
+Model tools also expose structured inputs:
+
+- `post_completion_context`: `none`, `clear`, or `summarize`.
+- `post_completion_actions`: action specs such as `{ "type": "context.reset", "mode": "summarize" }`.
+
+Duplicate matching prose/structured actions are idempotent. Conflicting actions, such as prose `clear context` plus structured `summarize`, are rejected actionably.
+
+Post-completion actions are best-effort safe hooks. A failed or skipped context reset is recorded and warned about, but it does not block expected goal/queue continuation. Runtime kill switches are default-on: set `PI_GOAL_POST_COMPLETION_ACTIONS=0` to skip all post-completion actions, or `PI_GOAL_CONTEXT_RESET=0` to skip only context-reset actions. Disabled values are `0`, `false`, `no`, and `off`.
+
 ## Goal queue
 
 `pi-goals` supports a durable FIFO queue for sequential work. Queued goals survive reloads and stay aligned with the rest of the session history.

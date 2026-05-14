@@ -3,7 +3,10 @@ import type { AutocompleteItem } from "@earendil-works/pi-tui";
 import { GOAL_USAGE, GOAL_USAGE_HINT } from "./constants";
 import { canActivateGoal, budgetLimitReason } from "./budget";
 import { validateObjective, goalStatusLabel } from "./format";
-import { discoverGoalTemplates, resolveGoalTemplateInvocation } from "./templates";
+import { discoverGoalTemplates, parseGoalTemplateInvocation } from "./templates";
+import { buildDirectGoalIntent, buildTemplateGoalIntent } from "./goal-intent";
+import { createPostCompletionActionStates, recordPostStartActionAnchors } from "./post-completion-actions";
+import { captureContextResetCommandContext } from "./context-reset";
 import { createTelemetry, resetSafetyCounters } from "./telemetry";
 import {
 	createGoalState,
@@ -107,7 +110,8 @@ async function handleGoalCommand(
 	const handled = handleGoalControlCommand(pi, trimmed, ctx, runtime);
 	if (handled) return;
 
-	await setGoalObjective(pi, resolveTemplateOrObjective(trimmed, ctx), ctx, runtime);
+	const resolved = resolveTemplateOrObjective(trimmed, ctx);
+	if (resolved) await setGoalObjective(pi, resolved, ctx, runtime);
 }
 
 function handleGoalControlCommand(
@@ -133,35 +137,33 @@ type ResolvedObjectiveInput = {
 	template?: string;
 	templateFlags?: Record<string, string>;
 	templateArgs?: string;
+	postCompletionActions?: import("./types").PostCompletionActionSpec[];
 };
 
-function resolveTemplateOrObjective(input: string, ctx: ExtensionCommandContext): string {
-	return resolveTemplateOrObjectiveDetails(input, ctx)?.objective ?? "";
+function resolveTemplateOrObjective(input: string, ctx: ExtensionCommandContext): ResolvedObjectiveInput | null {
+	return resolveTemplateOrObjectiveDetails(input, ctx);
 }
 
 function resolveTemplateOrObjectiveDetails(input: string, ctx: ExtensionCommandContext): ResolvedObjectiveInput | null {
-	const resolution = resolveGoalTemplateInvocation(input);
-	if (resolution.ok) {
-		return {
-			objective: resolution.template.objective,
-			template: resolution.template.name,
-			templateFlags: resolution.template.flags,
-			templateArgs: resolution.template.args,
-		};
+	if (parseGoalTemplateInvocation(input)) {
+		const templateIntent = buildTemplateGoalIntent({ invocation: input });
+		if (templateIntent.ok && templateIntent.intent.kind === "template") return { objective: templateIntent.intent.objective, template: templateIntent.intent.template, templateFlags: templateIntent.intent.flags, templateArgs: templateIntent.intent.args, postCompletionActions: templateIntent.intent.postCompletionActions };
 	}
-	if ("notTemplate" in resolution) return { objective: input };
-	notifyWarning(ctx, resolution.error);
+	const directIntent = buildDirectGoalIntent({ objective: input });
+	if (directIntent.ok) return { objective: directIntent.intent.objective, postCompletionActions: directIntent.intent.postCompletionActions };
+	notifyWarning(ctx, directIntent.error);
 	return null;
 }
 
 async function setGoalObjective(
 	pi: ExtensionAPI,
-	input: string,
+	input: ResolvedObjectiveInput,
 	ctx: ExtensionCommandContext,
 	runtime: GoalCommandRuntime,
 ): Promise<void> {
-	if (!input) return;
-	const validation = validateObjective(input);
+	if (!input.objective) return;
+	captureContextResetCommandContext(ctx);
+	const validation = validateObjective(input.objective);
 	if (!validation.ok) {
 		notifyWarning(ctx, validation.hint ? `${validation.message}\n${validation.hint}` : validation.message);
 		return;
@@ -173,7 +175,7 @@ async function setGoalObjective(
 		const choice = await ctx.ui.select(replacementChoicePrompt(validation.objective), choices);
 		if (choice === "Queue" || choice === "Cancel") {
 			if (choice === "Queue") {
-				const queued = enqueueGoal(validation.objective, "command");
+				const queued = enqueueGoal(validation.objective, "command", { postCompletionActions: input.postCompletionActions });
 				persistEnqueue(pi, queued);
 				notifyInfo(ctx, `Queued goal: ${queued.queueId}`);
 			} else {
@@ -185,7 +187,8 @@ async function setGoalObjective(
 		runtime.cancelMonitor(existing.goalId, "replace");
 	}
 
-	const goal = createGoalState({ objective: validation.objective });
+	let goal = createGoalState({ objective: validation.objective, postCompletionActions: createPostCompletionActionStates(input.postCompletionActions ?? []) });
+	goal = recordPostStartActionAnchors(pi, ctx, goal, "command");
 	const telemetry = createTelemetry(goal.goalId, goal.createdAt);
 	persistSetGoal(pi, goal, telemetry, "command");
 	syncGoalUi(ctx, goal);
@@ -290,7 +293,7 @@ function handleQueueCommand(pi: ExtensionAPI, input: string, ctx: ExtensionComma
 		const validatedItems = resolveAndValidateQueueItems(blockItems, ctx);
 		if (!validatedItems) return;
 		const queued = validatedItems.map((item) => {
-			const goal = enqueueGoal(item.objective, "command", { template: item.template, templateFlags: item.templateFlags, templateArgs: item.templateArgs });
+			const goal = enqueueGoal(item.objective, "command", { template: item.template, templateFlags: item.templateFlags, templateArgs: item.templateArgs, postCompletionActions: item.postCompletionActions });
 			persistEnqueue(pi, goal);
 			return goal;
 		});
@@ -306,7 +309,7 @@ function handleQueueCommand(pi: ExtensionAPI, input: string, ctx: ExtensionComma
 		notifyWarning(ctx, validation.hint ? `${validation.message}\n${validation.hint}` : validation.message);
 		return;
 	}
-	const queued = enqueueGoal(validation.objective, "command", { template: resolved.template, templateFlags: resolved.templateFlags, templateArgs: resolved.templateArgs });
+	const queued = enqueueGoal(validation.objective, "command", { template: resolved.template, templateFlags: resolved.templateFlags, templateArgs: resolved.templateArgs, postCompletionActions: resolved.postCompletionActions });
 	persistEnqueue(pi, queued);
 	notifyInfo(ctx, `Queued goal: ${queued.queueId} \u2014 ${truncateObjective(validation.objective)}`);
 }

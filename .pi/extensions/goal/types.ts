@@ -1,6 +1,20 @@
 import type { ExtensionContext } from "@earendil-works/pi-coding-agent";
 
 export type GoalStatus = "active" | "paused" | "budgetLimited" | "complete";
+export type ContextResetMode = "clear" | "summarize";
+export type PostCompletionActionType = "context.reset";
+export type PostCompletionActionSpec = { type: "context.reset"; mode: ContextResetMode };
+export type PostCompletionActionStatus = "pending" | "running" | "done" | "failed" | "skipped";
+export type ContextResetPostCompletionActionState = PostCompletionActionSpec & {
+	id: string;
+	status: PostCompletionActionStatus;
+	anchorEntryId?: string;
+	failure?: string;
+	skippedReason?: string;
+	completedAt?: number;
+	updatedAt?: number;
+};
+export type PostCompletionActionState = ContextResetPostCompletionActionState;
 
 export type GoalState = {
 	goalId: string;
@@ -14,6 +28,13 @@ export type GoalState = {
 	timeUsedSeconds: number;
 	createdAt: number;
 	updatedAt: number;
+	postCompletionActions?: PostCompletionActionState[];
+	/** Legacy ISSUE-043 compatibility. Prefer postCompletionActions. */
+	postCompletionContext?: ContextResetMode | "none";
+	contextResetAnchorEntryId?: string;
+	contextResetStatus?: PostCompletionActionStatus;
+	contextResetFailure?: string;
+	contextResetCompletedAt?: number;
 };
 
 export type TurnOrigin = "user" | "auto" | "budgetWrapUp";
@@ -104,7 +125,8 @@ export type PiGoalEventReason =
 	| "reload"
 	| "continuation"
 	| "safety"
-	| "floor";
+	| "floor"
+	| "reset";
 
 export type PiGoalStateEvent = {
 	version: 1;

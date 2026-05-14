@@ -38,7 +38,7 @@ export type ResolvedGoalTemplate = {
 
 export type TemplateResolution = { ok: true; template: ResolvedGoalTemplate } | { ok: false; error: string } | { ok: false; notTemplate: true };
 
-type ParsedInvocation = {
+export type GoalTemplateInvocation = {
 	name: string;
 	flags: Record<string, string>;
 	args: string;
@@ -70,13 +70,13 @@ export function listGoalTemplateMetadata(root = process.cwd()): GoalTemplateMeta
 }
 
 export function resolveGoalTemplateInvocation(input: string, root = process.cwd()): TemplateResolution {
-	const parsed = parseInvocation(input);
+	const parsed = parseGoalTemplateInvocation(input);
 	if (!parsed) return { ok: false, notTemplate: true };
 	return resolveGoalTemplateByName(parsed.name, parsed.flags, parsed.args, root);
 }
 
 export function resolveGoalTemplateInvocationArgs(nameOrAlias: string, invocationArgs = "", flags: Record<string, string> = {}, root = process.cwd()): TemplateResolution {
-	const parsed = parseInvocation(`${nameOrAlias}${invocationArgs.trim() ? ` ${invocationArgs.trim()}` : ""}`);
+	const parsed = parseGoalTemplateInvocation(`${nameOrAlias}${invocationArgs.trim() ? ` ${invocationArgs.trim()}` : ""}`);
 	if (!parsed) return { ok: false, notTemplate: true };
 	return resolveGoalTemplateByName(parsed.name, { ...parsed.flags, ...flags }, parsed.args, root);
 }
@@ -162,7 +162,7 @@ function parseFrontmatter(raw: string): { frontmatter: Frontmatter; body: string
 	return { frontmatter, body: raw.slice(end + 4).replace(/^\r?\n/, "") };
 }
 
-function parseInvocation(input: string): ParsedInvocation | undefined {
+export function parseGoalTemplateInvocation(input: string): GoalTemplateInvocation | undefined {
 	const trimmed = input.trim();
 	if (!trimmed) return undefined;
 	const match = trimmed.match(/^(\S+)(?:\s+([\s\S]*))?$/);

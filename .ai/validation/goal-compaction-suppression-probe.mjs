@@ -24,7 +24,7 @@ assert('compaction guard runs before idle guard', compactingCheck >= 0 && idleCh
 assert('ContinuationSkipReason includes compacting', /ContinuationSkipReason = .*"compacting"/.test(types));
 assert('beginGoalCompaction records active compaction work', /kind: "activeGoal", goalId: goal\.goalId/.test(continuation));
 assert('beginGoalCompaction reports compacting skip telemetry', /skip\(pi, "compacting"\);/.test(continuation));
-assert('attemptContinueGoal defers while compaction active', /compactionWork = \{ kind: "activeGoal", goalId, key: activeGoalKey\(goalId\) \};\n\t\tskip\(pi, "compacting"\);/.test(continuation));
+assert('attemptContinueGoal defers while compaction active', continuation.includes('compactionWork = { kind: "activeGoal", goalId, key: activeGoalKey(goalId) };') && continuation.includes('skip(pi, "compacting");') && continuation.includes('return { kind: "terminalSkip", reason: "compacting" };'));
 assert('reset clears compaction runtime', /compactionActive = false;\n\tcompactionWork = undefined;\n\tprequeuedCompactionKey = undefined;/.test(continuation));
 
 if (process.exitCode) process.exit(process.exitCode);

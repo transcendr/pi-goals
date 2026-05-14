@@ -15,8 +15,8 @@ function assert(name, condition) {
 }
 
 assert('ContinuationReason includes compacted', /ContinuationReason = .*"compacted"/.test(types));
-assert('lifecycle subscribes session_before_compact with ctx', /pi\.on\("session_before_compact", \(_event, ctx\) => \{ beginGoalCompaction\(pi, ctx\); \}\)/.test(lifecycle));
-assert('lifecycle subscribes session_compact', /pi\.on\("session_compact", async \(_event, ctx\) => handleSessionCompact\(pi, ctx\)\)/.test(lifecycle));
+assert('lifecycle subscribes session_before_compact with ctx', lifecycle.includes('pi.on("session_before_compact"') && lifecycle.includes('beginGoalCompaction(pi, ctx);'));
+assert('lifecycle subscribes session_compact', lifecycle.includes('pi.on("session_compact"') && lifecycle.includes('handleSessionCompact(pi, ctx);'));
 assert('session_compact replays goal state before finish', lifecycle.indexOf('const state = replayGoalState(ctx);') >= 0 && lifecycle.indexOf('finishGoalCompaction(pi, ctx);') > lifecycle.indexOf('const state = replayGoalState(ctx);'));
 assert('beginGoalCompaction prequeues compaction work', /prequeueCompactionWork\(pi, compactionWork\)/.test(continuation));
 assert('finishGoalCompaction schedules fallback retry for uncompensated work', /scheduleCompactionFallbackRetry\(pi, ctx, work\);/.test(continuation));

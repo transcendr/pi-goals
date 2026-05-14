@@ -4,7 +4,9 @@ import { validateObjective } from "./format";
 import { validateFloorConfig } from "./floor";
 import { createTelemetry } from "./telemetry";
 import { resolveGoalTemplateByName } from "./templates";
-import { queueHandoffReason } from "./budget";
+import { buildDirectGoalIntent } from "./goal-intent";
+import { createPostCompletionActionStates, recordPostStartActionAnchors } from "./post-completion-actions";
+import { decideTerminalContinuationTicket, dispatchContinuationTicket, revalidateContinuationTicket, type ContinuationTicket } from "./continuation-ticket";
 import { logCompactionDebug } from "./debug-log";
 import { createGoalState, getGoal, getTelemetry, persistSetGoal } from "./state";
 import { enqueueGoal, dequeueGoal, removeGoal, persistEnqueue, persistDequeue, persistRemove, getQueue, type DequeueAudit, type QueuedGoal } from "./queue-state";
@@ -12,12 +14,16 @@ import type { GoalMonitorScheduler, GoalQueueSteeringSender, GoalState, GoalTele
 import { syncGoalUi } from "./ui";
 
 const EmptyParams = Type.Object({});
+const PostCompletionContextParam = Type.Union([Type.Literal("none"), Type.Literal("clear"), Type.Literal("summarize")]);
+const PostCompletionActionParam = Type.Object({ type: Type.Literal("context.reset"), mode: Type.Union([Type.Literal("clear"), Type.Literal("summarize")]) });
 const CreateGoalParams = Type.Object({
 	objective: Type.String({ description: "Goal objective explicitly requested by the user" }),
 	token_budget: Type.Optional(Type.Number({ description: "Optional positive token budget" })),
 	time_budget_seconds: Type.Optional(Type.Number({ description: "Optional positive time budget in seconds" })),
 	min_tokens_before_wrap_up: Type.Optional(Type.Number({ description: "Optional positive minimum tokens before normal wrap-up/completion is allowed" })),
 	min_time_seconds_before_wrap_up: Type.Optional(Type.Number({ description: "Optional positive minimum time seconds before normal wrap-up/completion is allowed" })),
+	post_completion_context: Type.Optional(PostCompletionContextParam),
+	post_completion_actions: Type.Optional(Type.Array(PostCompletionActionParam)),
 });
 const DequeueGoalParams = Type.Object({
 	rationale: Type.String({ description: "Why this queue head is being dequeued now" }),
@@ -71,11 +77,13 @@ function registerEnqueueGoalTool(pi: ExtensionAPI): void {
 		promptGuidelines: ["Use only when the user explicitly asks to queue a goal for later, not for ordinary task requests.", "Fill flags and args from the user's prose, but ask for missing required values instead of guessing."],
 		parameters: CreateGoalParams,
 		async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
-			const validation = validateObjective(params.objective);
+			const intent = buildDirectGoalIntent({ objective: params.objective, postCompletionContext: params.post_completion_context, postCompletionActions: params.post_completion_actions });
+			if (!intent.ok) return errorResult(intent.error);
+			const validation = validateObjective(intent.intent.objective);
 			if (!validation.ok) return errorResult(validation.hint ? `${validation.message} ${validation.hint}` : validation.message);
 			const floorError = validateFloorConfig({ tokenBudget: params.token_budget, timeBudgetSeconds: params.time_budget_seconds, minTokensBeforeWrapUp: params.min_tokens_before_wrap_up, minTimeSecondsBeforeWrapUp: params.min_time_seconds_before_wrap_up });
 			if (floorError) return errorResult(floorError);
-			const queued = enqueueGoal(validation.objective, "tool", { tokenBudget: params.token_budget, timeBudgetSeconds: params.time_budget_seconds, minTokensBeforeWrapUp: params.min_tokens_before_wrap_up, minTimeSecondsBeforeWrapUp: params.min_time_seconds_before_wrap_up });
+			const queued = enqueueGoal(validation.objective, "tool", { tokenBudget: params.token_budget, timeBudgetSeconds: params.time_budget_seconds, minTokensBeforeWrapUp: params.min_tokens_before_wrap_up, minTimeSecondsBeforeWrapUp: params.min_time_seconds_before_wrap_up, postCompletionActions: intent.intent.postCompletionActions });
 			persistEnqueue(pi, queued);
 			syncGoalUi(ctx, getGoal());
 			return resultForQueuedGoal(queued);
@@ -116,13 +124,13 @@ function registerDequeueGoalTool(pi: ExtensionAPI, runtime: GoalQueueToolRuntime
 			"The rationale and authority arguments are saved to session history for auditability; be truthful and specific.",
 		],
 		parameters: DequeueGoalParams,
-		async execute(_toolCallId, params) {
+			async execute(_toolCallId, params) {
 			const audit = validateDequeueAudit(params.rationale, params.authority);
 			if (!audit.ok) return errorResult(audit.error);
 			const dequeued = dequeueGoal();
 			if (!dequeued) return { content: [{ type: "text" as const, text: "No queued goals." }], details: { goal: getGoal(), telemetry: getTelemetry() } as QueueToolDetails };
 			persistDequeue(pi, "dequeued", { queueId: dequeued.queueId, audit: audit.value });
-			sendNextQueueHandoffAfterDequeue(runtime);
+			sendNextQueueHandoffAfterDequeue(pi, runtime);
 			return { content: [{ type: "text" as const, text: `Dequeued goal: ${dequeued.queueId}\nObjective: ${dequeued.objective}\nRationale: ${audit.value.rationale}\nAuthority: ${audit.value.authority}` }], details: { goal: getGoal(), telemetry: getTelemetry(), dequeued, dequeue_audit: audit.value } as QueueToolDetails };
 		},
 	});
@@ -160,7 +168,8 @@ function startQueuedGoal(pi: ExtensionAPI, runtime: GoalQueueToolRuntime, ctx: E
 function createAndDequeueQueuedGoal(pi: ExtensionAPI, runtime: GoalQueueToolRuntime, ctx: ExtensionContext, next: QueuedGoal, objective: string) {
 	const floorError = validateFloorConfig({ tokenBudget: next.tokenBudget, timeBudgetSeconds: next.timeBudgetSeconds, minTokensBeforeWrapUp: next.minTokensBeforeWrapUp, minTimeSecondsBeforeWrapUp: next.minTimeSecondsBeforeWrapUp });
 	if (floorError) return errorResult(floorError);
-	const goal = createGoalState({ objective, tokenBudget: next.tokenBudget, timeBudgetSeconds: next.timeBudgetSeconds, minTokensBeforeWrapUp: next.minTokensBeforeWrapUp, minTimeSecondsBeforeWrapUp: next.minTimeSecondsBeforeWrapUp });
+	let goal = createGoalState({ objective, tokenBudget: next.tokenBudget, timeBudgetSeconds: next.timeBudgetSeconds, minTokensBeforeWrapUp: next.minTokensBeforeWrapUp, minTimeSecondsBeforeWrapUp: next.minTimeSecondsBeforeWrapUp, postCompletionActions: createPostCompletionActionStates(next.postCompletionActions ?? []) });
+	goal = recordPostStartActionAnchors(pi, ctx, goal, "tool");
 	const telemetry = createTelemetry(goal.goalId, goal.createdAt);
 	persistSetGoal(pi, goal, telemetry, "tool");
 	const dequeued = dequeueGoal();
@@ -171,18 +180,14 @@ function createAndDequeueQueuedGoal(pi: ExtensionAPI, runtime: GoalQueueToolRunt
 	return { content: [{ type: "text" as const, text: `Started queued goal: ${started.queueId}\nObjective: ${goal.objective}` }], details: { goal, telemetry, started, queue: getQueue() } as QueueToolDetails };
 }
 
-function sendNextQueueHandoffAfterDequeue(runtime: GoalQueueToolRuntime): void {
+function sendNextQueueHandoffAfterDequeue(pi: ExtensionAPI, runtime: GoalQueueToolRuntime, ticket: ContinuationTicket = decideTerminalContinuationTicket(getGoal(), getQueue(), { triggerTurn: true })): void {
 	const goal = getGoal();
-	const reason = queueHandoffReason(goal);
 	const queueLength = getQueue().length;
-	logCompactionDebug("queueTools.dequeue.queueHandoffDecision", { reason, queueLength, hasGoal: Boolean(goal), hasSender: Boolean(runtime.sendQueueHandoff) });
-	if (!goal || !reason || queueLength === 0) return;
-	if (!runtime.sendQueueHandoff) {
-		logCompactionDebug("queueTools.dequeue.queueHandoffSkipped", { reason, queueLength });
-		return;
-	}
-	runtime.sendQueueHandoff(reason, { goalId: goal.goalId, triggerTurn: true });
-	logCompactionDebug("queueTools.dequeue.queueHandoffSent", { reason, queueLength });
+	const validation = revalidateContinuationTicket(ticket, goal, getQueue());
+	logCompactionDebug("queueTools.dequeue.queueHandoffDecision", { ticketKind: ticket.kind, queueLength, hasGoal: Boolean(goal), hasSender: Boolean(runtime.sendQueueHandoff), valid: validation.ok });
+	if (!validation.ok) return;
+	const sent = dispatchContinuationTicket(pi, ticket);
+	logCompactionDebug("queueTools.dequeue.queueHandoffSent", { ticketKind: ticket.kind, queueLength, sent });
 }
 
 type QueuedObjectiveResolution = { ok: true; objective: string } | { ok: false; error: string };

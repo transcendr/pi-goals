@@ -1,7 +1,7 @@
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { STATE_ENTRY_TYPE, STATE_EVENT_VERSION } from "./constants";
 import { isTelemetry } from "./telemetry";
-import type { GoalRuntimeState, GoalState, GoalTelemetrySnapshot, MutationResult, PiGoalEventReason, PiGoalStateEvent } from "./types";
+import type { ContextResetMode, GoalRuntimeState, GoalState, GoalTelemetrySnapshot, MutationResult, PiGoalEventReason, PiGoalStateEvent, PostCompletionActionState, PostCompletionActionStatus } from "./types";
 
 export type CreateGoalStateInput = {
 	objective: string;
@@ -9,6 +9,7 @@ export type CreateGoalStateInput = {
 	timeBudgetSeconds?: number;
 	minTokensBeforeWrapUp?: number;
 	minTimeSecondsBeforeWrapUp?: number;
+	postCompletionActions?: GoalState["postCompletionActions"];
 	now?: number;
 };
 
@@ -55,6 +56,7 @@ export function createGoalState(input: CreateGoalStateInput): GoalState {
 		timeUsedSeconds: 0,
 		createdAt: now,
 		updatedAt: now,
+		postCompletionActions: input.postCompletionActions,
 	};
 }
 
@@ -150,16 +152,100 @@ function isGoalEvent(value: unknown): value is PiGoalStateEvent {
 function toGoalState(value: unknown): GoalState | null {
 	if (typeof value !== "object" || value === null) return null;
 	const v = value as Record<string, unknown>;
-	if (typeof v.goalId !== "string" || typeof v.objective !== "string" || typeof v.status !== "string") return null;
-	const minTokensBeforeWrapUp = optionalPositiveInteger(v.minTokensBeforeWrapUp);
-	const minTimeSecondsBeforeWrapUp = optionalPositiveInteger(v.minTimeSecondsBeforeWrapUp);
+	const required = requiredGoalFields(v);
+	if (!required) return null;
+	const legacyContext = parseContextResetMode(v.postCompletionContext);
+	const legacyStatus = parseActionStatus(v.contextResetStatus);
 	return {
-		...(v as GoalState),
-		minTokensBeforeWrapUp,
-		minTimeSecondsBeforeWrapUp,
+		goalId: required.goalId,
+		objective: required.objective,
+		status: required.status,
+		tokenBudget: optionalPositiveInteger(v.tokenBudget),
+		timeBudgetSeconds: optionalPositiveInteger(v.timeBudgetSeconds),
+		minTokensBeforeWrapUp: optionalPositiveInteger(v.minTokensBeforeWrapUp),
+		minTimeSecondsBeforeWrapUp: optionalPositiveInteger(v.minTimeSecondsBeforeWrapUp),
+		tokensUsed: finiteNumber(v.tokensUsed) ?? 0,
+		timeUsedSeconds: finiteNumber(v.timeUsedSeconds) ?? 0,
+		createdAt: finiteNumber(v.createdAt) ?? Date.now(),
+		updatedAt: finiteNumber(v.updatedAt) ?? Date.now(),
+		postCompletionActions: parsePostCompletionActionStates(v.postCompletionActions, required.goalId, legacyContext, legacyStatus, v),
+		postCompletionContext: legacyContext,
+		contextResetAnchorEntryId: optionalString(v.contextResetAnchorEntryId),
+		contextResetStatus: legacyStatus,
+		contextResetFailure: optionalString(v.contextResetFailure),
+		contextResetCompletedAt: finiteNumber(v.contextResetCompletedAt),
 	};
+}
+
+function requiredGoalFields(value: Record<string, unknown>): Pick<GoalState, "goalId" | "objective" | "status"> | null {
+	if (typeof value.goalId !== "string" || typeof value.objective !== "string") return null;
+	if (value.status !== "active" && value.status !== "paused" && value.status !== "budgetLimited" && value.status !== "complete") return null;
+	return { goalId: value.goalId, objective: value.objective, status: value.status };
+}
+
+function parsePostCompletionActionStates(value: unknown, goalId: string, legacyContext: ContextResetMode | "none" | undefined, legacyStatus: PostCompletionActionStatus | undefined, raw: Record<string, unknown>): PostCompletionActionState[] | undefined {
+	if (Array.isArray(value)) return parseActionStateArray(value);
+	if (!legacyContext || legacyContext === "none") return undefined;
+	return [{
+		id: `legacy-context-reset-${goalId}`,
+		type: "context.reset",
+		mode: legacyContext,
+		status: legacyStatus ?? "pending",
+		anchorEntryId: optionalString(raw.contextResetAnchorEntryId),
+		failure: optionalString(raw.contextResetFailure),
+		completedAt: finiteNumber(raw.contextResetCompletedAt),
+		updatedAt: finiteNumber(raw.updatedAt),
+	}];
+}
+
+function parseActionStateArray(values: unknown[]): PostCompletionActionState[] | undefined {
+	const parsed: PostCompletionActionState[] = [];
+	for (const value of values) {
+		const action = parseActionState(value);
+		if (!action) return undefined;
+		parsed.push(action);
+	}
+	return parsed;
+}
+
+function parseActionState(value: unknown): PostCompletionActionState | null {
+	if (typeof value !== "object" || value === null) return null;
+	const raw = value as Record<string, unknown>;
+	const status = parseActionStatus(raw.status);
+	if (typeof raw.id !== "string" || raw.type !== "context.reset" || !status) return null;
+	const mode = parseContextResetMode(raw.mode);
+	if (mode !== "clear" && mode !== "summarize") return null;
+	return {
+		id: raw.id,
+		type: "context.reset",
+		mode,
+		status,
+		anchorEntryId: optionalString(raw.anchorEntryId),
+		failure: optionalString(raw.failure),
+		skippedReason: optionalString(raw.skippedReason),
+		completedAt: finiteNumber(raw.completedAt),
+		updatedAt: finiteNumber(raw.updatedAt),
+	};
+}
+
+function parseContextResetMode(value: unknown): ContextResetMode | "none" | undefined {
+	if (value === "clear" || value === "summarize" || value === "none") return value;
+	return undefined;
+}
+
+function parseActionStatus(value: unknown): PostCompletionActionStatus | undefined {
+	if (value === "pending" || value === "running" || value === "done" || value === "failed" || value === "skipped") return value;
+	return undefined;
 }
 
 function optionalPositiveInteger(value: unknown): number | undefined {
 	return typeof value === "number" && Number.isInteger(value) && value > 0 ? value : undefined;
+}
+
+function finiteNumber(value: unknown): number | undefined {
+	return typeof value === "number" && Number.isFinite(value) ? value : undefined;
+}
+
+function optionalString(value: unknown): string | undefined {
+	return typeof value === "string" ? value : undefined;
 }

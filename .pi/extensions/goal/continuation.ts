@@ -11,7 +11,7 @@ import { logCompactionDebug, logCompactionDebugWithContext } from "./debug-log";
 import { evaluateCompletionFloor } from "./floor";
 import { buildBudgetLimitPrompt, buildContinuationPrompt, buildPausePrompt } from "./prompts";
 import { getQueue } from "./queue-state";
-import { sendQueueHandoff } from "./queue-steering";
+import { decideTerminalContinuationTicket, dispatchContinuationTicket, revalidateContinuationTicket } from "./continuation-ticket";
 import { getGoal, getTelemetry, persistTelemetry } from "./state";
 import { noteBudgetWrapUpSent, noteCompactionContinuation, noteContinuationScheduled, noteContinuationSkipped, setNextTurnOrigin } from "./telemetry";
 import type { ContinuationReason, ContinuationSkipReason, GoalState } from "./types";
@@ -241,7 +241,8 @@ function prequeueCompactionWork(pi: ExtensionAPI, work: CompactionContinuationWo
 		logRuntime("prequeueCompactionWork.activeGoal.sent", workFields(work));
 		return true;
 	}
-	const sent = sendQueueHandoff(pi, "goal-complete", { goalId: work.goalId, triggerTurn: false, deliverAs: "followUp", force: true });
+	const ticket = decideCompactionQueueHandoffTicket(work, { triggerTurn: false, deliverAs: "followUp", force: true });
+	const sent = ticket.kind === "queueHandoff" && dispatchContinuationTicket(pi, ticket);
 	if (sent) finishCompactionTelemetry(pi, "prequeue", work.key, 0, "sent");
 	logRuntime("prequeueCompactionWork.queueHandoff.end", { ...workFields(work), sent });
 	return sent;
@@ -277,12 +278,11 @@ function attemptQueueHandoff(pi: ExtensionAPI, ctx: ExtensionContext, work: Extr
 	logCompactionDebugWithContext("attemptQueueHandoff.start", ctx, workFields(work));
 	if (!ctx.isIdle()) return { kind: "transientSkip", reason: "notIdle" };
 	if (ctx.hasPendingMessages()) return { kind: "transientSkip", reason: "pendingMessages" };
-	const goal = getGoal();
-	if (!goal || goal.goalId !== work.goalId || goal.status !== "complete") return { kind: "terminalSkip", reason: "notActive" };
-	const queueHead = getQueue()[0];
-	if (!queueHead) return { kind: "terminalSkip", reason: "queueMissing" };
-	if (queueHead.queueId !== work.queueId) return { kind: "terminalSkip", reason: "queueChanged" };
-	const sent = sendQueueHandoff(pi, "goal-complete", { goalId: work.goalId, force: true });
+	const ticket = decideCompactionQueueHandoffTicket(work, { force: true });
+	if (ticket.kind !== "queueHandoff") return { kind: "terminalSkip", reason: ticket.reason === "queue_empty" ? "queueMissing" : "notActive" };
+	const validation = revalidateContinuationTicket(ticket, getGoal(), getQueue());
+	if (!validation.ok) return { kind: "terminalSkip", reason: validation.reason === "queue_head_changed" ? "queueChanged" : "notActive" };
+	const sent = dispatchContinuationTicket(pi, ticket);
 	logRuntime("attemptQueueHandoff.sendResult", { ...workFields(work), sent });
 	return sent ? { kind: "sent" } : { kind: "terminalSkip", reason: "queueChanged" };
 }
@@ -292,6 +292,13 @@ function compactionWorkStillApplies(work: CompactionContinuationWork): boolean {
 	if (work.kind === "activeGoal") return Boolean(goal && goal.goalId === work.goalId && goal.status === "active");
 	const queueHead = getQueue()[0];
 	return Boolean(goal && goal.goalId === work.goalId && goal.status === "complete" && queueHead?.queueId === work.queueId);
+}
+
+function decideCompactionQueueHandoffTicket(work: Extract<CompactionContinuationWork, { kind: "queueHandoff" }>, opts: { triggerTurn?: boolean; deliverAs?: "steer" | "followUp"; force?: boolean }) {
+	const ticket = decideTerminalContinuationTicket(getGoal(), getQueue(), opts);
+	if (ticket.kind !== "queueHandoff") return ticket;
+	if (ticket.goalId !== work.goalId || ticket.queueId !== work.queueId) return { kind: "none" as const, reason: "compaction_work_changed" };
+	return ticket;
 }
 
 function sendContinuationMessage(pi: ExtensionAPI, goal: GoalState, telemetry: ReturnType<typeof getTelemetry>, reason: ContinuationReason, triggerTurn: boolean): void {
