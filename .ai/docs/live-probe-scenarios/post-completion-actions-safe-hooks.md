@@ -5,6 +5,7 @@
 Validate ISSUE-044 behavior in a real Pi/Solo process after deterministic probes pass:
 
 - template raw trailing context directive survives template expansion;
+- slash-created `and clear context` runs same-session tree navigation on completion;
 - post-completion context reset action can be skipped/disabled without blocking queue continuation;
 - visible runtime state/notifications show the action policy;
 - cleanup leaves no unintended active goal or queued items.
@@ -85,7 +86,24 @@ Expected evidence:
 - post-completion context/action behavior is visible as summarize context policy or action state;
 - no template expansion bug causes `and summarize context` to be treated as ordinary mid-template text only.
 
-### 4. Disabled/skipped context reset must not block queue continuation
+### 4. Clear-context directive runs live navigation
+
+Send a simple slash-created goal whose trailing directive is `and clear context`:
+
+```bash
+solo-mcp --instance "$SOLO_INSTANCE" process send "$PROBE_PROCESS" --project "$SOLO_PROJECT" --input '/goal count to 1 and clear context'
+sleep 15
+solo-mcp --instance "$SOLO_INSTANCE" process output "$PROBE_PROCESS" --project "$SOLO_PROJECT" --lines 220 --full
+```
+
+Expected evidence:
+
+- the visible goal objective is `count to 1`, proving the trailing directive was stripped instead of treated as ordinary objective text;
+- the goal completes normally;
+- the transcript shows same-session navigation, such as `Navigated to selected point`, after completion;
+- no warning says the context reset action failed.
+
+### 5. Disabled/skipped context reset must not block queue continuation
 
 Use default-on kill switch state if available in the probe runtime. If the probe process was not spawned with `PI_GOAL_CONTEXT_RESET=0`, use an action-failure/skipped path that is safe in this runtime, such as missing/cleared command-context capability, but do not intentionally break unrelated state.
 
@@ -106,7 +124,7 @@ Expected evidence:
 - the queued `count to 3` goal starts or is offered through queue steering;
 - action state/failure is not used as a reason to suppress the next queue item.
 
-### 5. Cleanup
+### 6. Cleanup
 
 ```bash
 solo-mcp --instance "$SOLO_INSTANCE" process send "$PROBE_PROCESS" --project "$SOLO_PROJECT" --input '/goal clear'
@@ -127,12 +145,13 @@ Pass only if the captured transcript shows:
 
 ```toon
 toon.version: 1
-live_probe_requirements[5]{id,required_evidence}:
+live_probe_requirements[6]{id,required_evidence}:
   "lp1","/reload succeeds without extension load error"
   "lp2","template raw directive invocation records summarize-context action/policy after raw arg extraction"
-  "lp3","failed/skipped/disabled context reset action is visible"
-  "lp4","queue handoff proceeds despite failed/skipped/disabled action"
-  "lp5","cleanup leaves no unintended active goal or queued item"
+  "lp3","slash-created `and clear context` strips the directive, completes, and runs live tree navigation"
+  "lp4","failed/skipped/disabled context reset action is visible"
+  "lp5","queue handoff proceeds despite failed/skipped/disabled action"
+  "lp6","cleanup leaves no unintended active goal or queued item"
 ```
 
 If any requirement is ambiguous, mark the live probe inconclusive and keep deterministic evidence separate from live evidence.
