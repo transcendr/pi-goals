@@ -1,9 +1,8 @@
-import { Type } from "typebox";
-import { CreateGoalParams, EmptyParams, NullableNumber, PostCompletionActionParam, PostCompletionContextParam, TemplateFlags } from "./tool-schemas";
+import { CreateGoalFromTemplateParams, CreateGoalParams, EmptyParams, NullableNumber, UpdateGoalParams } from "./tool-schemas";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { validateObjective } from "./format";
 import { isBudgetExhausted, canActivateGoal } from "./budget";
-import { decideGoalCompletion, type CompletionDecision } from "./completion-gate";
+import { decideGoalCompletionWithRecentMonitorPatterns, type CompletionDecision } from "./completion-gate";
 import { evaluateCompletionFloor, validateFloorConfig, type CompletionFloorEvaluation } from "./floor";
 import { createTelemetry, noteBudgetLimit, noteFloorCompletionDeferred } from "./telemetry";
 import { listGoalTemplateMetadata } from "./templates";
@@ -12,30 +11,9 @@ import { createPostCompletionActionStates, recordPostStartActionAnchors, type Po
 import { processTerminalGoalWorkflow } from "./terminal-workflow";
 import { createGoalState, getGoal, getTelemetry, persistClearGoal, persistSetGoal, persistTelemetry, persistUpdateGoal } from "./state";
 import { registerGoalQueueTools } from "./queue-tools";
-import { getRecentMonitorLogs } from "./monitor-state";
 import { syncGoalUi } from "./ui";
 import { errorResult, formatToolGoal, remainingTime, remainingTokens, resultForGoal, resultForTemplates, type ToolDetails } from "./tool-results";
 import type { GoalCommandScheduler, GoalContinuationCanceller, GoalMonitorCanceller, GoalMonitorScheduler, GoalQueueSteeringSender, GoalState, GoalStatus, GoalTelemetrySnapshot } from "./types";
-
-const CreateGoalFromTemplateParams = Type.Object({
-	template: Type.String({ description: "Reusable goal template name or alias explicitly requested by the user" }),
-	flags: Type.Optional(TemplateFlags),
-	args: Type.Optional(Type.String({ description: "Template invocation arguments parsed like `/goal <template> ...`: use `--flag value` and `-- trailing args`." })),
-	token_budget: Type.Optional(Type.Number({ description: "Optional positive token budget" })),
-	time_budget_seconds: Type.Optional(Type.Number({ description: "Optional positive time budget in seconds" })),
-	min_tokens_before_wrap_up: Type.Optional(Type.Number({ description: "Optional positive minimum tokens before normal wrap-up/completion is allowed" })),
-	min_time_seconds_before_wrap_up: Type.Optional(Type.Number({ description: "Optional positive minimum time seconds before normal wrap-up/completion is allowed" })),
-	post_completion_context: Type.Optional(PostCompletionContextParam),
-	post_completion_actions: Type.Optional(Type.Array(PostCompletionActionParam)),
-});
-const UpdateGoalParams = Type.Object({
-	status: Type.Optional(Type.String({ description: "Optional status update: active, paused, or complete" })),
-	objective: Type.Optional(Type.String({ description: "Optional replacement objective explicitly requested by the user" })),
-	token_budget: Type.Optional(NullableNumber),
-	time_budget_seconds: Type.Optional(NullableNumber),
-	min_tokens_before_wrap_up: Type.Optional(NullableNumber),
-	min_time_seconds_before_wrap_up: Type.Optional(NullableNumber),
-});
 
 type GoalToolRuntime = {
 	scheduleContinuation?: GoalCommandScheduler;
@@ -284,11 +262,10 @@ function updateGoalFromTool(pi: ExtensionAPI, runtime: GoalToolRuntime, params: 
 		const resource = reason === "tokenBudget" ? "token" : reason === "timeBudget" ? "time" : "budget";
 		return errorResult(`Cannot resume: ${resource} budget is still exhausted. Raise the budget or use clear_goal before resuming.`);
 	}
-	const completionDecision = decideGoalCompletion({
+	const completionDecision = decideGoalCompletionWithRecentMonitorPatterns({
 		currentGoal: goal,
 		candidateGoal: update.goal,
 		telemetry: getTelemetry(),
-		recentMonitorPatterns: getRecentMonitorLogs(goal.goalId).map((entry) => entry.pattern ?? "").filter(Boolean),
 	});
 	if (completionDecision.kind === "defer_and_steer") return floorCompletionDeferredResult(pi, ctx, goal, completionDecision);
 	if (update.goal.status !== "active") {

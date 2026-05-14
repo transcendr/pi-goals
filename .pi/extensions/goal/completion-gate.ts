@@ -1,6 +1,7 @@
 import { isBudgetExhausted } from "./budget";
 import { evaluateCompletionFloor, type CompletionFloorEvaluation } from "./floor";
 import { buildFloorCompletionRefusal, selectFloorWorkCard, type FloorWorkCard } from "./floor-steering";
+import { getRecentMonitorLogs } from "./monitor-state";
 import type { GoalState, GoalTelemetrySnapshot, NoMoreValuableWorkReason } from "./types";
 
 export type CompletionDecision =
@@ -31,6 +32,13 @@ export function decideGoalCompletion(input: GoalCompletionGateInput): Completion
 		card: selected,
 		message: buildFloorCompletionRefusal({ goal: input.currentGoal, floor, card: selected }),
 	};
+}
+
+export function decideGoalCompletionWithRecentMonitorPatterns(input: Omit<GoalCompletionGateInput, "recentMonitorPatterns">): CompletionDecision {
+	return decideGoalCompletion({
+		...input,
+		recentMonitorPatterns: getRecentMonitorLogs(input.currentGoal.goalId).map((entry) => entry.pattern ?? "").filter(Boolean),
+	});
 }
 
 function canAllowNoValuableWorkEscape(telemetry: GoalTelemetrySnapshot | null): boolean {

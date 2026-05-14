@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 const files = {
   types: '.pi/extensions/goal/types.ts',
   tools: '.pi/extensions/goal/tools.ts',
+  toolSchemas: '.pi/extensions/goal/tool-schemas.ts',
   gate: '.pi/extensions/goal/completion-gate.ts',
   floor: '.pi/extensions/goal/floor.ts',
   state: '.pi/extensions/goal/state.ts',
@@ -28,6 +29,7 @@ function indexOfOrFail(name, text, needle) {
 
 const types = read(files.types);
 const tools = read(files.tools);
+const toolSchemas = read(files.toolSchemas);
 const gate = read(files.gate);
 const floor = read(files.floor);
 const state = read(files.state);
@@ -44,8 +46,8 @@ assert('floor validation bounds minimum by maximum time budget', /min_time_secon
 assert('completion gate has defer decision', /kind: "defer_and_steer"/.test(gate));
 assert('completion gate honors max budget precedence', /isBudgetExhausted\(input\.currentGoal\)/.test(gate));
 assert('completion gate uses current goal floor', /evaluateCompletionFloor\(input\.currentGoal\)/.test(gate));
-assert('tool schema exposes create floor params', /min_tokens_before_wrap_up: Type\.Optional\(Type\.Number/.test(tools) && /min_time_seconds_before_wrap_up: Type\.Optional\(Type\.Number/.test(tools));
-assert('update schema allows null floor removal', /min_tokens_before_wrap_up: Type\.Optional\(NullableNumber\)/.test(tools) && /min_time_seconds_before_wrap_up: Type\.Optional\(NullableNumber\)/.test(tools));
+assert('tool schema exposes create floor params', /min_tokens_before_wrap_up: Type\.Optional\(Type\.Number/.test(toolSchemas) && /min_time_seconds_before_wrap_up: Type\.Optional\(Type\.Number/.test(toolSchemas));
+assert('update schema allows null floor removal', /min_tokens_before_wrap_up: Type\.Optional\(NullableNumber\)/.test(toolSchemas) && /min_time_seconds_before_wrap_up: Type\.Optional\(NullableNumber\)/.test(toolSchemas));
 assert('same-call floor edit plus complete blocked', /Floor edits and status complete must be separate update_goal calls/.test(tools));
 assert('deferred completion details include completion_blocked_by_floor', /completion_blocked_by_floor: true/.test(tools));
 assert('state createGoalState uses options object', /export function createGoalState\(input: CreateGoalStateInput\)/.test(state));
