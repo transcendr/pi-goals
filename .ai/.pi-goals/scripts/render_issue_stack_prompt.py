@@ -12,6 +12,8 @@ from dataclasses import dataclass
 from typing import Iterable
 
 BUCKETS = ["open", "refine", "defer", "fixed", "closed"]
+REPO_STATUS_MAX_LINES = 60
+REPO_STATUS_MAX_CHARS = 3000
 
 
 @dataclass(frozen=True)
@@ -32,14 +34,57 @@ class SoloContext:
 
 def run_text(args: list[str], timeout: float = 5.0) -> str:
     try:
-        return subprocess.check_output(args, stderr=subprocess.DEVNULL, text=True, timeout=timeout)
+        return subprocess.check_output(
+            args, stderr=subprocess.DEVNULL, text=True, timeout=timeout
+        )
     except Exception:
         return ""
 
 
 def repo_status() -> str:
-    status = run_text(["git", "status", "--short", "--untracked-files=all"], timeout=3).strip()
-    return status if status else "clean: true"
+    status = run_text(
+        ["git", "status", "--short", "--untracked-files=all"], timeout=3
+    ).strip()
+    if not status:
+        return "clean: true"
+
+    lines = status.splitlines()
+    tracked = [line for line in lines if not line.startswith("?? ")]
+    untracked = [line for line in lines if line.startswith("?? ")]
+    ordered_sample = tracked + untracked
+    sample_lines: list[str] = []
+    sample_chars = 0
+    for line in ordered_sample:
+        next_chars = sample_chars + len(line) + 1
+        if (
+            len(sample_lines) >= REPO_STATUS_MAX_LINES
+            or next_chars > REPO_STATUS_MAX_CHARS
+        ):
+            break
+        sample_lines.append(line)
+        sample_chars = next_chars
+
+    counts = {
+        "modified": sum(1 for line in lines if "M" in line[:2]),
+        "added": sum(1 for line in lines if "A" in line[:2]),
+        "deleted": sum(1 for line in lines if "D" in line[:2]),
+        "renamed": sum(1 for line in lines if "R" in line[:2]),
+        "untracked": len(untracked),
+    }
+    summary = [
+        "dirty: true",
+        f"status_total_lines: {len(lines)}",
+        "status_counts:",
+        *(f"  {key}: {value}" for key, value in counts.items()),
+        "status_sample:",
+        *sample_lines,
+    ]
+    if len(sample_lines) < len(lines):
+        summary.append(
+            f"[git status truncated: showing {len(sample_lines)} of {len(lines)} lines; "
+            f"tracked lines are shown before untracked lines; max {REPO_STATUS_MAX_CHARS} chars]"
+        )
+    return "\n".join(summary)
 
 
 def detect_solo_context() -> SoloContext | None:
@@ -73,14 +118,24 @@ def discover_issue_docs() -> list[IssueDoc]:
             num = int(match.group(1))
             issue = f"ISSUE-{num:03d}"
             slug = match.group(2)
-            docs.append(IssueDoc(num=num, issue=issue, slug=slug, path=path, workflow_dir=f".ai/docs/issue-workflow/{issue}-{slug}"))
+            docs.append(
+                IssueDoc(
+                    num=num,
+                    issue=issue,
+                    slug=slug,
+                    path=path,
+                    workflow_dir=f".ai/docs/issue-workflow/{issue}-{slug}",
+                )
+            )
     return docs
 
 
 def parse_issue_numbers(selector: str) -> list[int]:
     nums: list[int] = []
     covered_spans: list[tuple[int, int]] = []
-    range_re = re.compile(r"(?i)(?:issue[- ]*)?(\d{1,3})\s*(?:-|through|to|\.\.)\s*(?:issue[- ]*)?(\d{1,3})")
+    range_re = re.compile(
+        r"(?i)(?:issue[- ]*)?(\d{1,3})\s*(?:-|through|to|\.\.)\s*(?:issue[- ]*)?(\d{1,3})"
+    )
     for match in range_re.finditer(selector):
         lo, hi = sorted((int(match.group(1)), int(match.group(2))))
         nums.extend(range(lo, hi + 1))
@@ -88,7 +143,10 @@ def parse_issue_numbers(selector: str) -> list[int]:
 
     single_re = re.compile(r"(?i)(?:issue[- ]*)?(\d{1,3})")
     for match in single_re.finditer(selector):
-        if any(start <= match.start() and match.end() <= end for start, end in covered_spans):
+        if any(
+            start <= match.start() and match.end() <= end
+            for start, end in covered_spans
+        ):
             continue
         nums.append(int(match.group(1)))
 
@@ -117,91 +175,53 @@ def stack_id(issues: Iterable[IssueDoc]) -> str:
     return "issue-stack-" + "-".join(issue.issue for issue in issues)
 
 
-def list_existing_relevant_todos(ctx: SoloContext, issues: list[IssueDoc], stack: str) -> str:
-    output = run_text(["solo-mcp", "--instance", "solo", "todos", "--project", ctx.project_id, "--status", "open"], timeout=5)
+def list_existing_relevant_todos(
+    ctx: SoloContext, issues: list[IssueDoc], stack: str
+) -> str:
+    output = run_text(
+        [
+            "solo-mcp",
+            "--instance",
+            "solo",
+            "todos",
+            "--project",
+            ctx.project_id,
+            "--status",
+            "open",
+        ],
+        timeout=5,
+    )
     if not output.strip():
         return "none"
     needles = [stack, *[issue.issue for issue in issues]]
-    relevant = [line for line in output.splitlines() if any(needle in line for needle in needles)]
+    relevant = [
+        line
+        for line in output.splitlines()
+        if any(needle in line for needle in needles)
+    ]
     return "\n".join(relevant) if relevant else "none"
-
-
-DESLOP_MAP_MARKERS = (
-    "deslop",
-    "production-hardening",
-    "production hardening",
-    "quality-review",
-    "quality review",
-)
-
-
-def _linked_markdown_paths_with_context(issue_path: str) -> list[tuple[str, str]]:
-    try:
-        with open(issue_path, "r", encoding="utf-8") as handle:
-            lines = handle.read().splitlines()
-    except OSError:
-        return []
-
-    candidates: list[tuple[str, str]] = []
-    pattern = re.compile(r"(?:`(?P<tick>\.ai/[^`]+?\.md)`)|(?:\[[^\]]*\]\((?P<link>\.ai/[^)]+?\.md)\))|(?P<plain>\.ai/\S+?\.md)")
-    for line in lines:
-        context = line
-        for match in pattern.finditer(line):
-            path = match.group("tick") or match.group("link") or match.group("plain")
-            if path:
-                candidates.append((path.rstrip(".,;:"), context))
-    return candidates
-
-
-def _looks_like_deslop_map(path: str, context: str) -> bool:
-    haystack = f"{path} {context}".lower()
-    if any(marker in haystack for marker in DESLOP_MAP_MARKERS):
-        return True
-    if not os.path.exists(path):
-        return False
-    try:
-        with open(path, "r", encoding="utf-8") as handle:
-            heading_lines = [line.strip().lower() for line in handle.read(2000).splitlines() if line.lstrip().startswith("#")]
-    except OSError:
-        return False
-    heading_text = " ".join(heading_lines)
-    return any(marker in heading_text for marker in DESLOP_MAP_MARKERS)
-
-
-def resolve_deslop_guidance_maps(issue: IssueDoc) -> list[str]:
-    resolved: list[str] = []
-    seen: set[str] = set()
-    for path, context in _linked_markdown_paths_with_context(issue.path):
-        if path in seen:
-            continue
-        seen.add(path)
-        if _looks_like_deslop_map(path, context):
-            resolved.append(path)
-    return resolved
-
-
-def format_deslop_guidance_lines(issue: IssueDoc, prefix: str = "  - ") -> str:
-    maps = resolve_deslop_guidance_maps(issue)
-    if not maps:
-        return f"{prefix}deslop guidance map: not linked in issue doc; record this absence and rely on issue proofs/project gates only"
-    return "\n".join(f"{prefix}deslop guidance map: {path}" for path in maps)
 
 
 def bullet_issue_stack(issues: list[IssueDoc]) -> str:
     lines = []
     for issue in issues:
-        lines.extend([
-            f"- {issue.issue}: {issue.path}",
-            f"  - workflow dir: {issue.workflow_dir}",
-            format_deslop_guidance_lines(issue),
-        ])
+        lines.extend(
+            [
+                f"- {issue.issue}: {issue.path}",
+                f"  - workflow dir: {issue.workflow_dir}",
+            ]
+        )
     return "\n".join(lines)
 
 
 def default_edges(issues: list[IssueDoc]) -> str:
-    lines = ["- Within each issue: implementation leaf -> validation/proofs leaf -> closeout leaf."]
+    lines = [
+        "- Within each issue: implementation leaf -> validation/proofs leaf -> closeout leaf."
+    ]
     for previous, current in zip(issues, issues[1:]):
-        lines.append(f"- Cross-issue: {previous.issue} closeout leaf blocks {current.issue} implementation leaf.")
+        lines.append(
+            f"- Cross-issue: {previous.issue} closeout leaf blocks {current.issue} implementation leaf."
+        )
     return "\n".join(lines)
 
 
@@ -209,11 +229,16 @@ def indent(text: str, prefix: str = "  ") -> str:
     return "\n".join(f"{prefix}{line}" if line else line for line in text.splitlines())
 
 
-def per_issue_goal_templates_solo(issues: list[IssueDoc], stack: str, ctx: SoloContext) -> str:
+def per_issue_goal_templates_solo(
+    issues: list[IssueDoc], stack: str, ctx: SoloContext
+) -> str:
     blocks: list[str] = []
     for index, issue in enumerate(issues, start=1):
-        dependency = "none beyond stack planning/playbook completion" if index == 1 else f"{issues[index - 2].issue} closeout leaf is complete with proof comments"
-        deslop_guidance = format_deslop_guidance_lines(issue)
+        dependency = (
+            "none beyond stack planning/playbook completion"
+            if index == 1
+            else f"{issues[index - 2].issue} closeout leaf is complete with proof comments"
+        )
         blocks.append(f"""### {issue.issue} active goal objective
 
 Start this goal only after the Solo epic, phase todos, {issue.issue} issue todo, {issue.issue} leaf todos, dependency blockers, and `{stack} playbook` scratchpad exist.
@@ -224,7 +249,6 @@ Execute {issue.issue} end-to-end as part of {stack}.
 Issue doc: {issue.path}
 Solo: --instance solo --project {ctx.project_id} {ctx.project_name}
 Workflow dir for audit evidence: {issue.workflow_dir}
-{deslop_guidance}
 Epic todo: <fill with created Solo epic todo id>
 Phase todos: <fill with created Solo phase todo ids>
 Issue todo: <fill with created {issue.issue} parent todo id>
@@ -232,13 +256,11 @@ Leaf todos: <fill with created implementation, validation/proofs, and closeout l
 Execution playbook: <fill with Solo scratchpad id/name for `{stack} playbook`>
 Dependencies satisfied: {dependency}; verify with todo comments and blocker state before starting.
 Required proofs/gates: extract from {issue.path} before implementation and list exact commands/artifacts here.
-Deslop guidance: read every resolved deslop guidance map before code edits; extract global rules and phase/checkpoint prompts into the implementation leaf and playbook.
 
 Execution rules:
 - update Solo todo status as work progresses;
 - add an auditable comment before closing any todo;
 - run and record required proofs in leaf todo comments;
-- after each non-trivial change set and before each phase/leaf transition, consult the relevant deslop map checkpoint prompts plus global rules and record the review result in the active Solo todo/comment;
 - close leaf todos before the {issue.issue} parent todo;
 - keep implementation scoped to {issue.issue} unless the issue doc proves a shared dependency is required.
 ```
@@ -249,8 +271,11 @@ Execution rules:
 def per_issue_goal_templates_markdown(issues: list[IssueDoc], stack: str) -> str:
     blocks: list[str] = []
     for index, issue in enumerate(issues, start=1):
-        dependency = "none beyond stack planning/playbook completion" if index == 1 else f"{issues[index - 2].issue} closeout todo is done with proof comment"
-        deslop_guidance = format_deslop_guidance_lines(issue)
+        dependency = (
+            "none beyond stack planning/playbook completion"
+            if index == 1
+            else f"{issues[index - 2].issue} closeout todo is done with proof comment"
+        )
         blocks.append(f"""### {issue.issue} active goal objective
 
 Start this goal only after the markdown epic, phase todos, {issue.issue} issue todo, {issue.issue} leaf todos, dependency links, and stack playbook file exist.
@@ -260,7 +285,6 @@ Execute {issue.issue} end-to-end as part of {stack}.
 
 Issue doc: {issue.path}
 Markdown workflow dir: {issue.workflow_dir}
-{deslop_guidance}
 Epic todo: {issues[0].workflow_dir}/todos/{stack}-EPIC.md
 Phase todos: {issues[0].workflow_dir}/todos/{stack}-PHASE-*.md
 Issue todo: {issue.workflow_dir}/todos/{issue.issue}-ISSUE.md
@@ -268,13 +292,11 @@ Leaf todos: {issue.workflow_dir}/todos/{issue.issue}-IMPLEMENTATION.md, {issue.w
 Execution playbook: {issues[0].workflow_dir}/scratchpads/{stack}-PLAYBOOK.md
 Dependencies satisfied: {dependency}; verify in todo comments before starting.
 Required proofs/gates: extract from {issue.path} before implementation and list exact commands/artifacts here.
-Deslop guidance: read every resolved deslop guidance map before code edits; extract global rules and phase/checkpoint prompts into the implementation todo and playbook.
 
 Execution rules:
 - update markdown todo status as work progresses;
 - append an auditable comment before marking any todo done;
 - run and record required proofs in leaf todo comments;
-- after each non-trivial change set and before each phase/leaf transition, consult the relevant deslop map checkpoint prompts plus global rules and record the review result in the active markdown todo comment;
 - close leaf todos before the {issue.issue} parent todo;
 - keep implementation scoped to {issue.issue} unless the issue doc proves a shared dependency is required.
 ```
@@ -283,11 +305,15 @@ Execution rules:
 
 
 def render_unresolved(selector: str, missing: list[str], reason: str | None) -> str:
-    detail = f"Missing issue docs: {', '.join(missing)}" if missing else f"Reason: {reason or 'unknown'}"
+    detail = (
+        f"Missing issue docs: {', '.join(missing)}"
+        if missing
+        else f"Reason: {reason or 'unknown'}"
+    )
     return f"""Resolve the requested issue stack before execution.
 
 Request:
-{selector.strip() or '(empty)'}
+{selector.strip() or "(empty)"}
 
 {detail}
 
@@ -312,7 +338,7 @@ Repository status at prompt expansion:
 
 Solo context:
 - instance: solo
-- project: {ctx.project_id} {ctx.project_name}{chr(10) + '- project path: ' + ctx.project_path if ctx.project_path else ''}
+- project: {ctx.project_id} {ctx.project_name}{chr(10) + "- project path: " + ctx.project_path if ctx.project_path else ""}
 
 Issue stack:
 - stack_id: {stack}
@@ -326,15 +352,15 @@ Create in Solo before implementation:
 - epic todo: `{stack} epic`
 - stack index/coordination todo: `{stack} index`
 - required phase todos: `{stack} phase: planning + playbook`, `{stack} phase: implementation`, `{stack} phase: validation + proofs`, `{stack} phase: closeout`
-- one parent issue todo for each issue: {', '.join(issue.issue + ' parent' for issue in issues)}
+- one parent issue todo for each issue: {", ".join(issue.issue + " parent" for issue in issues)}
 - leaf todos for every issue: implementation, validation/proofs, closeout
 - dependency edges:
 {indent(default_edges(issues))}
 
 Detailed workflow:
 
-1. Read and extract the issue docs and linked deslop guidance maps.
-   Read every issue doc listed above before creating the final todo graph. For each issue, extract the goal, required behavior, non-goals, affected files, acceptance criteria, required proofs, known dependencies, risk notes, and any issue-workflow artifact links. Resolve deslop/production-hardening guidance map artifacts only from links or paths in the issue doc and rendered issue stack above; do not assume a fixed artifact filename, order number, or path such as `08-*`. Read every resolved map before implementation planning, then extract its global rules, surface-specific review points, phase/checkpoint prompts, and closeout requirements. Record these facts in the Solo issue parent todo body and in the playbook scratchpad. If an issue doc contradicts the default dependency order, use the issue doc as the source of truth and encode the dependency explicitly.
+1. Read and extract the issue docs.
+   Read every issue doc listed above before creating the final todo graph. For each issue, extract the goal, required behavior, non-goals, affected files, acceptance criteria, required proofs, known dependencies, risk notes, and any issue-workflow artifact links. Record these facts in the Solo issue parent todo body and in the playbook scratchpad. If an issue doc contradicts the default dependency order, use the issue doc as the source of truth and encode the dependency explicitly.
 
 2. Design the stack todo graph from the extracted issue facts.
    Keep the graph top-down and auditable: epic -> required phase todos -> per-issue parent todos -> leaf todos. Phase todos are always required; if the stack is small, keep the four default phases above rather than omitting phases. Each todo body should state its parent, child todos expected beneath it, blockers, issue doc path, proof obligations, and tags: `issue-stack`, `{stack}`, the relevant `ISSUE-NNN`, and one of `epic`, `phase`, `issue`, or `leaf`.
@@ -346,27 +372,27 @@ Detailed workflow:
    The planning/playbook phase blocks implementation. Each issue implementation leaf blocks its validation/proofs leaf; validation/proofs blocks closeout. For multi-issue stacks, the previous issue closeout leaf blocks the next issue implementation leaf unless the issue docs justify a different dependency. Add blockers in Solo where supported and duplicate the edge list in the epic, stack index, phase, and affected leaf todo bodies.
 
 5. Create the execution playbook scratchpad after the todo graph is finalized.
-   Create one Solo scratchpad named `{stack} playbook`, tagged with `issue-stack` and `{stack}`. The playbook must include the issue order, all created todo ids, dependency edges, required proof commands/artifacts, quality gates, dirty-worktree handling, todo status/comment rules, resolved deslop guidance map paths, deslop global rules that apply across the whole implementation surface, deslop phase/checkpoint prompts mapped onto the implementation/validation/closeout leaves, and the per-issue active goal objectives below. The playbook is the execution primer; implementation starts only after it exists and references the final todo ids and deslop checkpoints.
+   Create one Solo scratchpad named `{stack} playbook`, tagged with `issue-stack` and `{stack}`. The playbook must include the issue order, all created todo ids, dependency edges, required proof commands/artifacts, quality gates, dirty-worktree handling, todo status/comment rules, and the per-issue active goal objectives below. The playbook is the execution primer; implementation starts only after it exists and references the final todo ids.
 
 6. Add the first audit comment before implementation.
    Add a comment to the epic todo summarizing the created graph, phase todos, issue todos, leaf todos, blockers, and playbook scratchpad id/name. Add comments to phase or issue todos when useful to record extracted issue requirements. This establishes the audit trail before code changes begin.
 
 7. Start and execute per-issue active goals sequentially.
-   Start the first issue goal only after steps 1-6 are complete. For each later issue, verify dependency blockers and prior closeout comments/proofs before starting its goal. Each issue goal must reference the issue doc, resolved deslop guidance map path(s) or explicit absence, epic todo, phase todos, issue parent todo, leaf todos, playbook scratchpad, dependency status, required proofs, and the deslop checkpoint schedule extracted from the map.
+   Start the first issue goal only after steps 1-6 are complete. For each later issue, verify dependency blockers and prior closeout comments/proofs before starting its goal. Each issue goal must reference the issue doc, epic todo, phase todos, issue parent todo, leaf todos, playbook scratchpad, dependency status, and required proofs.
 
 {per_issue_goal_templates_solo(issues, stack, ctx)}
 
-8. During implementation, keep Solo state current and apply deslop checkpoints repeatedly.
-   Move todos to in-progress/blocked/done as reality changes. Do not let implementation progress outrun todo state. After each non-trivial change set, before moving from implementation to validation, before closing validation/proofs, and before closeout, revisit the issue's deslop guidance map. Apply both its global/holistic rules and the phase-specific checkpoint prompts relevant to the files/modules just changed. Add an auditable Solo comment naming the map path, checkpoint/phase reviewed, slop risks considered, fixes made or deferred, and any residual risk. Before completing any todo, add an auditable comment with completed work, proof outputs, files/commits/artifacts, deslop checkpoint status, remaining risk, and downstream impact. Close leaf todos before parent issue todos; close issue parents before phase closeout; close the epic only after every requested issue is complete.
+8. During implementation, keep Solo state current.
+   Move todos to in-progress/blocked/done as reality changes. Do not let implementation progress outrun todo state. Before completing any todo, add an auditable comment with completed work, proof outputs, files/commits/artifacts, remaining risk, and downstream impact. Close leaf todos before parent issue todos; close issue parents before phase closeout; close the epic only after every requested issue is complete.
 
 9. Validate and prove completion.
-   Run the exact required proofs from the issue docs plus project quality gates required by `AGENTS.md` for touched code. Before accepting green validation, perform a final holistic deslop review against each resolved map's closeout requirements and global rules, then record the result alongside command outputs or artifact paths in validation/proof leaf comments. If validation or deslop review fails, keep the relevant todo in progress or blocked and add a failure comment with next action.
+   Run the exact required proofs from the issue docs plus project quality gates required by `AGENTS.md` for touched code. Record command outputs or artifact paths in validation/proof leaf comments. If validation fails, keep the relevant todo in progress or blocked and add a failure comment with next action.
 
 10. Final audit.
-   Inspect Solo with `solo-mcp --instance solo todos --project {ctx.project_id}`, `todo view --full` for the epic/phase/issue/leaf todos, `scratchpads`, and `scratchpad read --full` for the playbook. Report created todo ids, dependency edges, playbook id/name, resolved deslop guidance map paths, deslop checkpoint comments, active goal objectives used, commands run, proofs, commits/artifacts, blockers, and the next issue if any remains.
+   Inspect Solo with `solo-mcp --instance solo todos --project {ctx.project_id}`, `todo view --full` for the epic/phase/issue/leaf todos, `scratchpads`, and `scratchpad read --full` for the playbook. Report created todo ids, dependency edges, playbook id/name, active goal objectives used, commands run, proofs, commits/artifacts, blockers, and the next issue if any remains.
 
 Completion standard:
-Every requested issue satisfies its acceptance criteria and required proofs. Every related Solo todo has at least one audit comment before completion. For every issue whose doc links a deslop/production-hardening guidance map, the playbook and todo comments prove that the map was read before implementation, applied after non-trivial change sets and phase/leaf transitions, and checked holistically at closeout. The playbook scratchpad, Solo todo graph, dependency blockers, final repository state, deslop checkpoint evidence, and proof outputs together demonstrate end-to-end completion.
+Every requested issue satisfies its acceptance criteria and required proofs. Every related Solo todo has at least one audit comment before completion. The playbook scratchpad, Solo todo graph, dependency blockers, final repository state, and proof outputs together demonstrate end-to-end completion.
 """
 
 
@@ -374,7 +400,11 @@ def render_markdown(selector: str, issues: list[IssueDoc]) -> str:
     stack = stack_id(issues)
     primary = issues[0].workflow_dir
     issue_names = ", ".join(issue.issue for issue in issues)
-    dirs = sorted({f"{issue.workflow_dir}/todos" for issue in issues} | {f"{issue.workflow_dir}/scratchpads" for issue in issues} | {f"{primary}/todos", f"{primary}/scratchpads"})
+    dirs = sorted(
+        {f"{issue.workflow_dir}/todos" for issue in issues}
+        | {f"{issue.workflow_dir}/scratchpads" for issue in issues}
+        | {f"{primary}/todos", f"{primary}/scratchpads"}
+    )
     mkdirs = "\n".join(f"- {path}" for path in dirs)
     return f"""Execute {issue_names} end-to-end with markdown todo/playbook artifacts.
 
@@ -408,8 +438,8 @@ Create markdown artifacts before implementation:
 
 Detailed workflow:
 
-1. Read and extract the issue docs and linked deslop guidance maps.
-   Read every issue doc listed above before creating the final todo graph. Extract goal, required behavior, non-goals, affected files, acceptance criteria, required proofs, dependencies, risks, and issue-workflow artifact links. Resolve deslop/production-hardening guidance map artifacts only from links or paths in the issue doc and rendered issue stack above; do not assume a fixed artifact filename, order number, or path such as `08-*`. Read every resolved map before implementation planning, then extract its global rules, surface-specific review points, phase/checkpoint prompts, and closeout requirements. Write those facts into the relevant markdown issue parent todo and the stack playbook.
+1. Read and extract the issue docs.
+   Read every issue doc listed above before creating the final todo graph. Extract goal, required behavior, non-goals, affected files, acceptance criteria, required proofs, dependencies, risks, and issue-workflow artifact links. Write those facts into the relevant markdown issue parent todo and the stack playbook.
 
 2. Create the markdown todo graph.
    Create the directories listed above, then create the epic, stack index, required phase todos, issue parent todos, and leaf todos. Phase todos are always required; use the four default phases even for a single small issue. Each todo file must state parent, children, blockers, issue doc path, proof obligations, tags, and current status.
@@ -418,24 +448,24 @@ Detailed workflow:
    Put `blocked_by` entries in frontmatter and also describe the same edges in the body. The planning/playbook phase blocks implementation. Each implementation leaf blocks validation/proofs; validation/proofs blocks closeout. For multi-issue stacks, the previous issue closeout todo blocks the next issue implementation todo unless the issue docs prove another order.
 
 4. Create the stack playbook before implementation.
-   Write {primary}/scratchpads/{stack}-PLAYBOOK.md after the todo graph is finalized. Include issue order, todo paths, dependency graph, required proofs, quality gates, dirty-worktree handling, todo status/comment rules, resolved deslop guidance map paths, deslop global rules that apply across the whole implementation surface, deslop phase/checkpoint prompts mapped onto the implementation/validation/closeout todos, and the per-issue active goal objectives below.
+   Write {primary}/scratchpads/{stack}-PLAYBOOK.md after the todo graph is finalized. Include issue order, todo paths, dependency graph, required proofs, quality gates, dirty-worktree handling, todo status/comment rules, and the per-issue active goal objectives below.
 
 5. Add initial audit comments before implementation.
    Every markdown todo starts with an initial `## Comment — <ISO-8601 timestamp>` section summarizing why it exists and how it maps to the graph. The epic comment must summarize the whole graph and playbook path.
 
 6. Start and execute per-issue active goals sequentially.
-   Start the first issue goal only after the graph and playbook files exist. For each later issue, verify dependency comments/proofs before starting. Each goal references the issue doc, resolved deslop guidance map path(s) or explicit absence, markdown todo paths, playbook path, dependency status, required proofs, and the deslop checkpoint schedule extracted from the map.
+   Start the first issue goal only after the graph and playbook files exist. For each later issue, verify dependency comments/proofs before starting. Each goal references the issue doc, markdown todo paths, playbook path, dependency status, and required proofs.
 
 {per_issue_goal_templates_markdown(issues, stack)}
 
-7. Keep markdown todo state current during implementation and apply deslop checkpoints repeatedly.
-   Change statuses as work progresses. After each non-trivial change set, before moving from implementation to validation, before closing validation/proofs, and before closeout, revisit the issue's deslop guidance map. Apply both its global/holistic rules and the phase-specific checkpoint prompts relevant to the files/modules just changed. Append an auditable markdown comment naming the map path, checkpoint/phase reviewed, slop risks considered, fixes made or deferred, and any residual risk. Before setting any todo to `done`, append a fresh closeout comment with completed work, proof outputs, files/commits/artifacts, deslop checkpoint status, remaining risk, and downstream impact. Close leaf todos before issue parents and parents before the epic.
+7. Keep markdown todo state current during implementation.
+   Change statuses as work progresses. Before setting any todo to `done`, append a fresh closeout comment with completed work, proof outputs, files/commits/artifacts, remaining risk, and downstream impact. Close leaf todos before issue parents and parents before the epic.
 
 8. Validate and prove completion.
-   Run required issue proofs and project quality gates for touched code. Before accepting green validation, perform a final holistic deslop review against each resolved map's closeout requirements and global rules, then record the result alongside command outputs or artifact paths in validation/proof todo comments. If validation or deslop review fails, keep the relevant todo in progress or blocked and add a failure comment with next action.
+   Run required issue proofs and project quality gates for touched code. Record command outputs or artifact paths in validation/proof todo comments. If validation fails, keep the relevant todo in progress or blocked and add a failure comment with next action.
 
 9. Final audit.
-   Inspect generated `todos/` and `scratchpads/` files, run `git status --short --untracked-files=all`, and run `git check-ignore -v <one-created-path> || true`. Report todo paths, dependency edges, playbook path, resolved deslop guidance map paths, deslop checkpoint comments, active goal objectives used, commands run, proofs, commits/artifacts, blockers, and the next issue if any remains.
+   Inspect generated `todos/` and `scratchpads/` files, run `git status --short --untracked-files=all`, and run `git check-ignore -v <one-created-path> || true`. Report todo paths, dependency edges, playbook path, active goal objectives used, commands run, proofs, commits/artifacts, blockers, and the next issue if any remains.
 
 Markdown todo file schema:
 
@@ -465,7 +495,7 @@ Initial creation/update summary.
 ```
 
 Completion standard:
-Every requested issue satisfies its acceptance criteria and required proofs. Every related markdown todo has a closeout comment before `status: done`. For every issue whose doc links a deslop/production-hardening guidance map, the playbook and todo comments prove that the map was read before implementation, applied after non-trivial change sets and phase/leaf transitions, and checked holistically at closeout. The playbook file, todo graph, dependency links, final repository state, deslop checkpoint evidence, and proof outputs together demonstrate end-to-end completion.
+Every requested issue satisfies its acceptance criteria and required proofs. Every related markdown todo has a closeout comment before `status: done`. The playbook file, todo graph, dependency links, final repository state, and proof outputs together demonstrate end-to-end completion.
 """
 
 
