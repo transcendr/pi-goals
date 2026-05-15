@@ -328,7 +328,7 @@ function buildGoalUpdate(goal: GoalState, params: UpdateGoalInput): GoalUpdateRe
 	next = budgetResult.goal;
 	const floorResult = applyFloorUpdates(next, params, changes);
 	if (!floorResult.ok) return floorResult;
-	next = floorResult.floorChanged && params.status === "complete" ? floorResult.goal : floorResult.goal;
+	next = floorResult.goal;
 	const floorError = validateFloorConfig({ tokenBudget: next.tokenBudget, timeBudgetSeconds: next.timeBudgetSeconds, minTokensBeforeWrapUp: next.minTokensBeforeWrapUp, minTimeSecondsBeforeWrapUp: next.minTimeSecondsBeforeWrapUp });
 	if (floorError) return { ok: false, error: floorError };
 	if (floorResult.floorChanged && params.status === "complete") return { ok: false, error: "Floor edits and status complete must be separate update_goal calls." };
