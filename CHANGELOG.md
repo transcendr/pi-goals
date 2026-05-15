@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.1 - 2026-05-15
+
+### Changed
+
+- Renamed the context setup command from `/goal anchor` to `/goal tools`, matching the user-facing purpose: enabling pi-goals tool-created goals to manage context.
+- Rewrote README guidance for between-goal context management to explain branch cleanup and compaction in user terms.
+
 ## 0.5.0 - 2026-05-15
 
 ### Highlights
