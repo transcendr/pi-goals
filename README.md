@@ -6,7 +6,7 @@ Persistent goal tracking for [Pi](https://www.npmjs.com/package/@earendil-works/
 
 ## What's new
 
-Post-completion context reset lets goals request `summarize context` or (opt-in) `clear context` after completion. Completed goals resume the next queued item exactly once, and stale queue steering is automatically invalidated. See the [changelog](CHANGELOG.md) for details.
+Goals can now manage their own context as they finish. Ask Pi to remove a completed goal's execution branch from the active session and keep only a compact summary, whether you are running one long goal or a queue of many goals. That means you can queue several long-running goals and keep progressing without carrying every previous branch forward or forcing a full-session compaction between goals. See the [changelog](CHANGELOG.md) for details.
 
 ## Features
 
@@ -47,6 +47,13 @@ Without prior context, the agent sometimes won't automatically route natural lan
 When handling queued pi-goal prose, treat `.ai/.pi-goals/*` as reusable workflows. Before `start_queued_goal` for an abstract/task-type queue item, call `list_goal_templates` and match by name, aliases, description, and placeholders. If exactly one template fits and inputs are available, use `create_goal_from_template`; dequeue the prose item only after that concrete goal is satisfied. Use `start_queued_goal` only for direct one-off goals.
 
 Never discard queued work. Do not call `dequeue_goal` unless the queue head is actually satisfied or the user explicitly authorizes removing that specific queued item. If uncertain, leave it queued and report the blocker.
+
+
+### Goal queue processing and semantics
+
+If you are asked to queue multiple goals at once, you must FIRST enqueue each goal, and then create and individually process each goal on the queue.
+
+Never violate the queue semantics by batching queue work and then dequeuing multiple queued work items at once as if it had run individually; Each goal on the queue MUST be run individually - no exceptions. Process each queued item as its own concrete goal. If the queued goal objective indicates or references a goal template, treat the goal as an orchestration type goal and create it with `create_goal_from_template`.
 ```
 
 ## `/goal` command
@@ -61,6 +68,7 @@ Use `/goal` to create and manage a persistent objective that survives across tur
 /goal pause
 /goal resume
 /goal clear
+/goal anchor
 ```
 
 Subcommands:
@@ -72,6 +80,7 @@ Subcommands:
 - `/goal pause` — pause continuation and churn monitoring. If a goal-driven turn is active, Pi interrupts it.
 - `/goal resume` — resume a paused goal and schedule continuation/monitoring again.
 - `/goal clear` — remove the current goal from active state.
+- `/goal anchor` — captures the internal Pi context object needed to navigate the session tree, so later plain-language-created goals can summarize context when they finish.
 
 Agents can also inspect, create, update, pause, resume, complete, clear, or queue goals from natural-language instructions without requiring users to type slash commands for every operation.
 
@@ -97,30 +106,49 @@ Use `/goal` when you want direct command control; use natural language when you 
 
 When a goal reaches its time or token budget, `pi-goals` steers the agent into wrap-up instead of silently continuing. Exhausted goals cannot be resumed until the budget is raised or the goal is cleared.
 
-## Post-completion actions
+## Between-goal context management
 
-Goals may request optional post-completion actions. The first supported action is `context.reset`, with modes `clear` and `summarize`. Prose directives are intentionally trailing-only, for example:
+Long queues can build up a lot of one-off detail from each completed goal. Add `and summarize context` when you want Pi to remove the finished goal's execution branch from the active session, keep only a compact summary, and then continue with the next goal.
+
+### Direct `/goal` commands
+
+If you type the slash command yourself, no setup is needed:
 
 ```text
 /goal write the release notes and summarize context
 /goal repo-worktree-inventory -- current state and summarize context
-/goal queue clean the worktree and clear context
+/goal queue clean the worktree and summarize context
 ```
 
-For template invocations, the trailing directive is extracted from the raw invocation args before template expansion, so it still works when a template places `{{args}}` in the middle of the final objective.
+The slash command gives `pi-goals` the internal Pi context object that it needs to navigate the session tree. When the goal finishes, Pi can replace that branch with a summary and continue.
 
-Model tools also expose structured inputs:
+Templates work the same way — Pi removes the summarize instruction before filling in the template, so the workflow prompt stays clean.
 
-- `post_completion_context`: `none`, `clear`, or `summarize`.
-- `post_completion_actions`: action specs such as `{ "type": "context.reset", "mode": "summarize" }`.
+### Plain-language goal creation
 
-Duplicate matching prose/structured actions are idempotent. Conflicting actions, such as prose `clear context` plus structured `summarize`, are rejected actionably.
+You can also ask in normal chat for goals that summarize context when they finish, for example:
 
-Post-completion actions are best-effort safe hooks. A failed or skipped context reset is recorded and warned about, but it does not block expected goal/queue continuation. `summarize` is the recommended reset mode for goal queue stacks because it preserves enough continuation context for the next queued item.
+```text
+Create a goal to triage the release notes, summarize context before the next queued item, then continue the queue.
+```
 
-Runtime kill switches are default-on: set `PI_GOAL_POST_COMPLETION_ACTIONS=0` to skip all post-completion actions, or `PI_GOAL_CONTEXT_RESET=0` to skip only context-reset actions. Disabled values are `0`, `false`, `no`, and `off`.
+Pi currently only provides the internal context object needed for session-tree navigation to slash command handlers. That is a Pi limitation: plain-language goal creation goes through tool calls, and tool calls can create the goal but cannot capture that context object by themselves.
 
-`clear` reset is additionally gated behind `PI_GOAL_CONTEXT_RESET_CLEAR` and is disabled by default. If a goal requests `clear context` while this gate is disabled, the action is skipped with a visible warning and the goal/queue continuation proceeds; it is not silently downgraded to `summarize`. Set `PI_GOAL_CONTEXT_RESET_CLEAR=1` (or `true`, `yes`, `on`) only when you explicitly want clear-mode tree navigation.
+In a fresh session, run at least one `pi-goals` slash command before requesting, in natural language, goals that summarize context when they finish:
+
+```text
+/goal anchor
+```
+
+Creating any slash-command goal also works:
+
+```text
+/goal <your first task> and summarize context
+```
+
+Once a `pi-goals` slash command has captured the internal Pi context object, plain-language-created goals can summarize context when they finish.
+
+This cleanup step won't interrupt your queue. If Pi cannot compact the finished branch, it tells you and moves on to the next queued goal without stopping.
 
 ## Goal queue
 
@@ -137,9 +165,9 @@ For larger batches, `/goal queue` also accepts multi-item queue blocks, so agent
 For example:
 
 ```md
-/goal queue --start -- [1] do thing one
+/goal queue [1] do thing one
 [2] do thing two
-[3] do thing 3
+[3] do thing three
 ```
 
 > IMPORTANT: in the goal queue list pattern, any line starting with `[N]` is parsed as a new goal to enqueue immediately.
