@@ -11,8 +11,8 @@
 ### Added
 
 - Between-goal context management requested with trailing `and summarize context` on `/goal`, `/goal queue`, and template invocations.
-- `/goal anchor` captures the internal Pi context object needed to navigate the session tree; this works around the Pi limitation that tool-created goals cannot capture that context object by themselves.
-- Summary-aware queue handoff preserves the next queued item while Pi replaces the finished goal's branch with compact context.
+- `/goal tools` captures the internal Pi context object needed to navigate the session tree; this works around the Pi limitation that tool-created goals cannot capture that context object by themselves.
+- Summary-aware queue handoff preserves the next queued goal while Pi replaces the finished goal's branch with compact context.
 - Release live probes now cover slash-created goals, queued goals, templates, plain-language-created goals, and queue follow-up behavior.
 
 ### Changed

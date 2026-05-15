@@ -1,26 +1,34 @@
 # pi-goals
 
-Persistent goal tracking for [Pi](https://www.npmjs.com/package/@earendil-works/pi-coding-agent). Inspired by Codex CLI's `/goal`, `pi-goals` adds Pi-native UX, goals that survive reloads and `/tree` navigation, time and token budgets, reusable token-aware prompts, automated churn monitoring, and more.
+Persistent goal tracking for [Pi](https://www.npmjs.com/package/@earendil-works/pi-coding-agent).
+
+Inspired by Codex CLI’s `/goal`, `pi-goals` adds Pi-native goal management: durable objectives, queues, execution limits, reusable prompt templates, churn monitoring, context cleanup, and compact status integration.
 
 > Early preview: `pi-goals` is usable, but install ergonomics and APIs may change before `1.0.0`.
 
-## What's new
+## What’s new
 
-Goals can now manage their own context as they finish. Ask Pi to remove a completed goal's execution branch from the active session and keep only a compact summary, whether you are running one long goal or a queue of many goals. That means you can queue several long-running goals and keep progressing without carrying every previous branch forward or forcing a full-session compaction between goals. See the [changelog](CHANGELOG.md) for details.
+Goals can now clean up their own execution context when they finish.
+
+You can ask Pi to remove a completed goal’s execution branch from the active session and keep only a compact summary. This works for a single long-running goal or for a queue of many goals.
+
+That lets a queue keep moving without carrying every previous goal’s full branch forward, and without requiring a full-session compaction between goals.
+
+See the [changelog](CHANGELOG.md) for details.
 
 ## Features
 
 - `/goal` command for creating, pausing, resuming, replacing, and clearing a persistent objective.
 - Goal state that survives reloads, compaction, context-overflow recovery, and `/tree` navigation.
 - Queue handoff recovery for completed goals, satisfied orchestration queue items, and compaction/context-overflow recovery, so queued work does not strand silently.
-- Time and token budgets with goal-aware continuation and wrap-up behavior.
-- Optional completion floors that prevent premature wrap-up until minimum goal-directed work has happened.
+- Maximum execution limits with warning and cutoff enforcement.
+- Minimum work thresholds that require a goal to run for at least a configured amount of time or tokens before completion is allowed.
 - Reusable token-aware prompt templates from bounded `.pi-goals/` and `.ai/.pi-goals/` directories.
 - Durable FIFO goal queue for sequential goal work.
 - Agent-friendly queue controls for listing, enqueuing, starting, dequeuing, and removing queued goals.
 - Natural-language reusable prompt discovery, so agents can turn project workflows into concrete goals.
 - Natural-language goal inspection and updates.
-- Automated churn monitoring and steering for long-running goals.
+- Automated churn monitoring for long-running goals.
 - Compact Pi status/widget integration.
 
 ## Install
@@ -39,21 +47,22 @@ pi install -l npm:pi-goals
 
 ## Suggested AGENTS.md
 
-Without prior context, the agent sometimes won't automatically route natural language to goal templates. This short snippet fixes that. Everything else should work out of the box and is driven by "just-in-time" internal agent instructions.
+Without prior context, the agent sometimes will not route natural language to goal templates automatically. This short snippet helps it resolve queued prose through reusable workflows instead of treating every queue item as a one-off task.
 
-```
+```md
 ## Goal queue prompt routing
 
-When handling queued pi-goal prose, treat `.ai/.pi-goals/*` as reusable workflows. Before `start_queued_goal` for an abstract/task-type queue item, call `list_goal_templates` and match by name, aliases, description, and placeholders. If exactly one template fits and inputs are available, use `create_goal_from_template`; dequeue the prose item only after that concrete goal is satisfied. Use `start_queued_goal` only for direct one-off goals.
+When handling queued pi-goals prose, treat `.ai/.pi-goals/*` as reusable workflows. Before `start_queued_goal` for an abstract/task-type queue item, call `list_goal_templates` and match by name, aliases, description, and placeholders. If exactly one template fits and inputs are available, use `create_goal_from_template`; dequeue the prose item only after that concrete goal is satisfied. Use `start_queued_goal` only for direct one-off goals.
 
 Never discard queued work. Do not call `dequeue_goal` unless the queue head is actually satisfied or the user explicitly authorizes removing that specific queued item. If uncertain, leave it queued and report the blocker.
-
 
 ### Goal queue processing and semantics
 
 If you are asked to queue multiple goals at once, you must FIRST enqueue each goal, and then create and individually process each goal on the queue.
 
-Never violate the queue semantics by batching queue work and then dequeuing multiple queued work items at once as if it had run individually; Each goal on the queue MUST be run individually - no exceptions. Process each queued item as its own concrete goal. If the queued goal objective indicates or references a goal template, treat the goal as an orchestration type goal and create it with `create_goal_from_template`.
+Never violate the queue semantics by batching queue work and then dequeuing multiple queued work items at once as if it had run individually. Each goal on the queue MUST be run individually — no exceptions.
+
+Process each queued item as its own concrete goal. If the queued goal objective indicates or references a goal template, treat the goal as an orchestration-type goal and create it with `create_goal_from_template`.
 ```
 
 ## `/goal` command
@@ -68,7 +77,7 @@ Use `/goal` to create and manage a persistent objective that survives across tur
 /goal pause
 /goal resume
 /goal clear
-/goal anchor
+/goal tools
 ```
 
 Subcommands:
@@ -80,13 +89,13 @@ Subcommands:
 - `/goal pause` — pause continuation and churn monitoring. If a goal-driven turn is active, Pi interrupts it.
 - `/goal resume` — resume a paused goal and schedule continuation/monitoring again.
 - `/goal clear` — remove the current goal from active state.
-- `/goal anchor` — captures the internal Pi context object needed to navigate the session tree, so later plain-language-created goals can summarize context when they finish.
+- `/goal tools` — enable pi-goals tool-created goals to manage context.
 
 Agents can also inspect, create, update, pause, resume, complete, clear, or queue goals from natural-language instructions without requiring users to type slash commands for every operation.
 
-## Natural language goal management
+## Natural-language goal management
 
-You do not have to use explicit `/goal` commands for every operation. The Pi agent can manage goals from ordinary natural language instructions.
+You do not have to use explicit `/goal` commands for every operation. The Pi agent can manage goals from ordinary natural-language instructions.
 
 Examples:
 
@@ -102,57 +111,90 @@ Set a goal to finish the README cleanup with a 30-minute budget, then keep going
 Mark the current goal complete and summarize what changed.
 ```
 
-Use `/goal` when you want direct command control; use natural language when you want the agent to decide the right goal operation in context.
+Use `/goal` when you want direct command control. Use natural language when you want the agent to choose the right goal operation from context.
 
-When a goal reaches its time or token budget, `pi-goals` steers the agent into wrap-up instead of silently continuing. Exhausted goals cannot be resumed until the budget is raised or the goal is cleared.
+Agents can:
 
-## Between-goal context management
+- create goals,
+- update goals,
+- pause and resume goals,
+- queue goals,
+- complete goals,
+- summarize completed work,
+- modify execution limits and minimum work thresholds.
 
-Long queues can build up a lot of one-off detail from each completed goal. Add `and summarize context` when you want Pi to remove the finished goal's execution branch from the active session, keep only a compact summary, and then continue with the next goal.
+## Goal execution limits and minimum work thresholds
 
-### Direct `/goal` commands
+`pi-goals` supports both maximum execution limits and minimum required work thresholds.
 
-If you type the slash command yourself, no setup is needed:
+These solve different problems:
+
+- maximum limits cap total execution,
+- minimum thresholds require the agent to spend at least a certain amount of time or tokens working on the goal before completion is allowed.
+
+You can combine both on the same goal.
+
+### Maximum execution limits
+
+Maximum execution limits define the total allowed execution window for a goal.
+
+Both time and token limits are supported.
+
+Enforcement happens in phases:
+
+- Near the configured limit, `pi-goals` sends a warning message asking the agent to begin wrapping up.
+- If execution exceeds the configured allowance, a small overage window is allowed.
+- After the overage window expires, hard cutoff enforcement terminates the goal automatically.
+
+The warning and cutoff thresholds currently operate at roughly ±10% around the configured maximum.
+
+Goals terminated by hard enforcement cannot continue until the limit is raised or the goal is cleared.
+
+### Minimum work thresholds
+
+Minimum work thresholds require a goal to run for at least a configured amount of time or token usage before completion is allowed.
+
+For example:
+
+- “Work on this for at least 10 minutes.”
+- “Spend at least 10 million tokens before considering this complete.”
+
+If an agent attempts to complete a goal before the configured threshold has been satisfied:
+
+- the completion attempt is rejected,
+- the goal remains active,
+- the agent receives a follow-up instruction telling it to continue working.
+
+`pi-goals` tries to push the agent toward useful additional work instead of allowing meaningless quota-filling churn.
+
+Typical follow-up passes include:
+
+- requirement-gap audits,
+- validation expansion,
+- edge-case review,
+- adversarial review,
+- implementation simplification,
+- evidence gathering,
+- compatibility review,
+- documentation and handoff cleanup.
+
+> NOTE: there is currently no `/goal` argument syntax for configuring limits or thresholds directly. They can still be configured through natural-language instructions, including while a goal is already running.
+
+Examples:
 
 ```text
-/goal write the release notes and summarize context
-/goal repo-worktree-inventory -- current state and summarize context
-/goal queue clean the worktree and summarize context
+Create a goal for xyz and work on it for a minimum of 10 minutes.
 ```
-
-The slash command gives `pi-goals` the internal Pi context object that it needs to navigate the session tree. When the goal finishes, Pi can replace that branch with a summary and continue.
-
-Templates work the same way — Pi removes the summarize instruction before filling in the template, so the workflow prompt stays clean.
-
-### Plain-language goal creation
-
-You can also ask in normal chat for goals that summarize context when they finish, for example:
 
 ```text
-Create a goal to triage the release notes, summarize context before the next queued item, then continue the queue.
+Start working on the goal, and when you finish the initial implementation, set a time threshold for 8 minutes more than the current elapsed time.
 ```
-
-Pi currently only provides the internal context object needed for session-tree navigation to slash command handlers. That is a Pi limitation: plain-language goal creation goes through tool calls, and tool calls can create the goal but cannot capture that context object by themselves.
-
-In a fresh session, run at least one `pi-goals` slash command before requesting, in natural language, goals that summarize context when they finish:
-
-```text
-/goal anchor
-```
-
-Creating any slash-command goal also works:
-
-```text
-/goal <your first task> and summarize context
-```
-
-Once a `pi-goals` slash command has captured the internal Pi context object, plain-language-created goals can summarize context when they finish.
-
-This cleanup step won't interrupt your queue. If Pi cannot compact the finished branch, it tells you and moves on to the next queued goal without stopping.
 
 ## Goal queue
 
-`pi-goals` supports a durable FIFO queue for sequential work. Queued goals survive reloads and stay aligned with the rest of the session history.
+`pi-goals` supports a durable FIFO queue for sequential work.
+
+Queued goals survive reloads and stay aligned with the rest of the session history.
 
 ```text
 /goal queue
@@ -160,9 +202,9 @@ This cleanup step won't interrupt your queue. If Pi cannot compact the finished 
 /goal queue fix-issue --issue ISSUE-123 -- verify the fix
 ```
 
-For larger batches, `/goal queue` also accepts multi-item queue blocks, so agents can enqueue an ordered stack before executing it head-to-tail.
+For larger batches, `/goal queue` also accepts multi-item queue blocks so agents can enqueue an ordered stack before executing it head-to-tail.
 
-For example:
+Example:
 
 ```md
 /goal queue [1] do thing one
@@ -170,9 +212,9 @@ For example:
 [3] do thing three
 ```
 
-> IMPORTANT: in the goal queue list pattern, any line starting with `[N]` is parsed as a new goal to enqueue immediately.
+> IMPORTANT: any line beginning with `[N]` is parsed as a new goal to enqueue immediately.
 
-Natural language is even easier. Here's a more realistic example:
+Natural language works too:
 
 ```md
 queue up this goal stack pls:
@@ -185,41 +227,45 @@ queue up this goal stack pls:
 7. report on the full goal stack and release readiness status (ready to push, ready to publish) when done
 ```
 
-> NOTE: when I mention tags like `deslop-pipeline`, those are references to dynamic goal templates. You can create a `.pi-goals` directory in your project and place your goal templates inside. See [these examples](.ai/.pi-goals) for a good starting point for how `pi-goals` goal templates work. Point your agent at this repo and these examples to have your agent create its own.
+> NOTE: tags like `deslop-pipeline` refer to reusable goal templates. You can create a `.pi-goals` directory in your project and place your templates there. See [`.ai/.pi-goals`](.ai/.pi-goals) in this repository for examples.
 
-Agents can manage the queue just like individual goals from natural language: list queued work, add items, start the next direct goal, or remove a queue item after it is satisfied.
+Agents can manage the queue through natural language just like individual goals:
 
-For queued prose that looks like a reusable workflow, agents can resolve it through your reusable prompt templates, work the resulting concrete goal, then dequeue the original queue item after it is satisfied. Manual dequeues require a rationale and authority so queue history remains auditable.
+- list queued work,
+- enqueue items,
+- start the next queued goal,
+- resolve queued prose through reusable templates,
+- remove completed items after satisfaction.
 
-## Minimum / maximum effort goals
+Queued prose that looks like a reusable workflow can be resolved through goal templates, worked as a concrete instantiated goal, and only then removed from the queue.
 
-Minimum effort (completion floor) goals let you ask an agent to do at least a certain amount of goal-directed work for a specified time or number of tokens before normal wrap-up. For example, you can ask it to keep working for at least 10 minutes, or to spend at least 10 million tokens before considering the goal complete.
-
-These are internally enforced. If an agent tries to mark a goal complete or stop working too early, those actions are deferred, the goal stays active, and the agent is sent a steering message to keep working. But `pi-goals` nudges the agent toward a useful, high-quality next pass, such as checking requirement gaps, adding validation evidence, reviewing edge cases, or simplifying the work, and does not allow the agent to fall into a pattern of churning just to fill quota.
-
-Max time/token budgets remain a safety stop even when a floor is set and supersede any floor. If a max budget is set, the agent cannot go past it, period. Maximum time/token budgets trigger around 10% on either side of the target. At 10% before the total max budget target, `pi-goals` sends a warning message to the agent to start wrapping up. If the agent is still running by 10% over the stated max target budget, there's a hard kill switch.
-
-Combining max with minimum time/token budgets gives you both controls: floors reduce premature "done" claims, while budgets keep runaway sessions bounded.
-
-> NOTE: there is currently no `/goal` command argument to set these max or min budgets. You can ask your agent in natural language to do so, even when the current goal is running. For example: "Start working on the goal, and when you finish the initial implementation, set a time floor for 8 minutes more than the current elapsed time." Or simply: "Create a goal for xyz and work on it for a minimum of 10 minutes."
-
-These ergonomics will improve soon!
+Manual dequeues require rationale and authority so queue history remains auditable.
 
 ## Reusable `.pi-goals` prompts
 
-`pi-goals` can turn project prompt templates into reusable goal objectives. Put Markdown, `.markdown`, or `.txt` templates under one of the bounded template directories at your workspace root:
+`pi-goals` can turn project-local prompt templates into reusable goal workflows.
+
+Supported template directories:
+
+```text
+.pi-goals/
+.ai/.pi-goals/
+```
+
+Example structure:
 
 ```text
 .pi-goals/
   fix-issue.md
   release/checklist.md
+
 .ai/.pi-goals/
   create-issue-doc.md
 ```
 
-`pi-goals` intentionally checks only these root-level template directories instead of recursively searching the whole workspace. This keeps `/goal` autocomplete responsive when Pi is started from large folders such as a home directory.
+`pi-goals` intentionally checks only these bounded root-level directories instead of recursively scanning the entire workspace. This keeps autocomplete responsive even when Pi is started from very large folders such as a home directory.
 
-Then invoke a template by name through `/goal`:
+Invoke templates through `/goal`:
 
 ```text
 /goal fix-issue --issue ISSUE-123 -- verify the fix and update docs
@@ -245,40 +291,127 @@ Template features:
 - `{{args}}` resolves to text after ` -- `.
 - `description` appears in command completion.
 - `aliases` provide alternate invocation names.
-- Inline shell snippets with ``!`command` `` are supported only when `allow_commands: true`; commands are bounded by timeout and output limits.
+- Inline shell snippets using ``!`command` `` are supported only when `allow_commands: true`.
+- Shell execution is bounded by timeout and output limits.
 
-Reusable templates are available to both slash commands and natural-language agent workflows. Agents can discover available templates, fill in required values from your request, and create a concrete goal from the resolved prompt. Template invocations also work through `/goal queue`.
+Reusable templates work through both slash commands and natural-language workflows.
 
-## This repository as a reference
+Agents can:
 
-This repository is both the source for the `pi-goals` Pi extension and a working reference for how the maintainer uses `pi-goals` in real project work. The source repo intentionally includes:
+- discover templates,
+- match aliases/descriptions/placeholders,
+- fill required values from user requests,
+- create concrete goals from resolved prompts,
+- enqueue template invocations for later execution.
 
-- reusable goal templates in [`.ai/.pi-goals/`](.ai/.pi-goals/), including release review, issue workflow, queue-stack, acceptance-verification, and deslop examples;
-- issue docs in [`.ai/issues/`](.ai/issues/) that show how larger goal-driven changes are planned;
-- issue workflow artifacts in [`.ai/docs/issue-workflow/`](.ai/docs/issue-workflow/) that show the evidence, design choices, and handoffs produced while working those goals;
-- a [prompt template authoring guide](.ai/docs/prompt-template-authoring.md) for creating strong project-local goal templates.
+## Between-goal context management
 
-If you want to build your own reusable goal workflows, point your agent at the authoring guide and nearby templates, then ask it to adapt the patterns to your project rather than copying them blindly.
+Long-running queues can accumulate large amounts of one-off execution detail.
+
+`pi-goals` can remove completed execution branches from the active session and replace them with compact summaries before continuing to the next queued goal.
+
+This keeps queue execution moving without forcing every previous execution branch to remain in active context.
+
+### Direct `/goal` commands
+
+```text
+/goal write the release notes and summarize context
+/goal repo-worktree-inventory -- current state and summarize context
+/goal queue clean the worktree and summarize context
+```
+
+Templates behave the same way.
+
+When a template invocation includes “summarize context,” the summarization instruction is removed before template expansion so the workflow prompt itself stays clean.
+
+### Plain-language goal creation
+
+Example:
+
+```text
+Create a goal to triage the release notes, summarize context before the next queued goal, then continue the queue.
+```
+
+Pi currently exposes the internal session-tree context object only to slash-command handlers.
+
+Natural-language requests create goals through pi-goals tool calls. Those tool calls can create goals, but they cannot independently capture the navigation context object needed for later branch cleanup.
+
+In a fresh session, run `/goal tools` before creating natural-language goals that summarize context. It captures the internal Pi context object needed to navigate the session tree:
+
+```text
+/goal tools
+```
+
+Creating any slash-command goal also captures the required context object:
+
+```text
+/goal <your first task> and summarize context
+```
+
+Once captured, later natural-language-created goals can summarize context correctly.
+
+If summarization fails, `pi-goals` reports the failure and continues processing the queue instead of stopping execution.
 
 ## Automated churn monitor
 
-Long-running goals can drift, loop, or stall. `pi-goals` runs a lightweight goal-scoped churn monitor that periodically checks whether the agent is still making useful progress toward the active objective.
+Long-running goals can drift, loop, or stop making meaningful progress.
+
+`pi-goals` runs a lightweight goal-scoped churn monitor that periodically checks whether useful progress is still happening.
 
 The monitor can:
 
-- detect no-progress loops and repeated automatic turns,
-- steer the worker back toward the objective,
+- detect repeated no-progress loops,
+- detect repeated automatic turns,
+- send corrective follow-up instructions,
 - escalate when a safety pause is needed,
-- keep a compact history of recent monitor decisions,
-- distinguish useful follow-up work from busywork done only to satisfy a floor.
+- distinguish useful follow-up work from meaningless quota-filling churn,
+- maintain compact monitor history tied to the active goal.
 
-Monitor history stays tied to the active goal, so reloads and `/tree` navigation keep the right context.
+Monitor history survives reloads and `/tree` navigation.
 
-> NOTE: the churn monitor agent runs in the background as an invisible (headless) Pi agent session. This is still experimental and needs work, but it does a pretty good job at present. If you see messages appear in the Pi chat window in yellow while a goal is running, these are notices of what the churn monitor is doing. These are only visible to you and not your agent. Separate steering messages that are sent directly to the agent can be seen by looking at `/tree`.
+> NOTE: the churn monitor currently runs as an invisible headless Pi agent session. This is still experimental, but already works reasonably well. Yellow notices shown in the Pi UI are user-visible monitor notices. Separate instructions sent directly to the worker agent can be inspected through `/tree`.
+
+## This repository as a reference
+
+This repository is both:
+
+1. the source for the `pi-goals` extension;
+2. a working reference for real-world goal-oriented workflows.
+
+The repository intentionally includes:
+
+- reusable goal templates in [`.ai/.pi-goals/`](.ai/.pi-goals/),
+- issue docs in [`.ai/issues/`](.ai/issues/),
+- issue workflow artifacts in [`.ai/docs/issue-workflow/`](.ai/docs/issue-workflow/),
+- a prompt-template authoring guide in [`.ai/docs/prompt-template-authoring.md`](.ai/docs/prompt-template-authoring.md).
+
+These examples demonstrate:
+
+- release-review workflows,
+- issue execution workflows,
+- queue-stack orchestration,
+- acceptance verification,
+- deslop workflows,
+- evidence and handoff patterns.
+
+If you want to build your own reusable workflows, adapt the patterns instead of copying them blindly.
 
 ## Roadmap
 
-Current execution-ready roadmap items include durable completion proofs, `/goal audit`, agent-managed subgoals, idle-tolerant waiting, dependency watchers, worktree starts, multi-goal collections, history/checkpoints, progress estimates, widget hardening, safer natural-language `/goal update` edits, and stronger queue continuation/dequeue reminders.
+Current execution-ready roadmap items include:
+
+- durable completion proofs,
+- `/goal audit`,
+- agent-managed subgoals,
+- idle-tolerant waiting,
+- dependency watchers,
+- worktree starts,
+- multi-goal collections,
+- history/checkpoints,
+- progress estimates,
+- widget hardening,
+- safer natural-language `/goal update` editing,
+- stronger queue continuation and dequeue reminders.
 
 ## Development
 
@@ -287,13 +420,19 @@ npm install
 npm run quality:goal
 ```
 
-`npm run quality:goal` runs the project quality gate for the extension, including [Sentrux](https://github.com/sentrux/sentrux) structure checks, TypeScript validation, and Pi extension load validation.
+`npm run quality:goal` runs the project quality gate for the extension, including:
+
+- Sentrux structure checks,
+- TypeScript validation,
+- Pi extension load validation.
 
 Development quality checks require the `sentrux` CLI to be available on `PATH`.
 
 ## Status
 
-This is an early public preview intended for collaborators and early testers. Expect rough edges and breaking changes before `1.0.0`.
+This is an early public preview intended for collaborators and early testers.
+
+Expect rough edges and breaking changes before `1.0.0`.
 
 ## License
 

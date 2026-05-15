@@ -40,4 +40,4 @@ export const GOAL_MONITOR_PROMPT_ID = "pi-goal-monitor-v1";
 export const QUEUE_PROMPT_ID = "pi-goal-queue-v1";
 
 export const GOAL_USAGE = "Usage: /goal <objective>";
-export const GOAL_USAGE_HINT = "Example: /goal improve benchmark coverage; /goal anchor captures internal Pi context for plain-language-created goals.";
+export const GOAL_USAGE_HINT = "Example: /goal improve benchmark coverage; /goal tools enables pi-goals tool-created goals to manage context.";

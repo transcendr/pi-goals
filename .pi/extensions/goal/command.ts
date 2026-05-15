@@ -32,7 +32,7 @@ type GoalCommandRuntime = {
 };
 
 type GoalSubcommand = {
-	name: "pause" | "resume" | "clear" | "queue" | "anchor";
+	name: "pause" | "resume" | "clear" | "queue" | "tools";
 	description: string;
 };
 
@@ -41,7 +41,7 @@ const GOAL_SUBCOMMANDS: GoalSubcommand[] = [
 	{ name: "resume", description: "Resume a paused goal" },
 	{ name: "clear", description: "Clear the current goal" },
 	{ name: "queue", description: "List queued goals or enqueue a new goal" },
-	{ name: "anchor", description: "Capture internal Pi context for plain-language-created goals" },
+	{ name: "tools", description: "Enable pi-goals tool-created goals to manage context" },
 ];
 
 export function registerGoalCommand(
@@ -129,7 +129,7 @@ function handleGoalControlCommand(
 	if (trimmed === "pause") pauseGoal(pi, ctx, runtime);
 	else if (trimmed === "resume") resumeGoal(pi, ctx, runtime);
 	else if (trimmed === "clear") clearGoal(pi, ctx, runtime);
-	else if (trimmed === "anchor") anchorGoalSummaries(ctx);
+	else if (trimmed === "tools") enableGoalToolsContext(ctx);
 	else return false;
 	return true;
 }
@@ -277,9 +277,9 @@ function clearGoal(pi: ExtensionAPI, ctx: ExtensionCommandContext, runtime: Goal
 	notifyInfo(ctx, hadGoal ? `Goal cleared${queueHint}` : `No goal to clear\nThis session does not currently have a goal.${queueHint}`);
 }
 
-function anchorGoalSummaries(ctx: ExtensionCommandContext): void {
+function enableGoalToolsContext(ctx: ExtensionCommandContext): void {
 	captureContextResetCommandContext(ctx);
-	notifyInfo(ctx, "Internal Pi context captured for session-tree navigation. Plain-language-created goals can now compact finished branches into summaries in this session.");
+	notifyInfo(ctx, "Internal Pi context captured for session-tree navigation. Tool-created goals can now manage context in this session.");
 }
 
 function handleQueueCommand(pi: ExtensionAPI, input: string, ctx: ExtensionCommandContext): void {
