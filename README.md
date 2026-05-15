@@ -6,7 +6,7 @@ Persistent goal tracking for [Pi](https://www.npmjs.com/package/@earendil-works/
 
 ## What's new
 
-Goal queue handoffs are more resilient: satisfied orchestration items continue to the next queued goal, completed goals with queued work recover at turn end, and active goals or queued handoffs still recover safely after Pi compaction and context-overflow recovery. See the [changelog](CHANGELOG.md) for details.
+Post-completion context reset lets goals request `summarize context` or (opt-in) `clear context` after completion. Completed goals resume the next queued item exactly once, and stale queue steering is automatically invalidated. See the [changelog](CHANGELOG.md) for details.
 
 ## Features
 

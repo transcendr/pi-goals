@@ -1,5 +1,33 @@
 # Changelog
 
+## 0.5.0 - 2026-05-15
+
+### Highlights
+
+- Post-completion context reset: goals can request `summarize context` or (opt-in) `clear context` after completion via prose trailing directives or structured tool parameters.
+- Safe hooks architecture: failed or skipped post-completion actions warn visibly but never block expected queue handoff.
+- Queue-stack hardening: completed goals with `summarize context` preserve queued follow-ups exactly once, stale queue-steer messages are invalidated, and `update_goal` defers terminal workflow to turn-end.
+
+### Added
+
+- Post-completion context reset action (`summarize` and `clear` modes) via trailing prose directives on `/goal`, `/goal queue`, and template invocations.
+- Structured `post_completion_context` and `post_completion_actions` parameters on `create_goal`, `create_goal_from_template`, and `enqueue_goal` tool calls.
+- Feature flags `PI_GOAL_POST_COMPLETION_ACTIONS`, `PI_GOAL_CONTEXT_RESET`, and `PI_GOAL_CONTEXT_RESET_CLEAR` for controlling post-completion behavior per session.
+- Queue continuation tickets now carry queued payload and queue revision metadata for targeted post-reset repair.
+- Default-off clear-navigation live probe scenarios cover slash, queued, template, and model-tool summarize paths plus clear skip/warn behavior.
+
+### Changed
+
+- `clear` context reset is default-off behind `PI_GOAL_CONTEXT_RESET_CLEAR`; disabled clear skips with a visible warning instead of silently continuing or downgrading to summarize.
+- `summarize` is the recommended reset mode for goal queue stacks and is enabled by default.
+- Queue steering messages carry revision metadata; legacy or stale-revision steers are invalid so they cannot trigger duplicate goal starts.
+- `update_goal` no longer runs navigation-capable terminal workflow during tool execution; terminal processing is deferred to turn-end.
+
+### Fixed
+
+- Completed goals with queued work no longer spawn repeated stale queue-steer branches after post-completion summarize reset.
+- Agent-end queue catch-up uses revision-aware deduplication instead of forced duplicate handoff, avoiding double-starts of the same queued goal.
+
 ## 0.4.1 - 2026-05-13
 
 ### Highlights
