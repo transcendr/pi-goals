@@ -7,8 +7,7 @@ import { evaluateCompletionFloor, validateFloorConfig, type CompletionFloorEvalu
 import { createTelemetry, noteBudgetLimit, noteFloorCompletionDeferred } from "./telemetry";
 import { listGoalTemplateMetadata } from "./templates";
 import { buildDirectGoalIntent, buildTemplateGoalIntent } from "./goal-intent";
-import { createPostCompletionActionStates, recordPostStartActionAnchors, type PostCompletionActionRunner, createNoopPostCompletionActionRunner } from "./post-completion-actions";
-import { processTerminalGoalWorkflow } from "./terminal-workflow";
+import { createPostCompletionActionStates, recordPostStartActionAnchors, type PostCompletionActionRunner } from "./post-completion-actions";
 import { createGoalState, getGoal, getTelemetry, persistClearGoal, persistSetGoal, persistTelemetry, persistUpdateGoal } from "./state";
 import { registerGoalQueueTools } from "./queue-tools";
 import { syncGoalUi } from "./ui";
@@ -274,7 +273,7 @@ function updateGoalFromTool(pi: ExtensionAPI, runtime: GoalToolRuntime, params: 
 	}
 	persistUpdateGoal(pi, update.goal, telemetryForUpdate(update.goal, completionDecision), "tool");
 	syncGoalUi(ctx, update.goal);
-	void queueHandoffAfterToolUpdate(pi, runtime, ctx, goal, update.goal);
+	queueHandoffAfterToolUpdate(runtime, ctx, goal, update.goal);
 	if (goal.status !== "active" && update.goal.status === "active") {
 		runtime.scheduleMonitor?.(ctx);
 		runtime.scheduleContinuation?.(ctx, "resumed");
@@ -388,14 +387,15 @@ function applyFloorUpdates(goal: GoalState, params: UpdateGoalInput, changes: st
 	return { ok: true, goal: next, prefix: "", floorChanged };
 }
 
-async function queueHandoffAfterToolUpdate(pi: ExtensionAPI, runtime: GoalToolRuntime, ctx: ExtensionContext, previousGoal: GoalState, updatedGoal: GoalState): Promise<void> {
-	if (previousGoal.status !== "complete" && updatedGoal.status === "complete" && (runtime.getQueueSize?.() ?? 0) > 0) {
-		await processTerminalGoalWorkflow(pi, ctx, { goal: updatedGoal, reason: "tool", runner: runtime.postCompletionRunner ?? createNoopPostCompletionActionRunner("post-completion runner unavailable"), triggerTurn: true });
+function queueHandoffAfterToolUpdate(runtime: GoalToolRuntime, ctx: ExtensionContext, previousGoal: GoalState, updatedGoal: GoalState): void {
+	if (previousGoal.status !== "complete" && updatedGoal.status === "complete") {
+		// The tool result must settle before any navigation-capable terminal workflow runs.
+		// handleToolResult marks the turn as completed, then turn_end processes post-completion actions and queue handoff.
 		return;
 	}
 	// Only schedule wrap-up when an active goal transitions to budgetLimited due to a budget edit and no queued work is waiting.
 	if (previousGoal.status === "active" && updatedGoal.status === "budgetLimited" && isBudgetExhausted(updatedGoal)) {
-		if ((runtime.getQueueSize?.() ?? 0) > 0) await processTerminalGoalWorkflow(pi, ctx, { goal: updatedGoal, reason: "tool", runner: runtime.postCompletionRunner ?? createNoopPostCompletionActionRunner("post-completion runner unavailable"), triggerTurn: true });
+		if ((runtime.getQueueSize?.() ?? 0) > 0) runtime.sendQueueHandoff?.("goal-budget-limited", { goalId: updatedGoal.goalId, triggerTurn: true });
 		else runtime.scheduleBudgetLimitWrapUp?.(ctx, updatedGoal);
 	}
 }

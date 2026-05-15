@@ -116,7 +116,11 @@ Model tools also expose structured inputs:
 
 Duplicate matching prose/structured actions are idempotent. Conflicting actions, such as prose `clear context` plus structured `summarize`, are rejected actionably.
 
-Post-completion actions are best-effort safe hooks. A failed or skipped context reset is recorded and warned about, but it does not block expected goal/queue continuation. Runtime kill switches are default-on: set `PI_GOAL_POST_COMPLETION_ACTIONS=0` to skip all post-completion actions, or `PI_GOAL_CONTEXT_RESET=0` to skip only context-reset actions. Disabled values are `0`, `false`, `no`, and `off`.
+Post-completion actions are best-effort safe hooks. A failed or skipped context reset is recorded and warned about, but it does not block expected goal/queue continuation. `summarize` is the recommended reset mode for goal queue stacks because it preserves enough continuation context for the next queued item.
+
+Runtime kill switches are default-on: set `PI_GOAL_POST_COMPLETION_ACTIONS=0` to skip all post-completion actions, or `PI_GOAL_CONTEXT_RESET=0` to skip only context-reset actions. Disabled values are `0`, `false`, `no`, and `off`.
+
+`clear` reset is additionally gated behind `PI_GOAL_CONTEXT_RESET_CLEAR` and is disabled by default. If a goal requests `clear context` while this gate is disabled, the action is skipped with a visible warning and the goal/queue continuation proceeds; it is not silently downgraded to `summarize`. Set `PI_GOAL_CONTEXT_RESET_CLEAR=1` (or `true`, `yes`, `on`) only when you explicitly want clear-mode tree navigation.
 
 ## Goal queue
 

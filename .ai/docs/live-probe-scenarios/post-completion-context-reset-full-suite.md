@@ -4,7 +4,7 @@
 
 Validate every public ISSUE-043/ISSUE-044 post-completion context reset usage scenario in a real Pi/Solo process.
 
-This suite exists because the original ISSUE-044 live probe covered only a subset of the feature surface. Passing this suite requires live evidence for both `clear` and `summarize`, slash and model-tool ingress, template and direct objectives, and queued handoff behavior.
+This suite exists because the original ISSUE-044 live probe covered only a subset of the feature surface. After ISSUE-045, `clear` mode is intentionally default-off behind `PI_GOAL_CONTEXT_RESET_CLEAR`; clear-navigation scenarios in this full suite require explicitly enabling that flag for the probe process. The default-environment queue-stack closeout probe for ISSUE-045 is `.ai/docs/live-probe-scenarios/post-completion-context-reset-issue045-summarize-queue-stack.md`.
 
 ## Preconditions
 

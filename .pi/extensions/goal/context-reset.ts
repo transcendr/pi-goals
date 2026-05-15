@@ -25,6 +25,7 @@ export function createContextResetActionRunner(flags: GoalFeatureFlags): PostCom
 		async run(input) {
 			if (!flags.contextReset) return { ok: true, actionId: input.action.id, status: "skipped", message: "disabled by PI_GOAL_CONTEXT_RESET" };
 			if (input.action.type !== "context.reset") return { ok: false, actionId: input.action.id, status: "failed", severity: "warning", message: `Unsupported post-completion action ${input.action.type}` };
+			if (input.action.mode === "clear" && !flags.contextResetClear) return { ok: true, actionId: input.action.id, status: "skipped", severity: "warning", message: "clear mode disabled by PI_GOAL_CONTEXT_RESET_CLEAR" };
 			const ctx = commandContext;
 			if (!ctx?.navigateTree || !input.action.anchorEntryId) return { ok: false, actionId: input.action.id, status: "failed", severity: "warning", message: "Context reset requires /goal anchor command-context capability before completion." };
 			const result = await ctx.navigateTree(input.action.anchorEntryId, input.action.mode === "summarize" ? { summarize: true, customInstructions: `Summarize context for completed goal ${input.goal.goalId}.`, replaceInstructions: false } : { summarize: false });

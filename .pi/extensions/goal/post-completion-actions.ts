@@ -5,7 +5,7 @@ import type { GoalState, PiGoalEventReason, PostCompletionActionSpec, PostComple
 
 export type PostCompletionActionRunInput = { goal: GoalState; action: PostCompletionActionState; ctx: ExtensionContext };
 export type PostCompletionActionRunResult =
-	| { ok: true; actionId: string; status: "done" | "skipped"; message?: string }
+	| { ok: true; actionId: string; status: "done" | "skipped"; message?: string; severity?: "warning" }
 	| { ok: false; actionId: string; status: "failed"; message: string; severity: "warning" };
 
 export type PostCompletionActionRunner = {
@@ -43,6 +43,7 @@ export async function runPostCompletionActionsSafely(pi: ExtensionAPI, ctx: Exte
 		const completed = completeActionState(running, result);
 		current = persistActionState(pi, current, completed, reason);
 		if (!result.ok) notifyWarning(ctx, `Post-completion action ${running.type} failed but goal/queue continuation will continue: ${result.message}`);
+		else if (result.status === "skipped" && result.severity === "warning") notifyWarning(ctx, `Post-completion action ${running.type} skipped: ${result.message ?? "no reason provided"}`);
 	}
 	return current;
 }

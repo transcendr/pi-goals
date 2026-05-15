@@ -28,6 +28,7 @@ export type GoalState = {
 	timeUsedSeconds: number;
 	createdAt: number;
 	updatedAt: number;
+	sourceQueueId?: string;
 	postCompletionActions?: PostCompletionActionState[];
 	/** Legacy ISSUE-043 compatibility. Prefer postCompletionActions. */
 	postCompletionContext?: ContextResetMode | "none";

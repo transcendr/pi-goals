@@ -1,0 +1,187 @@
+$ git status --short --untracked-files=all
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/execution-readiness/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/execution-readiness/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/execution-readiness/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/execution-readiness/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/execution-readiness/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/execution-readiness/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/execution-readiness/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/execution-readiness/raw/commands.log
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/implementation-readiness/raw/commands.log
+?? .ai/issues/open/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode.md
+
+$ python3 /Users/bryan/.pi/agent/.cache/codex-skills/deslop/scripts/deslop-map.py .pi/extensions/goal
+Deslop references to open:
+
+- JSON: references/json.md
+  matched: .sentrux/baseline.json
+- TOML: references/toml.md
+  matched: .sentrux/rules.toml
+- TypeScript: references/typescript.md
+  matched: budget.ts, command.ts, completion-gate.ts, constants.ts, context-reset.ts, continuation-ticket.ts, continuation.ts, debug-log.ts ...
+
+Next steps:
+1. Read SKILL.md and the matched language references.
+2. Inspect project manifests and existing validation scripts.
+3. Run narrow formatter/linter/type/test checks before broader validation.
+
+$ rg implementation surfaces
+.pi/extensions/goal/queue-tools.ts:10:import { decideTerminalContinuationTicket, dispatchContinuationTicket, revalidateContinuationTicket, type ContinuationTicket } from "./continuation-ticket";
+.pi/extensions/goal/queue-tools.ts:13:import { enqueueGoal, dequeueGoal, removeGoal, persistEnqueue, persistDequeue, persistRemove, getQueue, type DequeueAudit, type QueuedGoal } from "./queue-state";
+.pi/extensions/goal/queue-tools.ts:35:	sendQueueHandoff?: GoalQueueSteeringSender;
+.pi/extensions/goal/queue-tools.ts:69:			const intent = buildDirectGoalIntent({ objective: params.objective, postCompletionContext: params.post_completion_context, postCompletionActions: params.post_completion_actions });
+.pi/extensions/goal/queue-tools.ts:75:			const queued = enqueueGoal(validation.objective, "tool", { tokenBudget: params.token_budget, timeBudgetSeconds: params.time_budget_seconds, minTokensBeforeWrapUp: params.min_tokens_before_wrap_up, minTimeSecondsBeforeWrapUp: params.min_time_seconds_before_wrap_up, postCompletionActions: intent.intent.postCompletionActions });
+.pi/extensions/goal/queue-tools.ts:76:			persistEnqueue(pi, queued);
+.pi/extensions/goal/queue-tools.ts:121:			persistDequeue(pi, "dequeued", { queueId: dequeued.queueId, audit: audit.value });
+.pi/extensions/goal/queue-tools.ts:160:	let goal = createGoalState({ objective, tokenBudget: next.tokenBudget, timeBudgetSeconds: next.timeBudgetSeconds, minTokensBeforeWrapUp: next.minTokensBeforeWrapUp, minTimeSecondsBeforeWrapUp: next.minTimeSecondsBeforeWrapUp, postCompletionActions: createPostCompletionActionStates(next.postCompletionActions ?? []) });
+.pi/extensions/goal/queue-tools.ts:166:	persistDequeue(pi, "start_queued_goal", { queueId: started.queueId, audit: { rationale: "Started queued goal as a direct concrete goal after successful goal creation.", authority: "start_queued_goal atomic create-then-dequeue path" } });
+.pi/extensions/goal/queue-tools.ts:172:function sendNextQueueHandoffAfterDequeue(pi: ExtensionAPI, runtime: GoalQueueToolRuntime, ticket: ContinuationTicket = decideTerminalContinuationTicket(getGoal(), getQueue(), { triggerTurn: true })): void {
+.pi/extensions/goal/queue-tools.ts:175:	const validation = revalidateContinuationTicket(ticket, goal, getQueue());
+.pi/extensions/goal/queue-tools.ts:176:	logCompactionDebug("queueTools.dequeue.queueHandoffDecision", { ticketKind: ticket.kind, queueLength, hasGoal: Boolean(goal), hasSender: Boolean(runtime.sendQueueHandoff), valid: validation.ok });
+.pi/extensions/goal/queue-tools.ts:178:	const sent = dispatchContinuationTicket(pi, ticket);
+.pi/extensions/goal/state.ts:12:	postCompletionActions?: GoalState["postCompletionActions"];
+.pi/extensions/goal/state.ts:59:		postCompletionActions: input.postCompletionActions,
+.pi/extensions/goal/state.ts:171:		postCompletionActions: parsePostCompletionActionStates(v.postCompletionActions, required.goalId, legacyContext, legacyStatus, v),
+.pi/extensions/goal/post-completion-actions.ts:21:	return (goal.postCompletionActions ?? []).filter((action) => action.status === "pending");
+.pi/extensions/goal/post-completion-actions.ts:26:	const actions = (goal.postCompletionActions ?? []).map((action) => action.type === "context.reset" && !action.anchorEntryId ? { ...action, anchorEntryId: leafId ?? undefined, updatedAt: Date.now() } : action);
+.pi/extensions/goal/post-completion-actions.ts:27:	if (!actionsChanged(goal.postCompletionActions, actions)) return goal;
+.pi/extensions/goal/post-completion-actions.ts:28:	return { ...goal, postCompletionActions: actions, updatedAt: Date.now() };
+.pi/extensions/goal/post-completion-actions.ts:31:export async function runPostCompletionActionsSafely(pi: ExtensionAPI, ctx: ExtensionContext, goal: GoalState | null, reason: PiGoalEventReason, runner: PostCompletionActionRunner): Promise<GoalState | null> {
+.pi/extensions/goal/post-completion-actions.ts:36:		const running = current.postCompletionActions?.find((candidate) => candidate.id === action.id) ?? action;
+.pi/extensions/goal/post-completion-actions.ts:62:	const actions = (goal.postCompletionActions ?? []).map((candidate) => candidate.id === action.id ? action : candidate);
+.pi/extensions/goal/post-completion-actions.ts:63:	const updated = { ...goal, postCompletionActions: actions, updatedAt: Date.now() };
+.pi/extensions/goal/queue-state.ts:16:	postCompletionActions?: PostCompletionActionSpec[];
+.pi/extensions/goal/queue-state.ts:69:export function enqueueGoal(objective: string, source: "command" | "tool", opts?: { tokenBudget?: number; timeBudgetSeconds?: number; minTokensBeforeWrapUp?: number; minTimeSecondsBeforeWrapUp?: number; template?: string; templateFlags?: Record<string, string>; templateArgs?: string; postCompletionActions?: PostCompletionActionSpec[]; postCompletionContext?: "none" | "clear" | "summarize" }): QueuedGoal {
+.pi/extensions/goal/queue-state.ts:81:		postCompletionActions: opts?.postCompletionActions,
+.pi/extensions/goal/queue-state.ts:99:export function replayQueueState(ctx: { sessionManager: { getBranch(): unknown[] } }): GoalQueueRuntimeState {
+.pi/extensions/goal/queue-state.ts:114:export function persistEnqueue(pi: ExtensionAPI, goal: QueuedGoal): void {
+.pi/extensions/goal/queue-state.ts:118:export function persistDequeue(pi: ExtensionAPI, reason: string, metadata: DequeuePersistMetadata = {}): void {
+.pi/extensions/goal/queue-state.ts:222:		postCompletionActions: postCompletion.actions,
+.pi/extensions/goal/queue-state.ts:254:	const actions = parseOptionalActionSpecs(raw.postCompletionActions, context.value);
+.pi/extensions/goal/feature-flags.ts:2:	postCompletionActions: boolean;
+.pi/extensions/goal/feature-flags.ts:10:		postCompletionActions: isEnabled(env.PI_GOAL_POST_COMPLETION_ACTIONS),
+.pi/extensions/goal/feature-flags.ts:11:		contextReset: isEnabled(env.PI_GOAL_CONTEXT_RESET),
+.pi/extensions/goal/terminal-workflow.ts:2:import { decideTerminalContinuationTicket, dispatchContinuationTicket, revalidateContinuationTicket } from "./continuation-ticket";
+.pi/extensions/goal/terminal-workflow.ts:3:import { runPostCompletionActionsSafely, type PostCompletionActionRunner } from "./post-completion-actions";
+.pi/extensions/goal/terminal-workflow.ts:18:export async function processTerminalGoalWorkflow(pi: ExtensionAPI, ctx: ExtensionContext, input: TerminalGoalWorkflowInput): Promise<GoalState | null> {
+.pi/extensions/goal/terminal-workflow.ts:19:	const ticket = decideTerminalContinuationTicket(input.goal, getQueue(), { triggerTurn: input.triggerTurn, force: input.force, deliverAs: input.deliverAs });
+.pi/extensions/goal/terminal-workflow.ts:20:	const afterActions = await runPostCompletionActionsSafely(pi, ctx, input.goal, input.reason, input.runner);
+.pi/extensions/goal/terminal-workflow.ts:23:	if (revalidateContinuationTicket(ticket, currentGoal, getQueue()).ok) dispatchContinuationTicket(pi, ticket);
+.pi/extensions/goal/context-reset.ts:16:	return Boolean(commandContext?.navigateTree);
+.pi/extensions/goal/context-reset.ts:26:			if (!flags.contextReset) return { ok: true, actionId: input.action.id, status: "skipped", message: "disabled by PI_GOAL_CONTEXT_RESET" };
+.pi/extensions/goal/context-reset.ts:29:			if (!ctx?.navigateTree || !input.action.anchorEntryId) return { ok: false, actionId: input.action.id, status: "failed", severity: "warning", message: "Context reset requires /goal anchor command-context capability before completion." };
+.pi/extensions/goal/context-reset.ts:30:			const result = await ctx.navigateTree(input.action.anchorEntryId, input.action.mode === "summarize" ? { summarize: true, customInstructions: `Summarize context for completed goal ${input.goal.goalId}.`, replaceInstructions: false } : { summarize: false });
+.pi/extensions/goal/queue-steering.ts:13:export function sendQueueHandoff(pi: ExtensionAPI, reason: GoalQueueSteeringReason, opts: QueueHandoffOptions = {}): boolean {
+.pi/extensions/goal/queue-steering.ts:50:export function queueSteeringStillValid(message: Record<string, unknown>): boolean {
+.pi/extensions/goal/continuation-ticket.ts:3:import { sendQueueHandoff } from "./queue-steering";
+.pi/extensions/goal/continuation-ticket.ts:7:export type ContinuationTicket =
+.pi/extensions/goal/continuation-ticket.ts:11:export type ContinuationTicketOptions = { triggerTurn?: boolean; deliverAs?: "steer" | "followUp"; force?: boolean };
+.pi/extensions/goal/continuation-ticket.ts:13:export function decideTerminalContinuationTicket(goal: GoalState | null, queue: QueuedGoal[], opts: ContinuationTicketOptions = {}): ContinuationTicket {
+.pi/extensions/goal/continuation-ticket.ts:22:export function revalidateContinuationTicket(ticket: ContinuationTicket, goal: GoalState | null, queue: QueuedGoal[]): { ok: true } | { ok: false; reason: string } {
+.pi/extensions/goal/continuation-ticket.ts:31:export function dispatchContinuationTicket(pi: ExtensionAPI, ticket: ContinuationTicket): boolean {
+.pi/extensions/goal/continuation-ticket.ts:33:	return sendQueueHandoff(pi, ticket.reason, { goalId: ticket.goalId, triggerTurn: ticket.triggerTurn, deliverAs: ticket.deliverAs, force: ticket.force });
+.pi/extensions/goal/lifecycle.ts:30:import { getQueue, replayQueueState } from "./queue-state";
+.pi/extensions/goal/lifecycle.ts:31:import { queueSteeringStillValid, sendQueueHandoff } from "./queue-steering";
+.pi/extensions/goal/lifecycle.ts:33:import { processTerminalGoalWorkflow } from "./terminal-workflow";
+.pi/extensions/goal/lifecycle.ts:46:		replayQueueState(ctx);
+.pi/extensions/goal/lifecycle.ts:71:	replayQueueState(ctx);
+.pi/extensions/goal/lifecycle.ts:91:	replayQueueState(ctx);
+.pi/extensions/goal/lifecycle.ts:110:			void processTerminalGoalWorkflow(pi, ctx, { goal, reason: "turn", runner: postCompletionRunner, force: true });
+.pi/extensions/goal/lifecycle.ts:166:		sendQueueHandoff(pi, "goal-budget-limited", { goalId: goal.goalId });
+.pi/extensions/goal/lifecycle.ts:283:	if (goal?.status === "complete" && completedThisTurn) await processTerminalGoalWorkflow(pi, ctx, { goal, reason: "turn", runner: postCompletionRunner });
+.pi/extensions/goal/lifecycle.ts:332:		sendQueueHandoff(pi, "goal-budget-limited", { goalId: result.goal.goalId });
+.pi/extensions/goal/lifecycle.ts:344:		const handedOff = sendQueueHandoff(pi, "goal-budget-limited", { goalId: result.goal.goalId });
+.pi/extensions/goal/lifecycle.ts:415:	return queueSteeringStillValid(message) ? "valid" : "invalid";
+.pi/extensions/goal/types.ts:31:	postCompletionActions?: PostCompletionActionState[];
+.pi/extensions/goal/types.ts:32:	/** Legacy ISSUE-043 compatibility. Prefer postCompletionActions. */
+.pi/extensions/goal/command.ts:21:import { getQueue, enqueueGoal, persistEnqueue } from "./queue-state";
+.pi/extensions/goal/command.ts:140:	postCompletionActions?: import("./types").PostCompletionActionSpec[];
+.pi/extensions/goal/command.ts:150:		if (templateIntent.ok && templateIntent.intent.kind === "template") return { objective: templateIntent.intent.objective, template: templateIntent.intent.template, templateFlags: templateIntent.intent.flags, templateArgs: templateIntent.intent.args, postCompletionActions: templateIntent.intent.postCompletionActions };
+.pi/extensions/goal/command.ts:153:	if (directIntent.ok) return { objective: directIntent.intent.objective, postCompletionActions: directIntent.intent.postCompletionActions };
+.pi/extensions/goal/command.ts:178:				const queued = enqueueGoal(validation.objective, "command", { postCompletionActions: input.postCompletionActions });
+.pi/extensions/goal/command.ts:179:				persistEnqueue(pi, queued);
+.pi/extensions/goal/command.ts:190:	let goal = createGoalState({ objective: validation.objective, postCompletionActions: createPostCompletionActionStates(input.postCompletionActions ?? []) });
+.pi/extensions/goal/command.ts:296:			const goal = enqueueGoal(item.objective, "command", { template: item.template, templateFlags: item.templateFlags, templateArgs: item.templateArgs, postCompletionActions: item.postCompletionActions });
+.pi/extensions/goal/command.ts:297:			persistEnqueue(pi, goal);
+.pi/extensions/goal/command.ts:312:	const queued = enqueueGoal(validation.objective, "command", { template: resolved.template, templateFlags: resolved.templateFlags, templateArgs: resolved.templateArgs, postCompletionActions: resolved.postCompletionActions });
+.pi/extensions/goal/command.ts:313:	persistEnqueue(pi, queued);
+.pi/extensions/goal/tools.ts:11:import { processTerminalGoalWorkflow } from "./terminal-workflow";
+.pi/extensions/goal/tools.ts:26:	sendQueueHandoff?: GoalQueueSteeringSender;
+.pi/extensions/goal/tools.ts:36:	registerGoalQueueTools(pi, { scheduleMonitor: runtime.scheduleMonitor, sendQueueHandoff: runtime.sendQueueHandoff });
+.pi/extensions/goal/tools.ts:202:	const intent = buildTemplateGoalIntent({ invocation: `${params.template}${invocationArgs}`, postCompletionContext: params.post_completion_context, postCompletionActions: params.post_completion_actions, budgets: goalBudgets(params) });
+.pi/extensions/goal/tools.ts:204:	const created = createGoalWithPolicy(pi, runtime, { ...params, objective: intent.intent.objective, post_completion_actions: intent.intent.postCompletionActions }, ctx, { replaceCompleted: true, replaceBudgetLimitedForQueuedWork: true });
+.pi/extensions/goal/tools.ts:220:	let goal = createGoalState({ objective: normalized.objective, tokenBudget: params.token_budget, timeBudgetSeconds: params.time_budget_seconds, minTokensBeforeWrapUp: params.min_tokens_before_wrap_up, minTimeSecondsBeforeWrapUp: params.min_time_seconds_before_wrap_up, postCompletionActions: createPostCompletionActionStates(normalized.postCompletionActions) });
+.pi/extensions/goal/tools.ts:229:type NormalizedCreateGoalInput = { ok: true; objective: string; postCompletionActions: Array<{ type: "context.reset"; mode: "clear" | "summarize" }> } | { ok: false; error: string };
+.pi/extensions/goal/tools.ts:232:	const intent = buildDirectGoalIntent({ objective: params.objective, postCompletionContext: params.post_completion_context, postCompletionActions: params.post_completion_actions, budgets: goalBudgets(params) });
+.pi/extensions/goal/tools.ts:239:	return floorError ? { ok: false, error: floorError } : { ok: true, objective: validation.objective, postCompletionActions: intent.intent.postCompletionActions };
+.pi/extensions/goal/tools.ts:393:		await processTerminalGoalWorkflow(pi, ctx, { goal: updatedGoal, reason: "tool", runner: runtime.postCompletionRunner ?? createNoopPostCompletionActionRunner("post-completion runner unavailable"), triggerTurn: true });
+.pi/extensions/goal/tools.ts:398:		if ((runtime.getQueueSize?.() ?? 0) > 0) await processTerminalGoalWorkflow(pi, ctx, { goal: updatedGoal, reason: "tool", runner: runtime.postCompletionRunner ?? createNoopPostCompletionActionRunner("post-completion runner unavailable"), triggerTurn: true });
+
+$ find validation probes
+.ai/validation/goal-budget-limited-queue-handoff-probe.mjs
+.ai/validation/goal-compaction-prequeue-dedupe-probe.mjs
+.ai/validation/goal-compaction-prequeue-live-probe-closeout.md
+.ai/validation/goal-complete-queue-dedupe-probe.mjs
+.ai/validation/goal-complete-queue-handoff-probe.mjs
+.ai/validation/goal-context-reset-action-runner-probe.mjs
+.ai/validation/goal-post-completion-action-failure-nonblocking-probe.mjs
+.ai/validation/goal-post-completion-feature-flag-probe.mjs
+.ai/validation/goal-post-completion-legacy-replay-probe.mjs
+.ai/validation/goal-precompact-active-queue-probe.mjs
+.ai/validation/goal-precompact-completed-queue-probe.mjs
+.ai/validation/goal-tool-post-completion-actions-schema-probe.mjs
+
+$ python3 extract toon blocks + npx -y @toon-format/cli --decode each block
+Extracted 17 TOON blocks to /tmp/issue045-toon-validate and decoded all successfully.
+
+$ git status --short --untracked-files=all
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/execution-readiness/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/execution-readiness/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/execution-readiness/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/execution-readiness/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/execution-readiness/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/execution-readiness/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/execution-readiness/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/execution-readiness/raw/commands.log
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/implementation-readiness/00-intake.md
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/implementation-readiness/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/implementation-readiness/02-live-surface-research.md
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/implementation-readiness/03-implementation-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/implementation-readiness/04-patch-sequence.md
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/implementation-readiness/05-proof-plan.md
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/implementation-readiness/06-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/implementation-readiness/08-deslop-guidance-map.md
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/implementation-readiness/raw/commands.log
+?? .ai/issues/open/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode.md
+
+$ git check-ignore -v representative implementation artifacts || true
+.gitignore:13:!.ai/docs/issue-workflow/**	.ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/implementation-readiness/00-intake.md
+.gitignore:13:!.ai/docs/issue-workflow/**	.ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/implementation-readiness/08-deslop-guidance-map.md
+.gitignore:13:!.ai/docs/issue-workflow/**	.ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/implementation-readiness/raw/commands.log
+
+$ final TOON decode validation
+Extracted 19 TOON blocks to /tmp/issue045-toon-validate-final and decoded all successfully.
+
+$ git status --short --untracked-files=all (final implementation-ready)
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/execution-readiness/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/execution-readiness/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/execution-readiness/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/execution-readiness/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/execution-readiness/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/execution-readiness/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/execution-readiness/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/execution-readiness/raw/commands.log
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/implementation-readiness/00-intake.md
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/implementation-readiness/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/implementation-readiness/02-live-surface-research.md
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/implementation-readiness/03-implementation-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/implementation-readiness/04-patch-sequence.md
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/implementation-readiness/05-proof-plan.md
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/implementation-readiness/06-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/implementation-readiness/07-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/implementation-readiness/08-deslop-guidance-map.md
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/implementation-readiness/raw/commands.log
+?? .ai/issues/open/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode.md
+
+$ git check-ignore -v final audit || true
+.gitignore:13:!.ai/docs/issue-workflow/**	.ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/implementation-readiness/07-final-audit.md

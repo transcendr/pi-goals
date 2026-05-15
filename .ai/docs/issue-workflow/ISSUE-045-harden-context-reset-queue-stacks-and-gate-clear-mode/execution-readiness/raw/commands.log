@@ -1,0 +1,140 @@
+$ git status --short --untracked-files=all
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/execution-readiness/raw/commands.log
+
+$ find .ai/issues -maxdepth 2 -type d | sort
+.ai/issues
+.ai/issues/closed
+.ai/issues/defer
+.ai/issues/fixed
+.ai/issues/open
+
+$ find .ai/issues -type f -name "ISSUE-*.md" | sed -E "s#.*/ISSUE-([0-9]+).*#\\1#" | sort -n | tail -5
+039
+040
+041
+042
+044
+
+$ wc -l AGENTS.md feature-workflow refs axi sentrux
+     100 AGENTS.md
+     329 /Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/SKILL.md
+     205 /Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/references/canonical-issue-docs-and-toon-synthesis.md
+     160 /Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/references/research-pass.md
+     149 /Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/references/design-landscape-exploration-and-choice-locking.md
+     276 /Users/bryan/.pi/agent/.cache/codex-skills/feature-workflow-pipelines/references/toon-for-issues-and-execution-planning.md
+     213 /Users/bryan/.agents/skills/axi/SKILL.md
+      87 /Users/bryan/.pi/agent/.cache/codex-skills/sentrux/SKILL.md
+    1519 total
+
+$ rg -n "navigateTree|commandContext|contextReset|GoalFeatureFlags" .pi/extensions/goal/{context-reset.ts,feature-flags.ts}
+.pi/extensions/goal/feature-flags.ts:1:export type GoalFeatureFlags = {
+.pi/extensions/goal/feature-flags.ts:3:	contextReset: boolean;
+.pi/extensions/goal/feature-flags.ts:8:export function getGoalFeatureFlags(env: NodeJS.ProcessEnv = process.env): GoalFeatureFlags {
+.pi/extensions/goal/feature-flags.ts:11:		contextReset: isEnabled(env.PI_GOAL_CONTEXT_RESET),
+.pi/extensions/goal/context-reset.ts:2:import type { GoalFeatureFlags } from "./feature-flags";
+.pi/extensions/goal/context-reset.ts:5:let commandContext: ExtensionCommandContext | undefined;
+.pi/extensions/goal/context-reset.ts:8:	commandContext = ctx;
+.pi/extensions/goal/context-reset.ts:12:	commandContext = undefined;
+.pi/extensions/goal/context-reset.ts:16:	return Boolean(commandContext?.navigateTree);
+.pi/extensions/goal/context-reset.ts:23:export function createContextResetActionRunner(flags: GoalFeatureFlags): PostCompletionActionRunner {
+.pi/extensions/goal/context-reset.ts:26:			if (!flags.contextReset) return { ok: true, actionId: input.action.id, status: "skipped", message: "disabled by PI_GOAL_CONTEXT_RESET" };
+.pi/extensions/goal/context-reset.ts:28:			const ctx = commandContext;
+.pi/extensions/goal/context-reset.ts:29:			if (!ctx?.navigateTree || !input.action.anchorEntryId) return { ok: false, actionId: input.action.id, status: "failed", severity: "warning", message: "Context reset requires /goal anchor command-context capability before completion." };
+.pi/extensions/goal/context-reset.ts:30:			const result = await ctx.navigateTree(input.action.anchorEntryId, input.action.mode === "summarize" ? { summarize: true, customInstructions: `Summarize context for completed goal ${input.goal.goalId}.`, replaceInstructions: false } : { summarize: false });
+
+$ rg -n "decideTerminalContinuationTicket|runPostCompletionActionsSafely|revalidateContinuationTicket|dispatchContinuationTicket|getQueue" .pi/extensions/goal/terminal-workflow.ts .pi/extensions/goal/continuation-ticket.ts
+.pi/extensions/goal/continuation-ticket.ts:13:export function decideTerminalContinuationTicket(goal: GoalState | null, queue: QueuedGoal[], opts: ContinuationTicketOptions = {}): ContinuationTicket {
+.pi/extensions/goal/continuation-ticket.ts:22:export function revalidateContinuationTicket(ticket: ContinuationTicket, goal: GoalState | null, queue: QueuedGoal[]): { ok: true } | { ok: false; reason: string } {
+.pi/extensions/goal/continuation-ticket.ts:31:export function dispatchContinuationTicket(pi: ExtensionAPI, ticket: ContinuationTicket): boolean {
+.pi/extensions/goal/terminal-workflow.ts:2:import { decideTerminalContinuationTicket, dispatchContinuationTicket, revalidateContinuationTicket } from "./continuation-ticket";
+.pi/extensions/goal/terminal-workflow.ts:3:import { runPostCompletionActionsSafely, type PostCompletionActionRunner } from "./post-completion-actions";
+.pi/extensions/goal/terminal-workflow.ts:4:import { getQueue } from "./queue-state";
+.pi/extensions/goal/terminal-workflow.ts:19:	const ticket = decideTerminalContinuationTicket(input.goal, getQueue(), { triggerTurn: input.triggerTurn, force: input.force, deliverAs: input.deliverAs });
+.pi/extensions/goal/terminal-workflow.ts:20:	const afterActions = await runPostCompletionActionsSafely(pi, ctx, input.goal, input.reason, input.runner);
+.pi/extensions/goal/terminal-workflow.ts:23:	if (revalidateContinuationTicket(ticket, currentGoal, getQueue()).ok) dispatchContinuationTicket(pi, ticket);
+
+$ rg -n "queueSteeringStillValid|lastQueueHandoffKey|sendQueueHandoff|QUEUE_MESSAGE_TYPE" .pi/extensions/goal/queue-steering.ts .pi/extensions/goal/lifecycle.ts
+.pi/extensions/goal/queue-steering.ts:2:import { QUEUE_MESSAGE_TYPE, QUEUE_PROMPT_ID } from "./constants";
+.pi/extensions/goal/queue-steering.ts:11:let lastQueueHandoffKey: string | undefined;
+.pi/extensions/goal/queue-steering.ts:13:export function sendQueueHandoff(pi: ExtensionAPI, reason: GoalQueueSteeringReason, opts: QueueHandoffOptions = {}): boolean {
+.pi/extensions/goal/queue-steering.ts:20:	if (!opts.force && lastQueueHandoffKey === key) {
+.pi/extensions/goal/queue-steering.ts:26:	if (sent) lastQueueHandoffKey = key;
+.pi/extensions/goal/queue-steering.ts:27:	logCompactionDebug("queueHandoff.send.end", { reason, key, sent, lastQueueHandoffKey });
+.pi/extensions/goal/queue-steering.ts:40:			customType: QUEUE_MESSAGE_TYPE,
+.pi/extensions/goal/queue-steering.ts:50:export function queueSteeringStillValid(message: Record<string, unknown>): boolean {
+.pi/extensions/goal/lifecycle.ts:21:	QUEUE_MESSAGE_TYPE,
+.pi/extensions/goal/lifecycle.ts:31:import { queueSteeringStillValid, sendQueueHandoff } from "./queue-steering";
+.pi/extensions/goal/lifecycle.ts:166:		sendQueueHandoff(pi, "goal-budget-limited", { goalId: goal.goalId });
+.pi/extensions/goal/lifecycle.ts:332:		sendQueueHandoff(pi, "goal-budget-limited", { goalId: result.goal.goalId });
+.pi/extensions/goal/lifecycle.ts:344:		const handedOff = sendQueueHandoff(pi, "goal-budget-limited", { goalId: result.goal.goalId });
+.pi/extensions/goal/lifecycle.ts:411:	return candidate.customType === QUEUE_MESSAGE_TYPE ? classifyQueueSteering(candidate) : classifyStatusGoalSteering(candidate);
+.pi/extensions/goal/lifecycle.ts:415:	return queueSteeringStillValid(message) ? "valid" : "invalid";
+.pi/extensions/goal/lifecycle.ts:426:	return [CONTINUATION_MESSAGE_TYPE, BUDGET_LIMIT_MESSAGE_TYPE, PAUSE_MESSAGE_TYPE, GOAL_MONITOR_MESSAGE_TYPE, QUEUE_MESSAGE_TYPE].includes(String(customType));
+
+$ rg -n "replayQueueState|persistEnqueue|persistDequeue|STATE_ENTRY_TYPE|runtimeQueue" .pi/extensions/goal/queue-state.ts .pi/extensions/goal/state.ts
+.pi/extensions/goal/state.ts:2:import { STATE_ENTRY_TYPE, STATE_EVENT_VERSION } from "./constants";
+.pi/extensions/goal/state.ts:125:	pi.appendEntry(STATE_ENTRY_TYPE, event);
+.pi/extensions/goal/state.ts:142:	if (candidate.type !== "custom" || candidate.customType !== STATE_ENTRY_TYPE) return null;
+.pi/extensions/goal/queue-state.ts:2:import { STATE_ENTRY_TYPE } from "./constants";
+.pi/extensions/goal/queue-state.ts:59:let runtimeQueue: QueuedGoal[] = [];
+.pi/extensions/goal/queue-state.ts:66:	return runtimeQueue;
+.pi/extensions/goal/queue-state.ts:85:	runtimeQueue.push(goal);
+.pi/extensions/goal/queue-state.ts:90:	return runtimeQueue.shift();
+.pi/extensions/goal/queue-state.ts:94:	const index = runtimeQueue.findIndex((g) => g.queueId === queueId);
+.pi/extensions/goal/queue-state.ts:96:	return runtimeQueue.splice(index, 1)[0];
+.pi/extensions/goal/queue-state.ts:99:export function replayQueueState(ctx: { sessionManager: { getBranch(): unknown[] } }): GoalQueueRuntimeState {
+.pi/extensions/goal/queue-state.ts:106:	runtimeQueue = queue;
+.pi/extensions/goal/queue-state.ts:111:	runtimeQueue = state.queue;
+.pi/extensions/goal/queue-state.ts:114:export function persistEnqueue(pi: ExtensionAPI, goal: QueuedGoal): void {
+.pi/extensions/goal/queue-state.ts:115:	pi.appendEntry(STATE_ENTRY_TYPE, { version: 1, kind: "enqueue", queueId: goal.queueId, goal, reason: "enqueue", at: Date.now() } as GoalQueueEvent);
+.pi/extensions/goal/queue-state.ts:118:export function persistDequeue(pi: ExtensionAPI, reason: string, metadata: DequeuePersistMetadata = {}): void {
+.pi/extensions/goal/queue-state.ts:119:	pi.appendEntry(STATE_ENTRY_TYPE, { version: 1, kind: "dequeue", queueId: metadata.queueId, reason, rationale: metadata.audit?.rationale, authority: metadata.audit?.authority, at: Date.now() } as GoalQueueEvent);
+.pi/extensions/goal/queue-state.ts:123:	pi.appendEntry(STATE_ENTRY_TYPE, { version: 1, kind: "remove", queueId, reason, at: Date.now() } as GoalQueueEvent);
+.pi/extensions/goal/queue-state.ts:137:	if (candidate.type !== "custom" || candidate.customType !== STATE_ENTRY_TYPE) return null;
+
+$ find .ai/validation -maxdepth 1 -type f -name "*context-reset*" -o -name "*post-completion*" | sort
+.ai/validation/goal-context-reset-action-runner-probe.mjs
+.ai/validation/goal-post-completion-action-failure-nonblocking-probe.mjs
+.ai/validation/goal-post-completion-feature-flag-probe.mjs
+.ai/validation/goal-post-completion-legacy-replay-probe.mjs
+.ai/validation/goal-tool-post-completion-actions-schema-probe.mjs
+
+$ sentrux check .pi/extensions/goal
+Scanning .pi/extensions/goal...
+[build_project_map] 38 files, 2 unique dirs, 2 cache misses, 0.1ms
+[resolve] 156 resolved, 29 unresolved (of 185 total specs)
+[resolve_imports] project_map 0.2ms, suffix_idx 0.1ms, suffix_resolve 1.4ms, total 1.8ms
+[build_graphs] 38 files | maps 0.1ms, imports 1.8ms, calls+inherit 0.6ms, total 2.5ms | 155 import, 720 call, 0 inherit edges
+sentrux check — 33 rules checked
+
+Quality: 6152
+
+✓ All rules pass
+
+$ git status --short --untracked-files=all
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/execution-readiness/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/execution-readiness/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/execution-readiness/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/execution-readiness/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/execution-readiness/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/execution-readiness/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/execution-readiness/raw/commands.log
+?? .ai/issues/open/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode.md
+
+$ git check-ignore -v issue/artifact paths || true
+.gitignore:13:!.ai/docs/issue-workflow/**	.ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/execution-readiness/00-request.md
+.gitignore:13:!.ai/docs/issue-workflow/**	.ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/execution-readiness/raw/commands.log
+
+$ git status --short --untracked-files=all (final)
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/execution-readiness/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/execution-readiness/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/execution-readiness/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/execution-readiness/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/execution-readiness/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/execution-readiness/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/execution-readiness/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/execution-readiness/raw/commands.log
+?? .ai/issues/open/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode.md
+
+$ git check-ignore -v final audit || true
+.gitignore:13:!.ai/docs/issue-workflow/**	.ai/docs/issue-workflow/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode/execution-readiness/06-final-audit.md

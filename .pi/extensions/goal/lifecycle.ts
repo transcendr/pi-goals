@@ -104,10 +104,10 @@ async function handleAgentEnd(pi: ExtensionAPI, ctx: ExtensionContext, postCompl
 	const queueLength = getQueue().length;
 	logCompactionDebugWithContext("lifecycle.agent_end.queueDecision", ctx, { reason, queueLength });
 	if (reason && goal && queueLength > 0) {
-		logCompactionDebugWithContext("lifecycle.agent_end.queueHandoff.scheduled", ctx, { reason, force: true });
+		logCompactionDebugWithContext("lifecycle.agent_end.queueHandoff.scheduled", ctx, { reason, force: false });
 		setTimeout(() => {
-			logCompactionDebug("lifecycle.agent_end.queueHandoff.dispatch", { reason, force: true });
-			void processTerminalGoalWorkflow(pi, ctx, { goal, reason: "turn", runner: postCompletionRunner, force: true });
+			logCompactionDebug("lifecycle.agent_end.queueHandoff.dispatch", { reason, force: false });
+			void processTerminalGoalWorkflow(pi, ctx, { goal, reason: "turn", runner: postCompletionRunner });
 		}, AGENT_END_HANDOFF_DELAY_MS);
 		return;
 	}

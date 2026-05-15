@@ -10,6 +10,7 @@ export type CreateGoalStateInput = {
 	minTokensBeforeWrapUp?: number;
 	minTimeSecondsBeforeWrapUp?: number;
 	postCompletionActions?: GoalState["postCompletionActions"];
+	sourceQueueId?: string;
 	now?: number;
 };
 
@@ -56,6 +57,7 @@ export function createGoalState(input: CreateGoalStateInput): GoalState {
 		timeUsedSeconds: 0,
 		createdAt: now,
 		updatedAt: now,
+		sourceQueueId: input.sourceQueueId,
 		postCompletionActions: input.postCompletionActions,
 	};
 }
@@ -168,6 +170,7 @@ function toGoalState(value: unknown): GoalState | null {
 		timeUsedSeconds: finiteNumber(v.timeUsedSeconds) ?? 0,
 		createdAt: finiteNumber(v.createdAt) ?? Date.now(),
 		updatedAt: finiteNumber(v.updatedAt) ?? Date.now(),
+		sourceQueueId: optionalString(v.sourceQueueId),
 		postCompletionActions: parsePostCompletionActionStates(v.postCompletionActions, required.goalId, legacyContext, legacyStatus, v),
 		postCompletionContext: legacyContext,
 		contextResetAnchorEntryId: optionalString(v.contextResetAnchorEntryId),

@@ -1,7 +1,7 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { QUEUE_MESSAGE_TYPE, QUEUE_PROMPT_ID } from "./constants";
 import { logCompactionDebug } from "./debug-log";
-import { getQueue, type QueuedGoal } from "./queue-state";
+import { getQueue, getQueueRevision, type QueuedGoal } from "./queue-state";
 import type { GoalQueueSteeringReason } from "./types";
 
 const OBJECTIVE_PREVIEW_CHARS = 4_000;
@@ -16,7 +16,7 @@ export function sendQueueHandoff(pi: ExtensionAPI, reason: GoalQueueSteeringReas
 		logCompactionDebug("queueHandoff.skip.noQueue", { reason, requestedGoalId: opts.goalId, deliverAs: opts.deliverAs, triggerTurn: opts.triggerTurn });
 		return false;
 	}
-	const key = `${reason}:${opts.goalId ?? "none"}:${next.queueId}`;
+	const key = `${reason}:${opts.goalId ?? "none"}:${next.queueId}:${getQueueRevision()}`;
 	if (!opts.force && lastQueueHandoffKey === key) {
 		logCompactionDebug("queueHandoff.skip.duplicate", { reason, key, requestedGoalId: opts.goalId, deliverAs: opts.deliverAs, triggerTurn: opts.triggerTurn });
 		return false;
@@ -34,13 +34,14 @@ export function sendQueueSteering(pi: ExtensionAPI, reason: GoalQueueSteeringRea
 		logCompactionDebug("queueSteering.skip.noQueue", { reason, deliverAs: opts.deliverAs, triggerTurn: opts.triggerTurn });
 		return false;
 	}
-	logCompactionDebug("queueSteering.send", { reason, queueId: next.queueId, deliverAs: opts.deliverAs ?? "steer", triggerTurn: opts.triggerTurn });
+	const queueRevision = getQueueRevision();
+	logCompactionDebug("queueSteering.send", { reason, queueId: next.queueId, queueRevision, deliverAs: opts.deliverAs ?? "steer", triggerTurn: opts.triggerTurn });
 	pi.sendMessage(
 		{
 			customType: QUEUE_MESSAGE_TYPE,
 			content: queueSteeringContent(next),
 			display: false,
-			details: { kind: "queueNext", promptId: QUEUE_PROMPT_ID, queueId: next.queueId, reason, createdAt: Date.now() },
+			details: { kind: "queueNext", promptId: QUEUE_PROMPT_ID, queueId: next.queueId, queueRevision, reason, createdAt: Date.now() },
 		},
 		{ deliverAs: opts.deliverAs ?? "steer", triggerTurn: opts.triggerTurn },
 	);
@@ -50,7 +51,8 @@ export function sendQueueSteering(pi: ExtensionAPI, reason: GoalQueueSteeringRea
 export function queueSteeringStillValid(message: Record<string, unknown>): boolean {
 	const details = typeof message.details === "object" && message.details !== null ? message.details as Record<string, unknown> : null;
 	const queueId = details?.queueId;
-	return typeof queueId === "string" && getQueue()[0]?.queueId === queueId;
+	const queueRevision = details?.queueRevision;
+	return typeof queueId === "string" && typeof queueRevision === "number" && getQueue()[0]?.queueId === queueId && getQueueRevision() === queueRevision;
 }
 
 function queueSteeringContent(goal: QueuedGoal): string {

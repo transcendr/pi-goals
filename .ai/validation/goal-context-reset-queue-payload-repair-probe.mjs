@@ -1,0 +1,31 @@
+#!/usr/bin/env node
+import { createJiti } from 'jiti';
+import path from 'node:path';
+const jiti = createJiti(path.join(process.cwd(), 'probe.cjs'), { interopDefault: true });
+const { processTerminalGoalWorkflow } = jiti('./.pi/extensions/goal/terminal-workflow.ts');
+const { setRuntimeStateForTests } = jiti('./.pi/extensions/goal/state.ts');
+const { setQueueForTests, getQueue, restoreQueueHeadForRepair, consumeQueueIdForRepair } = jiti('./.pi/extensions/goal/queue-state.ts');
+function assert(name, condition) { if (!condition) { console.error(`FAIL ${name}`); process.exitCode = 1; } else console.log(`PASS ${name}`); }
+assert('repair helpers exported', typeof restoreQueueHeadForRepair === 'function' && typeof consumeQueueIdForRepair === 'function');
+const queued = { queueId:'q-next', objective:'count to 2', source:'tool', template:'implementation-ready-issue', templateFlags:{ a:'b' }, templateArgs:'-- ISSUE-045', tokenBudget:123, minTokensBeforeWrapUp:10, postCompletionActions:[{ type:'context.reset', mode:'summarize' }], createdAt:3 };
+let pi = { entries:[], messages:[], appendEntry(type,data){ this.entries.push({ type, data }); }, sendMessage(message, options){ this.messages.push({ message, options }); } };
+setQueueForTests({ queue:[] });
+let restored = restoreQueueHeadForRepair(pi, queued, 'probe_restore');
+assert('restore inserts exact queued head when queue empty', restored.status === 'restored' && getQueue()[0]?.queueId === 'q-next' && getQueue()[0]?.templateFlags?.a === 'b' && getQueue()[0]?.postCompletionActions?.[0]?.mode === 'summarize');
+assert('restore persists repair event', pi.entries.some(e => e.data?.kind === 'repairHead' && e.data?.goal?.queueId === 'q-next'));
+setQueueForTests({ queue:[{ queueId:'q-other', objective:'other', source:'tool', createdAt:4 }] });
+restored = restoreQueueHeadForRepair(pi, queued, 'probe_block');
+assert('restore refuses different current head', restored.status === 'blocked_different_head' && getQueue()[0]?.queueId === 'q-other');
+setQueueForTests({ queue:[{ queueId:'q-source', objective:'old source', source:'tool', createdAt:2 }, queued] });
+const consumed = consumeQueueIdForRepair(pi, 'q-source', 'probe_consume');
+assert('repair consume removes reappeared source queue id', consumed.status === 'consumed' && getQueue()[0]?.queueId === 'q-next');
+const goal = { goalId:'g1', sourceQueueId:'q-source', objective:'done', status:'complete', tokensUsed:0, timeUsedSeconds:0, createdAt:1, updatedAt:2, postCompletionActions:[{ id:'a1', type:'context.reset', mode:'summarize', status:'pending' }] };
+pi = { entries:[], messages:[], appendEntry(type,data){ this.entries.push({ type, data }); }, sendMessage(message, options){ this.messages.push({ message, options }); } };
+setRuntimeStateForTests({ goal, telemetry:null });
+setQueueForTests({ queue:[queued] });
+const ctx = { sessionManager:{ getLeafId(){ return 'leaf'; } }, ui:{ notify(){}, setStatus(){}, setWidget(){} } };
+const runner = { async run(input){ setQueueForTests({ queue:[{ queueId:'q-source', objective:'old source', source:'tool', createdAt:2 }] }); return { ok:true, actionId:input.action.id, status:'done', message:'simulated reset navigation' }; } };
+await processTerminalGoalWorkflow(pi, ctx, { goal, reason:'turn', runner, triggerTurn:true });
+assert('terminal workflow repairs cached next payload after reset navigation', getQueue()[0]?.queueId === 'q-next' && getQueue()[0]?.objective === 'count to 2');
+assert('terminal workflow dispatches repaired queue once', pi.messages.filter(m => m.message.customType === 'pi-goal-queue-steer' && m.message.details?.queueId === 'q-next').length === 1);
+console.log('PASS goal_context_reset_queue_payload_repair_probe');
