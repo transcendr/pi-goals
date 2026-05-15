@@ -1,10 +1,14 @@
-# Live probe scenario — post-completion context reset full suite
+# Live probe scenario — post-completion context reset default suite
 
 ## Purpose
 
-Validate every public ISSUE-043/ISSUE-044 post-completion context reset usage scenario in a real Pi/Solo process.
+Validate the supported default-environment post-completion context reset surface in a real Pi/Solo process.
 
-This suite exists because the original ISSUE-044 live probe covered only a subset of the feature surface. After ISSUE-045, `clear` mode is intentionally default-off behind `PI_GOAL_CONTEXT_RESET_CLEAR`; clear-navigation scenarios in this full suite require explicitly enabling that flag for the probe process. The default-environment queue-stack closeout probe for ISSUE-045 is `.ai/docs/live-probe-scenarios/post-completion-context-reset-issue045-summarize-queue-stack.md`.
+After ISSUE-045, `summarize` is the supported queue-stack mode. `clear` mode is intentionally default-off behind `PI_GOAL_CONTEXT_RESET_CLEAR`, so historical clear-navigation success scenarios are obsolete and have been removed from this default live suite. Clear behavior is covered by deterministic default-off probes; if clear navigation needs live validation, run a separate opt-in probe with `PI_GOAL_CONTEXT_RESET_CLEAR=1` and do not mix those results with the default suite.
+
+The focused ISSUE-045 queue-stack closeout probe is:
+
+- `.ai/docs/live-probe-scenarios/post-completion-context-reset-issue045-summarize-queue-stack.md`
 
 ## Preconditions
 
@@ -44,21 +48,7 @@ Expected evidence: no unintended active goal remains and queue reports `No queue
 
 ## Scenarios
 
-### S1 — slash direct clear success
-
-```bash
-solo-mcp --instance "$SOLO_INSTANCE" process send "$PROBE_PROCESS" --project "$SOLO_PROJECT" --input '/goal count to 1 and clear context'
-sleep 18
-solo-mcp --instance "$SOLO_INSTANCE" process output "$PROBE_PROCESS" --project "$SOLO_PROJECT" --lines 220 --full
-```
-
-Expected evidence:
-- visible objective is `count to 1`;
-- goal completes;
-- transcript shows `Navigated to selected point`;
-- no post-completion reset failure warning.
-
-### S2 — slash direct summarize success
+### S1 — slash direct summarize success
 
 ```bash
 solo-mcp --instance "$SOLO_INSTANCE" process send "$PROBE_PROCESS" --project "$SOLO_PROJECT" --input '/goal count to 1 and summarize context'
@@ -66,36 +56,35 @@ sleep 18
 solo-mcp --instance "$SOLO_INSTANCE" process output "$PROBE_PROCESS" --project "$SOLO_PROJECT" --lines 220 --full
 ```
 
-Expected evidence: same as S1, with summarize directive stripped from objective and tree navigation succeeding.
+Expected evidence:
 
-### S3 — slash direct clear with queued follow-up
+- visible objective is `count to 1`;
+- summarize directive is stripped from objective;
+- goal completes;
+- transcript shows `Navigated to selected point`;
+- no post-completion reset failure warning.
+
+### S2 — slash direct summarize with queued follow-up
 
 ```bash
-solo-mcp --instance "$SOLO_INSTANCE" process send "$PROBE_PROCESS" --project "$SOLO_PROJECT" --input '/goal count to 1 and clear context'
+solo-mcp --instance "$SOLO_INSTANCE" process send "$PROBE_PROCESS" --project "$SOLO_PROJECT" --input '/goal count to 1 and summarize context'
 sleep 1
 solo-mcp --instance "$SOLO_INSTANCE" process send "$PROBE_PROCESS" --project "$SOLO_PROJECT" --input '/goal queue count to 2'
-sleep 22
-solo-mcp --instance "$SOLO_INSTANCE" process output "$PROBE_PROCESS" --project "$SOLO_PROJECT" --lines 260 --full
+sleep 35
+solo-mcp --instance "$SOLO_INSTANCE" process output "$PROBE_PROCESS" --project "$SOLO_PROJECT" --lines 360 --full
 ```
 
 Expected evidence:
+
 - active goal objective is `count to 1`;
-- queued goal `count to 2` is queued;
+- queued goal `count to 2` is queued before first completion;
 - `Navigated to selected point` appears after first goal completion;
-- queued goal starts and completes with `1, 2`;
-- no reset failure warning.
+- queued goal starts exactly once and completes with `1, 2`;
+- no `No tool call found for function call output` appears;
+- no repeated stale `pi-goal-queue-steer` loop appears;
+- cleanup leaves no active goal and no queued goals.
 
-### S4 — slash direct summarize with queued follow-up
-
-Same as S3, but first command is:
-
-```bash
-/goal count to 1 and summarize context
-```
-
-Expected evidence: same as S3.
-
-### S5 — slash template summarize success
+### S3 — slash template summarize success
 
 ```bash
 solo-mcp --instance "$SOLO_INSTANCE" process send "$PROBE_PROCESS" --project "$SOLO_PROJECT" --input '/goal repo-worktree-inventory -- current state and summarize context'
@@ -104,22 +93,13 @@ solo-mcp --instance "$SOLO_INSTANCE" process output "$PROBE_PROCESS" --project "
 ```
 
 Expected evidence:
+
 - rendered template objective starts and completes;
 - raw trailing directive is stripped before template expansion;
 - transcript shows `Navigated to selected point`;
 - no reset failure warning.
 
-### S6 — slash template clear success
-
-Same as S5, but command is:
-
-```bash
-/goal repo-worktree-inventory -- current state and clear context
-```
-
-Expected evidence: same as S5, for clear mode.
-
-### S7 — model-tool `create_goal` structured clear success
+### S4 — model-tool `create_goal` structured summarize success
 
 First ensure command-context capability exists by running one slash-created seed goal after reload:
 
@@ -133,63 +113,37 @@ sleep 1
 Then send a prompt that forces model-tool parameters:
 
 ```text
-Use only pi-goal tools for this live probe. Call create_goal with objective "count to 1" and structured post_completion_context="clear". Complete the goal normally by counting 1 and calling update_goal status="complete". Report whether tree navigation happened and whether any post-completion reset failure warning appeared.
+Use only pi-goal tools for this live probe. Call create_goal with objective "count to 1" and structured post_completion_context="summarize". Complete the goal normally by counting 1 and calling update_goal status="complete". Report whether tree navigation happened and whether any post-completion reset failure warning appeared.
 ```
 
 Expected evidence:
-- `create_goal` is called with structured `post_completion_context="clear"`;
+
+- `create_goal` is called with structured `post_completion_context="summarize"`;
 - goal completes;
 - transcript shows `Navigated to selected point`;
 - no reset failure warning.
 
-### S8 — model-tool `create_goal` structured summarize success
+## Removed obsolete clear-navigation scenarios
 
-Same as S7, but use `post_completion_context="summarize"`.
+The former full suite included clear-mode success scenarios for slash direct goals, queued follow-up, templates, `create_goal`, `create_goal_from_template`, and `enqueue_goal`. Those scenarios are obsolete in the default suite because ISSUE-045 intentionally disables clear navigation unless `PI_GOAL_CONTEXT_RESET_CLEAR` is explicitly enabled.
 
-### S9 — model-tool `create_goal_from_template` structured context success
+Default clear behavior should be verified with deterministic probes such as:
 
-Use a seeded command context as in S7, then send:
-
-```text
-Use only pi-goal tools for this live probe. Call create_goal_from_template with template "repo-worktree-inventory", args "-- current state", and structured post_completion_context="clear". Execute the resulting goal normally until complete. Report whether tree navigation happened and whether any post-completion reset failure warning appeared.
+```bash
+node .ai/validation/goal-context-reset-clear-default-off-probe.mjs
 ```
 
-Expected evidence:
-- model tool call uses `create_goal_from_template` with structured context parameter;
-- template goal completes;
-- transcript shows `Navigated to selected point`;
-- no reset failure warning.
-
-### S10 — model-tool `enqueue_goal` structured context success
-
-Use a seeded command context as in S7, then send:
-
-```text
-Use only pi-goal tools for this live probe. Call enqueue_goal with objective "count to 1" and structured post_completion_context="clear". Then call start_queued_goal, count 1, and call update_goal status="complete". Report whether tree navigation happened and whether any post-completion reset failure warning appeared.
-```
-
-Expected evidence:
-- `enqueue_goal` is called with structured context parameter;
-- queued goal starts;
-- goal completes;
-- transcript shows `Navigated to selected point`;
-- no reset failure warning.
+Expected default clear behavior: skipped action + visible warning + normal goal/queue continuation, with no `navigateTree` call and no silent downgrade to summarize.
 
 ## Pass/fail criteria
 
 ```toon
 toon.version: 1
-live_probe_full_suite_requirements[10]{id,required_evidence}:
-  "S1","slash direct clear strips directive, completes, and navigates"
-  "S2","slash direct summarize strips directive, completes, and navigates"
-  "S3","slash direct clear navigates before queued follow-up completes"
-  "S4","slash direct summarize navigates before queued follow-up completes"
-  "S5","slash template summarize strips raw directive before expansion and navigates"
-  "S6","slash template clear strips raw directive before expansion and navigates"
-  "S7","model-tool create_goal structured clear completes and navigates"
-  "S8","model-tool create_goal structured summarize completes and navigates"
-  "S9","model-tool create_goal_from_template structured context completes and navigates"
-  "S10","model-tool enqueue_goal structured context starts, completes, and navigates"
+live_probe_default_suite_requirements[4]{id,required_evidence}:
+  "S1","slash direct summarize strips directive, completes, and navigates"
+  "S2","slash direct summarize queue stack navigates, preserves queued follow-up, starts it exactly once, and avoids Codex tool-call desync"
+  "S3","slash template summarize strips raw directive before expansion and navigates"
+  "S4","model-tool create_goal structured summarize completes and navigates"
 ```
 
 A scenario is not green unless the transcript itself shows the public behavior under test. If public output cannot expose an internal field, say that explicitly and tie mode proof to the exact submitted command/tool params plus deterministic code/probe coverage.

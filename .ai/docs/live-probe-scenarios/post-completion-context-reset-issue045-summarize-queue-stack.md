@@ -21,7 +21,7 @@ SOLO_INSTANCE="${SOLO_INSTANCE:-solo-pi_goals}"
 SOLO_PROJECT="${SOLO_PROJECT:-2}"
 RUN_DIR="${RUN_DIR:-/tmp/issue045-summarize-queue-stack-live-probe-$(date -u +%Y%m%dT%H%M%SZ)}"
 mkdir -p "$RUN_DIR"
-solo-mcp --instance "$SOLO_INSTANCE" processes --project "$SOLO_PROJECT" --fields id,name,status,kind >"$RUN_DIR/00-processes.toon"
+solo-mcp --instance "$SOLO_INSTANCE" processes --project "$SOLO_PROJECT" --fields id,name,status,pid,command,uptime_seconds >"$RUN_DIR/00-processes.toon"
 PROBE_PROCESS="<resolved pi-goals-live-probe process id>"
 ```
 
