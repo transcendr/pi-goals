@@ -12,7 +12,8 @@
   "scripts": {
     "gates:quality": "sentrux gate .pi/extensions/goal && sentrux check .pi/extensions/goal && npm run gates:deslop && tsc --noEmit --target ES2022 --module ESNext --moduleResolution node --ignoreDeprecations 6.0 --types node --strict --skipLibCheck .pi/extensions/goal/*.ts && pi --offline --no-session --no-tools -e .pi/extensions/goal/index.ts --list-models >/tmp/pi-goal-quality-load.txt",
     "gates:deslop": "npx --yes d3sl0p@0.1.0 typescript --report-min error .pi/extensions/goal",
-    "scans:deslop": "npx --yes d3sl0p@0.1.0 typescript --fail-on none --report-min lead .pi/extensions/goal"
+    "scans:deslop": "npx --yes d3sl0p@0.1.0 typescript --fail-on none --report-min lead .pi/extensions/goal",
+    "sentrux:baseline": "bash ${HOME}/.codex/skills/pi-extension-dev/scripts/sentrux-save-baseline.sh .pi/extensions/goal"
   },
   "repository": {
     "type": "git",
