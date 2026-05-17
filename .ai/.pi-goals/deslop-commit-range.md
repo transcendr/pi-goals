@@ -52,19 +52,26 @@ Deslop objectives:
 Workflow:
 1. Read `AGENTS.md`, the `$deslop` skill, and the full TypeScript deslop reference (`references/typescript.md` under the `$deslop` skill directory) before editing. Name the TypeScript slop signatures and correctness traps you will check.
 2. Validate that `{{args}}` resolves to a real commit range. If not, resolve the intended base/head from tags, branches, or recent commits before relying on diff output.
-3. Read the relevant changed files and adjacent call sites/callees.
-4. Run `sentrux gate --save .pi/extensions/goal` before non-trivial edits.
-5. Inspect `git diff {{args}}` and current working tree changes.
-6. Make the smallest coherent behavior-preserving cleanup.
-7. Run the combined gate: `npm run gates:quality`.
-8. If focused probes exist for touched behavior, run them too.
-9. If any gate fails, fix the structural/type/behavioral cause rather than weakening checks.
-10. Stage and commit the deslop cleanup with a concise commit message.
-11. Report the exact commands run, pass/fail results, commit hash, which language reference(s) were read, and any remaining risks.
+3. Build a commit-range triage map before editing:
+   - `introduced-by-range`: the issue is in `git diff {{args}}` or follows directly from behavior changed by the range;
+   - `adjacent-to-range`: the issue is not clearly introduced by the range, but is in a touched code path, caller/callee, or shared contract that must be adjusted for a safe behavior-preserving cleanup;
+   - `pre-existing`: the issue existed before the range or is outside the touched paths.
+   - Fix introduced and necessary adjacent issues first.
+   - Only fix pre-existing issues when they block required validation or are required for the smallest safe cleanup; otherwise report them separately.
+4. Read the relevant changed files and adjacent call sites/callees.
+5. Run `sentrux gate --save .pi/extensions/goal` before non-trivial edits.
+6. Inspect `git diff {{args}}` and current working tree changes.
+7. Make the smallest coherent behavior-preserving cleanup.
+8. Run the combined gate: `npm run gates:quality`.
+9. If focused probes exist for touched behavior, run them too.
+10. If any gate fails, fix the structural/type/behavioral cause rather than weakening checks.
+11. Stage and commit the deslop cleanup with a concise commit message.
+12. Report the exact commands run, pass/fail results, commit hash, which language reference(s) were read, which findings were introduced/adjacent/pre-existing, and any remaining risks.
 
 Completion standard:
 - Working tree is clean after the commit.
 - `npm run gates:quality` passes.
 - The full TypeScript deslop reference was read before patching.
+- The final report separates introduced/adjacent fixes from pre-existing risks or validation blockers.
 - No `as unknown as`, `as any`, or unproven `expr!` non-null assertions appear under `.pi/extensions/goal`.
 - The cleanup is limited to behavior-preserving deslop unless the user explicitly approves a behavior change.
