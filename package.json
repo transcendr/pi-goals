@@ -10,9 +10,9 @@
     "LICENSE"
   ],
   "scripts": {
-    "typecheck:goal": "tsc --noEmit --target ES2022 --module ESNext --moduleResolution node --ignoreDeprecations 6.0 --types node --strict --skipLibCheck .pi/extensions/goal/*.ts",
-    "slop:goal": "if rg -n 'as unknown as|as any' .pi/extensions/goal; then exit 1; else exit 0; fi",
-    "quality:goal": "sentrux gate .pi/extensions/goal && sentrux check .pi/extensions/goal && npm run slop:goal && npm run typecheck:goal && pi --offline --no-session --no-tools -e .pi/extensions/goal/index.ts --list-models >/tmp/pi-goal-quality-load.txt"
+    "gates:quality": "sentrux gate .pi/extensions/goal && sentrux check .pi/extensions/goal && npm run gates:deslop && tsc --noEmit --target ES2022 --module ESNext --moduleResolution node --ignoreDeprecations 6.0 --types node --strict --skipLibCheck .pi/extensions/goal/*.ts && pi --offline --no-session --no-tools -e .pi/extensions/goal/index.ts --list-models >/tmp/pi-goal-quality-load.txt",
+    "gates:deslop": "node scripts/deslop/typescript/deslop-ts-scan.mjs --report-min error .pi/extensions/goal",
+    "scans:deslop": "node scripts/deslop/typescript/deslop-ts-scan.mjs --fail-on none --report-min lead .pi/extensions/goal"
   },
   "repository": {
     "type": "git",

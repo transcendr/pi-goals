@@ -212,7 +212,7 @@ Minimum review actions:
    bash -o pipefail -c 'sentrux gate .pi/extensions/goal 2>&1 | tee /tmp/<rendered-deslop-artifact-dir>/sentrux-post-deslop.log'
    ```
 
-4. Run any project-required or issue-relevant validation needed to verify the deslop work. For this repo, `npm run quality:goal` is usually required when `.pi/extensions/goal` behavior or TypeScript changed.
+4. Run any project-required or issue-relevant validation needed to verify the deslop work. For this repo, `npm run gates:quality` is usually required when `.pi/extensions/goal` behavior or TypeScript changed.
 
 If you identify any issues in the worker's work, including bad assumptions, wrong or potentially breaking changes, validation failures, or Sentrux degradation, produce a matrix table with:
 

@@ -23,7 +23,7 @@ sentrux gate --save .pi/extensions/goal
 After implementation, run the single required gate:
 
 ```bash
-npm run quality:goal
+npm run gates:quality
 ```
 
 This runs Sentrux gate/check, slop guard, TypeScript validation, and Pi extension load validation.
@@ -87,7 +87,7 @@ Canonical guide: `.ai/docs/pi-goals-live-probe-testing.md`.
 
 When work on `pi-goals` changes or fixes behavior, especially slash commands, queue/resume steering, continuation, UI/status rendering, or live extension runtime behavior, usually validate it on the live probe surface unless instructed otherwise.
 
-Live probes complement deterministic tests; they do not replace `npm run quality:goal` or targeted probes. For a small change with direct, unambiguous deterministic coverage, the live probe may be skipped to save time/tokens, but provide a visible reason in the current closeout context.
+Live probes complement deterministic tests; they do not replace `npm run gates:quality` or targeted probes. For a small change with direct, unambiguous deterministic coverage, the live probe may be skipped to save time/tokens, but provide a visible reason in the current closeout context.
 
 Do not hard-code a Solo process id. Resolve the current `pi-goals-live-probe` process from the active Solo context and prefer the existing running process. Spawn a new Pi runtime agent named `pi-goals-live-probe` only when no suitable existing probe is alive.
 

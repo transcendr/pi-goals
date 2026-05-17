@@ -1,6 +1,6 @@
 # Pi-goals live probe agent testing
 
-This document is the canonical project-local guide for validating `pi-goal` behavior in a real Pi interactive session through Solo. It complements deterministic probes and `npm run quality:goal`; it does not replace them.
+This document is the canonical project-local guide for validating `pi-goal` behavior in a real Pi interactive session through Solo. It complements deterministic probes and `npm run gates:quality`; it does not replace them.
 
 ## Purpose
 

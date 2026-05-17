@@ -56,7 +56,7 @@ Workflow:
 4. Run `sentrux gate --save .pi/extensions/goal` before non-trivial edits.
 5. Inspect `git diff {{args}}` and current working tree changes.
 6. Make the smallest coherent behavior-preserving cleanup.
-7. Run the combined gate: `npm run quality:goal`.
+7. Run the combined gate: `npm run gates:quality`.
 8. If focused probes exist for touched behavior, run them too.
 9. If any gate fails, fix the structural/type/behavioral cause rather than weakening checks.
 10. Stage and commit the deslop cleanup with a concise commit message.
@@ -64,7 +64,7 @@ Workflow:
 
 Completion standard:
 - Working tree is clean after the commit.
-- `npm run quality:goal` passes.
+- `npm run gates:quality` passes.
 - The full TypeScript deslop reference was read before patching.
 - No `as unknown as`, `as any`, or unproven `expr!` non-null assertions appear under `.pi/extensions/goal`.
 - The cleanup is limited to behavior-preserving deslop unless the user explicitly approves a behavior change.

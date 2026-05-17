@@ -417,10 +417,10 @@ Current execution-ready roadmap items include:
 
 ```bash
 npm install
-npm run quality:goal
+npm run gates:quality
 ```
 
-`npm run quality:goal` runs the project quality gate for the extension, including:
+`npm run gates:quality` runs the project quality gate for the extension, including:
 
 - Sentrux structure checks,
 - TypeScript validation,
