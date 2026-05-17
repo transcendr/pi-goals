@@ -12,3 +12,5 @@ node_modules
 !.ai/docs/issue-workflow/
 !.ai/docs/issue-workflow/**
 tmp
+references/goal-forge
+.pi/settings.json
