@@ -1,0 +1,111 @@
+$ git status --short --untracked-files=all
+(no output)
+
+$ find .ai/issues -maxdepth 2 -type d | sort
+.ai/issues
+.ai/issues/closed
+.ai/issues/defer
+.ai/issues/fixed
+.ai/issues/open
+
+$ find .ai/issues/open .ai/issues/fixed -maxdepth 1 -type f -name 'ISSUE-*.md' | sort | tail -20
+.ai/issues/fixed/ISSUE-036-minimum-goal-spend-floors.md
+.ai/issues/fixed/ISSUE-038-bound-goal-template-autocomplete-discovery.md
+.ai/issues/fixed/ISSUE-039-recover-active-goal-continuation-after-compaction.md
+.ai/issues/fixed/ISSUE-040-verify-acceptance-pipeline-goal-templates.md
+.ai/issues/fixed/ISSUE-041-harden-acceptance-verification-pipeline-workflow.md
+.ai/issues/fixed/ISSUE-042-harden-compaction-continuation-with-pre-compact-queueing.md
+.ai/issues/fixed/ISSUE-044-rewrite-post-completion-context-management-around-safe-hooks.md
+.ai/issues/fixed/ISSUE-045-harden-context-reset-queue-stacks-and-gate-clear-mode.md
+.ai/issues/open/ISSUE-011-goal-widget-real-component-and-narrow-width.md
+.ai/issues/open/ISSUE-013-goal-update-natural-language.md
+.ai/issues/open/ISSUE-014-goal-progress-estimates.md
+.ai/issues/open/ISSUE-015-goal-subgoals.md
+.ai/issues/open/ISSUE-016-goal-idle-tolerant-mode.md
+.ai/issues/open/ISSUE-018-goal-start-in-worktree.md
+.ai/issues/open/ISSUE-019-parallel-multiple-goals.md
+.ai/issues/open/ISSUE-021-goal-completion-proofs.md
+.ai/issues/open/ISSUE-022-goal-history-checkpoints-and-compaction.md
+.ai/issues/open/ISSUE-023-goal-dependency-triggers-and-watchers.md
+.ai/issues/open/ISSUE-024-goal-audit-command.md
+.ai/issues/open/ISSUE-037-goal-queue-auto-continuation-after-complete.md
+
+$ find .ai/issues -type f -name 'ISSUE-*.md' | sed -E 's#.*/ISSUE-([0-9]+).*#\1#' | sort -n | tail -1 | awk '{printf("ISSUE-%03d", $1+1)}'
+ISSUE-046
+
+$ find /Users/bryan/dev/personal/experiments/pi-goals -name AGENTS.md -print
+/Users/bryan/dev/personal/experiments/pi-goals/AGENTS.md
+/Users/bryan/dev/personal/experiments/pi-goals/references/codex/AGENTS.md
+/Users/bryan/dev/personal/experiments/pi-goals/references/codex/codex-rs/tui/src/bottom_pane/AGENTS.md
+
+$ rg -n "list_goal_queue|resultForQueue|resultForQueuedGoal|truncateObjective|OBJECTIVE_PREVIEW_CHARS" .pi/extensions/goal/*.ts
+.pi/extensions/goal/command.ts:293:        const lines = queue.map((g, i) => `${i + 1}. [${g.queueId}] ${truncateObjective(g.objective)}`);
+.pi/extensions/goal/command.ts:307:        const lines = queued.map((g, i) => `${i + 1}. [${g.queueId}] ${truncateObjective(g.objective)}`);
+.pi/extensions/goal/command.ts:321: notifyInfo(ctx, `Queued goal: ${queued.queueId} — ${truncateObjective(validation.objective)}`);
+.pi/extensions/goal/command.ts:324:function truncateObjective(objective: string): string {
+.pi/extensions/goal/queue-steering.ts:7:const OBJECTIVE_PREVIEW_CHARS = 4_000;
+.pi/extensions/goal/queue-steering.ts:111: return objective.length > OBJECTIVE_PREVIEW_CHARS ? `${objective.slice(0, OBJECTIVE_PREVIEW_CHARS - 1)}…` : objective;
+.pi/extensions/goal/queue-tools.ts:48:      name: "list_goal_queue",
+.pi/extensions/goal/queue-tools.ts:55:          return resultForQueue();
+.pi/extensions/goal/queue-tools.ts:78:          return resultForQueuedGoal(queued);
+.pi/extensions/goal/queue-tools.ts:201:function resultForQueue() {
+.pi/extensions/goal/queue-tools.ts:208:function resultForQueuedGoal(queued: QueuedGoal) {
+
+$ python3 - <<'PY'
+# Extract relevant evidence from Pinotator session JSONL.
+PY
+LINE 267 TOOL enqueue_goal
+Queued goal: q-1778925638320-8
+Objective: create-issue-doc --bucket open --kind fix --title "Untruncated goal queue listing for agents" -- In /Users/bryan/dev/…
+DETAIL_OBJECTIVE: create-issue-doc --bucket open --kind fix --title "Untruncated goal queue listing for agents" -- In /Users/bryan/dev/personal/experiments/pi-goals, create this issue under that repo's .ai/issues/open. Problem: the list_goal_queue tool output shown to agents is truncated/excerpted for long queued objectives, so agents cannot directly see the full queue item text through the tool and may need to recover it by reading persisted Pi session JSONL. Desired behavior: pi-goals should expose full queued goal contents to agents, or provide an explicit non-truncated/details mode, while keeping UI output manageable. Include evidence from Pinotator session where list_goal_queue returned ellipsized objectives and the agent reconstructed the full queue from pi-goal-state custom entries in the session JSONL. Cover API/tool output design, backward compatibility, truncation/token-safety tradeoffs, and acceptance tests.
+---
+LINE 638 TOOL list_goal_queue
+Queued goals (8):
+1. [q-1778922802935-1] create-issue-doc --bucket open --kind feature --title "Pinotator slash command autocomplete" -- Add fuzzy autocomplet…
+...
+8. [q-1778925638320-8] create-issue-doc --bucket open --kind fix --title "Untruncated goal queue listing for agents" -- In /Users/bryan/dev/…
+DETAIL_OBJECTIVE: create-issue-doc --bucket open --kind fix --title "Untruncated goal queue listing for agents" -- In /Users/bryan/dev/personal/experiments/pi-goals, create this issue under that repo's .ai/issues/open. Problem: the list_goal_queue tool output shown to agents is truncated/excerpted for long queued objectives, so agents cannot directly see the full queue item text through the tool and may need to recover it by reading persisted Pi session JSONL. Desired behavior: pi-goals should expose full queued goal contents to agents, or provide an explicit non-truncated/details mode, while keeping UI output manageable. Include evidence from Pinotator session where list_goal_queue returned ellipsized objectives and the agent reconstructed the full queue from pi-goal-state custom entries in the session JSONL. Cover API/tool output design, backward compatibility, truncation/token-safety tradeoffs, and acceptance tests.
+---
+LINE 663 TOOL list_goal_queue
+Queued goals (1):
+1. [q-1778925638320-8] create-issue-doc --bucket open --kind fix --title "Untruncated goal queue listing for agents" -- In /Users/bryan/dev/…
+DETAIL_OBJECTIVE: create-issue-doc --bucket open --kind fix --title "Untruncated goal queue listing for agents" -- In /Users/bryan/dev/personal/experiments/pi-goals, create this issue under that repo's .ai/issues/open. Problem: the list_goal_queue tool output shown to agents is truncated/excerpted for long queued objectives, so agents cannot directly see the full queue item text through the tool and may need to recover it by reading persisted Pi session JSONL. Desired behavior: pi-goals should expose full queued goal contents to agents, or provide an explicit non-truncated/details mode, while keeping UI output manageable. Include evidence from Pinotator session where list_goal_queue returned ellipsized objectives and the agent reconstructed the full queue from pi-goal-state custom entries in the session JSONL. Cover API/tool output design, backward compatibility, truncation/token-safety tradeoffs, and acceptance tests.
+
+$ rg -n "goal-queue|list_goal_queue|queue" .ai/validation | head -80
+(existing queue probes found, including goal-model-tool-enqueue-start-once-probe.mjs, goal-complete-queue-handoff-probe.mjs, goal-queue-steer-generation-probe.mjs, and context-reset queue probes)
+
+$ python3 - <<'PY'
+# Extract and validate TOON blocks with npx -y @toon-format/cli --decode.
+PY
+PASS .ai/issues/open/ISSUE-046-untruncated-goal-queue-listing-for-agents.md block 1
+PASS .ai/issues/open/ISSUE-046-untruncated-goal-queue-listing-for-agents.md block 2
+PASS .ai/docs/issue-workflow/ISSUE-046-untruncated-goal-queue-listing-for-agents/execution-readiness/04-proof-threat-model.md block 1
+Validated 3 TOON blocks
+
+$ git status --short --untracked-files=all | sed -n '1,120p'
+?? .ai/docs/issue-workflow/ISSUE-046-untruncated-goal-queue-listing-for-agents/execution-readiness/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-046-untruncated-goal-queue-listing-for-agents/execution-readiness/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-046-untruncated-goal-queue-listing-for-agents/execution-readiness/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-046-untruncated-goal-queue-listing-for-agents/execution-readiness/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-046-untruncated-goal-queue-listing-for-agents/execution-readiness/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-046-untruncated-goal-queue-listing-for-agents/execution-readiness/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-046-untruncated-goal-queue-listing-for-agents/execution-readiness/raw/commands.log
+?? .ai/issues/open/ISSUE-046-untruncated-goal-queue-listing-for-agents.md
+
+$ git check-ignore -v .ai/docs/issue-workflow/ISSUE-046-untruncated-goal-queue-listing-for-agents/execution-readiness/00-request.md || true
+.gitignore:13:!.ai/docs/issue-workflow/** .ai/docs/issue-workflow/ISSUE-046-untruncated-goal-queue-listing-for-agents/execution-readiness/00-request.md
+(note: status output shows the artifact as untracked/visible; the matching pattern is the .gitignore negation that unignores issue-workflow artifacts)
+
+$ git status --short --untracked-files=all | rg 'ISSUE-046|untruncated'
+?? .ai/docs/issue-workflow/ISSUE-046-untruncated-goal-queue-listing-for-agents/execution-readiness/00-request.md
+?? .ai/docs/issue-workflow/ISSUE-046-untruncated-goal-queue-listing-for-agents/execution-readiness/01-protocol-read.md
+?? .ai/docs/issue-workflow/ISSUE-046-untruncated-goal-queue-listing-for-agents/execution-readiness/02-grounded-research.md
+?? .ai/docs/issue-workflow/ISSUE-046-untruncated-goal-queue-listing-for-agents/execution-readiness/03-design-lock.md
+?? .ai/docs/issue-workflow/ISSUE-046-untruncated-goal-queue-listing-for-agents/execution-readiness/04-proof-threat-model.md
+?? .ai/docs/issue-workflow/ISSUE-046-untruncated-goal-queue-listing-for-agents/execution-readiness/05-issue-writeback.md
+?? .ai/docs/issue-workflow/ISSUE-046-untruncated-goal-queue-listing-for-agents/execution-readiness/06-final-audit.md
+?? .ai/docs/issue-workflow/ISSUE-046-untruncated-goal-queue-listing-for-agents/execution-readiness/raw/commands.log
+?? .ai/issues/open/ISSUE-046-untruncated-goal-queue-listing-for-agents.md
+
+$ git check-ignore -v .ai/docs/issue-workflow/ISSUE-046-untruncated-goal-queue-listing-for-agents/execution-readiness/06-final-audit.md || true
+.gitignore:13:!.ai/docs/issue-workflow/** .ai/docs/issue-workflow/ISSUE-046-untruncated-goal-queue-listing-for-agents/execution-readiness/06-final-audit.md
