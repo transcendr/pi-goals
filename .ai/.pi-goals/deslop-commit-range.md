@@ -73,5 +73,5 @@ Completion standard:
 - `npm run gates:quality` passes.
 - The full TypeScript deslop reference was read before patching.
 - The final report separates introduced/adjacent fixes from pre-existing risks or validation blockers.
-- No `as unknown as`, `as any`, or unproven `expr!` non-null assertions appear under `.pi/extensions/goal`.
+- No `as unknown as`, `as any`, or unproven non-null assertions (expr!) appear under `.pi/extensions/goal`.
 - The cleanup is limited to behavior-preserving deslop unless the user explicitly approves a behavior change.
