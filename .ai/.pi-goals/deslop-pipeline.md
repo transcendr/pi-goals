@@ -123,7 +123,7 @@ print("  spawn_worker: " + " ".join([
 ]))
 print("  set_worker_id_after_spawn: export DESLOP_WORKER_ID=<id from spawn_worker output>")
 print("  send_model_switch: " + f"solo-mcp --instance {quote(instance)} process send \"$DESLOP_WORKER_ID\" --project {quote(project_id)} --input {quote('/model opencode-go/deepseek-v4-pro')} --allow-recent-spawn --wait-ms 2000")
-print("  verify_model_switch_output: " + f"solo-mcp --instance {quote(instance)} process output \"$DESLOP_WORKER_ID\" --project {quote(project_id)} --lines 40")
+print("  verify_model_switch_output: " + f"solo-mcp --instance {quote(instance)} process output \"$DESLOP_WORKER_ID\" --project {quote(project_id)} --lines 40 --full")
 print("  send_deslop_boomerang: " + f"solo-mcp --instance {quote(instance)} process send \"$DESLOP_WORKER_ID\" --project {quote(project_id)} --input {quote(boomerang)}")
 print("  sparse_poll_status: " + f"sleep 90 && solo-mcp --instance {quote(instance)} process status \"$DESLOP_WORKER_ID\" --project {quote(project_id)}")
 print("  sparse_poll_small_output: " + f"solo-mcp --instance {quote(instance)} process output \"$DESLOP_WORKER_ID\" --project {quote(project_id)} --lines 40")
@@ -169,7 +169,13 @@ After spawning, set `DESLOP_WORKER_ID` from the spawn output as shown in the res
 /model opencode-go/deepseek-v4-pro
 ```
 
-Use the rendered `send_model_switch` command for delivery, preserving the slash command exactly. It includes a short bounded wait to reduce racey output checks. Before sending the deslop boomerang, run the rendered `verify_model_switch_output` command and inspect the output for evidence that the model switch completed successfully. If the model switch failed or is unclear, retry `send_model_switch` once and then rerun `verify_model_switch_output`. If the second attempt still fails or remains unclear, do not send the boomerang; escalate with the evidence and ask for direction.
+Use the rendered `send_model_switch` command for delivery, preserving the slash command exactly. It includes a short bounded wait to reduce racey output checks. Before sending the deslop boomerang, run the rendered `verify_model_switch_output` command exactly:
+
+```bash
+solo-mcp --instance <resolved_instance> process output "$DESLOP_WORKER_ID" --project <resolved_project_id> --lines 40 --full
+```
+
+Verify the output shows the worker is on `deepseek-v4-pro`, for example `(opencode-go) deepseek-v4-pro`. Do not use the same command without `--full` for this check. If the model switch failed or is unclear, retry `send_model_switch` once and then rerun `verify_model_switch_output`. If the second check still fails or remains unclear, do not send the boomerang; escalate with the evidence and ask for direction.
 
 ### 2. Send the deslop boomerang command
 
@@ -262,3 +268,33 @@ This deslop pipeline goal is complete only after either:
 - step 6 applies: all queued follow-up issue-doc goals from this process have been executed, the queue is finished, and all follow-up docs are execution-ready.
 
 Before marking complete, perform a completion audit that maps every step above to concrete evidence: commands run, preflight dirty-worktree status, sparse polling status checks, any bounded output reads and why they were needed, worker process id, final worker report capture path, Sentrux baseline and post-deslop comparison, validation results, commits reviewed, issues fixed, review-bucket docs created, review-doc trackability checks, queue items created/executed, and remaining blockers if any and output as table(s) in chat.
+
+Output a final report including a table like this example:
+
+```
+ ┌──────────────────┬─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+ │ Area             │ Evidence                                                                                                        │
+ ├──────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+ │ Worker           │ Solo worker 64                                                                                                  │
+ ├──────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+ │ Commit range     │ 4d6a5e9^..872fdab                                                                                               │
+ ├──────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+ │ Worker commits   │ 9fe6f08 util extraction; 1080218 domain barrel/import cleanup                                                   │
+ ├──────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+ │ Final report     │ /tmp/pi-goals-deslop-pipeline-20260521T145455Z-ccfeb4f8cbf3/deslop-final-output.txt                             │
+ ├──────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+ │ Baseline Sentrux │ Quality 6216, coupling 0.299; /tmp/.../sentrux-baseline.log + .json                                             │
+ ├──────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+ │ Post Sentrux     │ 6227 -> 6278, coupling 0.27 -> 0.27, no degradation                                                             │
+ ├──────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+ │ Validation       │ npm run gates:quality passed; npm run scans:deslop passed                                                       │
+ ├──────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+ │ Review           │ Inspected worker report and commit diffs myself                                                                 │
+ ├──────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+ │ Follow-ups       │ No non-deslop follow-up issue docs needed; only noted pre-existing low-priority inline SHA256 in debug-trace.ts │
+ ├──────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+ │ Worktree         │ Clean                                                                                                           │
+ ├──────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+ │ Queue            │ Original deslop-pipeline orchestration item dequeued after satisfaction                                         │
+ └──────────────────┴─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+```
